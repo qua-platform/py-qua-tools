@@ -5,12 +5,19 @@ description = ""
 authors = ["gal <gal@quantum-machines.co>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 matplotlib = "^3.4.2"
 numpy = "^1.20.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+black = "^21.5b2"
+poethepoet = "^0.10.0"
+
+[tool.poe.tasks]
+format = "black ."
+check_format = "black --check ."
+test = "pytest"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
