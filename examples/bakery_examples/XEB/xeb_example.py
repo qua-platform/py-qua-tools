@@ -1,4 +1,4 @@
-from xeb_utils import XEB
+from qualang_tools.bakery.xeb import XEB
 from xeb_config import config
 from qm import SimulationConfig
 from qm.QmJob import QmJob

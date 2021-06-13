@@ -2,10 +2,8 @@ from qm import SimulationConfig
 from qm.qua import *
 from qm.QmJob import QmJob
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from rb_1qb_configuration import config, pulse_len
-from rb_utils import RBOneQubit
-import matplotlib.pyplot as plt
-
+from RB_1qb_configuration import config, pulse_len
+from qualang_tools.bakery.randomized_benchmark import RBOneQubit
 
 d_max = 300  # Maximum RB sequence length
 K = 1  # Number of RB sequences
@@ -15,7 +13,6 @@ RB_sequences = RB.sequences
 RB_baked_sequences = RB.baked_sequences
 duration_trackers = RB.duration_trackers
 inverse_ops = RB.inverse_ops
-
 
 with program() as RB_prog:
     truncate = declare(int)
@@ -34,7 +31,6 @@ with program() as RB_prog:
 
         inverse_ops_QUA = declare(int, value=inverse_ops[k])
         with for_each_((truncate, inverse_op), (truncate_array, inverse_ops_QUA)):
-
             align("qe1", "rr")
             wait(30, "qe1")
             play(
@@ -58,9 +54,8 @@ with program() as RB_prog:
     with stream_processing():
         out_str.boolean_to_int().buffer(K, d_max).average().save("out_stream")
 
-
 qmm = QuantumMachinesManager()
-job: QmJob = qmm.simulate(config, RB_prog, SimulationConfig(20000))
+job: QmJob = qmm.simulate(config, RB_prog, SimulationConfig(20000), flags=['auto-element-thread'])
 results = job.result_handles
 
 inv = results.inv.fetch_all()["value"]
