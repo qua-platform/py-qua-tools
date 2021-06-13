@@ -4,9 +4,12 @@ from qm.QmJob import QmJob
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from RB_1qb_configuration import config, pulse_len
 from qualang_tools.bakery.randomized_benchmark import RBOneQubit
+import numpy as np
+import matplotlib.pyplot as plt
 
-d_max = 300  # Maximum RB sequence length
-K = 1  # Number of RB sequences
+
+d_max = 100  # Maximum RB sequence length
+K = 4  # Number of RB sequences
 
 RB = RBOneQubit(config, d_max, K, "qe1")
 RB_sequences = RB.sequences
@@ -42,10 +45,11 @@ with program() as RB_prog:
             # Measurement
             measure("readout", "rr", None, integration.full("integW1", I))
             # Active reset
+            assign(state, I > th)
             with if_(state):
                 play("X", "qe1")
 
-            assign(state, I > th)
+
 
             save(state, out_str)
             save(inverse_op, "inv")
@@ -55,22 +59,24 @@ with program() as RB_prog:
         out_str.boolean_to_int().buffer(K, d_max).average().save("out_stream")
 
 qmm = QuantumMachinesManager()
-job: QmJob = qmm.simulate(config, RB_prog, SimulationConfig(20000), flags=['auto-element-thread'])
+qmm.close_all_quantum_machines()
+qm = qmm.open_qm(config)
+job: QmJob = qm.simulate(RB_prog, SimulationConfig(2000))
 results = job.result_handles
 
 inv = results.inv.fetch_all()["value"]
 truncate = results.truncate.fetch_all()["value"]
 
-# # Plot simulated samples
-# samples = job.get_simulated_samples()
-# samples.con1.plot()
-#
-# print('Inversion operations:', inv)
-# print('Truncations indices:', truncate)
-#
-# # Plotting baked RB sequence
-# baked_pulse_I = config["waveforms"]["qe1_baked_wf_I_0"]["samples"]
-# baked_pulse_Q = config["waveforms"]["qe1_baked_wf_Q_0"]["samples"]
-# t = np.arange(0, len(baked_pulse_I), 1)
-# plt.plot(t, baked_pulse_I)
-# plt.plot(t, baked_pulse_Q)
+# Plot simulated samples
+samples = job.get_simulated_samples()
+samples.con1.plot()
+
+print('Inversion operations:', inv)
+print('Truncations indices:', truncate)
+
+# Plotting baked RB sequence
+baked_pulse_I = config["waveforms"]["qe1_baked_wf_I_0"]["samples"]
+baked_pulse_Q = config["waveforms"]["qe1_baked_wf_Q_0"]["samples"]
+t = np.arange(0, len(baked_pulse_I), 1)
+plt.plot(t, baked_pulse_I)
+plt.plot(t, baked_pulse_Q)

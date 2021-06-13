@@ -1,6 +1,4 @@
-from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm.qua import *
-from qm import SimulationConfig
+
 from qualang_tools.bakery import baking
 
 from RamseyGauss_configuration import *

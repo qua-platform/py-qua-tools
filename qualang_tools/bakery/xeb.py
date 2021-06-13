@@ -5,7 +5,6 @@ import numpy as np
 
 rnd_gate_map = {0: "sx", 1: "sy", 2: "sw"}
 
-
 class XEB:
     def __init__(self, config: dict, m_max: int, qe_list: List[str]):
         """
