@@ -40,8 +40,7 @@ def get_config():
     return config
 
 
-
-def simulate_program_and_return(config,prog,duration=20000):
+def simulate_program_and_return(config, prog, duration=20000):
     qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
     job = qmm.simulate(config, prog, SimulationConfig(duration))
@@ -53,12 +52,11 @@ def test_simple_bake():
     config = get_config()
     with baking(config=config) as b:
         for x in range(10):
-            b.add_Op(f'new_op_{x}',"qe1",samples=[1,0,1,0])
-            b.play(f'new_op_{x}',"qe1")
+            b.add_Op(f"new_op_{x}", "qe1", samples=[1, 0, 1, 0])
+            b.play(f"new_op_{x}", "qe1")
 
     with program() as prog:
         b.run()
 
-    samples = simulate_program_and_return(config,prog)
-    assert len(samples.con1.analog['1'])==80000
-
+    samples = simulate_program_and_return(config, prog)
+    assert len(samples.con1.analog["1"]) == 80000

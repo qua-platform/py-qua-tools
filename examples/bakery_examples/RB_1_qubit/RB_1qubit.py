@@ -7,7 +7,6 @@ from qualang_tools.bakery.randomized_benchmark import RBOneQubit
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 d_max = 100  # Maximum RB sequence length
 K = 4  # Number of RB sequences
 
@@ -15,7 +14,13 @@ RB = RBOneQubit(config, d_max, K, "qe1")
 RB_sequences = RB.sequences
 RB_baked_sequences = RB.baked_sequences
 duration_trackers = RB.duration_trackers
-inverse_ops = RB.inverse_ops
+inverse_ops = RB.inverse_ops  # Array of inverse indices
+played_Cliffords = [
+    RB_sequences[k].operations_list for k in range(K)
+]  # List of random ops (strings)
+played_inverse_Ops = [
+    RB.sequences[k].inverse_op_string for k in range(K)
+]  # List of inverse sequences (strings)
 
 with program() as RB_prog:
     truncate = declare(int)
@@ -23,7 +28,7 @@ with program() as RB_prog:
 
     I = declare(fixed)
     th = declare(fixed, value=0.0)
-    state = declare(bool)
+    state = declare(bool, value=False)
 
     out_str = declare_stream()
 
@@ -36,6 +41,11 @@ with program() as RB_prog:
         with for_each_((truncate, inverse_op), (truncate_array, inverse_ops_QUA)):
             align("qe1", "rr")
             wait(30, "qe1")
+            # Active reset
+            assign(state, I > th)
+            with if_(state):
+                play("X", "qe1")
+
             play(
                 RB_baked_sequences[k].operations["qe1"], "qe1", truncate=truncate
             )  # Truncate for RB seq of smaller lengths
@@ -44,12 +54,6 @@ with program() as RB_prog:
             align("qe1", "rr")
             # Measurement
             measure("readout", "rr", None, integration.full("integW1", I))
-            # Active reset
-            assign(state, I > th)
-            with if_(state):
-                play("X", "qe1")
-
-
 
             save(state, out_str)
             save(inverse_op, "inv")
@@ -71,12 +75,13 @@ truncate = results.truncate.fetch_all()["value"]
 samples = job.get_simulated_samples()
 samples.con1.plot()
 
-print('Inversion operations:', inv)
-print('Truncations indices:', truncate)
+print("Inversion operations:", inv)
+print("Truncations indices:", truncate)
 
-# Plotting baked RB sequence
+# Plotting first baked RB sequence
 baked_pulse_I = config["waveforms"]["qe1_baked_wf_I_0"]["samples"]
 baked_pulse_Q = config["waveforms"]["qe1_baked_wf_Q_0"]["samples"]
+plt.figure()
 t = np.arange(0, len(baked_pulse_I), 1)
 plt.plot(t, baked_pulse_I)
 plt.plot(t, baked_pulse_Q)
