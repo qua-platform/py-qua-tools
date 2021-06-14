@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 def baked_cphase(baking: Baking):
-    baking.play('coupler_op', 'coupler')
+    baking.play("coupler_op", "coupler")
 
 
 def sx1(baking: Baking):
@@ -43,19 +43,17 @@ def sw2(baking: Baking):
 
 
 def align_op(baking: Baking):
-    baking.align("q1",
-                 "q2",
-                 "coupler"
-                 )
+    baking.align("q1", "q2", "coupler")
 
 
-xeb = XEB(config,
-          m_max=10,
-          q1_ops=XEBOpsSingleQubit(sx=sx1, sy=sy1, sw=sw1),
-          q2_ops=XEBOpsSingleQubit(sx=sx2, sy=sy2, sw=sw2),
-          two_qubit_op=baked_cphase,
-          align_op=align_op
-          )
+xeb = XEB(
+    config,
+    m_max=10,
+    q1_ops=XEBOpsSingleQubit(sx=sx1, sy=sy1, sw=sw1),
+    q2_ops=XEBOpsSingleQubit(sx=sx2, sy=sy2, sw=sw2),
+    two_qubit_op=baked_cphase,
+    align_op=align_op,
+)
 
 with program() as prog:
     truncate = declare(int)

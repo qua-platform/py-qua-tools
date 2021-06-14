@@ -7,4 +7,12 @@ from qualang_tools.bakery.randomized_benchmark import (
     RBSequence,
 )
 
-__all__ = ["baking", "XEB", "c1_ops", "RBOneQubit", "RBSequence", "find_revert_op", 'XEBOpsSingleQubit']
+__all__ = [
+    "baking",
+    "XEB",
+    "c1_ops",
+    "RBOneQubit",
+    "RBSequence",
+    "find_revert_op",
+    "XEBOpsSingleQubit",
+]
