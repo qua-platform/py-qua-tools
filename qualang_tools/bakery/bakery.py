@@ -9,7 +9,6 @@ from qm import qua
 import copy
 
 
-
 def baking(config, padding_method="right"):
     return Baking(config, padding_method)
 

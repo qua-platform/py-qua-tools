@@ -81,6 +81,8 @@ class RBSequence:
         ] * d_max  # Keeps track of inverse op index associated to each sequence
         self.duration_tracker = [0] * d_max  # Keeps track of each Clifford's duration
         # self.baked_cliffords = self.generate_cliffords()  # List of baking objects for running Cliffords
+        self.operations_list = [None] * d_max
+        self.inverse_op_string = [""] * d_max
         self.sequence = self.generate_RB_sequence()  # Store the RB sequence
 
     def play_revert_op(self, index: int):
@@ -198,6 +200,7 @@ class RBSequence:
 
                 # Play the random Clifford
                 random_clifford = c1_ops[i]
+                self.operations_list[d] = random_clifford
                 for op in random_clifford:
                     b.play(op, self.qubit)
                     self.duration_tracker[
@@ -209,4 +212,5 @@ class RBSequence:
                 else:  # Get the newly transformed state within th Cayley table based on previous step
                     self.state_tracker[d] = c1_table[self.state_tracker[d - 1]][i]
                 self.revert_ops[d] = find_revert_op(self.state_tracker[d])
+                self.inverse_op_string[d] = c1_ops[self.revert_ops[d]]
         return b

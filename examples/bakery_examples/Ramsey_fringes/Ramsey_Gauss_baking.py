@@ -1,4 +1,3 @@
-
 from qualang_tools.bakery import baking
 
 from RamseyGauss_configuration import *
