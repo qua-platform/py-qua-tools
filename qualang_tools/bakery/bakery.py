@@ -45,15 +45,14 @@ class Baking:
 
     def _get_baking_index(self):
         index = 0
-        max_index = 0
+        max_index = [-1]
         for qe in self._config["elements"].keys():
+            index = [-1]
             for op in self._config["elements"][qe]["operations"]:
                 if op.find("baked") != -1:
-                    index += 1
-            if max_index < index:
-                max_index = index
-                index = 0
-        return max_index
+                    index.append(int(op.split("_")[-1]))
+            max_index.append(max(index))
+        return max(max_index) + 1
 
     def _init_dict(self):
         sample_dict = {}
