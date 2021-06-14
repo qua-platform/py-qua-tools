@@ -74,6 +74,7 @@ truncate = results.truncate.fetch_all()["value"]
 # Plot simulated samples
 samples = job.get_simulated_samples()
 samples.con1.plot()
+plt.show()
 
 print("Inversion operations:", inv)
 print("Truncations indices:", truncate)
@@ -85,3 +86,4 @@ plt.figure()
 t = np.arange(0, len(baked_pulse_I), 1)
 plt.plot(t, baked_pulse_I)
 plt.plot(t, baked_pulse_Q)
+plt.show()
