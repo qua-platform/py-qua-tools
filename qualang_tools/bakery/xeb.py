@@ -6,7 +6,7 @@ from entropylab_qpudb import QuaConfig
 from qualang_tools.bakery.bakery import baking, Baking
 import numpy as np
 
-rnd_gate_list = ["sx", "sy", "sw"]
+rnd_gate_list = ["sx", "sy", "sw", "id"]
 
 op_func = Callable[[Baking], None]
 
@@ -20,6 +20,7 @@ class XEBOpsSingleQubit:
     Operations defined in this class correspond to single qubit operations
     """
 
+    id: op_func
     sx: op_func
     sy: op_func
     sw: op_func
@@ -92,6 +93,8 @@ class XEB:
                 self.operations_list["q2"].append(rnd_gate_list[rnd2])
                 self.duration_tracker[i] = max(q1_len, q2_len) + b_2_qubit_len
                 i += 1
+            play_all_ops(b_main, b_q1[3])
+            play_all_ops(b_main, b_q2[3])
         self.duration_tracker = np.cumsum(self.duration_tracker).tolist()
         return b_main
 
