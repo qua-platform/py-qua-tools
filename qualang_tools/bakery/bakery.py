@@ -107,8 +107,9 @@ class Baking:
                     end_samples = len(qe_samples) - wait_duration
 
                 # Padding done according to desired method, can be either right, left, symmetric left or symmetric right
-
-                if self._padding_method == "left":
+                if self._padding_method == "right":
+                    pass
+                elif self._padding_method == "left":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
                             qe_samples["I"][end_samples:]
@@ -123,9 +124,7 @@ class Baking:
                             qe_samples[end_samples:] + qe_samples[0:end_samples]
                         )
 
-                elif (self._padding_method == "symmetric_l") or (
-                    wait_duration % 2 == 0
-                ):
+                elif self._padding_method == "symmetric_l":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
                             qe_samples["I"][end_samples + wait_duration // 2 :]
@@ -559,15 +558,13 @@ class Baking:
                         self._samples_dict[qe]["I"] = (
                             self._samples_dict[qe]["I"] + [0] * duration
                         )
-                        self._samples_dict[qe]["Q"] = (
-                            self._samples_dict[qe]["Q"] + [0] * duration
-                        )
+                        self._samples_dict[qe]["Q"] += [0] * duration
                         self._qe_dict[qe]["phase_track"] += [
                             self._qe_dict[qe]["phase"]
                         ] * duration
 
                     elif "singleInput" in self._local_config["elements"][qe].keys():
-                        self._samples_dict[qe] = self._samples_dict[qe] + [0] * duration
+                        self._samples_dict[qe] += [0] * duration
 
                 self._update_qe_time(qe, duration)
         else:
