@@ -84,17 +84,17 @@ class Baking:
             # in original config file
 
             if (
-                self._qe_dict[qe]["time"] > 0
+                    self._qe_dict[qe]["time"] > 0
             ):  # Check if a sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 if (
-                    self._qe_dict[qe]["time"] < 16
+                        self._qe_dict[qe]["time"] < 16
                 ):  # Sample length must be at least 16 ns long
                     wait_duration += 16 - self._qe_dict[qe]["time"]
                     self.wait(16 - self._qe_dict[qe]["time"], qe)
                 if not (
-                    self._qe_dict[qe]["time"] % 4 == 0
+                        self._qe_dict[qe]["time"] % 4 == 0
                 ):  # Sample length must be a multiple of 4
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
@@ -107,54 +107,53 @@ class Baking:
                     end_samples = len(qe_samples) - wait_duration
 
                 # Padding done according to desired method, can be either right, left, symmetric left or symmetric right
-
-                if self._padding_method == "left":
+                if self._padding_method == "right":
+                    pass
+                elif self._padding_method == "left":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                            qe_samples["I"][end_samples:]
-                            + qe_samples["I"][0:end_samples]
+                                qe_samples["I"][end_samples:]
+                                + qe_samples["I"][0:end_samples]
                         )
                         qe_samples["Q"] = (
-                            qe_samples["Q"][end_samples:]
-                            + qe_samples["Q"][0:end_samples]
+                                qe_samples["Q"][end_samples:]
+                                + qe_samples["Q"][0:end_samples]
                         )
                     elif "singleInput" in elements[qe]:
                         qe_samples = (
-                            qe_samples[end_samples:] + qe_samples[0:end_samples]
+                                qe_samples[end_samples:] + qe_samples[0:end_samples]
                         )
 
-                elif (self._padding_method == "symmetric_l") or (
-                    wait_duration % 2 == 0
-                ):
+                elif self._padding_method == "symmetric_l":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                            qe_samples["I"][end_samples + wait_duration // 2 :]
-                            + qe_samples["I"][0 : end_samples + wait_duration // 2]
+                                qe_samples["I"][end_samples + wait_duration // 2:]
+                                + qe_samples["I"][0: end_samples + wait_duration // 2]
                         )
                         qe_samples["Q"] = (
-                            qe_samples["Q"][end_samples + wait_duration // 2 :]
-                            + qe_samples["Q"][0 : end_samples + wait_duration // 2]
+                                qe_samples["Q"][end_samples + wait_duration // 2:]
+                                + qe_samples["Q"][0: end_samples + wait_duration // 2]
                         )
                     elif "singleInput" in elements[qe]:
                         qe_samples = (
-                            qe_samples[end_samples + wait_duration // 2 :]
-                            + qe_samples[0 : end_samples + wait_duration // 2]
+                                qe_samples[end_samples + wait_duration // 2:]
+                                + qe_samples[0: end_samples + wait_duration // 2]
                         )
 
                 elif self._padding_method == "symmetric_r":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                            qe_samples["I"][end_samples + wait_duration // 2 + 1 :]
-                            + qe_samples["I"][0 : end_samples + wait_duration // 2 + 1]
+                                qe_samples["I"][end_samples + wait_duration // 2 + 1:]
+                                + qe_samples["I"][0: end_samples + wait_duration // 2 + 1]
                         )
                         qe_samples["Q"] = (
-                            qe_samples["Q"][end_samples + wait_duration // 2 + 1 :]
-                            + qe_samples["Q"][0 : end_samples + wait_duration // 2 + 1]
+                                qe_samples["Q"][end_samples + wait_duration // 2 + 1:]
+                                + qe_samples["Q"][0: end_samples + wait_duration // 2 + 1]
                         )
                     elif "singleInput" in elements[qe]:
                         qe_samples = (
-                            qe_samples[end_samples + wait_duration // 2 + 1 :]
-                            + qe_samples[0 : end_samples + wait_duration // 2 + 1]
+                                qe_samples[end_samples + wait_duration // 2 + 1:]
+                                + qe_samples[0: end_samples + wait_duration // 2 + 1]
                         )
 
                 # Generates new Op, pulse, and waveform for each qe to be added in the original config file
@@ -202,8 +201,8 @@ class Baking:
                 wf = self._local_config["pulses"][pulse]["waveforms"]["single"]
                 if self._local_config["waveforms"][wf]["type"] == "constant":
                     return [
-                        self._local_config["waveforms"][wf]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
+                               self._local_config["waveforms"][wf]["sample"]
+                           ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     return list(self._local_config["waveforms"][wf]["samples"])
             elif "I" in self._local_config["pulses"][pulse]["waveforms"]:
@@ -211,14 +210,14 @@ class Baking:
                 wf_Q = self._local_config["pulses"][pulse]["waveforms"]["Q"]
                 if self._local_config["waveforms"][wf_I]["type"] == "constant":
                     samples_I = [
-                        self._local_config["waveforms"][wf_I]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
+                                    self._local_config["waveforms"][wf_I]["sample"]
+                                ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     samples_I = list(self._local_config["waveforms"][wf_I]["samples"])
                 if self._local_config["waveforms"][wf_Q]["type"] == "constant":
                     samples_Q = [
-                        self._local_config["waveforms"][wf_Q]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
+                                    self._local_config["waveforms"][wf_Q]["sample"]
+                                ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     samples_Q = list(self._local_config["waveforms"][wf_Q]["samples"])
                 return [samples_I, samples_Q]
@@ -446,10 +445,10 @@ class Baking:
                     for i in range(len(I)):
                         if t + i < len(self._samples_dict[qe]["I"]):
                             I2[i] = (
-                                np.cos(phi[t + i]) * I[i] - np.sin(phi[t + i]) * Q[i]
+                                    np.cos(phi[t + i]) * I[i] - np.sin(phi[t + i]) * Q[i]
                             )
                             Q2[i] = (
-                                np.sin(phi[t + i]) * I[i] + np.cos(phi[t + i]) * Q[i]
+                                    np.sin(phi[t + i]) * I[i] + np.cos(phi[t + i]) * Q[i]
                             )
                             self._samples_dict[qe]["I"][t + i] += amp * I2[i]
                             self._samples_dict[qe]["Q"][t + i] += amp * Q2[i]
@@ -557,17 +556,13 @@ class Baking:
                 if qe in self._samples_dict.keys():
                     if "mixInputs" in self._local_config["elements"][qe].keys():
                         self._samples_dict[qe]["I"] = (
-                            self._samples_dict[qe]["I"] + [0] * duration
+                                self._samples_dict[qe]["I"] + [0] * duration
                         )
-                        self._samples_dict[qe]["Q"] = (
-                            self._samples_dict[qe]["Q"] + [0] * duration
-                        )
-                        self._qe_dict[qe]["phase_track"] += [
-                            self._qe_dict[qe]["phase"]
-                        ] * duration
+                        self._samples_dict[qe]["Q"] += [0] * duration
+                        self._qe_dict[qe]["phase_track"] += [self._qe_dict[qe]["phase"]] * duration
 
                     elif "singleInput" in self._local_config["elements"][qe].keys():
-                        self._samples_dict[qe] = self._samples_dict[qe] + [0] * duration
+                        self._samples_dict[qe] += [0] * duration
 
                 self._update_qe_time(qe, duration)
         else:
