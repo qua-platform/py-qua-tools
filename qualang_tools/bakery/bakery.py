@@ -125,7 +125,6 @@ class Baking:
                     elif "singleInput" in elements[qe]:
                         qe_samples["single"] = qe_samples["single"][end_samples:] + qe_samples["single"][0:end_samples]
 
-
                 elif self._padding_method == "symmetric_l":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = qe_samples["I"][end_samples + wait_duration // 2:] \
@@ -536,10 +535,10 @@ class Baking:
 
         self._update_qe_phase(qe, 2 * np.pi * angle)
 
-    def update_frequency(self, qe: str, freq: int):
+    def set_detuning(self, qe: str, freq: int):
         """Update frequency by adding detuning to original IF set in the config
         :param qe quantum element
-        :param freq frequency (in Hz)
+        :param freq frequency of the detuning (in Hz)
         """
         self._qe_dict[qe]["freq"] = freq
 
@@ -570,7 +569,7 @@ class Baking:
         self._qe_dict[qe]["time"] += dt
 
     def _update_qe_phase(self, qe: str, phi: float):
-        self._qe_dict[qe]["phase"] = phi
+        self._qe_dict[qe]["phase"] += phi
 
     def wait(self, duration: int, *qe_set: str):
         """
@@ -622,22 +621,60 @@ class Baking:
             if qe != last_qe:
                 self.wait(last_t - qe_t, qe)
 
-    def run(self) -> None:
+    def run(self, amp_array=None, trunc_array=None) -> None:
         """
         Plays the baked waveform
         This method should be used within a QUA program
+        :param amp_array list of tuples for amplitudes (e.g [(qe1, amp1), (qe2, amp2)] ), each amplitude must be a scalar
+        :param trunc_array list of tuples for truncations (e.g [(qe1, amp1), (qe2, amp2)] ), each truncation must be a
+         int or QUA int
         :return None
         """
-        qe_set = self.get_qe_set()
 
-        if len(qe_set) == 1:
-            for qe in qe_set:
-                qua.play(f"baked_Op_{self._ctr}", qe)
+        qe_set = self.get_qe_set()
+        if len(qe_set) > 1:
+            qua.align(*qe_set)
+        if trunc_array is None:
+            if amp_array is None:
+                for qe in qe_set:
+                    qua.play(f"baked_Op_{self._ctr}", qe)
+                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+
+            else:
+                for qe in qe_set:
+                    if not (qe in list(zip(*amp_array))[0]):
+                        qua.play(f"baked_Op_{self._ctr}", qe)
+
+                    else:
+                        index2 = list(zip(*amp_array))[0].index(qe)
+                        amp = list(zip(*amp_array))[1][index2]
+                        if amp == list:
+                            raise TypeError("Amplitude can only be a number (either Python or QUA variable")
+                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
+                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
         else:
-            qua.align(*qe_set)
             for qe in qe_set:
-                qua.play(f"baked_Op_{self._ctr}", qe)
+                if qe not in list(zip(*trunc_array))[0]:
+                    trunc_array.append((qe, None))
+                index = list(zip(*trunc_array))[0].index(qe)
+                trunc = list(zip(*trunc_array))[1][index]
+                if amp_array is None:
+                    qua.play(f"baked_Op_{self._ctr}", qe, truncate=trunc)
+
+                else:
+
+                    if not (qe in list(zip(*amp_array))[0]):
+                        qua.play(f"baked_Op_{self._ctr}", qe, truncate=trunc)
+
+                    else:
+                        index2 = list(zip(*amp_array))[0].index(qe)
+                        amp = list(zip(*amp_array))[1][index2]
+                        if amp == list:
+                            raise TypeError("Amplitude can only be a number (either Python or QUA variable")
+                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
+
+                qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
 
 def deterministic_run(baking_list, j):
