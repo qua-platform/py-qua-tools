@@ -60,7 +60,7 @@ class Baking:
         for qe in self._config["elements"].keys():
             qe_dict[qe] = {
                 "time": 0,
-                "phase": 0.,
+                "phase": 0.0,
                 "freq": 0,
                 "time_track": 0,
                 "phase_track": [0],
@@ -87,17 +87,17 @@ class Baking:
             # in original config file
 
             if (
-                    self._qe_dict[qe]["time"] > 0
+                self._qe_dict[qe]["time"] > 0
             ):  # Check if a sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 if (
-                        self._qe_dict[qe]["time"] < 16
+                    self._qe_dict[qe]["time"] < 16
                 ):  # Sample length must be at least 16 ns long
                     wait_duration += 16 - self._qe_dict[qe]["time"]
                     self.wait(16 - self._qe_dict[qe]["time"], qe)
                 if not (
-                        self._qe_dict[qe]["time"] % 4 == 0
+                    self._qe_dict[qe]["time"] % 4 == 0
                 ):  # Sample length must be a multiple of 4
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
@@ -115,42 +115,53 @@ class Baking:
                 elif self._padding_method == "left":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                                qe_samples["I"][end_samples:]
-                                + qe_samples["I"][0:end_samples]
+                            qe_samples["I"][end_samples:]
+                            + qe_samples["I"][0:end_samples]
                         )
                         qe_samples["Q"] = (
-                                qe_samples["Q"][end_samples:]
-                                + qe_samples["Q"][0:end_samples]
+                            qe_samples["Q"][end_samples:]
+                            + qe_samples["Q"][0:end_samples]
                         )
                     elif "singleInput" in elements[qe]:
-                        qe_samples["single"] = qe_samples["single"][end_samples:] + qe_samples["single"][0:end_samples]
+                        qe_samples["single"] = (
+                            qe_samples["single"][end_samples:]
+                            + qe_samples["single"][0:end_samples]
+                        )
 
                 elif self._padding_method == "symmetric_l":
                     if "mixInputs" in elements[qe]:
-                        qe_samples["I"] = qe_samples["I"][end_samples + wait_duration // 2:] \
-                                          + qe_samples["I"][0: end_samples + wait_duration // 2]
+                        qe_samples["I"] = (
+                            qe_samples["I"][end_samples + wait_duration // 2 :]
+                            + qe_samples["I"][0 : end_samples + wait_duration // 2]
+                        )
 
-                        qe_samples["Q"] = qe_samples["Q"][end_samples + wait_duration // 2:] + \
-                                          qe_samples["Q"][0: end_samples + wait_duration // 2]
+                        qe_samples["Q"] = (
+                            qe_samples["Q"][end_samples + wait_duration // 2 :]
+                            + qe_samples["Q"][0 : end_samples + wait_duration // 2]
+                        )
 
                     elif "singleInput" in elements[qe]:
-                        qe_samples["single"] = qe_samples["single"][end_samples + wait_duration // 2:]\
-                                               + qe_samples["single"][0: end_samples + wait_duration // 2]
+                        qe_samples["single"] = (
+                            qe_samples["single"][end_samples + wait_duration // 2 :]
+                            + qe_samples["single"][0 : end_samples + wait_duration // 2]
+                        )
 
                 elif self._padding_method == "symmetric_r":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                                qe_samples["I"][end_samples + wait_duration // 2 + 1:]
-                                + qe_samples["I"][0: end_samples + wait_duration // 2 + 1]
+                            qe_samples["I"][end_samples + wait_duration // 2 + 1 :]
+                            + qe_samples["I"][0 : end_samples + wait_duration // 2 + 1]
                         )
                         qe_samples["Q"] = (
-                                qe_samples["Q"][end_samples + wait_duration // 2 + 1:]
-                                + qe_samples["Q"][0: end_samples + wait_duration // 2 + 1]
+                            qe_samples["Q"][end_samples + wait_duration // 2 + 1 :]
+                            + qe_samples["Q"][0 : end_samples + wait_duration // 2 + 1]
                         )
                     elif "singleInput" in elements[qe]:
                         qe_samples["single"] = (
-                                qe_samples["single"][end_samples + wait_duration // 2 + 1:]
-                                + qe_samples["single"][0: end_samples + wait_duration // 2 + 1]
+                            qe_samples["single"][end_samples + wait_duration // 2 + 1 :]
+                            + qe_samples["single"][
+                                0 : end_samples + wait_duration // 2 + 1
+                            ]
                         )
 
                 # Generates new Op, pulse, and waveform for each qe to be added in the original config file
@@ -198,8 +209,8 @@ class Baking:
                 wf = self._local_config["pulses"][pulse]["waveforms"]["single"]
                 if self._local_config["waveforms"][wf]["type"] == "constant":
                     return [
-                               self._local_config["waveforms"][wf]["sample"]
-                           ] * self._local_config["pulses"][pulse]["length"]
+                        self._local_config["waveforms"][wf]["sample"]
+                    ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     return list(self._local_config["waveforms"][wf]["samples"])
             elif "I" in self._local_config["pulses"][pulse]["waveforms"]:
@@ -207,14 +218,14 @@ class Baking:
                 wf_Q = self._local_config["pulses"][pulse]["waveforms"]["Q"]
                 if self._local_config["waveforms"][wf_I]["type"] == "constant":
                     samples_I = [
-                                    self._local_config["waveforms"][wf_I]["sample"]
-                                ] * self._local_config["pulses"][pulse]["length"]
+                        self._local_config["waveforms"][wf_I]["sample"]
+                    ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     samples_I = list(self._local_config["waveforms"][wf_I]["samples"])
                 if self._local_config["waveforms"][wf_Q]["type"] == "constant":
                     samples_Q = [
-                                    self._local_config["waveforms"][wf_Q]["sample"]
-                                ] * self._local_config["pulses"][pulse]["length"]
+                        self._local_config["waveforms"][wf_Q]["sample"]
+                    ] * self._local_config["pulses"][pulse]["length"]
                 else:
                     samples_Q = list(self._local_config["waveforms"][wf_Q]["samples"])
                 return [samples_I, samples_Q]
@@ -276,7 +287,13 @@ class Baking:
                     self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"]
                 )
 
-    def add_Op(self, name: str, qe: str, samples: Union[list, list[list]], digital_marker: str = None):
+    def add_Op(
+        self,
+        name: str,
+        qe: str,
+        samples: Union[list, list[list]],
+        digital_marker: str = None,
+    ):
         """
         Adds in the configuration file a pulse element.
         :param name: name of the Operation to be added for the quantum element
@@ -291,9 +308,13 @@ class Baking:
         waveform = {}
         if "mixInputs" in self._local_config["elements"][qe]:
             if len(samples) != 2:
-                raise TypeError(f"Number of provided samples not compatible with element {qe}")
+                raise TypeError(
+                    f"Number of provided samples not compatible with element {qe}"
+                )
             if len(samples[0]) != len(samples[1]):
-                raise IndexError("Error : samples provided for I and Q do not have the same length")
+                raise IndexError(
+                    "Error : samples provided for I and Q do not have the same length"
+                )
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -322,7 +343,9 @@ class Baking:
 
         elif "singleInput" in self._local_config["elements"][qe]:
             if type(samples[0]) != float or type(samples[0]) != int:
-                raise TypeError(f"Number of provided samples not compatible with element {qe}")
+                raise TypeError(
+                    f"Number of provided samples not compatible with element {qe}"
+                )
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -384,12 +407,20 @@ class Baking:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
                         elif len(amp) != 4 or type(amp) != list:
-                            raise IndexError("Amplitudes provided must be stored in a list [v00, v01, v10, v11]")
+                            raise IndexError(
+                                "Amplitudes provided must be stored in a list [v00, v01, v10, v11]"
+                            )
                         else:
                             I2[i] = amp[0] * I[i] + amp[1] * Q[i]
                             Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
-                        I3[i] = np.cos(freq * i * 1e-9 + phi) * I2[i] - np.sin(freq * i * 1e-9 + phi) * Q2[i]
-                        Q3[i] = np.sin(freq * i * 1e-9 + phi) * I2[i] + np.cos(freq * i * 1e-9 + phi) * Q2[i]
+                        I3[i] = (
+                            np.cos(freq * i * 1e-9 + phi) * I2[i]
+                            - np.sin(freq * i * 1e-9 + phi) * Q2[i]
+                        )
+                        Q3[i] = (
+                            np.sin(freq * i * 1e-9 + phi) * I2[i]
+                            + np.cos(freq * i * 1e-9 + phi) * Q2[i]
+                        )
 
                         self._samples_dict[qe]["I"].append(I3[i])
                         self._samples_dict[qe]["Q"].append(Q3[i])
@@ -404,7 +435,9 @@ class Baking:
                             f"Error : samples given do not correspond to singleInput for element {qe} "
                         )
                     for i in range(len(samples)):
-                        self._samples_dict[qe]["single"].append(amp * np.cos(freq * i * 1e-9 + phi) * samples[i])
+                        self._samples_dict[qe]["single"].append(
+                            amp * np.cos(freq * i * 1e-9 + phi) * samples[i]
+                        )
                         self._qe_dict[qe]["phase_track"].append(phi)
                         self._qe_dict[qe]["freq_track"].append(freq)
                     self._update_qe_time(qe, len(samples))
@@ -453,9 +486,16 @@ class Baking:
                             f"Error : samples given do not correspond to mixInputs for element {qe}"
                         )
                     elif len(samples[0]) != len(samples[1]):
-                        raise IndexError("Error : samples provided for I and Q do not have the same length")
+                        raise IndexError(
+                            "Error : samples provided for I and Q do not have the same length"
+                        )
                     I, Q = samples[0], samples[1]
-                    I2, Q2, I3, Q3 = [None] * len(I), [None] * len(I), [None] * len(I), [None] * len(I)
+                    I2, Q2, I3, Q3 = (
+                        [None] * len(I),
+                        [None] * len(I),
+                        [None] * len(I),
+                        [None] * len(I),
+                    )
                     phi = self._qe_dict[qe]["phase_track"]
                     freq = self._qe_dict[qe]["freq_track"]
                     for i in range(len(I)):
@@ -464,23 +504,39 @@ class Baking:
                             Q2[i] = amp * Q[i]
                         else:
                             if len(amp) != 4 or type(amp) != List:
-                                raise IndexError("Amplitudes provided must be stored in a list [v00, v01, v10, v11]")
+                                raise IndexError(
+                                    "Amplitudes provided must be stored in a list [v00, v01, v10, v11]"
+                                )
                             else:
                                 I2[i] = amp[0] * I[i] + amp[1] * Q[i]
                                 Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
                         if t + i < len(self._samples_dict[qe]["I"]):
-                            I3[i] = np.cos(freq[t + i] * (t + i) * 1e-9 + phi[t + i]) * I2[i] - np.sin(
-                                freq[t + i] * (t + i) * 1e-9 + phi[t + i]) * Q2[i]
-                            Q3[i] = np.sin(freq[t + i] * (t + i) * 1e-9 + phi[t + i]) * I2[i] + np.cos(
-                                freq[t + i] * (t + i) * 1e-9 + phi[t + i]) * Q2[i]
+                            I3[i] = (
+                                np.cos(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                * I2[i]
+                                - np.sin(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                * Q2[i]
+                            )
+                            Q3[i] = (
+                                np.sin(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                * I2[i]
+                                + np.cos(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                * Q2[i]
+                            )
 
                             self._samples_dict[qe]["I"][t + i] += I3[i]
                             self._samples_dict[qe]["Q"][t + i] += Q3[i]
                         else:
                             phi = self._qe_dict[qe]["phase"]
                             freq = self._qe_dict[qe]["freq"]
-                            I3[i] = np.cos(freq * i * 1e-9 + phi) * I2[i] - np.sin(freq * i * 1e-9 + phi) * Q2[i]
-                            Q3[i] = np.sin(freq * i * 1e-9 + phi) * I2[i] + np.cos(freq * i * 1e-9 + phi) * Q2[i]
+                            I3[i] = (
+                                np.cos(freq * i * 1e-9 + phi) * I2[i]
+                                - np.sin(freq * i * 1e-9 + phi) * Q2[i]
+                            )
+                            Q3[i] = (
+                                np.sin(freq * i * 1e-9 + phi) * I2[i]
+                                + np.cos(freq * i * 1e-9 + phi) * Q2[i]
+                            )
 
                             self._samples_dict[qe]["I"].append(I3[i])
                             self._samples_dict[qe]["Q"].append(Q3[i])
@@ -497,9 +553,11 @@ class Baking:
                         )
                     for i in range(len(samples)):
                         if t + i < len(self._samples_dict[qe]):
-                            phi = self._qe_dict[qe]["phase_track"][t+i]
-                            freq = self._qe_dict[qe]["freq_track"][t+i]
-                            self._samples_dict[qe]["single"][t + i] += amp * np.cos(freq * (t+i) * 1e-9 + phi) * samples[i]
+                            phi = self._qe_dict[qe]["phase_track"][t + i]
+                            freq = self._qe_dict[qe]["freq_track"][t + i]
+                            self._samples_dict[qe]["single"][t + i] += (
+                                amp * np.cos(freq * (t + i) * 1e-9 + phi) * samples[i]
+                            )
                         else:
                             phi = self._qe_dict[qe]["phase"]
                             freq = self._qe_dict[qe]["freq"]
@@ -584,8 +642,12 @@ class Baking:
             for qe in qe_set:
                 if qe in self._samples_dict.keys():
 
-                    self._qe_dict[qe]["phase_track"] += [self._qe_dict[qe]["phase"]] * duration
-                    self._qe_dict[qe]["freq_track"] += [self._qe_dict[qe]["freq"]] * duration
+                    self._qe_dict[qe]["phase_track"] += [
+                        self._qe_dict[qe]["phase"]
+                    ] * duration
+                    self._qe_dict[qe]["freq_track"] += [
+                        self._qe_dict[qe]["freq"]
+                    ] * duration
                     if "mixInputs" in self._local_config["elements"][qe].keys():
                         self._samples_dict[qe]["I"] += [0] * duration
                         self._samples_dict[qe]["Q"] += [0] * duration
@@ -649,7 +711,9 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if amp == list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable")
+                            raise TypeError(
+                                "Amplitude can only be a number (either Python or QUA variable"
+                            )
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
                     qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
@@ -670,8 +734,12 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if amp == list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable")
-                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
+                            raise TypeError(
+                                "Amplitude can only be a number (either Python or QUA variable"
+                            )
+                        qua.play(
+                            f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc
+                        )
 
                 qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
