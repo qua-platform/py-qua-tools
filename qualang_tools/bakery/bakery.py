@@ -606,7 +606,7 @@ class Baking:
         :param qe_set: Set[str] of quantum elements
         """
         for qe in qe_set:
-            self._update_qe_phase(qe, - self._qe_dict[qe]["phase"])
+            self._update_qe_phase(qe, -self._qe_dict[qe]["phase"])
 
     def ramp(self, amp: float, duration: int, qe: str):
         """
