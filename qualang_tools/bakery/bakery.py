@@ -297,7 +297,7 @@ class Baking:
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
-                    "length": len(samples),
+                    "length": len(samples[0]),
                     "waveforms": {
                         "I": f"{qe}_baked_b{self._ctr}_{index}_wf_I",
                         "Q": f"{qe}_baked_b{self._ctr}_{index}_wf_Q",
@@ -378,7 +378,7 @@ class Baking:
                     Q2 = [None] * len(Q)
                     I3 = [None] * len(I)
                     Q3 = [None] * len(Q)
-                    print(freq, phi)
+
                     for i in range(len(I)):
                         if type(amp) == float or type(amp) == int:
                             I2[i] = amp * I[i]
@@ -624,7 +624,7 @@ class Baking:
     def run(self, amp_array=None, trunc_array=None) -> None:
         """
         Plays the baked waveform
-        This method should be used within a QUA program
+        This method must be used within a QUA program
         :param amp_array list of tuples for amplitudes (e.g [(qe1, amp1), (qe2, amp2)] ), each amplitude must be a scalar
         :param trunc_array list of tuples for truncations (e.g [(qe1, amp1), (qe2, amp2)] ), each truncation must be a
          int or QUA int
@@ -663,7 +663,6 @@ class Baking:
                     qua.play(f"baked_Op_{self._ctr}", qe, truncate=trunc)
 
                 else:
-
                     if not (qe in list(zip(*amp_array))[0]):
                         qua.play(f"baked_Op_{self._ctr}", qe, truncate=trunc)
 

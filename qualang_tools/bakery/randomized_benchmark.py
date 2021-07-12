@@ -36,7 +36,6 @@ c1_ops = [  # Clifford operations
 
 csv = pkg_resources.open_text(bakery_resources, "c1_cayley_table.csv")
 
-
 c1_table = pd.read_csv(csv).to_numpy()[:, 1:]
 
 
@@ -67,33 +66,34 @@ def find_revert_op(input_state_index: int):
             return i
 
 
+def play_revert_op(index: int, baked_cliffords):
+    """Plays an operation resetting qubit in its ground state based on the
+    transformation provided by the index in Cayley table (switch using baked Cliffords)
+    :param index index of the transformed qubit state"""
+
+    with switch_(index):
+        for i in range(len(baked_cliffords)):
+            with case_(i):
+                baked_cliffords[i].run()
+
+
 class RBSequence:
     def __init__(self, config: dict, d_max: int, qubit: str):
         self.d_max = d_max
         self.config = config
         self.qubit = qubit
         self.state_tracker = [
-            0
-        ] * d_max  # Keeps track of all transformations done on qubit state
+                                 0
+                             ] * d_max  # Keeps track of all transformations done on qubit state
         self.state_init = 0
         self.revert_ops = [
-            0
-        ] * d_max  # Keeps track of inverse op index associated to each sequence
+                              0
+                          ] * d_max  # Keeps track of inverse op index associated to each sequence
         self.duration_tracker = [0] * d_max  # Keeps track of each Clifford's duration
         # self.baked_cliffords = self.generate_cliffords()  # List of baking objects for running Cliffords
         self.operations_list = [None] * d_max
         self.inverse_op_string = [""] * d_max
         self.sequence = self.generate_RB_sequence()  # Store the RB sequence
-
-    def play_revert_op(self, index: int):
-        """Plays an operation resetting qubit in its ground state based on the
-        transformation provided by the index in Cayley table (switch using baked Cliffords)
-        :param index index of the transformed qubit state"""
-
-        with switch_(index):
-            for i in range(len(self.baked_cliffords)):
-                with case_(i):
-                    self.baked_cliffords[i].run()
 
     def play_revert_op2(self, index: int):
         """Plays an operation resetting qubit in its ground state based on the
@@ -196,7 +196,7 @@ class RBSequence:
                 if d > 0:
                     self.duration_tracker[d] = self.duration_tracker[
                         d - 1
-                    ]  # Set duration to value of the sequence step
+                        ]  # Set duration to value of the sequence step
 
                 # Play the random Clifford
                 random_clifford = c1_ops[i]

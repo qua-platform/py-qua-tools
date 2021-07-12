@@ -46,9 +46,10 @@ with program() as RB_prog:
             with if_(state):
                 play("X", "qe1")
 
-            play(
-                RB_baked_sequences[k].operations["qe1"], "qe1", truncate=truncate
-            )  # Truncate for RB seq of smaller lengths
+            # play(
+            #     RB_baked_sequences[k].operations["qe1"], "qe1", truncate=truncate
+            # )  # Truncate for RB seq of smaller lengths
+            RB_baked_sequences[k].run(trunc_array=[("qe1", truncate)])
             RB_sequences[k].play_revert_op2(inverse_op)
 
             align("qe1", "rr")
@@ -78,6 +79,8 @@ plt.show()
 
 print("Inversion operations:", inv)
 print("Truncations indices:", truncate)
+print(played_Cliffords)
+print(played_inverse_Ops)
 
 # Plotting first baked RB sequence
 baked_pulse_I = config["waveforms"]["qe1_baked_wf_I_0"]["samples"]
