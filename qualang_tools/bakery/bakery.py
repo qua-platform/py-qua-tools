@@ -424,7 +424,6 @@ class Baking:
 
                         self._samples_dict[qe]["I"].append(I3[i])
                         self._samples_dict[qe]["Q"].append(Q3[i])
-
                         self._qe_dict[qe]["phase_track"].append(phi)
                         self._qe_dict[qe]["freq_track"].append(freq)
                     self._update_qe_time(qe, len(I))
@@ -712,7 +711,7 @@ class Baking:
                         amp = list(zip(*amp_array))[1][index2]
                         if amp == list:
                             raise TypeError(
-                                "Amplitude can only be a number (either Python or QUA variable"
+                                "Amplitude can only be a number (either Python or QUA variable)"
                             )
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
                     qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
@@ -735,7 +734,7 @@ class Baking:
                         amp = list(zip(*amp_array))[1][index2]
                         if amp == list:
                             raise TypeError(
-                                "Amplitude can only be a number (either Python or QUA variable"
+                                "Amplitude can only be a number (either Python or QUA variable)"
                             )
                         qua.play(
                             f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc

@@ -52,14 +52,11 @@ Drive_correction_matrix = IQ_imbalance_corr(Drive_g, Drive_phi)
 Input1_offset = 0.0
 Input2_offset = 0.0
 
-number_of_pulses = 32
-angle = np.pi / 4 + 0.65
+
 dephasing0 = 0  # phase at the origin of the 2nd Tpihalf gauss pulse
-npts = 48
 Tpihalf = 32
 wait_time_cc = 100
-npts = 48
-dmax = int(npts / 4)
+
 amplitude_pihalf = 1
 drive_cc = int(Tpihalf / 4) + 4  # 12cc = 48ns for Tpihalf=32
 if_freq = 31.25e6
@@ -75,9 +72,7 @@ config = {
                 2: {"offset": Resonator_Q0},  # Resonator Q
                 3: {"offset": Drive_I0},  # Drive I
                 4: {"offset": Drive_Q0},  # Drive Q
-                5: {
-                    "offset": 0
-                },  # Drive LO amplitude modulation ---------------> SHOULD BE A DIGITAL OUTPUT
+                5: {"offset": 0},
             },
             "digital_outputs": {
                 1: {},  # Resonator digital marker

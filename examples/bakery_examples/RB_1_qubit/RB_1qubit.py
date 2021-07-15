@@ -45,10 +45,6 @@ with program() as RB_prog:
             assign(state, I > th)
             with if_(state):
                 play("X", "qe1")
-
-            # play(
-            #     RB_baked_sequences[k].operations["qe1"], "qe1", truncate=truncate
-            # )  # Truncate for RB seq of smaller lengths
             RB_baked_sequences[k].run(trunc_array=[("qe1", truncate)])
             RB_sequences[k].play_revert_op2(inverse_op)
 

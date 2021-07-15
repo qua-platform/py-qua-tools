@@ -6,7 +6,7 @@ Waveform baking is embedded into a new context manager, declared prior to the QU
 
 - the configuration dictionary (the same used to initialize a Quantum Machine instance),
 
-- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”.  This string indicates how should the samples be filled up with 0s when they do not correspond to a usual sample (that is if sample length is not a multiple of 4 or if it is shorter than 16 ns). 
+- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”.  This string indicates how the should samples be filled up with 0s when they do not correspond to a usual sample (that is if sample length is not a multiple of 4 or if it is shorter than 16 ns). 
 
     -  “right” setting is the default setting and pads 0s at the end of the baked sample to insert a QUA compatible version in the original configuration file
 
@@ -25,7 +25,13 @@ with baking(config, padding_method = "symmetric_r") as b:
   b.ramp(amp=0.3, duration=9, qe="qe1")
 ```
 
-This context manager does not return any output, its execution results in an edition of the configuration file provided as input to add an operation to all quantum elements involved in the commands inserted in the baking, an associated pulse, and finally an associated waveform that contains the operations indicated in the context manager, and has the property of being appropriately sorted such that a QUA program can execute such sample in one play command, instead of having to run different commands that would not correspond to the criteria mentioned above for sample length.  The baking also carries advantages for an efficient program memory management, in the sense that there are less commands and different samples to be stored in memory to execute the program.
+This context manager does not return any output, its execution results in an edition of the configuration file provided as input to add:
+- an operation for each quantum element involved within the baking context manager
+- an associated pulse
+- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing  sample(s) issued from concatenation of operations indicated in the context manager.
+  
+The baking also carries advantages for an efficient program memory management,
+in the sense that there are less commands and different samples to be stored in memory to execute the program.
 
 # **How can I add operations inside the baking context manager?**
 
@@ -35,9 +41,9 @@ For playing custom operations, from an arbitrary shaped waveform the procedure g
 
 1. You first have to write down the sample you want to use as a waveform (with arbitrary length, no matter if it does not match usual QUA criteria for saving a waveform in memory) in the form of a Python list.
     - If the sample is meant for a singleInput element, the list should contain the sample itself. 
-    - Contrariwise, if it is intended for a mixInputs element, the list should contain two Python lists as [sample_I, sample_Q], where sample_I and sample_Q are themselves Python lists containing the samples.
+    - Contrariwise, if it is intended for a mixInputs element, the list should contain two Python lists as ```[sample_I, sample_Q]``` , where sample_I and sample_Q are themselves Python lists containing the samples.
 
-2. Add the sample to the local configuration, with method **add_Op**, which takes 4 inputs: 
+2. Add the sample to the local configuration, with method ```add_Op```, which takes 4 inputs: 
     - The name of the operation (name you will use only within the baking context manager in a play statement)
     - The quantum element for which you want to add the operation
     - The samples to store as waveforms
@@ -81,6 +87,17 @@ with baking(config, "left"):
 with program() as QUA_prog:
   b.run()
 ```
+
+As in QUA, you can still modulate in real time (using QUA variables) properties of the pulse like its amplitude or a truncate.
+You can indeed pass into a set of two lists, parameters for truncating pulses and for amplitude modulation. The syntax goes as follows:
+```
+with program() as QUA_prog:
+    truncate = declare(int, value = 18)
+    amp = declare(fixed, value = 0.4)
+    b.run(amp_array = [(qe1, amp), (qe2, 0.5)], truncate_array = [(qe1, truncate), (qe3, 74)]) 
+```
+Note that you do not have to provide tuples for every quantum element. The parameters you can pass can either Python or QUA variables. Beware though, you should make sure that the elements
+indicated in the parameter arrays are actually used within the baking context manager.
 # **Additional features of the baking environment**
 
 The baking aims to be as versatile as possible in the way of editing samples. The idea is therefore to generate desired samples up to the precision of the nanosecond, without having to worry about its format and its insertion in the configuration file. It is even possible to generate a sample based on two previous samples (like a pulse superposition) by using two commands introduced in the baking: ``play_at()`` and ``negative_wait()``.
