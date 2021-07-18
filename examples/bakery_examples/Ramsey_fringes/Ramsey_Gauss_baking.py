@@ -6,7 +6,6 @@ from qm import SimulationConfig, LoopbackInterface
 from matplotlib import pyplot as plt
 
 number_of_pulses = 32
-angle = np.pi / 4 + 0.65
 npts = 48
 dmax = int(npts / 4)
 
@@ -57,8 +56,6 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
     I_stream = declare_stream()
     Q_stream = declare_stream()
 
-    frame_rotation(angle, "Resonator")
-
     with for_(i_avg, 0, i_avg < 1000, i_avg + 1):
         with for_(d, 0, d < dmax, d + 4):
             with for_(j, 0, j < number_of_pulses, j + 1):
@@ -87,7 +84,6 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
                 assign(Q, I2 - Q1)
                 save(I, I_stream)
                 save(Q, Q_stream)
-        reset_frame("Drive")
 
     with stream_processing():
         I_stream.buffer(1000, npts).save("Iall")

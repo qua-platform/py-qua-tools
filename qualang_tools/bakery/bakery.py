@@ -312,9 +312,7 @@ class Baking:
                     f"Number of provided samples not compatible with element {qe}"
                 )
             if len(samples[0]) != len(samples[1]):
-                raise IndexError(
-                    "Error : samples provided for I and Q do not have the same length"
-                )
+                raise IndexError("Error : samples provided for I and Q do not have the same length")
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -369,12 +367,12 @@ class Baking:
         self._local_config["waveforms"].update(waveform)
         self._local_config["elements"][qe]["operations"].update(Op)
 
-    def play(self, Op: str, qe: str, amp: Union[float, List] = 1.0) -> None:
+    def play(self, Op: str, qe: str, amp: Union[float, tuple] = 1.0) -> None:
         """
         Add a pulse to the baked sequence
         :param Op: operation to play to quantum element
         :param qe: targeted quantum element
-        :param amp: amplitude of the pulse (similar to amp(a) or amp([v00, v01, v10, v11]) in QUA)
+        :param amp: amplitude of the pulse, can be either a float or a tuple of 4 variables (similar to amp(a) or amp(v00, v01, v10, v11) in QUA)
         :return:
         """
         try:
@@ -406,9 +404,9 @@ class Baking:
                         if type(amp) == float or type(amp) == int:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
-                        elif len(amp) != 4 or type(amp) != list:
+                        elif len(amp) != 4 or type(amp) != tuple:
                             raise IndexError(
-                                "Amplitudes provided must be stored in a list [v00, v01, v10, v11]"
+                                "Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)"
                             )
                         else:
                             I2[i] = amp[0] * I[i] + amp[1] * Q[i]
@@ -449,7 +447,7 @@ class Baking:
                 f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)'
             )
 
-    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, List] = 1.0) -> None:
+    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, tuple] = 1.0) -> None:
         """
         Add a waveform to the sequence at the specified time index.
         If indicated time is higher than the pulse duration for the specified quantum element,
@@ -460,7 +458,7 @@ class Baking:
         :param Op: operation to play to quantum element
         :param qe: targeted quantum element
         :param t: Time tag in ns where the pulse should be added
-        :param amp: amplitude of the pulse (replaces amp(a)*'pulse' in QUA)
+        :param amp: amplitude of the pulse, can be either a float or a tuple of 4 variables (similar to amp(a) or amp(v00, v01, v10, v11) in QUA)
         :return:
         """
         if type(t) != int:
@@ -502,9 +500,9 @@ class Baking:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
                         else:
-                            if len(amp) != 4 or type(amp) != List:
+                            if len(amp) != 4 or type(amp) != tuple:
                                 raise IndexError(
-                                    "Amplitudes provided must be stored in a list [v00, v01, v10, v11]"
+                                    "Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)"
                                 )
                             else:
                                 I2[i] = amp[0] * I[i] + amp[1] * Q[i]
