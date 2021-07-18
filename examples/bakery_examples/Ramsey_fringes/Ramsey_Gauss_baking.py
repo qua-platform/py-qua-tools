@@ -118,15 +118,3 @@ plt.show()
 print(job.result_handles.param2.fetch_all())
 print(job.result_handles.param3.fetch_all())
 
-plt.figure()
-nz = np.nonzero(an1)[0][0]
-index = 0
-while nz < len(an1):
-    start = nz - 10
-    end = nz + 650
-    plt.plot(an1[start:end])
-    index += 1
-    if len(np.nonzero(an1[end:])[0]) > 0:
-        nz = np.nonzero(an1[end:])[0][0] + end
-    else:
-        nz = len(an1) + 1
