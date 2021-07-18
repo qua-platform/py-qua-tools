@@ -117,4 +117,3 @@ print("End prog")
 plt.show()
 print(job.result_handles.param2.fetch_all())
 print(job.result_handles.param3.fetch_all())
-
