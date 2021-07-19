@@ -21,10 +21,10 @@ Resonator_freq = 6.6e9
 Drive_freq = 5e9
 Tpihalf = 32
 
-Resonator_IF = 50e6
+Resonator_IF = 50e6 * 0
 Resonator_LO = Resonator_freq - Resonator_IF
 
-Drive_IF = 31.25e6
+Drive_IF = 31.25e6 * 0
 Drive_LO = Drive_freq - Drive_IF
 
 Readout_Amp = 0.1  # meas pulse amplitude
@@ -52,6 +52,16 @@ Drive_correction_matrix = IQ_imbalance_corr(Drive_g, Drive_phi)
 Input1_offset = 0.0
 Input2_offset = 0.0
 
+
+dephasing0 = 0  # phase at the origin of the 2nd Tpihalf gauss pulse
+Tpihalf = 32
+wait_time_cc = 100
+
+amplitude_pihalf = 1
+drive_cc = int(Tpihalf / 4) + 4  # 12cc = 48ns for Tpihalf=32
+if_freq = 31.25e6
+Fastload_length = 320
+
 config = {
     "version": 1,
     "controllers": {
@@ -62,9 +72,7 @@ config = {
                 2: {"offset": Resonator_Q0},  # Resonator Q
                 3: {"offset": Drive_I0},  # Drive I
                 4: {"offset": Drive_Q0},  # Drive Q
-                5: {
-                    "offset": 0
-                },  # Drive LO amplitude modulation ---------------> SHOULD BE A DIGITAL OUTPUT
+                5: {"offset": 0},
             },
             "digital_outputs": {
                 1: {},  # Resonator digital marker
@@ -107,8 +115,8 @@ config = {
         },
         "Drive": {  # Drive element
             "mixInputs": {
-                "I": ("con1", 4),
-                "Q": ("con1", 3),
+                "I": ("con1", 3),
+                "Q": ("con1", 4),
                 "lo_frequency": Drive_LO,
                 "mixer": "Drive_mixer",
             },

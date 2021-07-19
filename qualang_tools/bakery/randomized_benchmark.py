@@ -36,7 +36,6 @@ c1_ops = [  # Clifford operations
 
 csv = pkg_resources.open_text(bakery_resources, "c1_cayley_table.csv")
 
-
 c1_table = pd.read_csv(csv).to_numpy()[:, 1:]
 
 
@@ -67,6 +66,17 @@ def find_revert_op(input_state_index: int):
             return i
 
 
+def play_revert_op(index: int, baked_cliffords):
+    """Plays an operation resetting qubit in its ground state based on the
+    transformation provided by the index in Cayley table (switch using baked Cliffords)
+    :param index index of the transformed qubit state"""
+
+    with switch_(index):
+        for i in range(len(baked_cliffords)):
+            with case_(i):
+                baked_cliffords[i].run()
+
+
 class RBSequence:
     def __init__(self, config: dict, d_max: int, qubit: str):
         self.d_max = d_max
@@ -84,16 +94,6 @@ class RBSequence:
         self.operations_list = [None] * d_max
         self.inverse_op_string = [""] * d_max
         self.sequence = self.generate_RB_sequence()  # Store the RB sequence
-
-    def play_revert_op(self, index: int):
-        """Plays an operation resetting qubit in its ground state based on the
-        transformation provided by the index in Cayley table (switch using baked Cliffords)
-        :param index index of the transformed qubit state"""
-
-        with switch_(index):
-            for i in range(len(self.baked_cliffords)):
-                with case_(i):
-                    self.baked_cliffords[i].run()
 
     def play_revert_op2(self, index: int):
         """Plays an operation resetting qubit in its ground state based on the
