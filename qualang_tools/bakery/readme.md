@@ -5,7 +5,7 @@ Waveform baking is done via a new context manager, declared prior to the QUA pro
 
 - the configuration dictionary (the same used to initialize a Quantum Machine instance),
 
-- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”.  This string indicates how samples should be filled up with 0s when they do not match hardware constraints (that is if waveform's length is not a multiple of 4 or is shorter than 16 ns). 
+- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”. This string indicates how samples should be filled up with 0s when they do not match hardware constraints (that is if waveform's length is not a multiple of 4 or is shorter than 16 ns). 
 
     -  “right” setting is the default setting and pads 0s at the end of the baked samples
 
@@ -27,20 +27,20 @@ with baking(config, padding_method = "symmetric_r") as b:
 When executed, the content manager edits the input configuration file and adds:
 - an operation for each quantum element involved within the baking context manager
 - an associated pulse
-- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing  waveform(s) issued from concatenation of operations indicated in the context manager.
+- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing waveform(s) issued from concatenation of operations indicated in the context manager.
 
 
 # **How can I add operations inside the baking context manager?**
 
-The logic behind the baking context manager is to stay as close as possible to the way we would write play statements within a QUA program. For instance, commands like frame_rotation, reset_phase, ramp, wait and align are all replicated  within the context manager. 
+The logic behind the baking context manager is to stay as close as possible to the way we would write play statements within a QUA program. For instance, commands like frame_rotation, reset_phase, ramp, wait and align are all replicated within the context manager. 
 
-For playing custom operations, from an arbitrary shaped waveform the procedure goes as follows:
+The procedure for using baked operations is as follows:
 
-1. You first have to write down the sample you want to use as a waveform (with arbitrary length, no matter if it does not match usual QUA criteria for saving a waveform in memory) in the form of a Python list.
-    - If the sample is meant for a singleInput element, the list should contain the sample itself. 
+1. You first have to write down the samples you want to use as a waveform in the form of a Python list.
+    - If the samples is meant for a singleInput element, the list should contain the samples itself. 
     - Contrariwise, if it is intended for a mixInputs element, the list should contain two Python lists as ```[sample_I, sample_Q]``` , where sample_I and sample_Q are themselves Python lists containing the samples.
 
-2. Add the sample to the local configuration, with method ```add_Op```, which takes 4 inputs: 
+2. Add the samples to the local configuration, with method ```add_Op```, which takes 4 inputs: 
     - The name of the operation (name you will use only within the baking context manager in a play statement)
     - The quantum element for which you want to add the operation
     - The samples to store as waveforms
@@ -48,7 +48,7 @@ For playing custom operations, from an arbitrary shaped waveform the procedure g
 
 3. Use a baking ``play()`` statement, specifying the operation name (which should correspond to the name introduced in the add_Op method) and the quantum element to play the operation on
 
-All those commands concatenated altogether eventually build one single “big” waveform per quantum element involved in the baking that contains all the instructions specified in the baking environment. The exiting procedure of the baking ensures that the appropriate padding is done to ensure that QUA will be able to play this arbitrary waveform.
+All those commands concatenated altogether eventually build one single “big” waveform per quantum element involved in the baking that contains all the instructions specified in the baking environment. The exiting procedure of the baking ensures that the appropriate padding is done to ensure that the OPX will be able to play this arbitrary waveform.
 
 Here is a basic code example that simply plays two pulses of short lengths: 
 
@@ -74,7 +74,7 @@ with baking(config, padding_method = "symmetric_r") as b:
 ```
 # **How to play in QUA my baked waveforms?**
 
-The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms. Therefore, what is left to do is to **call the run method associated to the baking object within the actual QUA program**.
+The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms. Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
 
 ```
 with baking(config, "left"):
@@ -85,7 +85,7 @@ with program() as QUA_prog:
   b.run()
 ```
 
-As in QUA, you can still modulate in real time (using QUA variables) properties of the pulse like its amplitude or a truncate.
+As in QUA, you can still modulate in real time (using QUA variables) properties of the pulse like its amplitude, or to truncate it.
 You can indeed pass into a set of two lists, parameters for truncating pulses and for amplitude modulation. The syntax goes as follows:
 ```
 with program() as QUA_prog:
@@ -97,7 +97,7 @@ Note that you do not have to provide tuples for every quantum element. The param
 indicated in the parameter arrays are actually used within the baking context manager.
 # **Additional features of the baking environment**
 
-The baking aims to be as versatile as possible in the way of editing samples. The idea is therefore to generate desired samples up to the precision of the nanosecond, without having to worry about its format and its insertion in the configuration file. It is even possible to generate a sample based on two previous samples (like a pulse superposition) by using two commands introduced in the baking: ``play_at()`` and ``negative_wait()``.
+The baking aims to be as versatile as possible in the way of editing samples. The idea is therefore to generate desired samples up to the precision of the nanosecond, without having to worry about its format and its insertion in the configuration file. It is even possible to generate a waveform based on two previous samples (like a pulse superposition) by using two commands introduced in the baking: ``play_at()`` and ``negative_wait()``.
 
 Let’s take a look at the code below to understand what these two features do: 
 
@@ -115,17 +115,17 @@ with baking(config=config, padding_method="symmetric_r") as b:
     #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.4]
     
     b.play_at("Op3", "qe1", t=2)
-    # t indicates the time index where this new sample should be added
+    # t indicates the time index where these new samples should be added
     # The baked waveform is now I: [0.3, 0.3, 1.3, 1.3, 1.3]
     #                           Q: [0.2, 0.2, 2.2, 2.3, 2.4]
     
-At the baking exit, the config will have an updated sample 
+At the baking exit, the config will have an updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case:
 I: [0, 0, 0, 0, 0, 0.3, 0.3, 1.3, 1.3, 1.3, 0, 0, 0, 0, 0, 0], 
 Q: [0, 0, 0, 0, 0, 0.2, 0.2, 2.2, 2.3, 2.4, 0, 0, 0, 0, 0, 0]
 ```
-If the time index t is positive, the sample will be added precisely at the index indicated in the existing sample.
-Contrariwise, if the provided index t is negative, we call here automatically the function ``negative_wait()``, which adds the sample at the provided index starting to count from the end of the existing sample: 
+If the time index t is positive, the samples will be added precisely at the index indicated in the existing samples.
+Contrariwise, if the provided index t is negative, we call here automatically the function ``negative_wait()``, which adds the samples at the provided index starting to count from the end of the existing samples: 
 ```
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
@@ -137,16 +137,16 @@ with baking(config=config, padding_method="symmetric_r") as b:
     b.play("Op1", "qe1")   
     # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
     #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.4]
-    b.play_at("Op3", "qe1", t=-2) #t indicates the time index where this new sample should be added
+    b.play_at("Op3", "qe1", t=-2) #t indicates the time index where these new samples should be added
     # The baked waveform is now I: [0.3, 0.3, 0.3, 1.3, 1.3, 1.0]
     #                           Q: [0.2, 0.2, 0.2, 2.3, 2.4, 2.0]
     
-At the baking exit, the config will have an updated sample 
+At the baking exit, the config will have updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case: """
 I: [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 1.3, 1.3, 1.0, 0, 0, 0, 0, 0], 
 Q:  [0, 0, 0, 0, 0, 0.2, 0.2, 0.2, 2.3, 2.4, 2.0, 0, 0, 0, 0, 0]
 ```
-The ``play_at()`` command can also be used as a single play statement involving a wait time and a play statement. In fact, if the time index indicated in the function is actually out of the range of the existing sample, a wait command is automatically added until reaching this time index (recall that the index corresponds to the time in ns) and starts inserting the operation indicated at this time. See the example below: 
+The ``play_at()`` command can also be used as a single play statement involving a wait time and a play statement. In fact, if the time index indicated in the function is actually out of the range of the existing samples, a wait command is automatically added until reaching this time index (recall that the index corresponds to the time in ns) and starts inserting the operation indicated at this time. See the example below: 
 
 ```
 with baking(config=config, padding_method="symmetric_r") as b:
@@ -156,16 +156,16 @@ with baking(config=config, padding_method="symmetric_r") as b:
     Op3 = [1., 1., 1.]
     Op4 = [2., 2., 2.]
     b.add_Op("Op2", "qe1", [Op3, Op4])
-    b.play("Op1", "qe1")   
+    b.play("Op1", "qe1")  
     # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
     #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.4]
-    b.play_at("Op3", "qe1", t=8) #t indicates the time index where this new sample should be added
+    b.play_at("Op3", "qe1", t=8) #t indicates the time index where these new samples should be added
     # The baked waveform is now 
     # I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 1.0, 1.0, 1.0], 
     # Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 2.0, 2.0, 2.0]}
     #                                    
     
-At the baking exit, the config will have an updated sample 
+At the baking exit, the config will have updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case:
 I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0], 
 Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 2.0, 2.0, 2.0, 0, 0, 0, 0, 0]
@@ -209,7 +209,7 @@ imposed by QUA.
 It also provides a simpler interface to generate one single waveform that can contain several
 play statements (preserving program memory).
 
-The experiment is as follows :
+The experiment is as follows:
 
 We have a superconducting qubit (controlled using the quantum element 'Drive' in the configuration
 file) coupled to a readout resonator ('Resonator') with which we would like to apply sequences
@@ -228,14 +228,14 @@ a Python for loop (using the *run* command) and use all appropriate commands rel
 
 
 
-# Randomized  benchmarking for 1 qubit with waveform baking
+# Randomized benchmarking for 1 qubit with waveform baking
 
 Waveform baking is a tool to be used prior to running a QUA program to store waveforms and play them 
 easily within the QUA program without having to require a series of play statements.
 
 It turns out that this economy of statements can be particularly useful for saving program 
 memory when running long characterization experiments that do require lots of pulses to be played,
-such as tomography experiments (usually involving state preparation, process, and readout for each couple of input state  
+such as tomography experiments (usually involving state preparation, process, and readout for each couple of input state 
 and readout observable to be sampled) or randomized benchmarking.
 Randomized benchmarking principles are reminded in another example done in QUA: https://docs.qualang.io/libs/examples/randomized-benchmark/one-qubit-rb/
 Here, the idea is to show the ease with which we can integrate tools associated to waveform baking to the example realized in the existing QUA script ,
