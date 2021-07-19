@@ -5,15 +5,15 @@ Waveform baking is done via a new context manager, declared prior to the QUA pro
 
 - the configuration dictionary (the same used to initialize a Quantum Machine instance),
 
-- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”.  This string indicates how the should samples be filled up with 0s when they do not correspond to a usual sample (that is if sample length is not a multiple of 4 or if it is shorter than 16 ns). 
+- a padding method: to be chosen between: “right”, “left”, “symmetric_l”, “symmetric_r”.  This string indicates how samples should be filled up with 0s when they do not match hardware constraints (that is if waveform's length is not a multiple of 4 or is shorter than 16 ns). 
 
-    -  “right” setting is the default setting and pads 0s at the end of the baked sample to insert a QUA compatible version in the original configuration file
+    -  “right” setting is the default setting and pads 0s at the end of the baked samples
 
-    - “left” pads 0s before the baked sample
+    - “left” pads 0s before the baked samples
 
-    - “symmetric_l” pads 0s symmetrically before and after the baked sample, putting one more 0 before it in case the baked sample length is odd
+    - “symmetric_l” pads 0s symmetrically before and after the baked samples, putting one more 0 before it in case the baked waveform's length is odd
 
-    - “symmetric_r' pads 0s symmetrically before and after the baked sample , putting one more 0 after it in case the baked sample length is odd
+    - “symmetric_r' pads 0s symmetrically before and after the baked samples , putting one more 0 after it in case the baked waveform's length is odd
 
 Declaration is done before the QUA program as follows: 
 
@@ -27,7 +27,7 @@ with baking(config, padding_method = "symmetric_r") as b:
 When executed, the content manager edits the input configuration file and adds:
 - an operation for each quantum element involved within the baking context manager
 - an associated pulse
-- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing  sample(s) issued from concatenation of operations indicated in the context manager.
+- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing  waveform(s) issued from concatenation of operations indicated in the context manager.
 
 
 # **How can I add operations inside the baking context manager?**

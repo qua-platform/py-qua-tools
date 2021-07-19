@@ -312,7 +312,9 @@ class Baking:
                     f"Number of provided samples not compatible with element {qe}"
                 )
             if len(samples[0]) != len(samples[1]):
-                raise IndexError("Error : samples provided for I and Q do not have the same length")
+                raise IndexError(
+                    "Error : samples provided for I and Q do not have the same length"
+                )
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -573,7 +575,8 @@ class Baking:
     def frame_rotation(self, angle: float, qe: str):
         """
         Shift the phase of the oscillator associated with a quantum element by the given angle.
-        This is typically used for virtual z-rotations.
+        This is typically used for virtual z-rotations. Frame rotation done within the baking sticks to the rest of the
+        QUA program after its execution.
         :param angle: phase parameter
         :param qe: quantum element
         """
@@ -591,7 +594,8 @@ class Baking:
         self._update_qe_phase(qe, 2 * np.pi * angle)
 
     def set_detuning(self, qe: str, freq: int):
-        """Update frequency by adding detuning to original IF set in the config
+        """Update frequency by adding detuning to original IF set in the config.
+        Unlike frame rotation, the detuning will only affect the baked operation and will not stick in the element
         :param qe quantum element
         :param freq frequency of the detuning (in Hz)
         """
