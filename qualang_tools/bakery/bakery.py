@@ -13,8 +13,8 @@ def baking(
         config,
         padding_method="right",
         override=False,
-        update_config: bool = False,
-        length_constraint: int = None,
+        update_config: bool = True,
+        baking_index: int = None,
 ):
     """
     Opens a context manager to synthesize samples for arbitrary waveforms
@@ -23,12 +23,12 @@ def baking(
     (>16 ns and multiple of 4)
     :param override: Define if baked waveforms are overridable when using add_compiled feature
     :param update_config: Define if baked waveform should be added within the input config file
-    :param length_constraint: Impose a length constraint to match same length across baked waveforms to comply with
-    waveform overriding in add_compiled feature
+    :param baking_index: index of a reference baking object to impose length constraint on new baked waveform
+    (useful for matching lengths when using waveform overriding in add_compiled feature)
     :return: No return, config is updated if update_config is set to True,
             generated waveforms can be retrieved using the get_waveform_dict() method, in a format readily pluggable as an overrides argument
     """
-    return Baking(config, padding_method, override, update_config, length_constraint)
+    return Baking(config, padding_method, override, update_config, baking_index)
 
 
 class Baking:
@@ -38,20 +38,21 @@ class Baking:
             padding_method: str = "right",
             override: bool = False,
             update_config: bool = True,
-            length_constraint: int = None,
+            baking_index: int = None
     ):
         self._config = config
+        self.update_config = update_config
         self._padding_method = padding_method
         self._local_config = copy.deepcopy(config)
         self._samples_dict, self._qe_dict = self._init_dict()
-        self._ctr = self._get_baking_index()  # unique name counter
+        self._ctr = self._find_baking_index(baking_index)  # unique name counter
         self._qe_set = set()
         self.override = override
-        self.update_config = update_config
-        self.length_constraint = length_constraint
+        self.length_constraint = self._retrieve_constraint_length(baking_index)
         self.override_waveforms_dict = {"waveforms": {}}
 
     def __enter__(self):
+        self._samples_dict, self._qe_dict = self._init_dict()
         return self
 
     @property
@@ -72,16 +73,18 @@ class Baking:
     def config(self):
         return self._config
 
-    def _get_baking_index(self):
-        index = 0
-        max_index = [-1]
-        for qe in self._config["elements"].keys():
-            index = [-1]
-            for op in self._config["elements"][qe]["operations"]:
-                if op.find("baked") != -1:
-                    index.append(int(op.split("_")[-1]))
-            max_index.append(max(index))
-        return max(max_index) + 1
+    def _find_baking_index(self, baking_index: int = None):
+        if self.update_config and baking_index is None:
+            max_index = [-1]
+            for qe in self._config["elements"].keys():
+                index = [-1]
+                for op in self._config["elements"][qe]["operations"]:
+                    if op.find("baked") != -1:
+                        index.append(int(op.split("_")[-1]))
+                max_index.append(max(index))
+            return max(max_index) + 1
+        else:
+            return baking_index
 
     def _init_dict(self):
         sample_dict = {}
@@ -159,6 +162,15 @@ class Baking:
             ):  # Check if a sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
+                if self.length_constraint is not None:
+                    assert (
+                            self._qe_dict[qe]["time"] < self.length_constraint
+                    ), f"Provided length constraint (={self.length_constraint}) " \
+                       f"smaller than actual baked samples length ({self._qe_dict[qe]['time']})"
+                    wait_duration += (
+                            self.length_constraint - self._qe_dict[qe]["time"]
+                    )
+                    self.wait(self.length_constraint - self._qe_dict[qe]["time"])
                 if (
                         self._qe_dict[qe]["time"] < 16
                 ):  # Sample length must be at least 16 ns long
@@ -169,17 +181,7 @@ class Baking:
                 ):  # Sample length must be a multiple of 4
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
-                if self.length_constraint is not None:
-                    assert (
-                            self._qe_dict[qe]["time"] < self.length_constraint
-                    ), "Provided length constraint smaller than actual baked sample"
-                    if self._qe_dict[qe]["time"] < self.length_constraint:
-                        wait_duration += (
-                                self.length_constraint - self._qe_dict[qe]["time"]
-                        )
-                        self.wait(self.length_constraint - self._qe_dict[qe]["time"])
-                    elif self._qe_dict[qe]["time"] > self.length_constraint:
-                        raise
+
                 qe_samples = self._samples_dict[qe]
                 end_samples = 0
                 if "mixInputs" in elements[qe]:
@@ -292,6 +294,9 @@ class Baking:
 
         except KeyError:
             raise KeyError(f"No waveforms found for pulse {pulse}")
+
+    def get_baking_index(self):
+        return self._ctr
 
     def get_current_length(self, qe: str):
         """
@@ -806,6 +811,14 @@ class Baking:
                         )
 
                 qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+
+    def _retrieve_constraint_length(self, baking_index: int = None):
+        if baking_index is not None:
+            for pulse in self._local_config["pulses"]:
+                if pulse.find(f"baked_pulse_{baking_index}") != -1:
+                    return self._local_config["pulses"][pulse]['length']
+        else:
+            return None
 
 
 def deterministic_run(baking_list, j):
