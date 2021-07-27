@@ -5,8 +5,9 @@ from config import config
 
 # Create a first baked waveform, overridable
 # and which will be inserted in the config
-with baking(config, padding_method="right",
-            override=True, update_config=True) as b_template:
+with baking(
+    config, padding_method="right", override=True, update_config=True
+) as b_template:
     samples_I = [0.1, 0.1, 0.2, 0.1, 0.2]
     samples_Q = [0.2, 0.2, 0.3, 0.1, 0.0]
     b_template.add_Op("Op", "qe1", [samples_I, samples_Q])
@@ -18,8 +19,13 @@ with baking(config, padding_method="right",
 # Note that override parameter and update_config are not relevant anymore (since program is already compiled with a
 # previous config, as we only want to retrieve the waveforms out
 # of this new baking object
-with baking(config, padding_method="right", override=False,
-            update_config=False, baking_index=b_template.get_baking_index()) as b_new:
+with baking(
+    config,
+    padding_method="right",
+    override=False,
+    update_config=False,
+    baking_index=b_template.get_baking_index(),
+) as b_new:
     samples_I = [0.3, 0.3, 0.4]
     samples_Q = [0.0, 0.1, 0.2]
     b_new.add_Op("Op", "qe1", [samples_I, samples_Q])

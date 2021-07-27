@@ -59,7 +59,6 @@ config = {
                 "Y/2": "Y/2Pulse",
                 "Y": "YPulse",
                 "-Y/2": "-Y/2Pulse",
-
             },
         },
         "rr": {
