@@ -322,6 +322,21 @@ class Baking:
     def get_waveforms_dict(self):
         return self.override_waveforms_dict
 
+    def delete_baked_Op(self, qe: str):
+        """
+        Delete in the input config of the baking object the associated baked operation and
+        its associated pulse and waveform(s) for the specified quantum element
+        :param qe: quantum element
+        :return:
+        """
+        del self.config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"]
+        del self.config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]
+        if "mixInputs" in self.config["elements"][qe]:
+            del self.config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]
+            del self.config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]
+        elif "singleInput" in self.config["elements"][qe]:
+            del self.config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]
+
     def get_Op_name(self, qe: str):
         """
         Get the baked operation issued from the baking object for quantum element qe
