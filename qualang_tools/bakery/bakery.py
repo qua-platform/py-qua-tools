@@ -9,20 +9,50 @@ from qm import qua
 import copy
 
 
-def baking(config, padding_method="right"):
-    return Baking(config, padding_method)
+def baking(
+    config,
+    padding_method="right",
+    override=False,
+    update_config: bool = True,
+    baking_index: int = None,
+):
+    """
+    Opens a context manager to synthesize samples for arbitrary waveforms
+    :param config: config file
+    :param padding_method: Method to pad 0s to format the waveform to match hardware constraint
+    (>16 ns and multiple of 4)
+    :param override: Define if baked waveforms are overridable when using add_compiled feature
+    :param update_config: Define if baked waveform should be added within the input config file
+    :param baking_index: index of a reference baking object to impose length constraint on new baked waveform
+    (useful for matching lengths when using waveform overriding in add_compiled feature)
+    :return: No return, config is updated if update_config is set to True,
+            generated waveforms can be retrieved using the get_waveform_dict() method, in a format readily pluggable as an overrides argument
+    """
+    return Baking(config, padding_method, override, update_config, baking_index)
 
 
 class Baking:
-    def __init__(self, config, padding_method="right"):
+    def __init__(
+        self,
+        config,
+        padding_method: str = "right",
+        override: bool = False,
+        update_config: bool = True,
+        baking_index: int = None,
+    ):
         self._config = config
+        self.update_config = update_config
         self._padding_method = padding_method
         self._local_config = copy.deepcopy(config)
         self._samples_dict, self._qe_dict = self._init_dict()
-        self._ctr = self._get_baking_index()  # unique name counter
+        self._ctr = self._find_baking_index(baking_index)  # unique name counter
         self._qe_set = set()
+        self.override = override
+        self.length_constraint = self._retrieve_constraint_length(baking_index)
+        self.override_waveforms_dict = {"waveforms": {}}
 
     def __enter__(self):
+        self._samples_dict, self._qe_dict = self._init_dict()
         return self
 
     @property
@@ -43,16 +73,18 @@ class Baking:
     def config(self):
         return self._config
 
-    def _get_baking_index(self):
-        index = 0
-        max_index = [-1]
-        for qe in self._config["elements"].keys():
-            index = [-1]
-            for op in self._config["elements"][qe]["operations"]:
-                if op.find("baked") != -1:
-                    index.append(int(op.split("_")[-1]))
-            max_index.append(max(index))
-        return max(max_index) + 1
+    def _find_baking_index(self, baking_index: int = None):
+        if self.update_config and baking_index is None:
+            max_index = [-1]
+            for qe in self._config["elements"].keys():
+                index = [-1]
+                for op in self._config["elements"][qe]["operations"]:
+                    if op.find("baked") != -1:
+                        index.append(int(op.split("_")[-1]))
+                max_index.append(max(index))
+            return max(max_index) + 1
+        else:
+            return baking_index
 
     def _init_dict(self):
         sample_dict = {}
@@ -74,6 +106,45 @@ class Baking:
 
         return sample_dict, qe_dict
 
+    def _update_config(self, qe, qe_samples):
+
+        # Generates new Op, pulse, and waveform for each qe to be added in the original config file
+
+        self._config["elements"][qe]["operations"][
+            f"baked_Op_{self._ctr}"
+        ] = f"{qe}_baked_pulse_{self._ctr}"
+        if "I" in qe_samples:
+            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
+                "operation": "control",
+                "length": len(qe_samples["I"]),
+                "waveforms": {
+                    "I": f"{qe}_baked_wf_I_{self._ctr}",
+                    "Q": f"{qe}_baked_wf_Q_{self._ctr}",
+                },
+            }
+            self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = {
+                "type": "arbitrary",
+                "samples": qe_samples["I"],
+                "is_overridable": self.override,
+            }
+            self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = {
+                "type": "arbitrary",
+                "samples": qe_samples["Q"],
+                "is_overridable": self.override,
+            }
+
+        elif "single" in qe_samples:
+            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
+                "operation": "control",
+                "length": len(qe_samples["single"]),
+                "waveforms": {"single": f"{qe}_baked_wf_{self._ctr}"},
+            }
+            self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = {
+                "type": "arbitrary",
+                "samples": qe_samples["single"],
+                "is_overridable": self.override,
+            }
+
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """
         Updates the configuration dictionary upon exit
@@ -91,13 +162,20 @@ class Baking:
             ):  # Check if a sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
+                if self.length_constraint is not None:
+                    assert self._qe_dict[qe]["time"] < self.length_constraint, (
+                        f"Provided length constraint (={self.length_constraint}) "
+                        f"smaller than actual baked samples length ({self._qe_dict[qe]['time']})"
+                    )
+                    wait_duration += self.length_constraint - self._qe_dict[qe]["time"]
+                    self.wait(self.length_constraint - self._qe_dict[qe]["time"])
                 if (
                     self._qe_dict[qe]["time"] < 16
                 ):  # Sample length must be at least 16 ns long
                     wait_duration += 16 - self._qe_dict[qe]["time"]
                     self.wait(16 - self._qe_dict[qe]["time"], qe)
-                if not (
-                    self._qe_dict[qe]["time"] % 4 == 0
+                if (
+                    not self._qe_dict[qe]["time"] % 4 == 0
                 ):  # Sample length must be a multiple of 4
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
@@ -164,39 +242,21 @@ class Baking:
                             ]
                         )
 
-                # Generates new Op, pulse, and waveform for each qe to be added in the original config file
+                if self.update_config:
+                    self._update_config(qe, qe_samples)
 
-                self._config["elements"][qe]["operations"][
-                    f"baked_Op_{self._ctr}"
-                ] = f"{qe}_baked_pulse_{self._ctr}"
-                if "I" in qe_samples:
-                    self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
-                        "operation": "control",
-                        "length": len(qe_samples["I"]),
-                        "waveforms": {
-                            "I": f"{qe}_baked_wf_I_{self._ctr}",
-                            "Q": f"{qe}_baked_wf_Q_{self._ctr}",
-                        },
-                    }
-                    self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = {
-                        "type": "arbitrary",
-                        "samples": qe_samples["I"],
-                    }
-                    self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = {
-                        "type": "arbitrary",
-                        "samples": qe_samples["Q"],
-                    }
+                if "mixInputs" in elements[qe]:
+                    self.override_waveforms_dict["waveforms"][
+                        f"{qe}_baked_wf_I_{self._ctr}"
+                    ] = qe_samples["I"]
+                    self.override_waveforms_dict["waveforms"][
+                        f"{qe}_baked_wf_Q_{self._ctr}"
+                    ] = qe_samples["Q"]
 
-                elif "single" in qe_samples:
-                    self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
-                        "operation": "control",
-                        "length": len(qe_samples["single"]),
-                        "waveforms": {"single": f"{qe}_baked_wf_{self._ctr}"},
-                    }
-                    self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = {
-                        "type": "arbitrary",
-                        "samples": qe_samples["single"],
-                    }
+                elif "singleInput" in elements[qe]:
+                    self.override_waveforms_dict["waveforms"][
+                        f"{qe}_baked_wf_{self._ctr}"
+                    ] = qe_samples["single"]
 
     def _get_samples(self, pulse: str) -> Union[List[float], List[List]]:
         """
@@ -233,6 +293,9 @@ class Baking:
         except KeyError:
             raise KeyError(f"No waveforms found for pulse {pulse}")
 
+    def get_baking_index(self):
+        return self._ctr
+
     def get_current_length(self, qe: str):
         """
         Retrieve within the baking the current length of the waveform being created (within the baking)
@@ -255,6 +318,24 @@ class Baking:
 
     def get_qe_set(self):
         return self._qe_set
+
+    def get_waveforms_dict(self):
+        return self.override_waveforms_dict
+
+    def delete_baked_Op(self, qe: str):
+        """
+        Delete in the input config of the baking object the associated baked operation and
+        its associated pulse and waveform(s) for the specified quantum element
+        :param qe: quantum element
+        :return:
+        """
+        del self.config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"]
+        del self.config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]
+        if "mixInputs" in self.config["elements"][qe]:
+            del self.config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]
+            del self.config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]
+        elif "singleInput" in self.config["elements"][qe]:
+            del self.config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]
 
     def get_Op_name(self, qe: str):
         """
@@ -743,6 +824,14 @@ class Baking:
                         )
 
                 qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+
+    def _retrieve_constraint_length(self, baking_index: int = None):
+        if baking_index is not None:
+            for pulse in self._local_config["pulses"]:
+                if pulse.find(f"baked_pulse_{baking_index}") != -1:
+                    return self._local_config["pulses"][pulse]["length"]
+        else:
+            return None
 
 
 def deterministic_run(baking_list, j):
