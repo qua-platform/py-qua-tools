@@ -9,10 +9,11 @@ The first included tool is the baking tool for working with waveforms at a 1ns r
 Install the current version using `pip` and the current version of the tar.gz file in the [releases](https://github.com/qua-platform/py-qua-tools/releases) section 
 
 ```
-pip install qualang-tools-0.?.?.tar.gz
+pip install qualang-tools
 ```
 
 ## usage
 
-Examples for 1-qubit randomized benchamrking or cross-entropy benchmark (XEB) can be found in the examples folder
+Examples for 1-qubit randomized benchamrking or cross-entropy benchmark (XEB) can be found in the examples folder of the py-qua-tools repository
+
 
