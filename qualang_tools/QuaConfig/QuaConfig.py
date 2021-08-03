@@ -6,7 +6,7 @@ from typing import Union, Tuple, List
 
 class QuaConfig(_UserDict):
 
-    def __init__(self, data:dict):
+    def __init__(self, data: dict):
         """
 
         :param data:
@@ -68,21 +68,39 @@ class QuaConfig(_UserDict):
         self.data["pulses"][pulse_name]["length"] = len(wf_i)
 
     def update_measurement_iws(
-        self, element, operation_name, iw_op_name, iw_cos, iw_sin
+            self, element: str, operation_name: str, iw_op_name: str, iw_cos, iw_sin
     ):
+        """
+        update the integration weights associated with a specific operation
+        :param element:
+        :param operation_name:
+        :param iw_op_name:
+        :param iw_cos:
+        :param iw_sin:
+        :return:
+        """
         pulse_name = self.data["elements"][element]["operations"][operation_name]
         iw_name = self.data["pulses"][pulse_name]["integration_weights"][iw_op_name]
         self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
 
     def reset(self):
+        """
+        revert the QuaConfig to its original state (set by _data_)
+        :return:
+        """
         self.data = _deepcopy(self._data_orig)
 
-    def dump(self, filename):
+    def dump(self, filename: str):
+        """
+
+        :param filename:
+        :return:
+        """
         with open("config.json", "w") as fp:
             _json.dump(self.data, fp)
 
     def get_waveforms_from_op(
-        self, element: str, operation: str
+            self, element: str, operation: str
     ) -> Union[Tuple[List[float], List[float]], List[float]]:
         """
         Get output waveforms associated with an operation on a quantum element.
@@ -119,7 +137,7 @@ class QuaConfig(_UserDict):
         ]
 
     def update_intermediate_frequency(
-        self, element: str, new_if: float, strict=True
+            self, element: str, new_if: float, strict=True
     ) -> None:
         """
         Update an intermediate frequency for an element,
@@ -137,15 +155,22 @@ class QuaConfig(_UserDict):
             found_entry_index = None
             for entry in self.data["mixers"][mixer]:
                 if (
-                    entry["intermediate_frequency"] == old_if
-                    and entry["lo_frequency"] == lo_freq
+                        entry["intermediate_frequency"] == old_if
+                        and entry["lo_frequency"] == lo_freq
                 ):
                     found_entry_index = entry
             self.data["mixers"][mixer][found_entry_index][
                 "intermediate_frequency"
             ] = new_if
 
-    def update_op_amp(self, element, operation, amp):
+    def update_op_amp(self, element: str, operation: str, amp: float):
+        """
+
+        :param element:
+        :param operation:
+        :param amp:
+        :return:
+        """
         pulse = self.get_pulse_from_op(element, operation)
         if "sample" not in self.data["waveforms"][pulse["waveforms"]["single"]]:
             raise KeyError(
@@ -168,7 +193,7 @@ class QuaConfig(_UserDict):
             )
 
     def get_port_by_element_input(
-        self, element: str, element_input: str
+            self, element: str, element_input: str
     ) -> Tuple[str, int]:
         """
         returns the ports of a quantum element.
@@ -200,7 +225,7 @@ class QuaConfig(_UserDict):
             )
 
     def set_output_dc_offset_by_element(
-        self, element: str, port: str, offset: float
+            self, element: str, port: str, offset: float
     ) -> None:
         """
         Set a DC offset value by element
