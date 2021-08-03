@@ -1,6 +1,6 @@
 # todo
 import pytest
-from qualang_tools.QuaConfig import QuaConfig
+from qualang_tools.experimental.QuaConfig import QuaConfig
 
 @pytest.fixture
 def config():
