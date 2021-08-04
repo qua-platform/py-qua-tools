@@ -1,0 +1,27 @@
+name: pre-released
+on:
+  workflow_dispatch:
+  release:
+    types: [prereleased]
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - uses: Gr1N/setup-poetry@v4
+      - name: Build package
+        run: |
+          export RELEASE_VERSION="${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          poetry version ${RELEASE_VERSION}
+          poetry build
+      - name: Upload assets
+        uses: qm-devops/qm-upload-release-assets@v1
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          path: |
+            ./dist/*.tar.gz
+            ./dist/*.whl
