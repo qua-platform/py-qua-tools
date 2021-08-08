@@ -169,4 +169,6 @@ def test_amp_modulation_run(config):
     samples3 = job3.get_simulated_samples()
     samples3_data = samples3.con1.analog["1"]
 
-    assert all(samples1_data == samples3_data) and all(samples2_data == samples3_data)
+    assert len(samples1_data) == len(samples2_data)
+    assert all([samples1_data[i] == samples3_data[i] for i in range(len(samples1_data))])
+    assert all([samples2_data[i] == samples3_data[i] for i in range(len(samples2_data))])

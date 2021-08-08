@@ -13,22 +13,20 @@ def baking(
     config,
     padding_method="right",
     override=False,
-    update_config: bool = True,
     baking_index: int = None,
 ):
     """
-    Opens a context manager to synthesize samples for arbitrary waveforms
+    Opens a context manager to synthesize samples for arbitrary waveforms. No return, config is updated if update_config is set to True,
+            generated waveforms can be retrieved using the get_waveform_dict() method, in a format readily pluggable as an overrides argument
     :param config: config file
     :param padding_method: Method to pad 0s to format the waveform to match hardware constraint
-    (>16 ns and multiple of 4)
-    :param override: Define if baked waveforms are overridable when using add_compiled feature
-    :param update_config: Define if baked waveform should be added within the input config file
+    (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r" or "symmetric_l"
+    :param override: Define if baked waveforms are overridable when using add_compiled feature (default set to False)
     :param baking_index: index of a reference baking object to impose length constraint on new baked waveform
+    (default set to None). If integer is provided, input config is not updated with the waveform to be generated
     (useful for matching lengths when using waveform overriding in add_compiled feature)
-    :return: No return, config is updated if update_config is set to True,
-            generated waveforms can be retrieved using the get_waveform_dict() method, in a format readily pluggable as an overrides argument
     """
-    return Baking(config, padding_method, override, update_config, baking_index)
+    return Baking(config, padding_method, override, baking_index)
 
 
 class Baking:
@@ -37,11 +35,13 @@ class Baking:
         config,
         padding_method: str = "right",
         override: bool = False,
-        update_config: bool = True,
         baking_index: int = None,
     ):
         self._config = config
-        self.update_config = update_config
+        if baking_index:
+            self.update_config = False
+        else:
+            self.update_config = True
         self._padding_method = padding_method
         self._local_config = copy.deepcopy(config)
         self._samples_dict, self._qe_dict = self._init_dict()
@@ -74,7 +74,7 @@ class Baking:
         return self._config
 
     def _find_baking_index(self, baking_index: int = None):
-        if self.update_config and baking_index is None:
+        if baking_index is None:
             max_index = [-1]
             for qe in self._config["elements"].keys():
                 index = [-1]
@@ -327,7 +327,6 @@ class Baking:
         Delete in the input config of the baking object the associated baked operation and
         its associated pulse and waveform(s) for the specified quantum element
         :param qe: quantum element
-        :return:
         """
         del self.config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"]
         del self.config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]

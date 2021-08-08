@@ -14,8 +14,8 @@ Waveform baking is done via a new context manager, declared prior to the QUA pro
     - “symmetric_l” pads 0s symmetrically before and after the baked samples, putting one more 0 before it in case the baked waveform's length is odd
 
     - “symmetric_r' pads 0s symmetrically before and after the baked samples , putting one more 0 after it in case the baked waveform's length is odd
-- update_config: boolean indicating if the baked waveform shall be inserted in the input configuration (default value set to True)
 - override: boolean indicating if the baked waveform shall bear the flag "is_overridable" in the config (see example below with add_compiled, default value set to False)
+- baking_index: integer specifying the reference number of a previously defined baking object in order to impose a length constraint on the baked waveform (useful for ensuring compatibility with override feature of the add_compiled feature)
 
 The simplest declaration is done before the QUA program as follows: 
 
@@ -265,7 +265,7 @@ synthesized.
 QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in this part of 
 the documentation (https://qm-docs.s3.amazonaws.com/v1.10/python/features.html#precompile-jobs).
 It is possible to easily override waveforms by doing two things :
-1. Create a baking object ```b_ref ```setting both ```update_config ``` and ```override ``` parameters to True. Note that
+1. Create a baking object ```b_ref ```setting ```override ``` parameters to True. Note that
 this will attach to each waveform created for all quantum elements involved in the context manager the flag ```is_overridable ``` 
 to True in the input config 
 2. Since the new waveform that shall be overriding the waveform created in 1 should be of same length, 
