@@ -14,8 +14,10 @@ Waveform baking is done via a new context manager, declared prior to the QUA pro
     - “symmetric_l” pads 0s symmetrically before and after the baked samples, putting one more 0 before it in case the baked waveform's length is odd
 
     - “symmetric_r' pads 0s symmetrically before and after the baked samples , putting one more 0 after it in case the baked waveform's length is odd
+- update_config: boolean indicating if the baked waveform shall be inserted in the input configuration (default value set to True)
+- override: boolean indicating if the baked waveform shall bear the flag "is_overridable" in the config (see example below with add_compiled, default value set to False)
 
-Declaration is done before the QUA program as follows: 
+The simplest declaration is done before the QUA program as follows: 
 
 ```
 with baking(config, padding_method = "symmetric_r") as b:
@@ -187,6 +189,21 @@ and
 b.play_at('my_pulse', qe, t=-3)
 ```
 
+# Retrieving the baked waveforms
+
+The baking tool can also be used as a simple waveform generator, without having to necessarily update the configuration 
+file with associated new operations and pulses. A good use case is the precompile feature and the
+overridability of waveforms in order to save waveform memory (see example below).
+To do so, one can simply do the following :
+
+```
+with baking(config, padding_method = "right",
+            update_config = False) as b :
+    # Generate the desired set of baked waveforms
+     # (one per involved quantum element)
+    
+waveforms_dict = b.get_waveforms_dict()
+```
 # **Examples**
 
 ## Ramsey at short time scales
@@ -242,5 +259,21 @@ Here, the idea is to show the ease with which we can integrate tools associated 
 by taking the same elementary built-in functions to generate the entire quantum circuit necessary to run the random sequence. 
 With the use of the baking, we now have one single baked waveform randomly 
 synthesized.
+
+# Coupling the baking tool to the add_compile feature
+
+QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in this part of 
+the documentation (https://qm-docs.s3.amazonaws.com/v1.10/python/features.html#precompile-jobs).
+It is possible to easily override waveforms by doing two things :
+1. Create a baking object ```b_ref ```setting both ```update_config ``` and ```override ``` parameters to True. Note that
+this will attach to each waveform created for all quantum elements involved in the context manager the flag ```is_overridable ``` 
+to True in the input config 
+2. Since the new waveform that shall be overriding the waveform created in 1 should be of same length, 
+the newly baked object ```b_new ``` shall contain the information about the reference length it should target. This is done 
+by specifying a new parameter ```baking_index ``` that shall be set to the baking index of ```b_ref ``` using the method
+```b_ref.get_baking_index() ```
+3. One can finally specify the ```overrides ``` argument of the ```qm.queue.add_compiled ``` with the dictionary
+```b_new.get_waveforms_dict() ```
+
 
 

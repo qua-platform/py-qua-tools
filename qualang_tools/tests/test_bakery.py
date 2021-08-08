@@ -1,13 +1,27 @@
+import matplotlib.pyplot as plt
 import pytest
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm import SimulationConfig
-
+import numpy as np
 from qualang_tools.bakery.bakery import baking
 
 
 @pytest.fixture
 def config():
+    def gauss(amplitude, mu, sigma, length):
+        t = np.linspace(-length / 2, length / 2, length)
+        gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
+        return [float(x) for x in gauss_wave]
+
+    def IQ_imbalance(g, phi):
+        c = np.cos(phi)
+        s = np.sin(phi)
+        N = 1 / ((1 - g ** 2) * (2 * c ** 2 - 1))
+        return [
+            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
+        ]
+
     return {
         "version": 1,
         "controllers": {
@@ -15,6 +29,8 @@ def config():
                 "type": "opx1",
                 "analog_outputs": {
                     1: {"offset": +0.0},
+                    2: {"offset": +0.0},
+                    3: {"offset": +0.0},
                 },
             }
         },
@@ -23,6 +39,16 @@ def config():
                 "singleInput": {"port": ("con1", 1)},
                 "intermediate_frequency": 0,
                 "operations": {"playOp": "constPulse", "a_pulse": "arb_pulse1"},
+            },
+            "qe2": {
+                "mixInputs": {
+                    "I": ("con1", 2),
+                    "Q": ("con1", 3),
+                    "lo_frequency": 0,
+                    "mixer": "mixer_qubit",
+                },
+                "intermediate_frequency": 0,
+                "operations": {"constOp": "constPulse_mix", "gaussOp": "gauss_pulse"},
             },
         },
         "pulses": {
@@ -36,10 +62,31 @@ def config():
                 "length": 100,  # in ns
                 "waveforms": {"single": "arb_wf"},
             },
+            "constPulse_mix": {
+                "operation": "control",
+                "length": 80,
+                "waveforms": {"I": "const_wf", "Q": "zero_wf"},
+            },
+            "gauss_pulse": {
+                "operation": "control",
+                "length": 80,
+                "waveforms": {"I": "gauss_wf", "Q": "zero_wf"},
+            },
         },
         "waveforms": {
+            "zero_wf": {"type": "constant", "sample": 0.0},
             "const_wf": {"type": "constant", "sample": 0.2},
             "arb_wf": {"type": "arbitrary", "samples": [i / 200 for i in range(100)]},
+            "gauss_wf": {"type": "arbitrary", "samples": gauss(0.2, 0, 20, 80)},
+        },
+        "mixers": {
+            "mixer_qubit": [
+                {
+                    "intermediate_frequency": 0,
+                    "lo_frequency": 0,
+                    "correction": IQ_imbalance(0.0, 0.0),
+                }
+            ],
         },
     }
 
@@ -89,3 +136,37 @@ def test_bake_with_macro(config):
         samples.con1.analog["1"][tstamp : tstamp + 200]
         == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
     )
+
+
+def test_amp_modulation_run(config):
+    with baking(
+        config=config, padding_method="right", update_config=True, override=False
+    ) as b:
+        b.play("playOp", "qe1")
+    with baking(
+        config=config, padding_method="right", update_config=True, override=False
+    ) as b2:
+        b2.play("playOp", "qe1")
+    amp_Python = 2
+    with program() as prog:
+        b.run(amp_array=[("qe1", amp_Python)])
+
+    with program() as prog2:
+        amp_QUA = declare(fixed, value=amp_Python)
+        b2.run(amp_array=[("qe1", amp_QUA)])
+
+    with program() as prog3:
+        play("playOp" * amp(amp_Python), "qe1")
+
+    job1 = simulate_program_and_return(config, prog, 500)
+    samples1 = job1.get_simulated_samples()
+    samples1_data = samples1.con1.analog["1"]
+
+    job2 = simulate_program_and_return(config, prog2, 500)
+    samples2 = job2.get_simulated_samples()
+    samples2_data = samples2.con1.analog["1"]
+    job3 = simulate_program_and_return(config, prog3, 500)
+    samples3 = job3.get_simulated_samples()
+    samples3_data = samples3.con1.analog["1"]
+
+    assert all(samples1_data == samples3_data) and all(samples2_data == samples3_data)

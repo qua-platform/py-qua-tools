@@ -388,14 +388,13 @@ class Baking:
         pulse = {}
         waveform = {}
         if "mixInputs" in self._local_config["elements"][qe]:
-            if len(samples) != 2:
-                raise TypeError(
-                    f"Number of provided samples not compatible with element {qe}"
-                )
-            if len(samples[0]) != len(samples[1]):
-                raise IndexError(
-                    "Error : samples provided for I and Q do not have the same length"
-                )
+            assert (
+                len(samples) == 2
+            ), f"{qe} is a mixInput element, two lists should be provided"
+            assert len(samples[0]) == len(
+                samples[1]
+            ), "Error : samples provided for I and Q do not have the same length"
+
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -423,10 +422,11 @@ class Baking:
             }
 
         elif "singleInput" in self._local_config["elements"][qe]:
-            if type(samples[0]) != float or type(samples[0]) != int:
-                raise TypeError(
-                    f"Number of provided samples not compatible with element {qe}"
-                )
+            for i in range(len(samples)):
+                assert (
+                    type(samples[i]) == float or type(samples[i]) == int
+                ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
                     "operation": "control",
@@ -466,15 +466,16 @@ class Baking:
                 phi = self._qe_dict[qe]["phase"]
 
                 if "mixInputs" in self._local_config["elements"][qe]:
-                    if (type(samples[0]) != list) or (type(samples[1]) != list):
-                        raise TypeError(
-                            f"Error : samples given do not correspond to mixInputs for element {qe} "
-                        )
+                    assert (
+                        len(samples) == 2
+                    ), f"{qe} is a mixInput element, two lists should be provided"
+                    assert type(samples[0] == list) and type(samples[1] == list), (
+                        f"{qe} is a mixInput element, " f"two lists should be provided"
+                    )
 
-                    elif len(samples[0]) != len(samples[1]):
-                        raise IndexError(
-                            "Error : samples provided for I and Q do not have the same length"
-                        )
+                    assert len(samples[0]) == len(
+                        samples[1]
+                    ), "Error : samples provided for I and Q do not have the same length"
 
                     I = samples[0]
                     Q = samples[1]
@@ -510,11 +511,10 @@ class Baking:
                     self._update_qe_time(qe, len(I))
 
                 elif "singleInput" in self._local_config["elements"][qe]:
-                    if type(samples[0]) == list:
-                        raise TypeError(
-                            f"Error : samples given do not correspond to singleInput for element {qe} "
-                        )
                     for i in range(len(samples)):
+                        assert (
+                            type(samples[i]) == float or type(samples[i]) == int
+                        ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         self._samples_dict[qe]["single"].append(
                             amp * np.cos(freq * i * 1e-9 + phi) * samples[i]
                         )
@@ -561,14 +561,17 @@ class Baking:
                 samples = self._get_samples(pulse)
                 new_samples = 0
                 if "mixInputs" in self._local_config["elements"][qe]:
-                    if (type(samples[0]) != list) or (type(samples[1]) != list):
-                        raise TypeError(
-                            f"Error : samples given do not correspond to mixInputs for element {qe}"
-                        )
-                    elif len(samples[0]) != len(samples[1]):
-                        raise IndexError(
-                            "Error : samples provided for I and Q do not have the same length"
-                        )
+                    assert (
+                        len(samples) == 2
+                    ), f"{qe} is a mixInput element, two lists should be provided"
+                    assert type(samples[0] == list) and type(samples[1] == list), (
+                        f"{qe} is a mixInput element, " f"two lists should be provided"
+                    )
+
+                    assert len(samples[0]) == len(
+                        samples[1]
+                    ), "Error : samples provided for I and Q do not have the same length"
+
                     I, Q = samples[0], samples[1]
                     I2, Q2, I3, Q3 = (
                         [None] * len(I),
@@ -625,13 +628,13 @@ class Baking:
                             new_samples += 1
 
                 elif "singleInput" in self._local_config["elements"][qe]:
-                    if type(amp) != float:
+                    if type(amp) != float and type(amp) != int:
                         raise IndexError("Amplitude must be a number")
-                    if type(samples[0]) == list:
-                        raise TypeError(
-                            f"Error : samples given do not correspond to singleInput for element {qe} "
-                        )
+
                     for i in range(len(samples)):
+                        assert (
+                            type(samples[i]) == float or type(samples[i]) == int
+                        ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         if t + i < len(self._samples_dict[qe]):
                             phi = self._qe_dict[qe]["phase_track"][t + i]
                             freq = self._qe_dict[qe]["freq_track"][t + i]
@@ -792,7 +795,7 @@ class Baking:
                     else:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
-                        if amp == list:
+                        if type(amp) == list:
                             raise TypeError(
                                 "Amplitude can only be a number (either Python or QUA variable)"
                             )
@@ -815,7 +818,7 @@ class Baking:
                     else:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
-                        if amp == list:
+                        if type(amp) == list:
                             raise TypeError(
                                 "Amplitude can only be a number (either Python or QUA variable)"
                             )
