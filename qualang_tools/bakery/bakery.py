@@ -16,8 +16,9 @@ def baking(
     baking_index: int = None,
 ):
     """
-    Opens a context manager to synthesize samples for arbitrary waveforms. No return, config is updated if update_config is set to True,
-            generated waveforms can be retrieved using the get_waveform_dict() method, in a format readily pluggable as an overrides argument
+    Opens a context manager to synthesize samples for arbitrary waveforms. The input config is updated, unless a
+    baking_index is given, in which case the generated waveforms can be retrieved using the get_waveform_dict() method,
+    in a format readily pluggable as an overrides argument
     :param config: config file
     :param padding_method: Method to pad 0s to format the waveform to match hardware constraint
     (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r" or "symmetric_l"
@@ -38,7 +39,7 @@ class Baking:
         baking_index: int = None,
     ):
         self._config = config
-        if baking_index:
+        if baking_index is not None:
             self.update_config = False
         else:
             self.update_config = True
@@ -50,9 +51,11 @@ class Baking:
         self.override = override
         self.length_constraint = self._retrieve_constraint_length(baking_index)
         self.override_waveforms_dict = {"waveforms": {}}
+        self._out = True
 
     def __enter__(self):
         self._samples_dict, self._qe_dict = self._init_dict()
+        self._out = False
         return self
 
     @property
@@ -151,7 +154,7 @@ class Baking:
         """
         if exc_type:
             return
-
+        self._out = True
         elements = self._local_config["elements"]
         for qe in elements:
             wait_duration = 0  # Stores the duration that has to be padded with 0s to make a valid sample for QUA
@@ -163,12 +166,12 @@ class Baking:
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 if self.length_constraint is not None:
-                    assert self._qe_dict[qe]["time"] < self.length_constraint, (
+                    assert self._qe_dict[qe]["time"] <= self.length_constraint, (
                         f"Provided length constraint (={self.length_constraint}) "
                         f"smaller than actual baked samples length ({self._qe_dict[qe]['time']})"
                     )
                     wait_duration += self.length_constraint - self._qe_dict[qe]["time"]
-                    self.wait(self.length_constraint - self._qe_dict[qe]["time"])
+                    self.wait(self.length_constraint - self._qe_dict[qe]["time"], qe)
                 if (
                     self._qe_dict[qe]["time"] < 16
                 ):  # Sample length must be at least 16 ns long
@@ -258,6 +261,9 @@ class Baking:
                         f"{qe}_baked_wf_{self._ctr}"
                     ] = qe_samples["single"]
 
+    def is_out(self):
+        return self._out
+
     def _get_samples(self, pulse: str) -> Union[List[float], List[List]]:
         """
         Returns samples associated with a pulse
@@ -322,19 +328,35 @@ class Baking:
     def get_waveforms_dict(self):
         return self.override_waveforms_dict
 
-    def delete_baked_Op(self, qe: str):
+    def delete_baked_Op(self, *qe_set: str):
         """
         Delete in the input config of the baking object the associated baked operation and
         its associated pulse and waveform(s) for the specified quantum element
-        :param qe: quantum element
+        :param qe: tuple of selected quantum elements, if no element is provided, operations are deleted for every element
+        involved within the baking object
         """
-        del self.config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"]
-        del self.config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]
-        if "mixInputs" in self.config["elements"][qe]:
-            del self.config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]
-            del self.config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]
-        elif "singleInput" in self.config["elements"][qe]:
-            del self.config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]
+
+        def remove_Op(q):
+            if self.length_constraint is None:
+                if self._out:
+                    del self.config["elements"][q]["operations"][f"baked_Op_{self._ctr}"]
+                    del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
+                    if "mixInputs" in self.config["elements"][q]:
+                        del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
+                        del self.config["waveforms"][f"{q}_baked_wf_Q_{self._ctr}"]
+                    elif "singleInput" in self.config["elements"][q]:
+                        del self.config["waveforms"][f"{q}_baked_wf_{self._ctr}"]
+                else:
+                    raise KeyError("delete_baked_Op only available outside of the context manager "
+                                   "(config is updated at the exit)")
+            else:
+                raise Warning("Operation could not be deleted because baking object does not update the config")
+        if len(qe_set) != 0:
+            for qe in qe_set:
+                remove_Op(qe)
+        else:
+            for qe in self._qe_dict.keys():
+                remove_Op(qe)
 
     def get_Op_name(self, qe: str):
         """
@@ -353,19 +375,22 @@ class Baking:
         Retrieve the length of the finalized baked waveform associated to quantum element qe (outside the baking)
         :param qe: quantum element
         """
-        if not (qe in self._qe_set):
-            raise KeyError(
-                f"{qe} is not in the set of quantum elements of the baking object "
-            )
-        else:
-            if "mixInputs" in self._config["elements"][qe]:
-                return len(
-                    self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["samples"]
+        if self.update_config:
+            if not (qe in self._qe_set):
+                raise KeyError(
+                    f"{qe} is not in the set of quantum elements of the baking object "
                 )
             else:
-                return len(
-                    self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"]
-                )
+                if "mixInputs" in self._config["elements"][qe]:
+                    return len(
+                        self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["samples"]
+                    )
+                else:
+                    return len(
+                        self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"]
+                    )
+        else:
+            return self.get_current_length(qe)
 
     def add_Op(
         self,
@@ -751,21 +776,27 @@ class Baking:
         All of the quantum elements referenced in *elements will wait for all
         the others to finish their currently running statement.
 
-        :param qe_set : set of quantum elements to be aligned altogether
+        :param qe_set : set of quantum elements to be aligned altogether, if no element is passed, alignment is done
+        all elements within the baking
         """
-        last_qe = ""
-        last_t = 0
-        for qe in qe_set:
-            qe_t = self._qe_dict[qe]["time"]
+        def alignment(qe_set2):
+            last_qe = ""
+            last_t = 0
+            for qe in qe_set2:
+                qe_t = self._qe_dict[qe]["time"]
+                if qe_t > last_t:
+                    last_qe = qe
+                    last_t = qe_t
 
-            if qe_t > last_t:
-                last_qe = qe
-                last_t = qe_t
+            for qe in qe_set2:
+                qe_t = self._qe_dict[qe]["time"]
+                if qe != last_qe:
+                    self.wait(last_t - qe_t, qe)
 
-        for qe in qe_set:
-            qe_t = self._qe_dict[qe]["time"]
-            if qe != last_qe:
-                self.wait(last_t - qe_t, qe)
+        if len(qe_set) == 0:
+            alignment(self._qe_dict.keys())
+        else:
+            alignment(qe_set)
 
     def run(self, amp_array=None, trunc_array=None) -> None:
         """

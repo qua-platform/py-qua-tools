@@ -7,13 +7,14 @@ import numpy as np
 from qualang_tools.bakery.bakery import baking
 
 
+def gauss(amplitude, mu, sigma, length):
+    t = np.linspace(-length / 2, length / 2, length)
+    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
+    return [float(x) for x in gauss_wave]
+
+
 @pytest.fixture
 def config():
-    def gauss(amplitude, mu, sigma, length):
-        t = np.linspace(-length / 2, length / 2, length)
-        gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
-        return [float(x) for x in gauss_wave]
-
     def IQ_imbalance(g, phi):
         c = np.cos(phi)
         s = np.sin(phi)
@@ -133,18 +134,18 @@ def test_bake_with_macro(config):
         ]
     )
     assert all(
-        samples.con1.analog["1"][tstamp : tstamp + 200]
+        samples.con1.analog["1"][tstamp: tstamp + 200]
         == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
     )
 
 
 def test_amp_modulation_run(config):
     with baking(
-        config=config, padding_method="right", update_config=True, override=False
+            config=config, padding_method="right", override=False
     ) as b:
         b.play("playOp", "qe1")
     with baking(
-        config=config, padding_method="right", update_config=True, override=False
+            config=config, padding_method="right", override=False
     ) as b2:
         b2.play("playOp", "qe1")
     amp_Python = 2
@@ -172,3 +173,75 @@ def test_amp_modulation_run(config):
     assert len(samples1_data) == len(samples2_data)
     assert all([samples1_data[i] == samples3_data[i] for i in range(len(samples1_data))])
     assert all([samples2_data[i] == samples3_data[i] for i in range(len(samples2_data))])
+
+
+def test_override_waveform(config):
+    with baking(config, padding_method='right', override=True) as b_ref:
+        b_ref.play('gaussOp', 'qe2')
+    ref_length = b_ref.get_Op_length('qe2')
+
+    with baking(config, padding_method="right", override=False, baking_index=b_ref.get_baking_index()) as b_new:
+        samples = [[0.2] * 30, [0.0] * 30]
+        b_new.add_Op("customOp", 'qe2', samples)
+        b_new.play("customOp", 'qe2')
+
+    assert b_new.get_Op_length('qe2') == ref_length
+
+
+def test_out_boolean(config):
+    with baking(config) as b:
+        assert not b.is_out()
+        b.play("playOp", 'qe1')
+        assert b.get_current_length('qe1') == 1000
+    assert b.is_out()
+    with baking(config) as b:
+        assert b.get_current_length('qe1') == 0
+        assert not b.is_out()
+
+
+def test_delete_Op(config):
+    with baking(config) as b:
+        b.play("playOp", 'qe1')
+        b.play("gaussOp", 'qe2')
+    assert "baked_Op_0" in config["elements"]["qe1"]["operations"]
+    assert "qe1_baked_pulse_0" in config["pulses"]
+    assert "qe2_baked_pulse_0" in config["pulses"]
+    b.delete_baked_Op("qe1")
+    assert "baked_Op_0" not in config["elements"]["qe1"]["operations"]
+    assert "qe1_baked_pulse_0" not in config["pulses"]
+    with b:
+        b.play("playOp", 'qe1')
+    assert "baked_Op_0" in config["elements"]["qe1"]["operations"]
+    b.delete_baked_Op()
+    assert "baked_Op_0" not in config["elements"]["qe1"]["operations"]
+    assert "baked_Op_0" not in config["elements"]["qe2"]["operations"]
+
+
+def test_indices_behavior(config):
+    with baking(config) as b1:
+        b1.play("gaussOp", "qe2")
+
+    assert all([config["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.2, 0, 20, 80)[i] for i in range(80)])
+    print(b1.get_Op_name("qe2"), config["waveforms"]["qe2_baked_wf_I_0"]["samples"])
+    with b1:
+        b1.play("gaussOp", "qe2", amp=2)
+    print(b1.get_Op_name("qe2"), config["waveforms"]["qe2_baked_wf_I_0"]["samples"])
+    assert all(
+        [config["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.4, 0, 20, 80)[i] for i in range(80)])
+    print(config["waveforms"].keys())
+
+
+def test_align_command(config):
+    with baking(config) as b:
+        b.play("playOp", "qe1")
+        b.play("gaussOp", "qe2")
+        b.align()
+
+    assert b.get_Op_length('qe2') == b.get_Op_length('qe1')
+
+    with b:
+        b.play("playOp", "qe1")
+        b.play("gaussOp", "qe2")
+        b.align('qe1', 'qe2')
+
+    assert b.get_Op_length('qe2') == b.get_Op_length('qe1')

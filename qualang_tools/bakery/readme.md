@@ -194,15 +194,16 @@ b.play_at('my_pulse', qe, t=-3)
 The baking tool can also be used as a simple waveform generator, without having to necessarily update the configuration 
 file with associated new operations and pulses. A good use case is the precompile feature and the
 overridability of waveforms in order to save waveform memory (see example below).
-To do so, one can simply do the following :
+To do so, one can use the baking tool to generate the waveform, store the waveform in a Python variable using the method
+```b.get_waveform_dict() ```, followed by a deletion of the operation in the input configuration using ```b.delete_Op(qe)```:
 
 ```
-with baking(config, padding_method = "right",
-            update_config = False) as b :
+with baking(config, padding_method = "right") as b :
     # Generate the desired set of baked waveforms
      # (one per involved quantum element)
     
 waveforms_dict = b.get_waveforms_dict()
+b.delete_Op() # Deletes all operations created by the baking object in the config
 ```
 # **Examples**
 
