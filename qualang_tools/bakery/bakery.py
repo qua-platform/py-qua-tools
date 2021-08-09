@@ -339,7 +339,9 @@ class Baking:
         def remove_Op(q):
             if self.length_constraint is None:
                 if self._out:
-                    del self.config["elements"][q]["operations"][f"baked_Op_{self._ctr}"]
+                    del self.config["elements"][q]["operations"][
+                        f"baked_Op_{self._ctr}"
+                    ]
                     del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
                     if "mixInputs" in self.config["elements"][q]:
                         del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
@@ -347,10 +349,15 @@ class Baking:
                     elif "singleInput" in self.config["elements"][q]:
                         del self.config["waveforms"][f"{q}_baked_wf_{self._ctr}"]
                 else:
-                    raise KeyError("delete_baked_Op only available outside of the context manager "
-                                   "(config is updated at the exit)")
+                    raise KeyError(
+                        "delete_baked_Op only available outside of the context manager "
+                        "(config is updated at the exit)"
+                    )
             else:
-                raise Warning("Operation could not be deleted because baking object does not update the config")
+                raise Warning(
+                    "Operation could not be deleted because baking object does not update the config"
+                )
+
         if len(qe_set) != 0:
             for qe in qe_set:
                 remove_Op(qe)
@@ -383,11 +390,15 @@ class Baking:
             else:
                 if "mixInputs" in self._config["elements"][qe]:
                     return len(
-                        self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["samples"]
+                        self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
+                            "samples"
+                        ]
                     )
                 else:
                     return len(
-                        self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"]
+                        self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
+                            "samples"
+                        ]
                     )
         else:
             return self.get_current_length(qe)
@@ -779,6 +790,7 @@ class Baking:
         :param qe_set : set of quantum elements to be aligned altogether, if no element is passed, alignment is done
         all elements within the baking
         """
+
         def alignment(qe_set2):
             last_qe = ""
             last_t = 0

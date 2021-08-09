@@ -21,7 +21,6 @@ with baking(
     config,
     padding_method="right",
     override=False,
-    update_config=False,
     baking_index=b_template.get_baking_index(),
 ) as b_new:
     samples_I = [0.3, 0.3, 0.4]
