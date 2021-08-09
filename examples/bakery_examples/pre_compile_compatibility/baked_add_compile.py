@@ -6,6 +6,7 @@ from config import config
 # Create a first baked waveform, overridable
 # and which will be inserted in the config
 with baking(config, padding_method="right", override=True) as b_template:
+
     samples_I = [0.1, 0.1, 0.2, 0.1, 0.2]
     samples_Q = [0.2, 0.2, 0.3, 0.1, 0.0]
     b_template.add_Op("Op", "qe1", [samples_I, samples_Q])
