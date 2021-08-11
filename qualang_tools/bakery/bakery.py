@@ -45,7 +45,11 @@ class Baking:
             self.update_config = True
         self._padding_method = padding_method
         self._local_config = copy.deepcopy(config)
-        self._samples_dict, self._qe_dict, self._digital_samples_dict = self._init_dict()
+        (
+            self._samples_dict,
+            self._qe_dict,
+            self._digital_samples_dict,
+        ) = self._init_dict()
         self._ctr = self._find_baking_index(baking_index)  # unique name counter
         self._qe_set = set()
         self.override = override
@@ -54,7 +58,11 @@ class Baking:
         self._out = True
 
     def __enter__(self):
-        self._samples_dict, self._qe_dict, self._digital_samples_dict = self._init_dict()
+        (
+            self._samples_dict,
+            self._qe_dict,
+            self._digital_samples_dict,
+        ) = self._init_dict()
         self._out = False
         return self
 
@@ -150,13 +158,18 @@ class Baking:
                 "is_overridable": self.override,
             }
         if len(self._digital_samples_dict[qe]) != 0:
-            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]["digital_marker"] = f"{qe}_baked_digital_wf_{self._ctr}"
+            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"][
+                "digital_marker"
+            ] = f"{qe}_baked_digital_wf_{self._ctr}"
             if "digital_waveforms" in self._config:
-                self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {"samples": self._digital_samples_dict[qe]}
+                self._config["digital_waveforms"][
+                    f"{qe}_baked_digital_wf_{self._ctr}"
+                ] = {"samples": self._digital_samples_dict[qe]}
             else:
                 self._config["digital_waveforms"] = {}
-                self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {
-                    "samples": self._digital_samples_dict[qe]}
+                self._config["digital_waveforms"][
+                    f"{qe}_baked_digital_wf_{self._ctr}"
+                ] = {"samples": self._digital_samples_dict[qe]}
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """
@@ -580,8 +593,12 @@ class Baking:
                     self._update_qe_time(qe, len(samples))
                 # Update of digital waveform
                 if "digital_marker" in self._local_config["pulses"][pulse]:
-                    digital_marker = self._local_config["pulses"][pulse]["digital_marker"]
-                    digital_waveform = self._local_config["digital_waveforms"][digital_marker]["samples"]
+                    digital_marker = self._local_config["pulses"][pulse][
+                        "digital_marker"
+                    ]
+                    digital_waveform = self._local_config["digital_waveforms"][
+                        digital_marker
+                    ]["samples"]
                     self._digital_samples_dict[qe] += digital_waveform
             else:
                 self.play_at(Op, qe, self._qe_dict[qe]["time_track"], amp)

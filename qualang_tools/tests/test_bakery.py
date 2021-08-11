@@ -34,14 +34,18 @@ def config():
                     2: {"offset": +0.0},
                     3: {"offset": +0.0},
                 },
-                "digital_outputs": {1: {}, 2: {}}
+                "digital_outputs": {1: {}, 2: {}},
             }
         },
         "elements": {
             "qe1": {
                 "singleInput": {"port": ("con1", 1)},
                 "intermediate_frequency": 0,
-                "operations": {"playOp": "constPulse", "a_pulse": "arb_pulse1", "playOp2": "constPulse2"},
+                "operations": {
+                    "playOp": "constPulse",
+                    "a_pulse": "arb_pulse1",
+                    "playOp2": "constPulse2",
+                },
                 "digitalInputs": {
                     "digital_input1": {
                         "port": ("con1", 1),
@@ -71,7 +75,7 @@ def config():
                 "operation": "control",
                 "length": 1000,  # in ns
                 "waveforms": {"single": "const_wf"},
-                "digital_marker": "ON"
+                "digital_marker": "ON",
             },
             "arb_pulse1": {
                 "operation": "control",
@@ -302,7 +306,12 @@ def test_add_digital_wf(config):
     print(cfg["pulses"]["qe1_baked_pulse_0"])
     print(cfg["waveforms"]["qe1_baked_wf_0"])
     print(cfg["digital_waveforms"])
-    assert cfg["digital_waveforms"]["qe1_baked_digital_wf_0"]["samples"] == [(1, 0), (0, 25), (1, 13), (0, 12)]
+    assert cfg["digital_waveforms"]["qe1_baked_digital_wf_0"]["samples"] == [
+        (1, 0),
+        (0, 25),
+        (1, 13),
+        (0, 12),
+    ]
 
 
 def test_play_baked_with_existing_digital_wf(config):
@@ -315,5 +324,3 @@ def test_play_baked_with_existing_digital_wf(config):
     job = simulate_program_and_return(cfg, prog)
     samples = job.get_simulated_samples()
     assert len(samples.con1.digital["1"] > 0)
-
-
