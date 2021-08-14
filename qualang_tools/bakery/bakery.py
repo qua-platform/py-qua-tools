@@ -3,7 +3,7 @@ Author: Arthur Strauss - Quantum Machines
 Created: 23/02/2021
 """
 
-from typing import List, Union
+from typing import List, Union, Tuple
 import numpy as np
 from qm import qua
 import copy
@@ -426,7 +426,7 @@ class Baking:
         else:
             return self.get_current_length(qe)
 
-    def add_digital_waveform(self, name: str, digital_samples: list):
+    def add_digital_waveform(self, name: str, digital_samples: List[Tuple]):
         """
         Adds a digital waveform to be attached to a baked operation created using the add_Op method
         :param name: name of the digital waveform
@@ -442,7 +442,7 @@ class Baking:
         self,
         name: str,
         qe: str,
-        samples: Union[list, list[list]],
+        samples: Union[List[float], List[List]],
         digital_marker: str = None,
     ):
         """
@@ -520,7 +520,7 @@ class Baking:
         self._local_config["waveforms"].update(waveform)
         self._local_config["elements"][qe]["operations"].update(Op)
 
-    def play(self, Op: str, qe: str, amp: Union[float, tuple] = 1.0) -> None:
+    def play(self, Op: str, qe: str, amp: Union[float, Tuple] = 1.0) -> None:
         """
         Add a pulse to the baked sequence
         :param Op: operation to play to quantum element
@@ -536,6 +536,7 @@ class Baking:
                 phi = self._qe_dict[qe]["phase"]
 
                 if "mixInputs" in self._local_config["elements"][qe]:
+                    assert isinstance(samples, list)
                     assert (
                         len(samples) == 2
                     ), f"{qe} is a mixInput element, two lists should be provided"
@@ -609,7 +610,7 @@ class Baking:
                 f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)'
             )
 
-    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, tuple] = 1.0) -> None:
+    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, Tuple] = 1.0) -> None:
         """
         Add a waveform to the sequence at the specified time index.
         If indicated time is higher than the pulse duration for the specified quantum element,
@@ -640,6 +641,7 @@ class Baking:
                 samples = self._get_samples(pulse)
                 new_samples = 0
                 if "mixInputs" in self._local_config["elements"][qe]:
+                    assert isinstance(samples, list)
                     assert (
                         len(samples) == 2
                     ), f"{qe} is a mixInput element, two lists should be provided"
@@ -854,7 +856,7 @@ class Baking:
         else:
             alignment(qe_set)
 
-    def run(self, amp_array=None, trunc_array=None) -> None:
+    def run(self, amp_array: List[Tuple] = None, trunc_array: List[Tuple] = None) -> None:
         """
         Plays the baked waveform
         This method must be used within a QUA program
