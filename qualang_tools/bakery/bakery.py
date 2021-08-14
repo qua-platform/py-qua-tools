@@ -856,7 +856,9 @@ class Baking:
         else:
             alignment(qe_set)
 
-    def run(self, amp_array: List[Tuple] = None, trunc_array: List[Tuple] = None) -> None:
+    def run(
+        self, amp_array: List[Tuple] = None, trunc_array: List[Tuple] = None
+    ) -> None:
         """
         Plays the baked waveform
         This method must be used within a QUA program
