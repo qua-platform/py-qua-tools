@@ -442,7 +442,7 @@ class Baking:
         self,
         name: str,
         qe: str,
-        samples: Union[List[float], List[List]],
+        samples: Union[List[float], List[List[float]]],
         digital_marker: str = None,
     ):
         """
@@ -520,7 +520,7 @@ class Baking:
         self._local_config["waveforms"].update(waveform)
         self._local_config["elements"][qe]["operations"].update(Op)
 
-    def play(self, Op: str, qe: str, amp: Union[float, Tuple] = 1.0) -> None:
+    def play(self, Op: str, qe: str, amp: Union[float, Tuple[float]] = 1.0) -> None:
         """
         Add a pulse to the baked sequence
         :param Op: operation to play to quantum element
@@ -610,7 +610,9 @@ class Baking:
                 f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)'
             )
 
-    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, Tuple] = 1.0) -> None:
+    def play_at(
+        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0
+    ) -> None:
         """
         Add a waveform to the sequence at the specified time index.
         If indicated time is higher than the pulse duration for the specified quantum element,
