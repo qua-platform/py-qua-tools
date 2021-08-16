@@ -250,6 +250,15 @@ def test_delete_Op(config):
     assert "baked_Op_0" not in cfg["elements"]["qe1"]["operations"]
     assert "baked_Op_0" not in cfg["elements"]["qe2"]["operations"]
 
+    with baking(cfg) as b:
+        b.add_digital_waveform("dig_wf", [(1, 0)])
+        b.add_Op("new_Op", "qe1", [0.3] * 100, "dig_wf")
+        b.play("new_Op", "qe1")
+
+    assert "qe1_baked_digital_wf_0" in cfg["digital_waveforms"]
+    b.delete_baked_Op()
+    assert "qe1_baked_digital_wf_0" not in cfg["digital_waveforms"]
+
 
 def test_indices_behavior(config):
     cfg = deepcopy(config)
