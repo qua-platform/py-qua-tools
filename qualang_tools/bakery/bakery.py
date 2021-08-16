@@ -362,15 +362,25 @@ class Baking:
         def remove_Op(q):
             if self.length_constraint is None:
                 if self._out:
-                    del self.config["elements"][q]["operations"][
-                        f"baked_Op_{self._ctr}"
-                    ]
-                    del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
-                    if "mixInputs" in self.config["elements"][q]:
-                        del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
-                        del self.config["waveforms"][f"{q}_baked_wf_Q_{self._ctr}"]
-                    elif "singleInput" in self.config["elements"][q]:
-                        del self.config["waveforms"][f"{q}_baked_wf_{self._ctr}"]
+                    if f"baked_Op_{self._ctr}" in self.config["elements"][q]["operations"]:
+                        del self.config["elements"][q]["operations"][
+                            f"baked_Op_{self._ctr}"
+                        ]
+                        del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
+                        if "mixInputs" in self.config["elements"][q]:
+                            del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
+                            del self.config["waveforms"][f"{q}_baked_wf_Q_{self._ctr}"]
+                        elif "singleInput" in self.config["elements"][q]:
+                            del self.config["waveforms"][f"{q}_baked_wf_{self._ctr}"]
+                        if "digital_waveforms" in self._config:
+                            if (
+                                f"{q}_baked_digital_wf_{self._ctr}"
+                                in self._config["digital_waveforms"]
+                            ):
+                                del self.config["digital_waveforms"][
+                                    f"{q}_baked_digital_wf_{self._ctr}"
+                                ]
+
                 else:
                     raise KeyError(
                         "delete_baked_Op only available outside of the context manager "
