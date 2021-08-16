@@ -362,7 +362,10 @@ class Baking:
         def remove_Op(q):
             if self.length_constraint is None:
                 if self._out:
-                    if f"baked_Op_{self._ctr}" in self.config["elements"][q]["operations"]:
+                    if (
+                        f"baked_Op_{self._ctr}"
+                        in self.config["elements"][q]["operations"]
+                    ):
                         del self.config["elements"][q]["operations"][
                             f"baked_Op_{self._ctr}"
                         ]
