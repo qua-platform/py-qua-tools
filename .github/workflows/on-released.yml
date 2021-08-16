@@ -21,7 +21,7 @@ jobs:
       - name: Update pypi
         run: |
           pip install twine
-          twine upload -q -u ${{secrets.PIPY_TOKEN_USER}} -p ${{secrets.PIPY_TOKEN_PWD}} dist/*
+          twine upload -u ${{secrets.PIPY_TOKEN_USER}} -p ${{secrets.PIPY_TOKEN_PWD}} dist/*
       - name: Upload assets
         uses: qm-devops/qm-upload-release-assets@v1
         with:
