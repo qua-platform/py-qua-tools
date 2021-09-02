@@ -425,34 +425,44 @@ class Baking:
         else:
             return f"baked_Op_{self._ctr}"
 
-    def get_Op_length(self, qe: str) -> int:
+    def get_Op_length(self, qe: Optional[str] = None) -> int:
         """
         Retrieve the length of the finalized baked waveform associated to quantum element qe (outside the baking)
 
-        :param qe: quantum element
-        :returns: Length of baked operation associated to element qe
+        :param qe: target quantum element, if None is provided, then length of the longest baked waveform
+            associated to baking object is returned
+        :returns: Length of baked operation associated to element qe (or maximum length if None is provided)
 
         """
-        if self.update_config:
-            if not (qe in self._qe_set):
-                raise KeyError(
-                    f"{qe} is not in the set of quantum elements of the baking object "
-                )
-            else:
-                if "mixInputs" in self._config["elements"][qe]:
-                    return len(
-                        self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
-                            "samples"
-                        ]
+        if qe is not None:
+            if self.update_config and self._out:
+                if not (qe in self._qe_set):
+                    raise KeyError(
+                        f"{qe} is not in the set of quantum elements of the baking object "
                     )
                 else:
-                    return len(
-                        self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
-                            "samples"
-                        ]
-                    )
+                    if "mixInputs" in self._config["elements"][qe]:
+                        return len(
+                            self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
+                                "samples"
+                            ]
+                        )
+                    else:
+                        return len(
+                            self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
+                                "samples"
+                            ]
+                        )
+            else:
+                return self.get_current_length(qe)
+
         else:
-            return self.get_current_length(qe)
+            max_length = 0
+            for qe in self._qe_dict:
+                length = self.get_Op_length(qe)
+                if length > max_length:
+                    max_length = length
+            return max_length
 
     def add_digital_waveform(self, name: str, digital_samples: List[Tuple]) -> None:
         """
