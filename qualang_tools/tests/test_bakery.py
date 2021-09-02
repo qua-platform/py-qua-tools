@@ -338,8 +338,8 @@ def test_play_baked_with_existing_digital_wf(config):
 def test_constraint_length(config):
     cfg = deepcopy(config)
     with baking(cfg) as b:
-        b.add_Op("Op", "qe1", [0.2]*1000)
-        b.add_Op("Op2", "qe2", [[0.2]*700, [0.3]*700])
+        b.add_Op("Op", "qe1", [0.2] * 1000)
+        b.add_Op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
         b.play("Op", "qe1")
         b.play("Op2", "qe2")
 
