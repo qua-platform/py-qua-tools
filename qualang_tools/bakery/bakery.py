@@ -19,13 +19,17 @@ def baking(
     Opens a context manager to synthesize samples for arbitrary waveforms. The input config is updated, unless a
     baking_index is given, in which case the generated waveforms can be retrieved using the get_waveform_dict() method,
     in a format readily pluggable as an overrides argument
+
     :param config: config file
     :param padding_method: Method to pad 0s to format the waveform to match hardware constraint
-    (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r" or "symmetric_l"
+        (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r" or "symmetric_l"
     :param override: Define if baked waveforms are overridable when using add_compiled feature (default set to False)
     :param baking_index: index of a reference baking object to impose length constraint on new baked waveform
-    (default set to None). If integer is provided, input config is not updated with the waveform to be generated
-    (useful for matching lengths when using waveform overriding in add_compiled feature)
+        (default set to None).
+        If the reference waveforms do have different lengths for different quantum elements, the longest waveform
+        is taken as a constraint.
+        Moreover, if index is provided, input config is not updated with the waveform to be generated
+        (useful for matching lengths when using waveform overriding in add_compiled feature)
     """
     return Baking(config, padding_method, override, baking_index)
 
@@ -970,9 +974,15 @@ class Baking:
 
     def _retrieve_constraint_length(self, baking_index: int = None) -> Optional[int]:
         if baking_index is not None:
+            max_length = 0
             for pulse in self._local_config["pulses"]:
-                if pulse.find(f"baked_pulse_{baking_index}") != -1:
-                    return self._local_config["pulses"][pulse]["length"]
+                if (
+                    pulse.find(f"baked_pulse_{baking_index}") != -1
+                    and self._local_config["pulses"][pulse]["length"] > max_length
+                ):
+                    max_length = self._local_config["pulses"][pulse]["length"]
+
+            return max_length
         else:
             return None
 
