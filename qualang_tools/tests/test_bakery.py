@@ -333,3 +333,23 @@ def test_play_baked_with_existing_digital_wf(config):
     job = simulate_program_and_return(cfg, prog)
     samples = job.get_simulated_samples()
     assert len(samples.con1.digital["1"] > 0)
+
+
+def test_constraint_length(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b:
+        b.add_Op("Op", "qe1", [0.2]*1000)
+        b.add_Op("Op2", "qe2", [[0.2]*700, [0.3]*700])
+        b.play("Op", "qe1")
+        b.play("Op2", "qe2")
+
+    assert b.get_Op_length() == 1000
+
+    with baking(cfg, baking_index=b.get_baking_index()) as b2:
+        b2.add_Op("Op", "qe1", [0.2] * 300)
+        b2.add_Op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
+        b2.play("Op", "qe1")
+        b2.play("Op2", "qe2")
+
+    assert b2.get_Op_length() == 1000
+    assert b2.get_Op_length("qe1") == 1000 == b2.get_Op_length("qe2")
