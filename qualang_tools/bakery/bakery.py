@@ -365,12 +365,12 @@ class Baking:
 
     def delete_baked_Op(self, *qe_set: str) -> None:
         """
-        Delete from config baked operation and its associated pulse and waveform(s) for
+        Delete from the config the baked operation and its associated pulse and waveform(s) for the
         specified quantum_elements
 
         :param qe_set:
-            tuple of selected quantum elements, if no element is provided,
-            all baked operations are deleted for every element (associated to baking object)
+            tuple of quantum elements, if no element is provided,
+            all of the baked operations associated to this baking object will be deleted
         """
 
         def remove_Op(q):
@@ -434,7 +434,7 @@ class Baking:
         Retrieve the length of the finalized baked waveform associated to quantum element qe (outside the baking)
 
         :param qe: target quantum element, if None is provided, then length of the longest baked waveform
-            associated to baking object is returned
+            associated to this baking object is returned
         :returns: Length of baked operation associated to element qe (or maximum length if None is provided)
 
         """
@@ -663,7 +663,7 @@ class Baking:
         """
         Add a waveform to the sequence at the specified time index.
         If t is higher than pulse duration for the specified quantum element,
-        a wait command followed by the given waveform at indicated time (in ns) is played.
+        a wait command is inserted until the indicated time (in ns).
         Otherwise, waveform is added (addition of samples) to the pre-existing sequence.
         Finally, providing a negative index starts adding the sample with a prior negative wait of t
         Note that the phase played for the newly formed sample is the one that was set before adding the new waveform
