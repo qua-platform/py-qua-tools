@@ -43,10 +43,11 @@ class RBOneQubit:
     def __init__(self, config: dict, d_max: int, K: int, qubit: str):
         """
         Class to retrieve easily baked RB sequences and their inverse operations
-        :param config Configuration file
-        :param d_max Maximum length of desired RB sequence
-        :param K Number of RB sequences
-        :param qubit Name of the quantum element designating the qubit
+
+        :param config: Configuration file
+        :param d_max: Maximum length of desired RB sequence
+        :param K: Number of RB sequences
+        :param qubit: Name of the quantum element designating the qubit
         """
         if not (qubit in config["elements"]):
             raise KeyError(f"Quantum element {qubit} is not in the config")
@@ -59,17 +60,23 @@ class RBOneQubit:
 
 def find_revert_op(input_state_index: int):
     """Looks in the Cayley table the operation needed to reset the state to ground state from input state_tracker
-    :param input_state_index Index of the current state tracker
-    :return index of the next Clifford to apply to invert RB sequence"""
+
+    :param input_state_index: Index of the current state tracker
+    :return: index of the next Clifford to apply to invert RB sequence
+    """
     for i in range(len(c1_ops)):
         if c1_table[input_state_index][i] == 0:
             return i
 
 
 def play_revert_op(index: int, baked_cliffords):
-    """Plays an operation resetting qubit in its ground state based on the
+    """
+    Plays an operation resetting qubit in its ground state based on the
     transformation provided by the index in Cayley table (switch using baked Cliffords)
-    :param index index of the transformed qubit state"""
+
+    :param baked_cliffords: list of baked cliffords (generated using method generate_cliffords)
+    :param index: index of the transformed qubit state
+    """
 
     with switch_(index):
         for i in range(len(baked_cliffords)):
@@ -96,9 +103,12 @@ class RBSequence:
         self.sequence = self.generate_RB_sequence()  # Store the RB sequence
 
     def play_revert_op2(self, index: int):
-        """Plays an operation resetting qubit in its ground state based on the
+        """
+        Plays an operation resetting qubit in its ground state based on the
         transformation provided by the index in Cayley table (explicit switch case)
-        :param index index of the transformed qubit state"""
+
+        :param index: index of the transformed qubit state
+        """
         qubit = self.qubit
 
         with switch_(index):
@@ -175,6 +185,8 @@ class RBSequence:
     def generate_cliffords(self):
         """
         Returns a list of baking object giving access to baked Clifford waveforms
+
+        :return: List of baking objects to play each Clifford
         """
 
         baked_clifford = [None] * len(c1_ops)
