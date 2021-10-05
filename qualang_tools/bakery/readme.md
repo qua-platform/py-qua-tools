@@ -31,7 +31,7 @@ When executed, the content manager edits the input configuration file and adds:
 - an associated pulse
 - an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing waveform(s) issued from concatenation of operations indicated in the context manager.
 
-
+**IMPORTANT NOTE**: As the baking context manager does edit the configuration file, it is important to open the Quantum Machine instance **after** having baked all the desired waveforms.
 # **How can I add operations inside the baking context manager?**
 
 The logic behind the baking context manager is to stay as close as possible to the way we would write play statements within a QUA program. For instance, commands like frame_rotation, reset_phase, ramp, wait and align are all replicated within the context manager. 
@@ -76,7 +76,8 @@ with baking(config, padding_method = "symmetric_r") as b:
 ```
 # **How to play in QUA my baked waveforms?**
 
-The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms. Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
+The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms.
+Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
 
 ```
 with baking(config, "left"):
