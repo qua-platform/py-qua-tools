@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Callable, Union
 
-from entropylab_qpudb import QuaConfig
-
 from qualang_tools.bakery.bakery import baking, Baking
 import numpy as np
 
@@ -47,7 +45,7 @@ class XEB:
         :param align_op: a callable with baking object as argument that performs an align operation on all quantum elements
 
         """
-        self.config: QuaConfig = config
+        self.config = config
         self.m_max = m_max
         self.duration_tracker = [0] * m_max
         self.operations_list = {qe: [] for qe in ["q1", "q2"]}
