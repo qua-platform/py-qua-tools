@@ -1,13 +1,21 @@
 from qualang_tools.bakery.bakery import Baking
 
 from qualang_tools.bakery.xeb import XEB, XEBOpsSingleQubit
-from xeb_config import config
+from xeb_config import config, pulse_len
 from qm import SimulationConfig
 from qm.QmJob import QmJob
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 
 import matplotlib.pyplot as plt
+
+
+def id1(baking: Baking):
+    baking.wait(pulse_len, "q1")
+
+
+def id2(baking: Baking):
+    baking.wait(pulse_len, "q2")
 
 
 def baked_cphase(baking: Baking):
@@ -49,8 +57,8 @@ def align_op(baking: Baking):
 xeb = XEB(
     config,
     m_max=10,
-    q1_ops=XEBOpsSingleQubit(sx=sx1, sy=sy1, sw=sw1),
-    q2_ops=XEBOpsSingleQubit(sx=sx2, sy=sy2, sw=sw2),
+    q1_ops=XEBOpsSingleQubit(id=id1, sx=sx1, sy=sy1, sw=sw1),
+    q2_ops=XEBOpsSingleQubit(id=id2, sx=sx2, sy=sy2, sw=sw2),
     two_qubit_op=baked_cphase,
     align_op=align_op,
 )
