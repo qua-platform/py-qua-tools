@@ -25,8 +25,11 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15):
     changes_indices = np.where(np.abs(np.diff(integration_weights)) > 0)[0].tolist()
     prev_index = -1
     new_integration_weights = []
-    for curr_index in (changes_indices + [len(integration_weights) - 1]):
-        constant_part = (integration_weights[curr_index].tolist(), round(4 * (curr_index - prev_index)))
+    for curr_index in changes_indices + [len(integration_weights) - 1]:
+        constant_part = (
+            integration_weights[curr_index].tolist(),
+            round(4 * (curr_index - prev_index)),
+        )
         new_integration_weights.append(constant_part)
         prev_index = curr_index
 
@@ -53,10 +56,16 @@ def compress_integration_weights(integration_weights, N=100):
         times2 = integration_weights[min_diff_indices + 1, 1]
         weights1 = integration_weights[min_diff_indices, 0]
         weights2 = integration_weights[min_diff_indices + 1, 0]
-        integration_weights[min_diff_indices, 0] = (weights1 * times1 + weights2 * times2) / (times1 + times2)
+        integration_weights[min_diff_indices, 0] = (
+            weights1 * times1 + weights2 * times2
+        ) / (times1 + times2)
         integration_weights[min_diff_indices, 1] = times1 + times2
         integration_weights = np.delete(integration_weights, min_diff_indices + 1, 0)
-        integration_weights = list(zip(integration_weights.T[0].tolist(),
-                                       integration_weights.T[1].astype(int).tolist()))
+        integration_weights = list(
+            zip(
+                integration_weights.T[0].tolist(),
+                integration_weights.T[1].astype(int).tolist(),
+            )
+        )
 
     return integration_weights
