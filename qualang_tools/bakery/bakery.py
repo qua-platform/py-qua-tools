@@ -7,6 +7,7 @@ from typing import List, Union, Tuple, Dict, Optional, Set
 import numpy as np
 from qm import qua
 import copy
+from scipy.interpolate import interp1d
 
 
 def baking(
@@ -14,6 +15,7 @@ def baking(
     padding_method="right",
     override=False,
     baking_index: int = None,
+    sampling_rate: Union[int, float] = 1e9,
 ):
     """
     Opens a context manager to synthesize samples for arbitrary waveforms. The input config is updated, unless a
@@ -22,7 +24,8 @@ def baking(
 
     :param config: config file
     :param padding_method: Method to pad 0s to format the waveform to match hardware constraint
-        (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r" or "symmetric_l"
+        (>16 ns and multiple of 4), can be set to "right", "left", "symmetric_r", "symmetric_l" or "none". If set to
+        "none", an error is raised if the baked waveform does not match hardware constraints
     :param override: Define if baked waveforms are overridable when using add_compiled feature (default set to False)
     :param baking_index: index of a reference baking object to impose length constraint on new baked waveform
         (default set to None).
@@ -30,8 +33,15 @@ def baking(
         is taken as a constraint.
         Moreover, if index is provided, input config is not updated with the waveform to be generated
         (useful for matching lengths when using waveform overriding in add_compiled feature)
+    :param sampling_rate: Choose the number of samples per second (by default 1 Gsamples/sec) in
+            which you write the waveforms within the baking. If the sampling rate higher than the default value,
+            cubic interpolation is done to provide a new waveform at the OPX sampling rate. If the sampling rate is
+            lower, the sampling rate argument is added to the waveform in the config, causing the OPX to interpolate
+            in real time.
+
+
     """
-    return Baking(config, padding_method, override, baking_index)
+    return Baking(config, padding_method, override, baking_index, sampling_rate)
 
 
 class Baking:
@@ -41,6 +51,7 @@ class Baking:
         padding_method: str = "right",
         override: bool = False,
         baking_index: int = None,
+        sampling_rate: Union[int, float] = 1e9,
     ):
         self._config = config
         if baking_index is not None:
@@ -49,6 +60,7 @@ class Baking:
             self.update_config = True
         self._padding_method = padding_method
         self._local_config = copy.deepcopy(config)
+        self.sampling_rate = int(sampling_rate)
         (
             self._samples_dict,
             self._qe_dict,
@@ -57,6 +69,11 @@ class Baking:
         self._ctr = self._find_baking_index(baking_index)  # unique name counter
         self._qe_set = set()
         self.override = override
+        if override and sampling_rate < 1e9:
+            raise ValueError(
+                "Waveform can not be simultaneously overridable and compressed with lower than 1e9"
+                "sampling rate"
+            )
         self.length_constraint = self._retrieve_constraint_length(baking_index)
         self.override_waveforms_dict = {"waveforms": {}}
         self._out = True
@@ -126,7 +143,6 @@ class Baking:
     def _update_config(self, qe, qe_samples) -> None:
 
         # Generates new Op, pulse, and waveform for each qe to be added in the original config file
-
         self._config["elements"][qe]["operations"][
             f"baked_Op_{self._ctr}"
         ] = f"{qe}_baked_pulse_{self._ctr}"
@@ -149,7 +165,13 @@ class Baking:
                 "samples": qe_samples["Q"],
                 "is_overridable": self.override,
             }
-
+            if self.sampling_rate < int(1e9):
+                self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
+                    "sampling_rate"
+                ] = self.sampling_rate
+                self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"][
+                    "sampling_rate"
+                ] = self.sampling_rate
         elif "single" in qe_samples:
             self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
                 "operation": "control",
@@ -161,6 +183,11 @@ class Baking:
                 "samples": qe_samples["single"],
                 "is_overridable": self.override,
             }
+            if self.sampling_rate < int(1e9):
+                self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
+                    "sampling_rate"
+                ] = self.sampling_rate
+
         if len(self._digital_samples_dict[qe]) != 0:
             self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"][
                 "digital_marker"
@@ -189,9 +216,33 @@ class Baking:
 
             if (
                 self._qe_dict[qe]["time"] > 0
-            ):  # Check if a sample was added to the quantum element
+            ):  # Check if sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
+                qe_samples = self._samples_dict[qe]
+                if self.sampling_rate > int(1e9):
+                    if "mixInputs" in elements[qe]:
+                        y1 = qe_samples["I"]
+                        y2 = qe_samples["Q"]
+                        dt = 1e9 / self.sampling_rate
+                        max_t = len(y1) * dt
+                        x = np.arange(0, max_t - dt / 2, dt)
+                        f1 = interp1d(x, y1, "cubic")
+                        f2 = interp1d(x, y2, "cubic")
+                        x_new = np.arange(0, int(max_t))
+                        self._qe_dict[qe]["time"] = int(max_t)
+                        qe_samples["I"] = list(f1(x_new))
+                        qe_samples["Q"] = list(f2(x_new))
+                    elif "singleInput" in elements[qe]:
+                        y = qe_samples["single"]
+                        dt = 1e9 / self.sampling_rate
+                        max_t = len(y) * dt
+                        x = np.arange(0, max_t - dt / 2, dt)
+                        f = interp1d(x, y, "cubic")
+                        x_new = np.arange(0, int(max_t))
+                        self._qe_dict[qe]["time"] = int(max_t)
+                        qe_samples["single"] = list(f(x_new))
+
                 if self.length_constraint is not None:
                     assert self._qe_dict[qe]["time"] <= self.length_constraint, (
                         f"Provided length constraint (={self.length_constraint}) "
@@ -210,7 +261,6 @@ class Baking:
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
 
-                qe_samples = self._samples_dict[qe]
                 end_samples = 0
                 if "mixInputs" in elements[qe]:
                     end_samples = len(qe_samples["I"]) - wait_duration
@@ -220,6 +270,16 @@ class Baking:
                 # Padding done according to desired method, can be either right, left, symmetric left or symmetric right
                 if self._padding_method == "right":
                     pass
+                elif self._padding_method == "none":
+                    wait_duration2 = wait_duration
+                    if self.length_constraint is not None:
+                        wait_duration2 -= self.length_constraint
+                    if wait_duration2 != 0:
+                        raise ValueError(
+                            "Baked waveform requires padding to match hardware constraint"
+                            " whereas no padding is desired"
+                        )
+
                 elif self._padding_method == "left":
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
@@ -291,37 +351,77 @@ class Baking:
     def is_out(self):
         return self._out
 
-    def _get_samples(self, pulse: str) -> Union[List[float], List[List]]:
+    def _get_samples(self, pulse: str) -> Union[List[float], List[List[float]]]:
         """
         Returns samples associated with a pulse
         :param pulse:
         :returns: Python list containing samples, [samples_I, samples_Q] in case of mixInputs
         """
+
         try:
-            if "single" in self._local_config["pulses"][pulse]["waveforms"]:
-                wf = self._local_config["pulses"][pulse]["waveforms"]["single"]
-                if self._local_config["waveforms"][wf]["type"] == "constant":
-                    return [
-                        self._local_config["waveforms"][wf]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
-                else:
-                    return list(self._local_config["waveforms"][wf]["samples"])
-            elif "I" in self._local_config["pulses"][pulse]["waveforms"]:
-                wf_I = self._local_config["pulses"][pulse]["waveforms"]["I"]
-                wf_Q = self._local_config["pulses"][pulse]["waveforms"]["Q"]
-                if self._local_config["waveforms"][wf_I]["type"] == "constant":
-                    samples_I = [
-                        self._local_config["waveforms"][wf_I]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
-                else:
-                    samples_I = list(self._local_config["waveforms"][wf_I]["samples"])
-                if self._local_config["waveforms"][wf_Q]["type"] == "constant":
-                    samples_Q = [
-                        self._local_config["waveforms"][wf_Q]["sample"]
-                    ] * self._local_config["pulses"][pulse]["length"]
-                else:
-                    samples_Q = list(self._local_config["waveforms"][wf_Q]["samples"])
-                return [samples_I, samples_Q]
+            waveforms = self._local_config["waveforms"]
+            pulses = self._local_config["pulses"]
+
+            if self.sampling_rate > int(1e9) and pulse in self._config["pulses"]:
+                dt = 1e9 / self.sampling_rate
+                orig_max_t = pulses[pulse]["length"]
+                len_t = np.ceil(orig_max_t / dt).astype(int)
+                if "single" in self._local_config["pulses"][pulse]["waveforms"]:
+                    wf = pulses[pulse]["waveforms"]["single"]
+                    if waveforms[wf]["type"] == "constant":
+                        return [waveforms[wf]["sample"]] * len_t
+                    else:
+                        y = waveforms[wf]["samples"]
+                        x = np.arange(0, len(y))
+                        f = interp1d(x, y, "cubic", fill_value="extrapolate")
+                        x_new = np.arange(0, orig_max_t, dt)
+                        return list(f(x_new))
+
+                elif "I" in pulses[pulse]["waveforms"]:
+                    wf_I = pulses[pulse]["waveforms"]["I"]
+                    wf_Q = pulses[pulse]["waveforms"]["Q"]
+                    if waveforms[wf_I]["type"] == "constant":
+                        samples_I = [waveforms[wf_I]["sample"]] * len_t
+                    else:
+                        y1 = waveforms[wf_I]["samples"]
+                        x1 = np.arange(0, len(y1))
+                        f1 = interp1d(x1, y1, "cubic", fill_value="extrapolate")
+                        x_new1 = np.arange(0, orig_max_t, dt)
+                        samples_I = list(f1(x_new1))
+
+                    if waveforms[wf_Q]["type"] == "constant":
+                        samples_Q = [waveforms[wf_Q]["sample"]] * len_t
+                    else:
+                        y2 = waveforms[wf_Q]["samples"]
+                        x2 = np.arange(0, len(y2))
+                        f2 = interp1d(x2, y2, "cubic", fill_value="extrapolate")
+                        x_new2 = np.arange(0, orig_max_t, dt)
+                        samples_Q = list(f2(x_new2))
+                    return [samples_I, samples_Q]
+
+            else:
+                if "single" in pulses[pulse]["waveforms"]:
+                    wf = pulses[pulse]["waveforms"]["single"]
+                    if waveforms[wf]["type"] == "constant":
+                        return [waveforms[wf]["sample"]] * pulses[pulse]["length"]
+                    else:
+                        return list(waveforms[wf]["samples"])
+                elif "I" in pulses[pulse]["waveforms"]:
+                    wf_I = pulses[pulse]["waveforms"]["I"]
+                    wf_Q = pulses[pulse]["waveforms"]["Q"]
+                    if waveforms[wf_I]["type"] == "constant":
+                        samples_I = [waveforms[wf_I]["sample"]] * pulses[pulse][
+                            "length"
+                        ]
+                    else:
+                        samples_I = list(waveforms[wf_I]["samples"])
+                    if waveforms[wf_Q]["type"] == "constant":
+                        samples_Q = [waveforms[wf_Q]["sample"]] * pulses[pulse][
+                            "length"
+                        ]
+                    else:
+                        samples_Q = list(waveforms[wf_Q]["samples"])
+                    return [samples_I, samples_Q]
 
         except KeyError:
             raise KeyError(f"No waveforms found for pulse {pulse}")
@@ -332,18 +432,27 @@ class Baking:
         """
         return self._ctr
 
-    def get_current_length(self, qe: str) -> int:
+    def get_current_length(self, qe: Optional[str] = None) -> int:
         """
         Retrieve within the baking the current length of the waveform being created (within the baking)
 
         :param qe: quantum element
         """
-        if "mixInputs" in self._local_config["elements"][qe]:
-            return len(self._samples_dict[qe]["I"])
-        elif "singleInput" in self._local_config["elements"][qe]:
-            return len(self._samples_dict[qe]["single"])
+        if qe is None:
+            max_length = 0
+            for qe in self._qe_dict:
+                if self._qe_dict[qe]["time"] > 0:
+                    length = self.get_op_length(qe)
+                    if length > max_length:
+                        max_length = length
+            return max_length
         else:
-            raise KeyError("quantum element not in the config")
+            if "mixInputs" in self._local_config["elements"][qe]:
+                return len(self._samples_dict[qe]["I"])
+            elif "singleInput" in self._local_config["elements"][qe]:
+                return len(self._samples_dict[qe]["single"])
+            else:
+                raise KeyError("quantum element not in the config")
 
     def _get_pulse_index(self, qe) -> int:
         index = 0
@@ -370,7 +479,77 @@ class Baking:
         """
         return self.override_waveforms_dict
 
-    def delete_baked_Op(self, *qe_set: str) -> None:
+    def delete_samples(
+        self,
+        t_start: int,
+        t_stop: Optional[int] = None,
+        qe: Optional[Union[List[str], str]] = None,
+    ):
+        """
+        Delete samples from the current list of samples composing the baked waveform
+
+        :param t_start: time index from where to start the deletion. If t_start < 0, samples are deleted from the end of
+            the current waveform
+        :param t_stop: time index to where to end the deletion. t_stop must be higher than t_start (t_stop > t_start).
+            If t_start is negative, t_stop is not taken into account
+        :param qe: Element or list of quantum elements for which to delete the samples. If None is provided, baked
+        samples are deleted for all quantum elements involved in the baking object
+        """
+
+        def delete_for_el(q):
+            input_type = []
+
+            if "mixInputs" in self._local_config["elements"][q]:
+                input_type.append("I")
+                input_type.append("Q")
+                ref_length = len(self._samples_dict[q]["I"])
+            else:
+                input_type.append("single")
+                ref_length = len(self._samples_dict[q]["single"])
+
+            if self._qe_dict[q]["time"] > 0:
+                if "mixInputs" in self._local_config["elements"][q]:
+                    if t_start < 0:
+                        if t_start < ref_length:
+                            for i in input_type:
+                                del self._samples_dict[q][i][t_start:]
+                        else:
+                            raise ValueError(
+                                "Desired deletion exceeds current waveform length"
+                            )
+                    else:
+                        if t_stop is not None:
+                            if t_start > t_stop:
+                                raise ValueError("t_stop is smaller than t_start")
+                            else:
+                                if t_stop > ref_length:
+                                    raise ValueError(
+                                        "Desired deletion exceeds current waveform length"
+                                    )
+                                else:
+                                    for i in input_type:
+                                        del self._samples_dict[q][i][t_start:t_stop]
+                        else:
+                            for i in input_type:
+                                del self._samples_dict[q][i][t_start:]
+
+        if not self._out:
+            if qe is not None:
+                if isinstance(qe, List):
+                    for q in qe:
+                        delete_for_el(q)
+                elif isinstance(qe, str):
+                    delete_for_el(qe)
+            else:
+                for q in self._qe_dict:
+                    delete_for_el(q)
+        else:
+            raise Warning(
+                "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op "
+                "instead"
+            )
+
+    def delete_baked_op(self, *qe_set: str) -> None:
         """
         Delete from the config the baked operation and its associated pulse and waveform(s) for the
         specified quantum_elements
@@ -422,7 +601,7 @@ class Baking:
             for qe in self._qe_dict.keys():
                 remove_Op(qe)
 
-    def get_Op_name(self, qe: str) -> str:
+    def get_op_name(self, qe: str) -> str:
         """
         Get the baked operation issued from the baking object for quantum element qe
 
@@ -436,7 +615,7 @@ class Baking:
         else:
             return f"baked_Op_{self._ctr}"
 
-    def get_Op_length(self, qe: Optional[str] = None) -> int:
+    def get_op_length(self, qe: Optional[str] = None) -> int:
         """
         Retrieve the length of the finalized baked waveform associated to quantum element qe (outside the baking)
 
@@ -471,7 +650,7 @@ class Baking:
             max_length = 0
             for qe in self._qe_dict:
                 if self._qe_dict[qe]["time"] > 0:
-                    length = self.get_Op_length(qe)
+                    length = self.get_op_length(qe)
                     if length > max_length:
                         max_length = length
             return max_length
@@ -489,7 +668,7 @@ class Baking:
             self._local_config["digital_waveforms"] = {}
             self._local_config["digital_waveforms"][name] = {"samples": digital_samples}
 
-    def add_Op(
+    def add_op(
         self,
         name: str,
         qe: str,
@@ -598,9 +777,10 @@ class Baking:
                         f"{qe} is a mixInput element, " f"two lists should be provided"
                     )
 
-                    assert len(samples[0]) == len(
-                        samples[1]
-                    ), "Error : samples provided for I and Q do not have the same length"
+                    assert len(samples[0]) == len(samples[1]), (
+                        f"Error : samples provided for I and Q do not have the same length. length I: {len(samples[0])}"
+                        f", length Q: {len(samples[1])}"
+                    )
 
                     I = samples[0]
                     Q = samples[1]
@@ -830,6 +1010,10 @@ class Baking:
         """
         Used to reset all of the frame updated made up to this statement.
 
+        .. note::
+            This is not equivalent to the QUA reset_frame() command and will only remove the phase updated within the
+            baking
+
         :param qe_set: Set[str] of quantum elements
         """
         for qe in qe_set:
@@ -952,7 +1136,8 @@ class Baking:
                                 "Amplitude can only be a number (either Python or QUA variable)"
                             )
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
-                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+                    if self._qe_dict[qe]["phase"] != 0:
+                        qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
         else:
             for qe in qe_set:
@@ -977,8 +1162,8 @@ class Baking:
                         qua.play(
                             f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc
                         )
-
-                qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+                if self._qe_dict[qe]["phase"] != 0:
+                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
     def _retrieve_constraint_length(self, baking_index: int = None) -> Optional[int]:
         if baking_index is not None:
@@ -995,16 +1180,18 @@ class Baking:
             return None
 
 
-def deterministic_run(baking_list, j) -> None:
+def deterministic_run(baking_list, j, unsafe=False) -> None:
     """
     Generates a QUA macro for a binary tree ensuring a synchronized play of operations
     listed in the various baking objects
 
     :param baking_list: Python list of Baking objects
     :param j: QUA int
+    :param unsafe: Passes the unsafe parameter to the QUA switch function. When set to true, less gaps will be created,
+    but unexpected behavior will occur if j is not in `range(len(baking_list))`. Default is false
     """
 
-    with qua.switch_(j):
+    with qua.switch_(j, unsafe=unsafe):
         for i in range(len(baking_list)):
             with qua.case_(i):
                 baking_list[i].run()
@@ -1016,7 +1203,7 @@ class BakingOperations:
         self._baking = b
 
     def __getitem__(self, qe: str):
-        return self._baking.get_Op_name(qe)
+        return self._baking.get_op_name(qe)
 
     def length(self, qe):
-        return self._baking.get_Op_length(qe)
+        return self._baking.get_op_length(qe)
