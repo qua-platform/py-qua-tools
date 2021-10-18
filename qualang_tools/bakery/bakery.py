@@ -839,7 +839,7 @@ class Baking:
             )
 
     def play_at(
-        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0, phi=0, freq=0
+        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0
     ) -> None:
         """
         Add a waveform to the sequence at the specified time index.
@@ -854,6 +854,8 @@ class Baking:
         :param t: Time tag in ns where the pulse should be added
         :param amp: amplitude of the pulse, can be either a float or a tuple of 4 variables (similar to amp(a) or amp(v00, v01, v10, v11) in QUA)
         """
+        freq = self._qe_dict[qe]["freq"]
+        phi = self._qe_dict[qe]["phase"]
         if type(t) != int:
             if type(t) == float:
                 t = int(t)
@@ -904,16 +906,12 @@ class Baking:
                                 Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
                         if t + i < len(self._samples_dict[qe]["I"]):
                             I3[i] = (
-                                np.cos(freq * (t + i) * 1e-9 + phi)
-                                * I2[i]
-                                - np.sin(freq * (t + i) * 1e-9 + phi)
-                                * Q2[i]
+                                np.cos(freq * (t + i) * 1e-9 + phi) * I2[i]
+                                - np.sin(freq * (t + i) * 1e-9 + phi) * Q2[i]
                             )
                             Q3[i] = (
-                                np.sin(freq * (t + i) * 1e-9 + phi)
-                                * I2[i]
-                                + np.cos(freq * (t + i) * 1e-9 + phi)
-                                * Q2[i]
+                                np.sin(freq * (t + i) * 1e-9 + phi) * I2[i]
+                                + np.cos(freq * (t + i) * 1e-9 + phi) * Q2[i]
                             )
 
                             self._samples_dict[qe]["I"][t + i] += I3[i]
@@ -971,7 +969,9 @@ class Baking:
     def frame_rotation_2pi(self, angle: float, qe: str) -> None:
         """
         Shift the phase of the oscillator associated with a quantum element by the given angle.
-        This is typically used for virtual z-rotations. This performs a frame rotation of 2*π*angle
+        This is typically used for virtual z-rotations.
+        Frame rotation done within the baking sticks to the rest of the
+        QUA program after its execution. This performs a frame rotation of 2*π*angle
 
         :param angle: phase parameter
         :param qe: quantum element
