@@ -104,5 +104,5 @@ def play_all_ops(current_bake, sub_bake):
 
 def get_total_len(baking_sequence):
     return max(
-        baking_sequence.get_Op_length(element) for element in baking_sequence.elements
+        baking_sequence.get_op_length(element) for element in baking_sequence.elements
     )

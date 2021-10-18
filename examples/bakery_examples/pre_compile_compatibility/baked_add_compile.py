@@ -9,7 +9,7 @@ with baking(config, padding_method="right", override=True) as b_template:
 
     samples_I = [0.1, 0.1, 0.2, 0.1, 0.2]
     samples_Q = [0.2, 0.2, 0.3, 0.1, 0.0]
-    b_template.add_Op("Op", "qe1", [samples_I, samples_Q])
+    b_template.add_op("Op", "qe1", [samples_I, samples_Q])
     b_template.play("Op", "qe1")
 
 # Re-open the context manager with either same baking object (b_template) or a new one (b_new) to generate a
@@ -26,7 +26,7 @@ with baking(
 ) as b_new:
     samples_I = [0.3, 0.3, 0.4]
     samples_Q = [0.0, 0.1, 0.2]
-    b_new.add_Op("Op", "qe1", [samples_I, samples_Q])
+    b_new.add_op("Op", "qe1", [samples_I, samples_Q])
     b_new.play("Op", "qe1")
 
 print(b_template.get_waveforms_dict())

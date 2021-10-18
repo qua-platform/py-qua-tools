@@ -14,53 +14,50 @@ def IQ_imbalance_corr(g, phi):
     return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
 
-Resonator_TOF = 332
-Readout_pulse_length = 500
-Load_pulse_length = 172
-Resonator_freq = 6.6e9
-Drive_freq = 5e9
+resonator_TOF = 332
+readout_pulse_length = 500
+load_pulse_length = 172
+resonator_freq = 6.6e9
+drive_freq = 5e9
 Tpihalf = 32
 
-Resonator_IF = 50e6 * 0
-Resonator_LO = Resonator_freq - Resonator_IF
+resonator_IF = 50e6 * 0
+resonator_LO = resonator_freq - resonator_IF
 
-Drive_IF = 31.25e6 * 0
-Drive_LO = Drive_freq - Drive_IF
+drive_IF = 31.25e6 * 0
+drive_LO = drive_freq - drive_IF
 
-Readout_Amp = 0.1  # meas pulse amplitude
-Loadpulse_Amp = 0.3  # prepulse to fast load cavity /!\ <0.5 V
+readout_amp = 0.1  # meas pulse amplitude
+loadpulse_amp = 0.3  # prepulse to fast load cavity /!\ <0.5 V
 
-Drive_gauss_pulse_length = Tpihalf
-Drive_Amp = 0.1
-gauss_drive_amp = 0.1
-gauss_drive_mu = 0
-gauss_drive_sigma = Drive_gauss_pulse_length / 6
+drive_gauss_pulse_length = Tpihalf
+drive_amp = 0.1
+pi_half_amp = 0.1
+pi_half_mu = 0
+pi_half_sigma = drive_gauss_pulse_length / 6
 
-Resonator_I0 = 0.0
-Resonator_Q0 = 0.0
-Resonator_g = 0.0
-Resonator_phi = 0.0
+resonator_I0 = 0.0
+resonator_Q0 = 0.0
+resonator_g = 0.0
+resonator_phi = 0.0
 
-Drive_I0 = 0.0
-Drive_Q0 = 0.0
-Drive_g = 0.0
-Drive_phi = 0.0
+drive_I0 = 0.0
+drive_Q0 = 0.0
+drive_g = 0.0
+drive_phi = 0.0
 
-Resonator_correction_matrix = IQ_imbalance_corr(Resonator_g, Resonator_phi)
-Drive_correction_matrix = IQ_imbalance_corr(Drive_g, Drive_phi)
+resonator_correction_matrix = IQ_imbalance_corr(resonator_g, resonator_phi)
+drive_correction_matrix = IQ_imbalance_corr(drive_g, drive_phi)
 
 Input1_offset = 0.0
 Input2_offset = 0.0
 
-
-dephasing0 = 0  # phase at the origin of the 2nd Tpihalf gauss pulse
+dephasing = 0  # phase for the 2nd Tpihalf gauss pulse
 Tpihalf = 32
 wait_time_cc = 100
 
-amplitude_pihalf = 1
-drive_cc = int(Tpihalf / 4) + 4  # 12cc = 48ns for Tpihalf=32
-if_freq = 31.25e6
-Fastload_length = 320
+t_max = 32
+drive_cc = int((Tpihalf + t_max) / 4)
 
 config = {
     "version": 1,
@@ -68,17 +65,17 @@ config = {
         "con1": {
             "type": "opx1",
             "analog_outputs": {
-                1: {"offset": Resonator_I0},  # Resonator I
-                2: {"offset": Resonator_Q0},  # Resonator Q
-                3: {"offset": Drive_I0},  # Drive I
-                4: {"offset": Drive_Q0},  # Drive Q
+                1: {"offset": resonator_I0},  # resonator I
+                2: {"offset": resonator_Q0},  # resonator Q
+                3: {"offset": drive_I0},  # drive I
+                4: {"offset": drive_Q0},  # drive Q
                 5: {"offset": 0},
             },
             "digital_outputs": {
-                1: {},  # Resonator digital marker
-                2: {},  # Drive digital marker
-                3: {},  # Drive LO synthesizer trigger
-                4: {},  # Drive LO microwave source trigger --------------------------
+                1: {},  # resonator digital marker
+                2: {},  # drive digital marker
+                3: {},  # drive LO synthesizer trigger
+                4: {},  # drive LO microwave source trigger --------------------------
             },
             "analog_inputs": {
                 1: {"offset": Input1_offset},  # I readout from resonator demod
@@ -87,16 +84,16 @@ config = {
         },
     },
     "elements": {
-        "Resonator": {  # Resonator element
+        "resonator": {  # resonator element
             "mixInputs": {
                 "I": ("con1", 1),
                 "Q": ("con1", 2),
-                "lo_frequency": Resonator_LO,
-                "mixer": "Resonator_mixer",
+                "lo_frequency": resonator_LO,
+                "mixer": "resonator_mixer",
             },
-            "intermediate_frequency": Resonator_IF,
+            "intermediate_frequency": resonator_IF,
             "operations": {
-                "readout": "readout_pulse",  # play('readout', 'Resonator'),
+                "readout": "readout_pulse",  # play('readout', 'resonator'),
                 "chargecav": "load_pulse",
             },
             "digitalInputs": {
@@ -110,15 +107,15 @@ config = {
                 "out1": ("con1", 1),
                 "out2": ("con1", 2),
             },
-            "time_of_flight": Resonator_TOF,
+            "time_of_flight": resonator_TOF,
             "smearing": 0,
         },
-        "Drive": {  # Drive element
+        "drive": {  # drive element
             "mixInputs": {
                 "I": ("con1", 3),
                 "Q": ("con1", 4),
-                "lo_frequency": Drive_LO,
-                "mixer": "Drive_mixer",
+                "lo_frequency": drive_LO,
+                "mixer": "drive_mixer",
             },
             "digitalInputs": {
                 "switchE": {
@@ -127,40 +124,40 @@ config = {
                     "buffer": 0,
                 }
             },
-            "intermediate_frequency": Drive_IF,
+            "intermediate_frequency": drive_IF,
             "operations": {
-                "gauss_drive": "gauss_drive_pulse",
+                "pi_half": "pi_half_pulse",
             },
         },
     },
     "pulses": {
         "readout_pulse": {
             "operation": "measurement",
-            "length": Readout_pulse_length,
+            "length": readout_pulse_length,
             "waveforms": {
                 "I": "readout_wf",
                 "Q": "zero_wf",
             },
             "integration_weights": {
-                "integW_cos": "integW_cosine",
-                "integW_sin": "integW_sine",
+                "cos": "integW_cosine",
+                "sin": "integW_sine",
             },
             "digital_marker": "ON",  # Put ON instead of Modulate if you want raw adc time traces
         },
         "load_pulse": {
             "operation": "control",
-            "length": Load_pulse_length,
+            "length": load_pulse_length,
             "waveforms": {
                 "I": "loadpulse_wf",
                 "Q": "zero_wf",
             },
             "digital_marker": "ON",
         },
-        "gauss_drive_pulse": {
+        "pi_half_pulse": {
             "operation": "control",
-            "length": Drive_gauss_pulse_length,
+            "length": drive_gauss_pulse_length,
             "waveforms": {
-                "I": "gauss_drive_wf",
+                "I": "pi_half_wf",
                 "Q": "zero_wf",
             },
             "digital_marker": "ON",
@@ -169,11 +166,11 @@ config = {
     "waveforms": {
         "readout_wf": {
             "type": "constant",
-            "sample": Readout_Amp,
+            "sample": readout_amp,
         },
         "loadpulse_wf": {
             "type": "constant",
-            "sample": Loadpulse_Amp,
+            "sample": loadpulse_amp,
         },
         "zero_wf": {
             "type": "constant",
@@ -181,15 +178,15 @@ config = {
         },
         "drive_wf": {
             "type": "constant",
-            "sample": Drive_Amp,
+            "sample": drive_amp,
         },
-        "gauss_drive_wf": {
+        "pi_half_wf": {
             "type": "arbitrary",
             "samples": gauss(
-                gauss_drive_amp,
-                gauss_drive_mu,
-                gauss_drive_sigma,
-                Drive_gauss_pulse_length,
+                pi_half_amp,
+                pi_half_mu,
+                pi_half_sigma,
+                drive_gauss_pulse_length,
             ),
         },
     },
@@ -197,33 +194,33 @@ config = {
         "ON": {"samples": [(1, 0)]},
         "OFF": {"samples": [(0, 0)]},  # [(value, length)]
         "Modulate": {
-            "samples": [(1, Readout_pulse_length / 20), (0, Readout_pulse_length / 20)]
+            "samples": [(1, readout_pulse_length / 20), (0, readout_pulse_length / 20)]
             * 10  # [(value, length)]
         },
     },
     "integration_weights": {
         "integW_cosine": {
-            "cosine": [1.0] * int(Readout_pulse_length / 4),
-            "sine": [0.0] * int(Readout_pulse_length / 4),
+            "cosine": [1.0] * int(readout_pulse_length / 4),
+            "sine": [0.0] * int(readout_pulse_length / 4),
         },
         "integW_sine": {
-            "cosine": [0.0] * int(Readout_pulse_length / 4),
-            "sine": [1.0] * int(Readout_pulse_length / 4),
+            "cosine": [0.0] * int(readout_pulse_length / 4),
+            "sine": [1.0] * int(readout_pulse_length / 4),
         },
     },
     "mixers": {
-        "Resonator_mixer": [
+        "resonator_mixer": [
             {
-                "intermediate_frequency": Resonator_IF,
-                "lo_frequency": Resonator_LO,
-                "correction": Resonator_correction_matrix,
+                "intermediate_frequency": resonator_IF,
+                "lo_frequency": resonator_LO,
+                "correction": resonator_correction_matrix,
             }
         ],
-        "Drive_mixer": [
+        "drive_mixer": [
             {
-                "intermediate_frequency": Drive_IF,
-                "lo_frequency": Drive_LO,
-                "correction": Drive_correction_matrix,
+                "intermediate_frequency": drive_IF,
+                "lo_frequency": drive_LO,
+                "correction": drive_correction_matrix,
             }
         ],
     },
