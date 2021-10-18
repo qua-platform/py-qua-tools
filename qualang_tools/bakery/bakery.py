@@ -128,8 +128,6 @@ class Baking:
                 "phase": 0.0,
                 "freq": 0,
                 "time_track": 0,
-                "phase_track": [0],
-                "freq_track": [0],
             }
             if "mixInputs" in self._local_config["elements"][qe]:
                 sample_dict[qe] = {"I": [], "Q": []}
@@ -811,8 +809,6 @@ class Baking:
 
                         self._samples_dict[qe]["I"].append(I3[i])
                         self._samples_dict[qe]["Q"].append(Q3[i])
-                        self._qe_dict[qe]["phase_track"].append(phi)
-                        self._qe_dict[qe]["freq_track"].append(freq)
                     self._update_qe_time(qe, len(I))
 
                 elif "singleInput" in self._local_config["elements"][qe]:
@@ -823,8 +819,6 @@ class Baking:
                         self._samples_dict[qe]["single"].append(
                             amp * np.cos(freq * i * 1e-9 + phi) * samples[i]
                         )
-                        self._qe_dict[qe]["phase_track"].append(phi)
-                        self._qe_dict[qe]["freq_track"].append(freq)
                     self._update_qe_time(qe, len(samples))
                 # Update of digital waveform
                 if "digital_marker" in self._local_config["pulses"][pulse]:
@@ -845,7 +839,7 @@ class Baking:
             )
 
     def play_at(
-        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0
+        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0, phi=0, freq=0
     ) -> None:
         """
         Add a waveform to the sequence at the specified time index.
@@ -896,8 +890,6 @@ class Baking:
                         [None] * len(I),
                         [None] * len(I),
                     )
-                    phi = self._qe_dict[qe]["phase_track"]
-                    freq = self._qe_dict[qe]["freq_track"]
                     for i in range(len(I)):
                         if type(amp) == float or type(amp) == int:
                             I2[i] = amp * I[i]
@@ -912,23 +904,21 @@ class Baking:
                                 Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
                         if t + i < len(self._samples_dict[qe]["I"]):
                             I3[i] = (
-                                np.cos(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                np.cos(freq * (t + i) * 1e-9 + phi)
                                 * I2[i]
-                                - np.sin(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                - np.sin(freq * (t + i) * 1e-9 + phi)
                                 * Q2[i]
                             )
                             Q3[i] = (
-                                np.sin(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                np.sin(freq * (t + i) * 1e-9 + phi)
                                 * I2[i]
-                                + np.cos(freq[t + i] * (t + i) * 1e-9 + phi[t + i])
+                                + np.cos(freq * (t + i) * 1e-9 + phi)
                                 * Q2[i]
                             )
 
                             self._samples_dict[qe]["I"][t + i] += I3[i]
                             self._samples_dict[qe]["Q"][t + i] += Q3[i]
                         else:
-                            phi = self._qe_dict[qe]["phase"]
-                            freq = self._qe_dict[qe]["freq"]
                             I3[i] = (
                                 np.cos(freq * i * 1e-9 + phi) * I2[i]
                                 - np.sin(freq * i * 1e-9 + phi) * Q2[i]
@@ -940,8 +930,6 @@ class Baking:
 
                             self._samples_dict[qe]["I"].append(I3[i])
                             self._samples_dict[qe]["Q"].append(Q3[i])
-                            self._qe_dict[qe]["phase_track"].append(phi)
-                            self._qe_dict[qe]["freq_track"].append(freq)
                             new_samples += 1
 
                 elif "singleInput" in self._local_config["elements"][qe]:
@@ -953,17 +941,11 @@ class Baking:
                             type(samples[i]) == float or type(samples[i]) == int
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         if t + i < len(self._samples_dict[qe]):
-                            phi = self._qe_dict[qe]["phase_track"][t + i]
-                            freq = self._qe_dict[qe]["freq_track"][t + i]
                             self._samples_dict[qe]["single"][t + i] += (
                                 amp * np.cos(freq * (t + i) * 1e-9 + phi) * samples[i]
                             )
                         else:
-                            phi = self._qe_dict[qe]["phase"]
-                            freq = self._qe_dict[qe]["freq"]
                             self._samples_dict[qe]["single"].append(amp * samples[i])
-                            self._qe_dict[qe]["phase_track"].append(phi)
-                            self._qe_dict[qe]["freq_track"].append(freq)
                             new_samples += 1
 
                 self._update_qe_time(qe, new_samples)
@@ -1053,13 +1035,6 @@ class Baking:
         if duration >= 0:
             for qe in qe_set:
                 if qe in self._samples_dict.keys():
-
-                    self._qe_dict[qe]["phase_track"] += [
-                        self._qe_dict[qe]["phase"]
-                    ] * duration
-                    self._qe_dict[qe]["freq_track"] += [
-                        self._qe_dict[qe]["freq"]
-                    ] * duration
                     if "mixInputs" in self._local_config["elements"][qe].keys():
                         self._samples_dict[qe]["I"] += [0] * duration
                         self._samples_dict[qe]["Q"] += [0] * duration
