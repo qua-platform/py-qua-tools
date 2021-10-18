@@ -268,7 +268,7 @@ def test_indices_behavior(config):
     assert all(
         [
             cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i]
-            == gauss(0.2, 0, 20, 80)[i]
+            == gauss(0.2, 0, 15, 80)[i]
             for i in range(80)
         ]
     )
@@ -279,7 +279,7 @@ def test_indices_behavior(config):
     assert all(
         [
             cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i]
-            == gauss(0.4, 0, 20, 80)[i]
+            == gauss(0.4, 0, 15, 80)[i]
             for i in range(80)
         ]
     )
