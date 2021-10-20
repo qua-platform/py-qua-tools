@@ -21,10 +21,10 @@ resonator_freq = 6.6e9
 drive_freq = 5e9
 Tpihalf = 32
 
-resonator_IF = 50e6 * 0
+resonator_IF = 50e6
 resonator_LO = resonator_freq - resonator_IF
 
-drive_IF = 31.25e6 * 0
+drive_IF = 31.25e6
 drive_LO = drive_freq - drive_IF
 
 readout_amp = 0.1  # meas pulse amplitude

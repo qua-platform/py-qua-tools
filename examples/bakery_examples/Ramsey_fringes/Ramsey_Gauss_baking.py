@@ -21,10 +21,11 @@ for i in range(t_max):
         b.frame_rotation(dephasing, "drive")
         b.play("pi_half", "drive")
 
+        # We reset frame such that the first pulse will be at zero phase
+        # and such that we will not accumulate phase between iterations.
+        b.reset_frame("drive")
         # We add the 1st pi_half pulse. It will be added with the frame at time init_delay - i, which will be 0.
         b.play_at("pi_half", "drive", t=init_delay - i)
-        # We reset frame such that we will not accumulate phase between iterations.
-        b.reset_frame("drive")
 
     # Append the baking object in the list to call it from the QUA program
     baking_list.append(b)
@@ -34,9 +35,11 @@ for i in range(t_max):
 # index of the waveform
 plt.figure()
 for i in range(t_max):
-    baked_pulse = config["waveforms"][f"drive_baked_wf_I_{i}"]["samples"]
-    plt.plot(baked_pulse, label=f"pulse{i}")
-plt.title("Baked Ramsey sequences")
+    baked_pulse_I = config["waveforms"][f"drive_baked_wf_I_{i}"]["samples"]
+    baked_pulse_Q = config["waveforms"][f"drive_baked_wf_Q_{i}"]["samples"]
+    plt.plot(baked_pulse_I, label=f"pulse{i}_I")
+    plt.plot(baked_pulse_Q, label=f"pulse{i}_Q")
+plt.title("Baked Ramsey sequences (envelope)")
 plt.legend()
 
 
