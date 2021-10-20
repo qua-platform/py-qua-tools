@@ -205,10 +205,8 @@ As you may have seen in the first code snippet in this document, it is possible 
 
 ### Behavior of the phase and detuning when adding new samples with *play_at()*
 
-When the user wants to use the *play_at* command to add samples to a time stamp that is already existing (i.e. the specified time index is lower than the current length of the baked sequence),
-the baking automatically performs the appropriate changes of phase and detunings that were fixed by the settings set when filling the given timestamp for the first time.
-To do that, we have within the code what we call a *phase_track*, and a *freq_track*, which basically store in memory the list of phases and detunings at each timestamp.
-
+Changed in 0.3.1:
+The *play_at()* command will add the operation with the current frame and detuning, regardless of the phase and detuning that were set at that time.
 
 
 # The negative wait

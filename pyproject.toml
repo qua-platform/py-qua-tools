@@ -18,11 +18,12 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+python = ">=3.7.1,<3.10"
 matplotlib = "^3.4.2"
 numpy = "^1.20.3"
 pandas = "^1.2.4"
 qm-qua = "^0.3.2"
+scipy = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
