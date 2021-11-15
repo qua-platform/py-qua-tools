@@ -89,7 +89,6 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
                 with switch_(t_left_ns, unsafe=True):
                     for j in range(4):
                         with case_(j):
-                            save(t_cycles, 'debug')
                             long_ramsey_1st_pulse_baking_list[j].run()
                             wait(t_cycles, 'drive')
                             frame_rotation_2pi(dephasing, 'drive')
