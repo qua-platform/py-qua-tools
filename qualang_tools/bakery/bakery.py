@@ -669,13 +669,17 @@ class Baking:
             self._local_config["digital_waveforms"][name] = {"samples": digital_samples}
 
     def add_Op(
-            self,
-            name: str,
-            qe: str,
-            samples: Union[List[float], List[List[float]]],
-            digital_marker: str = None,
+        self,
+        name: str,
+        qe: str,
+        samples: Union[List[float], List[List[float]]],
+        digital_marker: str = None,
     ) -> None:
-        warn('This method is deprecated, use add_op() instead', DeprecationWarning, stacklevel=2)
+        warn(
+            "This method is deprecated, use add_op() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.add_op(name, qe, samples, digital_marker)
 
     def add_op(

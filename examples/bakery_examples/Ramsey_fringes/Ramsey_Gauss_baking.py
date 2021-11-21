@@ -11,13 +11,13 @@ wait_time_cc = 100
 
 t_min = 0
 t_max = 32
-dt = 1/3
-t_vec = np.arange(0, t_max + dt/2, dt)
+dt = 1 / 3
+t_vec = np.arange(0, t_max + dt / 2, dt)
 drive_cc = int((Tpihalf + t_max) / 4)
 
-sample_rate = round(1/dt) * 1e9
+sample_rate = round(1 / dt) * 1e9
 n_samples = len(t_vec)
-max_delay = round(t_max * 1/dt)  # In samples
+max_delay = round(t_max * 1 / dt)  # In samples
 
 baking_list = []  # Stores the baking objects
 # Create the different baked sequences, corresponding to the different taus

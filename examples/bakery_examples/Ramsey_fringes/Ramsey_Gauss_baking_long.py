@@ -12,13 +12,15 @@ wait_time_cc = 100
 t_min = 0
 t_max = 1000
 dt = 1
-t_vec = np.arange(0, t_max + dt/2, dt)
+t_vec = np.arange(0, t_max + dt / 2, dt)
 
 short_ramsey_baking_list = []  # Stores the baking objects
 # Create the different baked sequences, corresponding to the different taus up to 16 ns
 for i in range(2 * Tpihalf):
     with baking(config, padding_method="left") as b:
-        init_delay = 2 * Tpihalf  # Put initial delay to ensure that all of the pulses will have the same length
+        init_delay = (
+            2 * Tpihalf
+        )  # Put initial delay to ensure that all of the pulses will have the same length
         b.wait(init_delay, "drive")  # We first wait the entire duration.
 
         # We add the 2nd pi_half pulse with the phase 'dephasing' (Confusingly, the first pulse will be added later)
@@ -83,17 +85,21 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
                 deterministic_run(short_ramsey_baking_list, t, unsafe=True)
                 align()
             with else_():
-                assign(t_cycles, t >> 2)  # Right shift by 2 is a quick way to divide by 4
-                assign(t_left_ns, t - (t_cycles << 2))  # left shift by 2 is a quick way to multiply by 4
+                assign(
+                    t_cycles, t >> 2
+                )  # Right shift by 2 is a quick way to divide by 4
+                assign(
+                    t_left_ns, t - (t_cycles << 2)
+                )  # left shift by 2 is a quick way to multiply by 4
                 assign(t_cycles, t_cycles - Tpihalf // 4)
                 with switch_(t_left_ns, unsafe=True):
                     for j in range(4):
                         with case_(j):
                             long_ramsey_1st_pulse_baking_list[j].run()
-                            wait(t_cycles, 'drive')
-                            frame_rotation_2pi(dephasing, 'drive')
+                            wait(t_cycles, "drive")
+                            frame_rotation_2pi(dephasing, "drive")
                             play("pi_half", "drive")
-                            reset_frame('drive')
+                            reset_frame("drive")
                             align()
 
             align()
@@ -117,10 +123,7 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
         Q_stream.buffer(len(t_vec)).average().save("Qall")
 
 qmm = QuantumMachinesManager()
-job = qmm.simulate(
-    config,
-    RamseyGauss,
-    SimulationConfig(30000))
+job = qmm.simulate(config, RamseyGauss, SimulationConfig(30000))
 samps = job.get_simulated_samples()
 plt.figure()
 an1 = samps.con1.analog["1"].tolist()
