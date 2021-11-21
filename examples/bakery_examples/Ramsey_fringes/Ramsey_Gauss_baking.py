@@ -6,19 +6,29 @@ from qm import SimulationConfig
 from matplotlib import pyplot as plt
 from qualang_tools.bakery.bakery import deterministic_run
 
-sample_rate = 3e9
-t_max *= int(sample_rate / 1e9)
+dephasing = 0  # phase for the 2nd Tpihalf gauss pulse
+wait_time_cc = 100
+
+t_min = 0
+t_max = 32
+dt = 1 / 3
+t_vec = np.arange(0, t_max + dt / 2, dt)
+drive_cc = int((Tpihalf + t_max) / 4)
+
+sample_rate = round(1 / dt) * 1e9
+n_samples = len(t_vec)
+max_delay = round(t_max * 1 / dt)  # In samples
 
 baking_list = []  # Stores the baking objects
 # Create the different baked sequences, corresponding to the different taus
-for i in range(t_max):
+for i in range(n_samples):
     with baking(config, padding_method="left", sampling_rate=sample_rate) as b:
-        init_delay = t_max  # Put initial delay to ensure that all of the pulses will have the same length
+        init_delay = max_delay  # Put initial delay to ensure that all of the pulses will have the same length
         b.wait(init_delay, "drive")  # We first wait the entire duration.
 
         # We add the 2nd pi_half pulse with the phase 'dephasing' (Confusingly, the first pulse will be added later)
         # Play uploads the sample in the original config file (here we use an existing pulse in the config)
-        b.frame_rotation(dephasing, "drive")
+        b.frame_rotation_2pi(dephasing, "drive")
         b.play("pi_half", "drive")
 
         # We reset frame such that the first pulse will be at zero phase
@@ -34,7 +44,7 @@ for i in range(t_max):
 # You can retrieve and see the pulse you built for each baking object by modifying
 # index of the waveform
 plt.figure()
-for i in range(t_max):
+for i in range(n_samples):
     baked_pulse_I = config["waveforms"][f"drive_baked_wf_I_{i}"]["samples"]
     baked_pulse_Q = config["waveforms"][f"drive_baked_wf_Q_{i}"]["samples"]
     plt.plot(baked_pulse_I, label=f"pulse{i}_I")
@@ -58,7 +68,7 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
     Q_stream = declare_stream()
 
     with for_(i_avg, 0, i_avg < 1000, i_avg + 1):
-        with for_(j, 0, j < t_max, j + 1):
+        with for_(j, 0, j < n_samples, j + 1):
             # Wait for cavity cooldown, very short just for the example.
             wait(10)
 
@@ -83,8 +93,8 @@ with program() as RamseyGauss:  # to measure Rabi flops every 1ns starting from 
             save(Q, Q_stream)
 
     with stream_processing():
-        I_stream.buffer(t_max).average().save("Iall")
-        Q_stream.buffer(t_max).average().save("Qall")
+        I_stream.buffer(n_samples).average().save("Iall")
+        Q_stream.buffer(n_samples).average().save("Qall")
 
 qmm = QuantumMachinesManager()
 job = qmm.simulate(

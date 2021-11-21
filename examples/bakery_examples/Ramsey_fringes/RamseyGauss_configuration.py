@@ -24,7 +24,7 @@ Tpihalf = 32
 resonator_IF = 50e6
 resonator_LO = resonator_freq - resonator_IF
 
-drive_IF = 31.25e6
+drive_IF = 31.25e6 * 0
 drive_LO = drive_freq - drive_IF
 
 readout_amp = 0.1  # meas pulse amplitude
@@ -51,13 +51,6 @@ drive_correction_matrix = IQ_imbalance_corr(drive_g, drive_phi)
 
 Input1_offset = 0.0
 Input2_offset = 0.0
-
-dephasing = 0  # phase for the 2nd Tpihalf gauss pulse
-Tpihalf = 32
-wait_time_cc = 100
-
-t_max = 32
-drive_cc = int((Tpihalf + t_max) / 4)
 
 config = {
     "version": 1,
