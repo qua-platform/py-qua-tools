@@ -233,15 +233,15 @@ my_sampling_rate = 3e9  # Expressed in number of samples per second
 with baking(config, ..., sampling_rate = my_sampling_rate) as b:
     ...
 ```
+Note that when adding new operations using the add_op() function, the waveforms have to be specified in the given sampling rate.
 We distinguish two cases:
 1. The provided sampling rate is lower than 1 Gs/sec (=1e9 samples/sec): in this scenario, the config is updated with
    the provided sampling rate, and the OPX performs real time interpolation on the provided waveform.
 2. The provided sampling rate is higher than 1Gs/sec: this means that the waveform you create within the baking does not
    carry timestamps at the nanosecond resolution as usual, but at the resolution defined by your sampling rate.
-   For example, if you want a 0.1 ns resolution, you should specify a sampling rate of 1e10. When doing this, you can 
-   then work within the baking with samples at the same resolution. When exiting the baking tool, an interpolation
-   (done in Python) is done on the baked waveform to update the configuration with another waveform carrying the 1 ns
-   default resolution. 
+   For example, if you want a 0.1 ns resolution, you should specify a sampling rate of 1e10. When exiting the baking 
+   tool, an interpolation (done in Python) is done on the baked waveform to update the configuration with another 
+   waveform carrying the 1 ns default resolution. 
    Note - In order to achieve high resolutions, you have to work with smooth functions such as Gaussians.
    This effectively converts the 16-bit vertical resolution into temporal resolution.
 

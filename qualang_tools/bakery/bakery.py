@@ -4,6 +4,8 @@ Created: 23/02/2021
 """
 
 from typing import List, Union, Tuple, Dict, Optional, Set
+from warnings import warn
+
 import numpy as np
 from qm import qua
 import copy
@@ -655,7 +657,7 @@ class Baking:
 
     def add_digital_waveform(self, name: str, digital_samples: List[Tuple]) -> None:
         """
-        Adds a digital waveform to be attached to a baked operation created using the add_Op method
+        Adds a digital waveform to be attached to a baked operation created using the add_op method
 
         :param name: name of the digital waveform
         :param digital_samples: samples used to generate digital_waveform
@@ -665,6 +667,16 @@ class Baking:
         else:
             self._local_config["digital_waveforms"] = {}
             self._local_config["digital_waveforms"][name] = {"samples": digital_samples}
+
+    def add_Op(
+            self,
+            name: str,
+            qe: str,
+            samples: Union[List[float], List[List[float]]],
+            digital_marker: str = None,
+    ) -> None:
+        warn('This method is deprecated, use add_op() instead', DeprecationWarning, stacklevel=2)
+        return self.add_op(name, qe, samples, digital_marker)
 
     def add_op(
         self,
@@ -678,7 +690,8 @@ class Baking:
 
         :param name: name of the Operation to be added for the quantum element (to be used only within the context manager)
         :param qe: targeted quantum element
-        :param  samples: arbitrary waveforms to be inserted into pulse definition
+        :param  samples: arbitrary waveforms to be inserted into pulse definition. Should be in the same units as the
+        sampling rate used by the baking context manager (default 1 Gs/sec)
         :param digital_marker: name of the digital marker sample associated to the generated pulse (assumed to be in the original config)
         """
 
