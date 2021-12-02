@@ -1,19 +1,24 @@
-# py-qua-tools
+# qualang_tools
 
-The qualang_tools package includes tools for writing QUA programs in Python. 
+The qualang_tools package includes tools for facilitating writing of QUA programs and configurations in Python. 
 
-The first included tool is the baking tool for working with waveforms at a 1ns resolution. 
+It includes:
 
-## installation
+- The baking tool which allows defining waveforms in a QUA-like manner with for working with a 1ns resolution.  It can also be used to create even higher resolution waveforms.
+- Tools for converting a list of integration weights into the format used in the configuration.
+- Tools for creating waveforms commonly used in Quantum Science.
+- Tools for correcting mixer imbalances.
 
-Install the current version using `pip`
+## Installation
+
+Install the current version using `pip`, the `--upgrade` flag ensures that you will get the latest version 
 
 ```
-pip install qualang-tools
+pip install --upgrade qualang-tools
 ```
 
-## usage
+## Usage
 
-Examples for 1-qubit randomized benchamrking or cross-entropy benchmark (XEB) can be found in the examples folder of the [py-qua-tools repository](https://github.com/qua-platform/py-qua-tools/)
+Examples for 1-qubit randomized benchmarking, cross-entropy benchmark (XEB), high sampling rate baking and more  can be found in the examples folder of the [py-qua-tools repository](https://github.com/qua-platform/py-qua-tools/)
 
 
