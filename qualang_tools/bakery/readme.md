@@ -198,7 +198,7 @@ Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 2.0, 2.0, 2.0, 0, 0, 0, 0, 0]
 ```
 ## Handling frame rotations and frequency detunings with baking
 As you may have seen in the first code snippet in this document, it is possible to perform a *frame_rotation* within the baking,
-    which does exactly the same thing as what is done in real time (see more info here: https://qm-docs.qualang.io/introduction/qua_overview#analog-waveform-manipulations), that is it multiplies the samples by a frame rotation matrix deduced from the provided angle.
+    which does exactly the same thing as what is done in real time (see more info [here](https://qm-docs.qualang.io/introduction/qua_overview#analog-waveform-manipulations), that is it multiplies the samples by a frame rotation matrix deduced from the provided angle.
     Here you can specify a different frame rotation at the nanosecond resolution, and modulate very short pulses with those changes of phase.
    
  We also allow the user to set a frequency detuning similarly. The user can use the method *set_detuning()* to add a detuning on top of the upconversion with the IF done by the OPX.
@@ -265,9 +265,10 @@ waveforms_dict = b.get_waveforms_dict()
 b.delete_op() # Deletes all operations created by the baking object in the config
 ```
 # **Examples**
+The bakery examples can be found in the [QUA Example Library](https://docs.qualang.io/libs/) - 
 
 ## Ramsey at short time scales
-[Ramsey](../../examples/bakery_examples/Ramsey_fringes/Ramsey_Gauss_baking.py) - In this baking example, we are creating pulses for a Ramsey experiment in which the 
+In this baking example, we are creating pulses for a Ramsey experiment in which the 
 $$\pi/2$$ pulses are made using gaussian with a width of 5 ns, and the distance between the two pulses changes from 0 to 
 32 ns. It is also possible to change the phase of the second pulse using the *dephasing* parameter. The resulting
 pulses are plotted, it is important to remember that these pulses are in the baseband, and will be multiplied by the IF
@@ -314,7 +315,7 @@ It turns out that this economy of statements can be particularly useful for savi
 memory when running long characterization experiments that do require lots of pulses to be played,
 such as tomography experiments (usually involving state preparation, process, and readout for each couple of input state 
 and readout observable to be sampled) or randomized benchmarking.
-Randomized benchmarking principles are reminded in another example done in QUA: https://docs.qualang.io/libs/examples/randomized-benchmark/one-qubit-rb/
+Randomized benchmarking principles are reminded in another [example done in QUA](https://docs.qualang.io/libs/examples/randomized-benchmark/one-qubit-rb/)
 Here, the idea is to show the ease with which we can integrate tools associated to waveform baking to the example realized in the existing QUA script ,
 by taking the same elementary built-in functions to generate the entire quantum circuit necessary to run the random sequence. 
 With the use of the baking, we now have one single baked waveform randomly 
@@ -322,8 +323,7 @@ synthesized.
 
 ## Coupling the baking tool to the add_compile feature
 
-QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in this part of 
-the documentation (https://qm-docs.s3.amazonaws.com/v1.10/python/features.html#precompile-jobs).
+QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in [the documentation](https://qm-docs.qualang.io/guides/features#precompile-jobs).
 It is possible to easily override waveforms by doing two things :
 1. Create a baking object ```b_ref ```setting ```override ``` parameters to True. Note that
 this will attach to each waveform created for all quantum elements involved in the context manager the flag ```is_overridable ``` 
