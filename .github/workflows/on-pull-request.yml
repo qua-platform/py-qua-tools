@@ -3,20 +3,64 @@ on: [workflow_dispatch,pull_request]
 jobs:
   build-n-test:
     env:
-      POETRY_CACHE_FOLDER: '/home/runner/.cache/pypoetry/virtualenvs'
       JUNIT_REPORT_PATH: pytest-junit-report
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: 3.7
-      - uses: Gr1N/setup-poetry@v4
-      - uses: actions/cache@v2
+
+      - name: Setup pip Cache
+        id: cache-pip
+        uses: actions/cache@v2
         with:
-          path: |
-            ${{ env.POETRY_CACHE_FOLDER }}
-          key:  poetry-pr-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
-      - run: poetry install
-      - id: black-check
-        run: poetry run poe check_format
+          path: ~/.cache/pip
+          key: pip
+
+      - name: Bootstrap poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade virtualenv
+          pip install poetry
+          [ -d ${JUNIT_REPORT_PATH} ] || mkdir -p ${JUNIT_REPORT_PATH}
+
+      - name: Setup venv Cache
+        id: cache-python
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key:  poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-
+
+      - name: Set up the project
+        run: poetry install
+      - name: Check formatting
+        run: poetry run poe check-format
+
+      - name: Check linting
+        run: poetry run poe lint
+
+      - name: Test
+        run: poetry run poe test --junitxml=${JUNIT_REPORT_PATH}/report.xml
+
+      - name: Build
+        run: poetry build
+
+      - name: Collect PyTest report
+        id: collect-pytest-reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: pytest-report
+          path: ${{ env.JUNIT_REPORT_PATH }}
+
+      - name: Display JUnit results
+        if: >
+          always() &&
+          github.event.sender.login != 'dependabot[bot]' &&
+          ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: ${{env.JUNIT_REPORT_PATH}}/*.xml

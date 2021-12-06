@@ -6,7 +6,7 @@ from qualang_tools.bakery.randomized_benchmark import (
     find_revert_op,
     RBSequence,
 )
-from qualang_tools.config_tools.integration_weights_tools import (
+from qualang_tools.config.integration_weights_tools import (
     convert_integration_weights,
     compress_integration_weights,
 )
