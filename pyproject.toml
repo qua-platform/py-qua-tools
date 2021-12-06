@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qualang-tools"
-version = "v0.0.0"
+version = "v0.4.0-alpha1"
 description = "The qualang_tools package includes tools for writing QUA programs in Python."
 license = "BSD-3-Clause"
 authors = [
@@ -28,12 +28,19 @@ scipy = "^1.7.1"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 black = "^21.5b2"
-poethepoet = "^0.10.0"
+poethepoet = "^0.11.0"
+flake8 = "^4.0.1"
 
 [tool.poe.tasks]
-format = "black ."
-check_format = "black --check ."
-test = "pytest"
+format = "black qualang_tools tests"
+check-format = "black --check qualang_tools"
+lint = "flake8 qualang_tools"
+test = "pytest tests"
+test_server = "pytest tests_against_server"
+
+[tool.poe.tasks.check]
+sequence = ["check-format", "lint", "test"]
+help = "Perform all check possible on the code"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

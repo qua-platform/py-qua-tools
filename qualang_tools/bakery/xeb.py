@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Callable, Union
+from typing import Callable
 
 from qualang_tools.bakery.bakery import baking, Baking
 import numpy as np
