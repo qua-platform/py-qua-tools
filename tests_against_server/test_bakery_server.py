@@ -159,7 +159,7 @@ def test_bake_with_macro(config):
         ]
     )
     assert all(
-        samples.con1.analog["1"][tstamp: tstamp + 200]
+        samples.con1.analog["1"][tstamp : tstamp + 200]
         == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
     )
 
