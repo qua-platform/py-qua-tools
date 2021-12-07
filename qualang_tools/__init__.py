@@ -10,6 +10,7 @@ from qualang_tools.config.integration_weights_tools import (
     convert_integration_weights,
     compress_integration_weights,
 )
+from qualang_tools.simulator_tools import create_simulator_controller_connections
 
 __all__ = [
     "baking",
@@ -21,4 +22,5 @@ __all__ = [
     "XEBOpsSingleQubit",
     "convert_integration_weights",
     "compress_integration_weights",
+    "create_simulator_controller_connections",
 ]
