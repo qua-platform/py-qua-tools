@@ -1,40 +1,38 @@
 from qm import ControllerConnection, InterOpxChannel
 
 
-def create_controller_connections(number_of_controllers, connections=12):
+def create_controller_connections(n_controllers, n_connections=12):
     """
     Creates a list of :class:`~qm.simulate.interface.ControllerConnection` objects with all of the Inter-controllers
     connections according to the `recommended schema
     <https://qm-docs.qualang.io/hardware/opx+installation#inter-controller-optical-connectivity-scheme>`__.
     For use inside the :class:`~qm.simulate.interface.SimulationConfig` for simulating the controllers` behavior.
 
-    :param number_of_controllers: The number of controllers
-    :param connections: The number of optical connectors each controller has, default is 12.
+    :param n_controllers: The number of controllers
+    :param n_connections: The number of optical connectors each controller has, default is 12.
 
     """
-    connections_per_controller = connections // (number_of_controllers - 1)
-    connections = connections_per_controller * (number_of_controllers - 1)
+    ncbc = n_connections // (
+        n_controllers - 1
+    )  # ncbc = number_of_connections_between_controllers
+    n_connections = ncbc * (n_controllers - 1)
     first_controller_list = []
     first_port_list = []
     second_controller_list = []
     second_port_list = []
-    for i in range(number_of_controllers):
+    for i in range(n_controllers):
         first_controller_list = first_controller_list + [i + 1] * (
-            connections - i * connections_per_controller
+            n_connections - i * ncbc
         )
-        first_port_list = first_port_list + [
-            j for j in range(i * connections_per_controller, connections)
-        ]
-        for j in range(i + 1, number_of_controllers):
-            second_controller_list = (
-                second_controller_list + [j + 1] * connections_per_controller
-            )
-        second_port_list = second_port_list + +[
-            j
-            for j in range(
-                i * connections_per_controller, (i + 1) * connections_per_controller
-            )
-        ] * (number_of_controllers - i - 1)
+
+        first_port_list = first_port_list + [j for j in range(i * ncbc, n_connections)]
+
+        for j in range(i + 1, n_controllers):
+            second_controller_list = second_controller_list + [j + 1] * ncbc
+
+        second_port_list = second_port_list + [
+            j for j in range(i * ncbc, (i + 1) * ncbc)
+        ] * (n_controllers - i - 1)
 
     controller_connections = [
         ControllerConnection(
