@@ -6,7 +6,9 @@ def _round_to_fixed_point_accuracy(x, base=2 ** -15):
     return np.round(base * np.round(np.array(x) / base), 20)
 
 
-def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15, plot=False):
+def convert_integration_weights(
+    integration_weights, N=100, accuracy=2 ** -15, plot=False
+):
     """
     Converts a list of integration weights, in which each sample corresponds to a clock cycle (4ns), to a list
     of tuples with the format (weight, time_to_integrate_in_ns).
@@ -36,7 +38,9 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15, p
         new_integration_weights.append(constant_part)
         prev_index = curr_index
 
-    new_integration_weights = compress_integration_weights(new_integration_weights, N=N, plot=plot)
+    new_integration_weights = compress_integration_weights(
+        new_integration_weights, N=N, plot=plot
+    )
 
     return new_integration_weights
 
@@ -62,8 +66,8 @@ def compress_integration_weights(integration_weights, N=100, plot=False):
         weights1 = integration_weights[min_diff_indices, 0]
         weights2 = integration_weights[min_diff_indices + 1, 0]
         integration_weights[min_diff_indices, 0] = (
-                                                           weights1 * times1 + weights2 * times2
-                                                   ) / (times1 + times2)
+            weights1 * times1 + weights2 * times2
+        ) / (times1 + times2)
         integration_weights[min_diff_indices, 1] = times1 + times2
         integration_weights = np.delete(integration_weights, min_diff_indices + 1, 0)
     integration_weights = list(
@@ -86,14 +90,15 @@ def plot_integration_weights(integration_weights):
     :param integration_weights: The integration_weights to be plotted.
     """
     import matplotlib.pyplot as plt
+
     if isinstance(integration_weights[0], tuple):
         a = [[i[0]] * i[1] for i in integration_weights]
         unpacked_weights = sum(a, start=[])
-        label = 'Converted'
+        label = "Converted"
     elif isinstance(integration_weights[0], float):
         a = [[i] * 4 for i in integration_weights]
         unpacked_weights = sum(a, start=[])
-        label = 'Original'
+        label = "Original"
 
     plt.plot(unpacked_weights, label=label)
     plt.legend()

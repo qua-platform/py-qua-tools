@@ -9,7 +9,7 @@ from qualang_tools.bakery.randomized_benchmark import (
 from qualang_tools.config.integration_weights_tools import (
     convert_integration_weights,
     compress_integration_weights,
-    plot_integration_weights
+    plot_integration_weights,
 )
 from qualang_tools.simulator_tools import create_simulator_controller_connections
 
