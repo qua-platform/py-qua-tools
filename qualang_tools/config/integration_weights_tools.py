@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -5,7 +6,9 @@ def _round_to_fixed_point_accuracy(x, base=2 ** -15):
     return np.round(base * np.round(np.array(x) / base), 20)
 
 
-def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15):
+def convert_integration_weights(
+    integration_weights, N=100, accuracy=2 ** -15, plot=False
+):
     """
     Converts a list of integration weights, in which each sample corresponds to a clock cycle (4ns), to a list
     of tuples with the format (weight, time_to_integrate_in_ns).
@@ -16,9 +19,11 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15):
                 too long, it will run :func:`compress_integration_weights` on them.
     :param accuracy:    The accuracy at which to calculate the integration weights. Default is 2^-15, which is
                         the accuracy at which the OPX operates for the integration weights.
+    :param plot: If true, plots the integration weights before and after the conversion.
     :type integration_weights: list[float]
     :type N: int
     :type accuracy: float
+    :type plot: bool
     :return: List of tuples representing the integration weights
     """
     integration_weights = _round_to_fixed_point_accuracy(integration_weights, accuracy)
@@ -33,25 +38,29 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2 ** -15):
         new_integration_weights.append(constant_part)
         prev_index = curr_index
 
-    new_integration_weights = compress_integration_weights(new_integration_weights, N=N)
+    new_integration_weights = compress_integration_weights(
+        new_integration_weights, N=N, plot=plot
+    )
 
     return new_integration_weights
 
 
-def compress_integration_weights(integration_weights, N=100):
+def compress_integration_weights(integration_weights, N=100, plot=False):
     """
     Compresses the list of tuples with the format (weight, time_to_integrate_in_ns) to one with length < N.
     Works by iteratively finding the nearest integration weights and combining them with a weighted average.
 
     :param integration_weights: The integration_weights to be compressed.
     :param N: The maximum list length required.
+    :param plot: If true, plots the integration weights before and after the conversion.
     :return: The compressed list of tuples representing the integration weights.
     """
+    integration_weights_before = integration_weights
+    integration_weights = np.array(integration_weights)
     while len(integration_weights) > N:
         diffs = np.abs(np.diff(integration_weights, axis=0)[:, 0])
         min_diff = np.min(diffs)
-        min_diff_indices = np.where(diffs == min_diff)[0]
-        integration_weights = np.array(integration_weights)
+        min_diff_indices = np.where(diffs == min_diff)[0][0]
         times1 = integration_weights[min_diff_indices, 1]
         times2 = integration_weights[min_diff_indices + 1, 1]
         weights1 = integration_weights[min_diff_indices, 0]
@@ -61,11 +70,35 @@ def compress_integration_weights(integration_weights, N=100):
         ) / (times1 + times2)
         integration_weights[min_diff_indices, 1] = times1 + times2
         integration_weights = np.delete(integration_weights, min_diff_indices + 1, 0)
-        integration_weights = list(
-            zip(
-                integration_weights.T[0].tolist(),
-                integration_weights.T[1].astype(int).tolist(),
-            )
+    integration_weights = list(
+        zip(
+            integration_weights.T[0].tolist(),
+            integration_weights.T[1].astype(int).tolist(),
         )
-
+    )
+    if plot:
+        plt.figure()
+        plot_integration_weights(integration_weights_before)
+        plot_integration_weights(integration_weights)
     return integration_weights
+
+
+def plot_integration_weights(integration_weights):
+    """
+    Plot the integration weights in units of ns, receives the integration weights in both formats
+
+    :param integration_weights: The integration_weights to be plotted.
+    """
+
+    if isinstance(integration_weights[0], tuple):
+        a = [[i[0]] * i[1] for i in integration_weights]
+        unpacked_weights = sum(a, start=[])
+        label = "Converted"
+    elif isinstance(integration_weights[0], float):
+        a = [[i] * 4 for i in integration_weights]
+        unpacked_weights = sum(a, start=[])
+        label = "Original"
+
+    plt.plot(unpacked_weights, label=label)
+    plt.legend()
+    plt.show()
