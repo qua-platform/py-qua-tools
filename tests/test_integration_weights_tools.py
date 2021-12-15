@@ -1,12 +1,19 @@
-import pytest
-import numpy as np
-from qualang_tools import *
-import matplotlib.pyplot as plt
 import os
+from pathlib import Path
+
+import numpy as np
+
+from qualang_tools import *
+
+
+def abs_path_to(rel_path: str) -> str:
+    source_path = Path(__file__).resolve()
+    source_dir = source_path.parent
+    return os.path.join(source_dir, rel_path)
 
 
 def test_validity_arbitrary_integration_weights():
-    weights_before = np.load("iw1_cos1.npy")
+    weights_before = np.load(abs_path_to("iw1_cos1.npy"))
     weights_after = convert_integration_weights(weights_before, N=len(weights_before))
     ii = 0
     for i in range(len(weights_after) // 4):
@@ -17,6 +24,6 @@ def test_validity_arbitrary_integration_weights():
 
 
 def test_compression_arbitrary_integration_weights():
-    weights_before = np.load("iw1_cos1.npy")
+    weights_before = np.load(abs_path_to("iw1_cos1.npy"))
     weights_after = convert_integration_weights(weights_before, N=500)
     assert sum([i[1] for i in weights_after]) == 4 * len(weights_before)
