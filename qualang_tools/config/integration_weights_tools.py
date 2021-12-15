@@ -89,7 +89,6 @@ def plot_integration_weights(integration_weights):
 
     :param integration_weights: The integration_weights to be plotted.
     """
-    import matplotlib.pyplot as plt
 
     if isinstance(integration_weights[0], tuple):
         a = [[i[0]] * i[1] for i in integration_weights]
