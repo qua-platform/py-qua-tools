@@ -47,11 +47,11 @@ def compress_integration_weights(integration_weights, N=100):
     :param N: The maximum list length required.
     :return: The compressed list of tuples representing the integration weights.
     """
+    integration_weights = np.array(integration_weights)
     while len(integration_weights) > N:
         diffs = np.abs(np.diff(integration_weights, axis=0)[:, 0])
         min_diff = np.min(diffs)
-        min_diff_indices = np.where(diffs == min_diff)[0]
-        integration_weights = np.array(integration_weights)
+        min_diff_indices = np.where(diffs == min_diff)[0][0]
         times1 = integration_weights[min_diff_indices, 1]
         times2 = integration_weights[min_diff_indices + 1, 1]
         weights1 = integration_weights[min_diff_indices, 0]
@@ -61,11 +61,11 @@ def compress_integration_weights(integration_weights, N=100):
         ) / (times1 + times2)
         integration_weights[min_diff_indices, 1] = times1 + times2
         integration_weights = np.delete(integration_weights, min_diff_indices + 1, 0)
-        integration_weights = list(
-            zip(
-                integration_weights.T[0].tolist(),
-                integration_weights.T[1].astype(int).tolist(),
-            )
+    integration_weights = list(
+        zip(
+            integration_weights.T[0].tolist(),
+            integration_weights.T[1].astype(int).tolist(),
         )
+    )
 
     return integration_weights
