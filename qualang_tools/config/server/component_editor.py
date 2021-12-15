@@ -22,7 +22,7 @@ __all__ = [
 def editor_of_quantum_machine_elements():
 
     qm_list = []
-    component_libraries = ["config.components"]
+    component_libraries = ["qualang_tools.config.components"]
 
     for library in component_libraries:
         for name, obj in inspect.getmembers(importlib.import_module(library)):
