@@ -23,5 +23,6 @@ __all__ = [
     "XEBOpsSingleQubit",
     "convert_integration_weights",
     "compress_integration_weights",
+    "plot_integration_weights",
     "create_simulator_controller_connections",
 ]
