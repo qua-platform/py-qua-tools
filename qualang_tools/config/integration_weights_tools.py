@@ -69,3 +69,22 @@ def compress_integration_weights(integration_weights, N=100):
     )
 
     return integration_weights
+
+
+def plot_integration_weights(integration_weights):
+    import matplotlib.pyplot as plt
+    """
+    Plot the integration weights in units of ns, receives the integration weights in both formats
+    
+    :param integration_weights: The integration_weights to be ploted.
+    """
+    if isinstance(integration_weights[0], tuple):
+        a = [[i[0]] * i[1] for i in integration_weights]
+        unpacked_weights = sum(a, start=[])
+        label = 'Converted'
+    elif isinstance(integration_weights[0], float):
+        a = [[i] * 4 for i in integration_weights]
+        unpacked_weights = sum(a, start=[])
+        label = 'Original'
+
+    plt.plot(unpacked_weights, label=label)
