@@ -11,29 +11,31 @@ from .upload import UPLOAD_DIRECTORY
 from dash import Input, Output, html
 import plotly.express as px
 
-__all__=["download_page"]
+__all__ = ["download_page"]
 
 
 def generate_download_page():
-    return html.Div([
-        html.P("Please download both files"),
-        html.Div([
-            dbc.Button("config_initial.py", id="download-config-inital"),
-            dcc.Download(id="config-initial-data"),
-            html.Span(" + ",
-                style={
-                    'fontSize': '3rem',
-                    'verticalAlign': 'middle'
-                }),
-            dbc.Button("config_edits.py", id="download-config-edits"),
-            dcc.Download(id="config-edits-data"),
-        ]),
-         html.P("and use it as"),
-         html.P(html.Code("from config_edits import configuration, setup")),
-         html.P(html.Code("configuration = setup.build(configuration)")),
+    return html.Div(
+        [
+            html.P("Please download both files"),
+            html.Div(
+                [
+                    dbc.Button("config_initial.py", id="download-config-inital"),
+                    dcc.Download(id="config-initial-data"),
+                    html.Span(
+                        " + ", style={"fontSize": "3rem", "verticalAlign": "middle"}
+                    ),
+                    dbc.Button("config_edits.py", id="download-config-edits"),
+                    dcc.Download(id="config-edits-data"),
+                ]
+            ),
+            html.P("and use it as"),
+            html.P(html.Code("from config_edits import configuration, setup")),
+            html.P(html.Code("configuration = setup.build(configuration)")),
         ]
     )
-    
+
+
 download_page = generate_download_page()
 
 
@@ -43,9 +45,7 @@ download_page = generate_download_page()
     prevent_initial_call=True,
 )
 def intial_config_download(n_clicks):
-    return dcc.send_file(
-        os.path.join(UPLOAD_DIRECTORY, "config_initial.py")
-    )
+    return dcc.send_file(os.path.join(UPLOAD_DIRECTORY, "config_initial.py"))
 
 
 @app.callback(
@@ -54,7 +54,4 @@ def intial_config_download(n_clicks):
     prevent_initial_call=True,
 )
 def intial_config_download(n_clicks):
-    return dcc.send_file(
-        os.path.join(UPLOAD_DIRECTORY, "config_edits.py")
-    )
-
+    return dcc.send_file(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"))

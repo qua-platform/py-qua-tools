@@ -12,8 +12,8 @@ from .server.upload import *
 from .server.download import *
 import webbrowser
 
-@app.callback(Output("page-content", "children"),
-    [Input("url", "pathname")])
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
     pathname = str(pathname)
 
@@ -25,6 +25,7 @@ def render_page_content(pathname):
         return download_page
     # If the user tries to reach a different page, return a 404 message
     return html.H1("404: Not found", className="text-danger")
+
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -42,13 +43,21 @@ sidebar = html.Div(
         html.Hr(),
         dbc.Nav(
             [
-                dbc.NavLink([html.I(className="bi bi-upload me-2"),
-                    "Upload or Start new"], href="/", active="exact"),
-                dbc.NavLink([html.I(className="bi bi-sliders me-2"),
-                    "View & Edit "], href="/config", active="exact"),
-                dbc.NavLink([html.I(className="bi bi-download me-2"),
-                    "Download final"]
-                , href="/download", active="exact"),
+                dbc.NavLink(
+                    [html.I(className="bi bi-upload me-2"), "Upload or Start new"],
+                    href="/",
+                    active="exact",
+                ),
+                dbc.NavLink(
+                    [html.I(className="bi bi-sliders me-2"), "View & Edit "],
+                    href="/config",
+                    active="exact",
+                ),
+                dbc.NavLink(
+                    [html.I(className="bi bi-download me-2"), "Download final"],
+                    href="/download",
+                    active="exact",
+                ),
             ],
             vertical=True,
             pills=True,
@@ -65,15 +74,15 @@ CONTENT_STYLE = {
 
 content = html.Div(id="page-content", style=CONTENT_STYLE)
 
-app.layout = html.Div([dcc.Location(id="url"),sidebar,content])
+app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 guiserver = app.server
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     if not os.path.exists(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
     webbrowser.open("http://localhost:8050")
-    app.run_server(host='127.0.0.1', debug=False)
+    app.run_server(host="127.0.0.1", debug=False)
     # alternative when not debugging
     # poetry run gunicorn gui:guiserver -b :8050
