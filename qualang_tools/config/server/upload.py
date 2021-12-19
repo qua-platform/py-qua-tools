@@ -140,7 +140,8 @@ configuration = setup.build(configuration)
 def init_edits_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "w") as fp:
         fp.write("""
-from config import *
+from qualang_tools.config import *
+from qualang_tools.config.server.config_editor import config_editor
 from config_initial import configuration
 
 setup = ConfigBuilder()
