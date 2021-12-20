@@ -39,4 +39,5 @@ __all__ = [
     "DigitalSample",
     "Matrix2x2",
     "AnalogOutputFilter",
+    "ConfigBuilder",
 ]
