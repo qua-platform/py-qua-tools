@@ -118,7 +118,10 @@ if __name__ == "__main__":
     except OSError as e:
         timer.cancel()
         if e.args[0] != 98:
-            raise
+            # if the error is not "address already in use" (trying to bind
+            # to a port on which another application is already listening)
+            # pass directly the error to the user
+            raise e
         print("Port number 8051 is already in use")
         print("Please specify alternative port number as follows:")
         print("python -m qualang_tools.config.gui -p PORT_NUMBER")
