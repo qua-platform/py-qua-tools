@@ -5,10 +5,11 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
 from .app import app
-import os, sys
+import os
+import sys
 import base64
 
-from dash import Input, Output, html, State
+from dash import Input, Output, State
 
 __all__ = ["upload", "UPLOAD_DIRECTORY"]
 
@@ -87,7 +88,7 @@ upload = html.Div(
     State("upload-config", "last_modified"),
 )
 def upload_init_config(contents, filename, last_modified):
-    if contents != None:
+    if contents is not None:
         init_edits_file()
         save_file(os.path.join(UPLOAD_DIRECTORY, "config_initial.py"), contents)
         print("OK")
@@ -102,7 +103,7 @@ def upload_init_config(contents, filename, last_modified):
     State("upload-config-edits", "last_modified"),
 )
 def upload_config_edits(contents, filename, last_modified):
-    if contents != None:
+    if contents is not None:
         save_file(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), contents)
         return [html.P(f"Uploaded {filename}")]
     return [""]
@@ -134,7 +135,7 @@ configuration = {
     "integration_weights": {},
     "oscillators": {},
     "mixers": {},
-}    
+}
 """
         )
     init_edits_file()

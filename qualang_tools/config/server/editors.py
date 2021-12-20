@@ -8,6 +8,7 @@ import pandas
 import plotly.express as px
 import traceback
 import os
+import importlib
 from .app import app
 
 from .config_editor import config_editor
@@ -22,7 +23,7 @@ __all__ = ["config_editor"]
     [Input("update-button", "n_clicks")],
     [State("input-field", "value"), State("url", "pathname")],
 )
-def update_click(click_number, value, pathname):
+def update_field(click_number, value, pathname):
     if isinstance(value, str):
         value = value.replace("\n", " ")
     if click_number == 0:
@@ -49,7 +50,7 @@ def update_click(click_number, value, pathname):
     [State("tuple-0", "value"), State("tuple-1", "value"), State("url", "pathname")],
     prevent_initial_call=True,
 )
-def update_click(click_number, value0, value1, pathname):
+def update_tuple(click_number, value0, value1, pathname):
     if click_number == 0:
         return [""]
     success = config_editor(pathname, updated_value=(value0, value1))
@@ -88,10 +89,13 @@ def update_wf(value, pathname, initial_waveform):
                     f"config_editor('{pathname}', updated_value={value}, config=configuration)\n"
                 )
         import config_edits
+        import config_final
 
         importlib.reload(config_edits)
-        setup = config_edits.setup
-        wf = config["waveforms"][value]
+        importlib.reload(config_final)
+        configuration = config_final.configuration
+
+        wf = configuration["waveforms"][value]
         if wf["type"] == "arbitrary" or wf["type"] == "compressed":
             data = pandas.DataFrame(wf["samples"])
         else:
@@ -128,13 +132,13 @@ def add_port_to_list(bclick, options, values, controller, port):
     controller_name = controller[0]
     controller_index = int(controller[1])
     newController = f"{controller_index}, {port}"
-    if not newController in values:
+    if newController not in values:
         values.append(newController)
     newOption = {
         "label": f"{controller_name}, {port}",
         "value": f"{controller_index}, {port}",
     }
-    if not newOption in options:
+    if newOption not in options:
         options.append(newOption)
     return values, options
 
@@ -169,7 +173,7 @@ def add_component_click(bclick, inputs, ports, added_objects, selected_component
         return dbc.Alert(
             f"Component added successfuly!\n {python_edit_command}", color="success"
         )
-    except Exception as e:
+    except Exception:
         return dbc.Alert(traceback.format_exc(), color="danger")
 
 
@@ -226,7 +230,7 @@ def add_optional_input(
                 f"Component added successfuly!\n {python_command}", color="success"
             ),
         )
-    except Exception as e:
+    except Exception:
         raise PreventUpdate
         # for debugging purposes comment previous line and let this be seen
         return (

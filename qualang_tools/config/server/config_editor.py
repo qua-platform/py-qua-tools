@@ -3,7 +3,6 @@ from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
 import plotly.express as px
-from dash import html
 import json
 import pprint
 import numpy as np
@@ -11,7 +10,6 @@ import pandas
 import html as htmlpy
 from .component_editor import editor_of_quantum_machine_elements
 import os
-from .app import app
 
 __all__ = ["config_editor"]
 
@@ -31,7 +29,8 @@ def config_editor(pathname, updated_value=None, configuration=None):
     # print(location)
 
     if configuration is None:
-        import config_edits, config_final
+        import config_edits
+        import config_final
 
         importlib.reload(config_edits)
         importlib.reload(config_final)
@@ -320,14 +319,14 @@ def config_editor(pathname, updated_value=None, configuration=None):
                                 [
                                     dbc.InputGroupText("("),
                                     dbc.Input(
-                                        id=(f"tuple-0"),
+                                        id=("tuple-0"),
                                         placeholder="Enter value...",
                                         type="text",
                                         value=("%s" % input_dict[selected][0]),
                                     ),
                                     dbc.InputGroupText(","),
                                     dbc.Input(
-                                        id=(f"tuple-1"),
+                                        id=("tuple-1"),
                                         placeholder="Enter value...",
                                         type="number",
                                         value=("%s" % input_dict[selected][1]),

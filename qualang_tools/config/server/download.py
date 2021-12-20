@@ -8,8 +8,7 @@ from .app import app
 import os
 from .upload import UPLOAD_DIRECTORY
 
-from dash import Input, Output, html
-import plotly.express as px
+from dash import Input, Output
 
 __all__ = ["download_page"]
 
@@ -53,5 +52,5 @@ def intial_config_download(n_clicks):
     Input("download-config-edits", "n_clicks"),
     prevent_initial_call=True,
 )
-def intial_config_download(n_clicks):
+def edit_config_download(n_clicks):
     return dcc.send_file(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"))

@@ -5,11 +5,11 @@ import typing
 from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
-import plotly.express as px
-from dash import Input, Output, html
+from dash import Input, Output
 import dash_dangerously_set_inner_html as innerHTML
 from docutils.core import publish_doctree, publish_from_doctree
-import inspect, importlib
+import inspect
+import importlib
 from .app import app
 from .. import primitive_components, components
 
@@ -95,8 +95,8 @@ def component_editor(selected_component, inputs=None):
     if (
         hasattr(component_class, "add")
         and callable(component_class.add)
-        and inputs[0] == None
-        and inputs[1] == None
+        and inputs[0] is None
+        and inputs[1] is None
     ):
 
         arugments = inspect.getfullargspec(component_class.add)
@@ -230,7 +230,7 @@ def component_editor(selected_component, inputs=None):
             )
         )
 
-    if inputs[0] != None or inputs[1] != None:
+    if inputs[0] is not None or inputs[1] is not None:
         python_command += ")"
         return python_command
 

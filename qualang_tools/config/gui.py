@@ -4,7 +4,7 @@
 from dash import dcc
 import dash_bootstrap_components as dbc
 from dash import html
-from dash import Input, Output, html
+from dash import Input, Output
 import os
 from .server.app import app
 from .server.editors import *
