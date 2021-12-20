@@ -32,6 +32,7 @@ dash-cytoscape = "^0.3.0"
 dash-table = "^5.0.0"
 docutils = "^0.18.1"
 dash-dangerously-set-inner-html = "^0.0.2"
+waitress = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

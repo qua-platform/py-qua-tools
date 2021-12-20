@@ -14,6 +14,8 @@ import webbrowser
 from threading import Timer
 import argparse
 
+from waitress import serve
+
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
@@ -97,6 +99,7 @@ if __name__ == "__main__":
         port_number = args.port
     else:
         port_number = 8051
+    host = "127.0.0.1"
 
     if not os.path.exists(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
@@ -104,7 +107,14 @@ if __name__ == "__main__":
     timer = Timer(3, open_browser)
     timer.start()
     try:
-        app.run_server(host="127.0.0.1", debug=False, port=port_number)
+        print(f"\tConfig GUI is running on http://{host}:{port_number}")
+        print(
+            "\tIf web browser does not open, please enter the address stated above manually."
+        )
+        print("\tStop GUI by pressing Ctrl+C")
+        serve(app.server, host=host, port=port_number)
+        # for development:
+        # app.run_server(host="127.0.0.1", debug=False, port=port_number)
     except OSError as e:
         timer.cancel()
         if e.args[0] != 98:
@@ -112,6 +122,3 @@ if __name__ == "__main__":
         print("Port number 8051 is already in use")
         print("Please specify alternative port number as follows:")
         print("python -m qualang_tools.config.gui -p PORT_NUMBER")
-
-    # alternative when not debugging
-    # poetry run gunicorn gui:guiserver -b :8050
