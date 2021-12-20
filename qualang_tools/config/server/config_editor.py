@@ -12,7 +12,6 @@ from .component_editor import editor_of_quantum_machine_elements
 from .upload import UPLOAD_DIRECTORY
 import os
 import urllib.request
-import json
 
 __all__ = ["config_editor"]
 
