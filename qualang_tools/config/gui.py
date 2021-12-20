@@ -115,7 +115,7 @@ if __name__ == "__main__":
         ) as url:
             ced.config_structure = json.loads(url.read().decode())
         print("\tDONE")
-    except:
+    except Exception:
         print("Cannot download. Using the local copy of the schema.")
         pass
 
