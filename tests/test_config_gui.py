@@ -5,7 +5,7 @@ from qualang_tools.config.server.upload import (
     init_empty_initial_config_file,
     init_edits_file,
     init_final_config_file,
-    UPLOAD_DIRECTORY
+    UPLOAD_DIRECTORY,
 )
 
 

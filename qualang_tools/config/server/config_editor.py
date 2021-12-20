@@ -13,6 +13,8 @@ import os
 
 __all__ = ["config_editor"]
 
+config_structure = {}
+
 with open(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "qua1_openapi.json")
 ) as file:
@@ -26,7 +28,6 @@ def getDefinition(path):
 
 def config_editor(pathname, updated_value=None, configuration=None):
     location = pathname.split("/")[2:]
-    # print(location)
 
     if configuration is None:
         import config_edits

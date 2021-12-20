@@ -10,9 +10,12 @@ from .server.app import app
 from .server.editors import *
 from .server.upload import *
 from .server.download import *
+from .server import config_editor as ced
 import webbrowser
 from threading import Timer
 import argparse
+import urllib.request
+import json
 
 from waitress import serve
 
@@ -104,6 +107,18 @@ if __name__ == "__main__":
     if not os.path.exists(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
+    try:
+        # try updating config schema
+        print("\tDownloading latest config schema...")
+        with urllib.request.urlopen(
+            "https://deploy-preview-94--qm-qua-docs.netlify.app/qm_config_spec.json"
+        ) as url:
+            ced.config_structure = json.loads(url.read().decode())
+        print("\tDONE")
+    except:
+        print("Cannot download. Using the local copy of the schema.")
+        pass
+
     timer = Timer(3, open_browser)
     timer.start()
     try:
@@ -112,6 +127,13 @@ if __name__ == "__main__":
             "\tIf web browser does not open, please enter the address stated above manually."
         )
         print("\tStop GUI by pressing Ctrl+C")
+        print(
+            "\t%s: %s"
+            % (
+                ced.config_structure["info"]["title"],
+                ced.config_structure["info"]["version"],
+            )
+        )
         serve(app.server, host=host, port=port_number)
         # for development:
         # app.run_server(host="127.0.0.1", debug=False, port=port_number)
