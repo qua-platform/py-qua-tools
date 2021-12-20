@@ -11,6 +11,8 @@ from .server.editors import *
 from .server.upload import *
 from .server.download import *
 import webbrowser
+from threading import Timer
+import argparse
 
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
@@ -77,12 +79,39 @@ content = html.Div(id="page-content", style=CONTENT_STYLE)
 app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 guiserver = app.server
 
+
+def open_browser():
+    global port_number
+    webbrowser.open_new(f"http://localhost:{port_number}")
+
+
 if __name__ == "__main__":
+    global port_number
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-p", "--port", help="port number to use for GUI server", type=int
+    )
+    args = parser.parse_args()
+    if args.port is not None:
+        port_number = args.port
+    else:
+        port_number = 8051
 
     if not os.path.exists(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
-    webbrowser.open("http://localhost:8050")
-    app.run_server(host="127.0.0.1", debug=False)
+    timer = Timer(3, open_browser)
+    timer.start()
+    try:
+        app.run_server(host="127.0.0.1", debug=False, port=port_number)
+    except OSError as e:
+        timer.cancel()
+        if e.args[0] != 98:
+            raise
+        print("Port number 8051 is already in use")
+        print("Please specify alternative port number as follows:")
+        print("python -m qualang_tools.config.gui -p PORT_NUMBER")
+
     # alternative when not debugging
     # poetry run gunicorn gui:guiserver -b :8050
