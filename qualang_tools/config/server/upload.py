@@ -90,6 +90,7 @@ upload = html.Div(
 def upload_init_config(contents, filename, last_modified):
     if contents is not None:
         init_edits_file()
+        init_final_config_file()
         save_file(os.path.join(UPLOAD_DIRECTORY, "config_initial.py"), contents)
         print("OK")
         return [html.P(f"Uploaded {filename}")]
@@ -122,6 +123,28 @@ def save_file(name, content):
     prevent_initial_call=True,
 )
 def enter_empty_config(click):
+    init_empty_initial_config_file()
+    init_edits_file()
+    init_final_config_file()
+
+    return "Starting from empty configuration..."
+
+
+def init_edits_file():
+    with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "w") as fp:
+        fp.write(
+            """
+from qualang_tools.config import *
+from qualang_tools.config.server.config_editor import config_editor
+from config_initial import configuration
+
+setup = ConfigBuilder()
+
+"""
+        )
+
+
+def init_empty_initial_config_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_initial.py"), "w") as fp:
         fp.write(
             """
@@ -138,28 +161,14 @@ configuration = {
 }
 """
         )
-    init_edits_file()
 
+
+def init_final_config_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_final.py"), "w") as fp:
         fp.write(
             """
 from config_edits import configuration, setup
 
 configuration = setup.build(configuration)
-"""
-        )
-    return "Starting from empty configuration..."
-
-
-def init_edits_file():
-    with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "w") as fp:
-        fp.write(
-            """
-from qualang_tools.config import *
-from qualang_tools.config.server.config_editor import config_editor
-from config_initial import configuration
-
-setup = ConfigBuilder()
-
 """
         )
