@@ -111,7 +111,7 @@ if __name__ == "__main__":
         # try updating config schema
         print("\tDownloading latest config schema...")
         with urllib.request.urlopen(
-            "https://deploy-preview-94--qm-qua-docs.netlify.app/qm_config_spec.json"
+            "https://qm-docs.qualang.io/qm_config_spec.json"
         ) as url:
             ced.config_structure = json.loads(url.read().decode())
         print("\tDONE")
