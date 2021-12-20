@@ -9,16 +9,32 @@ import numpy as np
 import pandas
 import html as htmlpy
 from .component_editor import editor_of_quantum_machine_elements
+from .upload import UPLOAD_DIRECTORY
 import os
+import urllib.request
+import json
 
 __all__ = ["config_editor"]
 
 config_structure = {}
 
-with open(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "qua1_openapi.json")
-) as file:
-    config_structure = json.load(file)
+if not os.path.exists(UPLOAD_DIRECTORY):
+    os.makedirs(UPLOAD_DIRECTORY)
+
+try:
+    # try updating config schema
+    print("\tDownloading latest config schema...")
+    with urllib.request.urlopen(
+        "https://qm-docs.qualang.io/qm_config_spec.json"
+    ) as url:
+        config_structure = json.loads(url.read().decode())
+    print("\tDONE")
+except Exception:
+    print("Cannot download. Using the local copy of the schema.")
+    with open(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), "qua1_openapi.json")
+    ) as file:
+        config_structure = json.load(file)
 
 
 def getDefinition(path):

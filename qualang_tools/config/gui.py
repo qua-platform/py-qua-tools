@@ -14,8 +14,7 @@ from .server import config_editor as ced
 import webbrowser
 from threading import Timer
 import argparse
-import urllib.request
-import json
+
 
 from waitress import serve
 
@@ -103,21 +102,6 @@ if __name__ == "__main__":
     else:
         port_number = 8051
     host = "127.0.0.1"
-
-    if not os.path.exists(UPLOAD_DIRECTORY):
-        os.makedirs(UPLOAD_DIRECTORY)
-
-    try:
-        # try updating config schema
-        print("\tDownloading latest config schema...")
-        with urllib.request.urlopen(
-            "https://qm-docs.qualang.io/qm_config_spec.json"
-        ) as url:
-            ced.config_structure = json.loads(url.read().decode())
-        print("\tDONE")
-    except Exception:
-        print("Cannot download. Using the local copy of the schema.")
-        pass
 
     timer = Timer(3, open_browser)
     timer.start()
