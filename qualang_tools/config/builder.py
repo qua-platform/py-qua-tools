@@ -22,7 +22,7 @@ class ConfigBuilder:
         """
         if isinstance(obj, list):
             for _obj in obj:
-                self.objects.append(obj)
+                self.objects.append(_obj)
         else:
             self.objects.append(obj)
         return self
