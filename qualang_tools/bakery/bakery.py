@@ -296,7 +296,7 @@ class Baking:
                             + qe_samples["single"][0:end_samples]
                         )
 
-                elif self._padding_method == "symmetric_l":
+                elif self._padding_method == "symmetric_l" or (self._padding_method == "symmetric_r" and wait_duration % 2 == 0):
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
                             qe_samples["I"][end_samples + wait_duration // 2 :]
@@ -314,11 +314,13 @@ class Baking:
                             + qe_samples["single"][0 : end_samples + wait_duration // 2]
                         )
 
-                elif self._padding_method == "symmetric_r":
+                elif self._padding_method == "symmetric_r" and wait_duration%2 !=0:
+                    print(qe_samples["I"])
+                    print(qe_samples["I"][0: end_samples+wait_duration//2+1])
                     if "mixInputs" in elements[qe]:
                         qe_samples["I"] = (
-                            qe_samples["I"][end_samples + wait_duration // 2 + 1 :]
-                            + qe_samples["I"][0 : end_samples + wait_duration // 2 + 1]
+                            qe_samples["I"][end_samples + wait_duration // 2+1:]
+                            + qe_samples["I"][0 : end_samples + wait_duration // 2+1]
                         )
                         qe_samples["Q"] = (
                             qe_samples["Q"][end_samples + wait_duration // 2 + 1 :]
@@ -955,7 +957,7 @@ class Baking:
                         assert (
                             type(samples[i]) == float or type(samples[i]) == int
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
-                        if t + i < len(self._samples_dict[qe]):
+                        if t + i < len(self._samples_dict[qe]["single"]):
                             self._samples_dict[qe]["single"][t + i] += (
                                 amp * np.cos(freq * (t + i) * 1e-9 + phi) * samples[i]
                             )
