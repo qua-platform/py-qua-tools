@@ -55,7 +55,7 @@ def config_update(config_original):
         config1['controllers'][controller] = {"type": "opx1", "analog_outputs": {}}
         config1['controllers'][controller]["analog_outputs"] = config['controllers'][controller]["analog_outputs"]
     config1['elements'] = {}
-    config1['waveforms'] = {'zero_wf': {"type": "constant", "sample": 0.0}, 'const_wf':{"type": "constant", "sample": 0.5} }
+    config1['waveforms'] = {'zero_wf': {"type": "constant", "sample": 0.0}, 'const_wf':{"type": "constant", "sample": 0.499} }
     config1['pulses'] = {}
     config1['pulses']['single_on'] = {
         "operation": "control",
@@ -156,28 +156,28 @@ def update_analog(element, value):
         value_tmp = value
         value = (value - analog_data[element]['amplitude']) * 2
         analog_data[element]['amplitude'] = value_tmp
-    while job.is_paused():
-        amp_or_freq(analog_elements.index(element), value, change_freq, analog_elements)
-        job.resume()
-        break
+    while not job.is_paused():
+        sleep(0.01)
+    amp_or_freq(analog_elements.index(element), value, change_freq, analog_elements)
+    job.resume()
 
 
 def update_amplitude(element, value):
     value_tmp = value
-    value = (value - analog_data[element]['amplitude']) * 2
+    value = (value - analog_data[element]['amplitude']) * (1/0.499)
     analog_data[element]['amplitude'] = value_tmp
-    while job.is_paused():
-        amp_or_freq(analog_elements.index(element), value, 1, analog_elements)
-        job.resume()
-        break
+    while not job.is_paused():
+        sleep(0.01)
+    amp_or_freq(analog_elements.index(element), value, 1, analog_elements)
+    job.resume()
 
 
 def update_frequency(element, value):
     analog_data[element]['frequency'] = value
-    while job.is_paused():
-        amp_or_freq(analog_elements.index(element), value, 2, analog_elements)
-        job.resume()
-        break
+    while not job.is_paused():
+        sleep(0.01)
+    amp_or_freq(analog_elements.index(element), value, 2, analog_elements)
+    job.resume()
 
 
 def show_digital():
