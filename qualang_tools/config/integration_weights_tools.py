@@ -3,7 +3,7 @@ import numpy as np
 
 
 def _round_to_fixed_point_accuracy(x, accuracy=2 ** -15):
-    return round(x / accuracy) * accuracy
+    return np.round(x / accuracy) * accuracy
 
 
 def convert_integration_weights(
