@@ -61,9 +61,9 @@ with baking(config, padding_method = "symmetric_r") as b:
 
 # Create arbitrary waveforms 
 
-  singleInput_sample = [1., 0.8, 0.6, 0.8, 0.9]
-  mixInput_sample_I = [1.2, 0.3, 0.5]
-  mixInput_sample_Q = [0.8, 0.2, 0.4]
+  singleInput_sample = [0.4, 0.3, 0.2, 0.3, 0.3]
+  mixInput_sample_I = [0.2, 0.3, 0.4]
+  mixInput_sample_Q = [0.1, 0.2, 0.4]
   
   # Assign waveforms to quantum element operation
   
@@ -130,10 +130,10 @@ Let’s take a look at the code below to understand what these two features do:
 ```
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
-    const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.4]
+    const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
     b.add_Op("Op1", "qe1", [const_Op, const_Op2]) # qe1 is a mixInputs element
-    Op3 = [1., 1., 1.]
-    Op4 = [2., 2., 2.]
+    Op3 = [0.1, 0.1, 0.1]
+    Op4 = [0.1, 0.1, 0.1]
     b.add_Op("Op2", "qe1", [Op3, Op4])
     b.play("Op1", "qe1")   
     
@@ -142,35 +142,35 @@ with baking(config=config, padding_method="symmetric_r") as b:
     
     b.play_at("Op3", "qe1", t=2)
     # t indicates the time index where these new samples should be added
-    # The baked waveform is now I: [0.3, 0.3, 1.3, 1.3, 1.3]
-    #                           Q: [0.2, 0.2, 2.2, 2.3, 2.4]
+    # The baked waveform is now I: [0.3, 0.3, 0.4, 0.4, 0.4]
+    #                           Q: [0.2, 0.2, 0.3, 0.4, 0.4]
     
 At the baking exit, the config will have an updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case:
-I: [0, 0, 0, 0, 0, 0.3, 0.3, 1.3, 1.3, 1.3, 0, 0, 0, 0, 0, 0], 
-Q: [0, 0, 0, 0, 0, 0.2, 0.2, 2.2, 2.3, 2.4, 0, 0, 0, 0, 0, 0]
+I: [0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0, 0, 0, 0, 0, 0], 
+Q: [0, 0, 0, 0, 0, 0.2, 0.2, 0.3, 0.4, 0.4, 0, 0, 0, 0, 0, 0]
 ```
 If the time index t is positive, the samples will be added precisely at the index indicated in the existing samples.
 Contrariwise, if the provided index t is negative, we call here automatically the function ``negative_wait()``, which adds the samples at the provided index starting to count from the end of the existing samples: 
 ```
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
-    const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.4]
-    b.add_op("Op1", "qe1", [const_Op, const_Op2]) #qe1 is a mixInputs element
-    Op3 = [1., 1., 1.]
-    Op4 = [2., 2., 2.]
-    b.add_op("Op2", "qe1", [Op3, Op4])
-    b.play("Op1", "qe1")   
+    const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+    b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+    Op3 = [0.1, 0.1, 0.1, 0.1]
+    Op4 = [0.1, 0.1, 0.1, 0.1]
+    b.add_op("Op2", "qe2", [Op3, Op4])
+    b.play("Op1", "qe2")
     # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
-    #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.4]
-    b.play_at("Op3", "qe1", t=-2) #t indicates the time index where these new samples should be added
-    # The baked waveform is now I: [0.3, 0.3, 0.3, 1.3, 1.3, 1.0]
-    #                           Q: [0.2, 0.2, 0.2, 2.3, 2.4, 2.0]
+    #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+    b.play_at("Op2", "qe2", t=-2)  # t indicates the time index where these new samples should be added
+    # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+    #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     
 At the baking exit, the config will have updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case: """
-I: [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 1.3, 1.3, 1.0, 0, 0, 0, 0, 0], 
-Q:  [0, 0, 0, 0, 0, 0.2, 0.2, 0.2, 2.3, 2.4, 2.0, 0, 0, 0, 0, 0]
+I: [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0], 
+Q:  [0, 0, 0, 0, 0, 0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0]
 ```
 The ``play_at()`` command can also be used as a single play statement involving a wait time and a play statement. In fact, if the time index indicated in the function is actually out of the range of the existing samples, a wait command is automatically added until reaching this time index (recall that the index corresponds to the time in ns) and starts inserting the operation indicated at this time. See the example below: 
 
@@ -179,22 +179,22 @@ with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
     const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.4]
     b.add_op("Op1", "qe1", [const_Op, const_Op2]) #qe1 is a mixInputs element
-    Op3 = [1., 1., 1.]
-    Op4 = [2., 2., 2.]
+    Op3 = [0.1, 0.1, 0.1]
+    Op4 = [0.2, 0.2, 0.2]
     b.add_Op("Op2", "qe1", [Op3, Op4])
     b.play("Op1", "qe1")  
     # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
     #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.4]
     b.play_at("Op3", "qe1", t=8) #t indicates the time index where these new samples should be added
     # The baked waveform is now 
-    # I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 1.0, 1.0, 1.0], 
-    # Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 2.0, 2.0, 2.0]}
+    # I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 0.1, 0.1, 0.1], 
+    # Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 0.2, 0.2, 0.2]}
     #                                    
     
 At the baking exit, the config will have updated samples 
 adapted for QUA compilation, according to the padding_method chosen, in this case:
-I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0], 
-Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 2.0, 2.0, 2.0, 0, 0, 0, 0, 0]
+I: [0.3, 0.3, 0.3, 0.3, 0.3, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0, 0, 0], 
+Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 0.2, 0.2, 0.2, 0, 0, 0, 0, 0]
 ```
 ## Handling frame rotations and frequency detunings with baking
 As you may have seen in the first code snippet in this document, it is possible to perform a *frame_rotation* within the baking,

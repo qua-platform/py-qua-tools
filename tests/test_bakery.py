@@ -199,6 +199,34 @@ def test_indices_behavior(config):
     print(config["waveforms"].keys())
 
 
+def test_negative_wait(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.play_at(
+            "Op2", "qe2", t=-2
+        )  # t indicates the time index where these new samples should be added
+        # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+        #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+    print(b.get_waveforms_dict())
+    assert (
+        np.round(
+            np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4
+        ).all()
+        == np.array(
+            [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0]
+        ).all()
+    )
+
+
 def test_align_command(config):
     cfg = deepcopy(config)
     with baking(cfg) as b:
