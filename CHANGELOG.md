@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Fixed
-- Fixed bakery bug - negative wait for single input element was not working.
-- Fixed bakery bug - The symmetric padding method when wait duration was even did not work.
+- Fixed bakery bug - Negative wait for single input element was not working.
+- Fixed bakery bug - Fixed the symmetric padding method when wait duration was even.
 - Readme had voltage values in code examples that were not realistic.
 
 ## [0.5.0] - 2021-12-2
