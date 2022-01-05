@@ -104,6 +104,8 @@ class ControlPanel:
                 "Q": "zero_wf",
             },
         }
+        if bool(config.get("mixers")):
+            self.analog_config['mixers'] = config['mixers']
         elements = list(config["elements"].keys())
         self.digital_config["version"] = 1
         for controller in list(config["controllers"].keys()):
