@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+###  Added
+- Add a "Control Panel" - A user interface for controlling the outputs from the OPX in CW mode, based on the user's configuration
 ### Fixed
 - Fixed bakery bug - Negative wait for single input element was not working.
 - Fixed bakery bug - Fixed the symmetric padding method when wait duration was even.
