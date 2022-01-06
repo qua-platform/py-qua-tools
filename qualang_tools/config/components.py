@@ -267,7 +267,6 @@ class MeasurePulse(Pulse):
         :type length: int, optional
         """
         super().__init__(name, wfs, "measure", length)
-        self.digital_markers = []
         self.integration_weights = []
 
     def add(
@@ -289,7 +288,7 @@ class MeasurePulse(Pulse):
                 assert len(w.weights.dict["sine"]) == self.dict["length"] // 4
             self.integration_weights.append(w)
         elif isinstance(w, DigitalWaveform):
-            self.digital_markers.append(w)
+            self.digital_marker = w
 
 
 class ControlPulse(Pulse):
@@ -299,6 +298,10 @@ class ControlPulse(Pulse):
         :rtype: ControlPulse
         """
         super().__init__(name, wfs, "control", length)
+
+    def add(self, w: DigitalWaveform):
+        self.digital_marker = w
+        return self
 
 
 class Mixer:
@@ -357,10 +360,10 @@ class Element:
     def __init__(
         self,
         name: str,
-        analog_output_ports: List[AnalogOutputPort],
-        analog_input_ports: List[AnalogInputPort] = [],
-        digital_output_ports: List[DigitalOutputPort] = [],
-        digital_input_ports: List[DigitalInputPort] = [],
+        analog_input_ports: List[AnalogOutputPort] = [],
+        analog_output_ports: List[AnalogInputPort] = [],
+        digital_input_ports: List[DigitalOutputPort] = [],
+        digital_output_ports: List[DigitalInputPort] = [],
         intermediate_frequency: int = None,
         lo_frequency: int = None,
     ):
@@ -368,12 +371,12 @@ class Element:
 
         :param name: element name
         :type name: int
-        :param analog_output_ports: AnalogOutput(s) associated with this element
-        :type analog_output_ports: List[AnalogOutputPort]
-        :param analog_input_ports: AnalogInputPort(s) associated with this element, defaults to []
-        :type analog_input_ports: List[AnalogInputPort], optional
-        :param digital_output_ports: DigitalOutputPort(s) associated with this element, defaults to []
-        :type digital_output_ports: List[DigitalOutputPort], optional
+        :param analog_input_ports: AnalogOutputPort(s) associated with this element, defaults to []
+        :type analog_input_ports: List[AnalogOutputPort], optional
+        :param analog_output_ports: AnalogInputPort(s) associated with this element, defaults to []
+        :type analog_output_ports: List[AnalogInputPort], optional
+        :param digital_input_ports: DigitalOutputPort(s) associated with this element, defaults to []
+        :type digital_input_ports: List[DigitalOutputPort], optional
         :param intermediate_frequency: intermediate frequency associated wit this element, defaults to None
         :type intermediate_frequency: int, optional
         :param lo_frequency: LO frequency associated wit this element, defaults to None
@@ -381,30 +384,53 @@ class Element:
         """
         self.name = name
         self.dict = dict()
-        assert len(analog_output_ports) <= 2
-        self.type = "singleInput" if len(analog_output_ports) == 1 else "mixInputs"
+        assert len(analog_input_ports) <= 2
+        self.type = "singleInput" if len(analog_input_ports) == 1 else "mixInputs"
         self.pulses = []
         self.analog_input_ports = analog_input_ports
         self.analog_output_ports = analog_output_ports
         self.digital_output_ports = digital_output_ports
         self.digital_input_ports = digital_input_ports
         self.mixer = None
-        if self.type == "singleInput":
-            port = analog_output_ports[0]
-            self.dict["singleInput"] = dict()
-            self.dict["singleInput"]["port"] = port.info
-        elif self.type == "mixInputs":
-            I = analog_output_ports[0]
-            Q = analog_output_ports[1]
-            self.dict["mixInputs"] = dict()
-            self.dict["mixInputs"]["I"] = I.info
-            self.dict["mixInputs"]["Q"] = Q.info
-            self.dict["mixInputs"]["lo_frequency"] = lo_frequency
-        self.dict["outputs"] = dict()
-        for i, port in enumerate(analog_input_ports):
-            self.dict["outputs"]["out" + str(i + 1)] = port.info
+        if len(analog_input_ports) > 0:
+            if self.type == "singleInput":
+                port = analog_input_ports[0]
+                self.dict["singleInput"] = dict()
+                self.dict["singleInput"]["port"] = port.info
+            elif self.type == "mixInputs":
+                I = analog_input_ports[0]
+                Q = analog_input_ports[1]
+                self.dict["mixInputs"] = dict()
+                self.dict["mixInputs"]["I"] = I.info
+                self.dict["mixInputs"]["Q"] = Q.info
+                self.dict["mixInputs"]["lo_frequency"] = lo_frequency
+        if len(analog_output_ports) > 0:
+            self.dict["outputs"] = dict()
+            for i, port in enumerate(analog_output_ports):
+                self.dict["outputs"]["out" + str(i + 1)] = port.info
         self.dict["operations"] = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
+        self.dict["outputPulseParameters"] = dict()
+        if len(digital_input_ports) > 0:
+            self.dict["digital_inputs"] = dict()
+            for i, port in enumerate(digital_input_ports):
+                self.dict["digital_inputs"]["in" + str(i + 1)] = {
+                    "port": port.info,
+                    "delay": 0,
+                    "buffer": 0,
+                }
+
+    def set_delay(self, port_id: int, val: int):
+        if "in" + str(port_id) in self.dict["digital_inputs"].keys():
+            self.dict["digital_inputs"]["in" + str(port_id)]["delay"] = val
+        else:
+            raise ConfigurationError("digital input port must be set first")
+
+    def set_buffer(self, port_id: int, val: int):
+        if "in" + str(port_id) in self.dict["digital_inputs"].keys():
+            self.dict["digital_inputs"]["in" + str(port_id)]["buffer"] = val
+        else:
+            raise ConfigurationError("digital input port must be set first")
 
     def _add_mixer(self, mix: Mixer):
         assert "mixInputs" in self.dict.keys()
@@ -485,14 +511,58 @@ class Element:
             + self.digital_input_ports
         )
 
+    @property
+    def signal_threshold(self):
+        if "signalThreshold" in self.dict["outputPulseParameters"].keys():
+            return self.dict["outputPulseParameters"]["signalThreshold"]
+        else:
+            raise ConfigurationError("set the signal threshold")
+
+    @signal_threshold.setter
+    def signal_threshold(self, val: int):
+        self.dict["outputPulseParameters"]["signalThreshold"] = val
+
+    @property
+    def signal_polarity(self):
+        if "signalPolarity" in self.dict["outputPulseParameters"].keys():
+            return self.dict["outputPulseParameters"]["signalPolarity"]
+        else:
+            raise ConfigurationError("set the signal polarity")
+
+    @signal_polarity.setter
+    def signal_polarity(self, val: str):
+        self.dict["outputPulseParameters"]["signalPolarity"] = val
+
+    @property
+    def derivative_threshold(self):
+        if "derivativeThreshold" in self.dict["outputPulseParameters"].keys():
+            return self.dict["outputPulseParameters"]["derivativeThreshold"]
+        else:
+            raise ConfigurationError("set the derivative threshold")
+
+    @derivative_threshold.setter
+    def derivative_threshold(self, val: int):
+        self.dict["outputPulseParameters"]["derivativeThreshold"] = val
+
+    @property
+    def derivative_polarity(self):
+        if "derivativePolarity" in self.dict["outputPulseParameters"].keys():
+            return self.dict["outputPulseParameters"]["derivativePolarity"]
+        else:
+            raise ConfigurationError("set the derivative polarity")
+
+    @derivative_polarity.setter
+    def derivative_polarity(self, val: str):
+        self.dict["outputPulseParameters"]["derivativePolarity"] = val
+
 
 class MeasureElement(Element):
     def __init__(
         self,
         name: str,
-        analog_output_ports: List[AnalogOutputPort],
-        analog_input_ports: List[AnalogInputPort],
-        digital_output_ports: List[DigitalOutputPort] = [],
+        analog_input_ports: List[AnalogOutputPort],
+        analog_output_ports: List[AnalogInputPort],
+        digital_input_ports: List[DigitalOutputPort] = [],
         intermediate_frequency: int = None,
         lo_frequency: int = None,
     ):
@@ -500,19 +570,19 @@ class MeasureElement(Element):
 
         :param name: [description]
         :type name: int
-        :param analog_output_ports: [description]
-        :type analog_output_ports: List[AnalogOutputPort]
         :param analog_input_ports: [description]
-        :type analog_input_ports: List[AnalogInputPort]
-        :param digital_output_ports: [description], defaults to []
-        :type digital_output_ports: List[DigitalOutputPort], optional
+        :type analog_input_ports: List[AnalogOutputPort]
+        :param analog_output_ports: [description]
+        :type analog_output_ports: List[AnalogInputPort]
+        :param digital_input_ports: [description], defaults to []
+        :type digital_input_ports: List[DigitalOutputPort], optional
         :param intermediate_frequency: intermediate frequency associated wit this element, defaults to None
         :type intermediate_frequency: int, optional
         :param lo_frequency: [description], defaults to None
         :type lo_frequency: int, optional
         """
         super().__init__(
-            name, analog_output_ports, analog_input_ports, digital_output_ports
+            name, analog_output_ports, analog_input_ports, digital_input_ports
         )
         self.dict["time_of_flight"] = 0
         self.dict["smearing"] = 0

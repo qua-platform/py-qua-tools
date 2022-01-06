@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - The imports from the package, mainly when doing import *, has changed.
 ### Added
 - Add a "Control Panel" - A user interface for controlling the outputs from the OPX in CW mode, based on the user's configuration.
+- Added support for Elements with digital inputs/outputs (in the config builder tool)
 ### Fixed
 - Fixed bakery bug - Negative wait for single input element was not working.
 - Fixed bakery bug - Fixed the symmetric padding method when wait duration was even.
 - Readme had voltage values in code examples that were not realistic.
+- Fixed convention of input/output ports of Element in config builder
 
 ## [0.5.0] - 2021-12-2
 ### Added
