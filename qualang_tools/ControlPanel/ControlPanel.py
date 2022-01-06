@@ -109,7 +109,7 @@ class ControlPanel:
                 "Q": "zero_wf",
             },
         }
-        if bool(config.get("mixers")):
+        if config.get("mixers") is not None:
             self.analog_config["mixers"] = config["mixers"]
         elements = list(config["elements"].keys())
         self.digital_config["version"] = 1
@@ -132,7 +132,7 @@ class ControlPanel:
         }
         self.digital_config["digital_waveforms"] = {"ON": {"samples": [(1, 0)]}}
         for element in elements:
-            if bool(config["elements"][element].get("digitalInputs")):
+            if config["elements"][element].get("digitalInputs") is not None:
                 self.digital_config["elements"][element] = {
                     "operations": {
                         "ON": "digital_ON",
@@ -143,15 +143,19 @@ class ControlPanel:
                 ][element]["digitalInputs"]
 
         for i in range(len(elements)):
-            if bool(config["elements"][elements[i]].get("mixInputs")):
+            if config["elements"][elements[i]].get("mixInputs") is not None:
                 self.analog_config["elements"][elements[i]] = config["elements"][
                     elements[i]
                 ]
-                if bool(
+                if (
                     self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    is not None
                 ):
                     self.analog_config["elements"][elements[i]].pop("digitalInputs")
-                if bool(self.analog_config["elements"][elements[i]].get("outputs")):
+                if (
+                    self.analog_config["elements"][elements[i]].get("outputs")
+                    is not None
+                ):
                     self.analog_config["elements"][elements[i]].pop("outputs")
                     self.analog_config["elements"][elements[i]].pop("time_of_flight")
                     self.analog_config["elements"][elements[i]].pop("smearing")
@@ -160,15 +164,19 @@ class ControlPanel:
                     "play": "IQ_Ion"
                 }
 
-            elif bool(config["elements"][elements[i]].get("singleInput")):
+            elif config["elements"][elements[i]].get("singleInput") is not None:
                 self.analog_config["elements"][elements[i]] = config["elements"][
                     elements[i]
                 ]
-                if bool(
+                if (
                     self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    is not None
                 ):
                     self.analog_config["elements"][elements[i]].pop("digitalInputs")
-                if bool(self.analog_config["elements"][elements[i]].get("outputs")):
+                if (
+                    self.analog_config["elements"][elements[i]].get("outputs")
+                    is not None
+                ):
                     self.analog_config["elements"][elements[i]].pop("outputs")
                     self.analog_config["elements"][elements[i]].pop("time_of_flight")
                     self.analog_config["elements"][elements[i]].pop("smearing")
