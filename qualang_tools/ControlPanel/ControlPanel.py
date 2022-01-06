@@ -63,8 +63,12 @@ class ControlPanel:
             with switch_(input1):
                 for i in range(len(self.analog_elements)):
                     with case_(i):
-                        if self.analog_config['elements'][self.analog_elements[i]].get('intermediate_frequency') \
-                                is not None:
+                        if (
+                            self.analog_config["elements"][self.analog_elements[i]].get(
+                                "intermediate_frequency"
+                            )
+                            is not None
+                        ):
                             update_frequency(self.analog_elements[i], freq)
 
     def _process_config(self, config_original):
@@ -106,7 +110,7 @@ class ControlPanel:
             },
         }
         if bool(config.get("mixers")):
-            self.analog_config['mixers'] = config['mixers']
+            self.analog_config["mixers"] = config["mixers"]
         elements = list(config["elements"].keys())
         self.digital_config["version"] = 1
         self.digital_config["controllers"] = {}
@@ -175,10 +179,12 @@ class ControlPanel:
         self.analog_elements = list(self.analog_config["elements"].keys())
         self.digital_elements = list(self.digital_config["elements"].keys())
         for element in self.analog_elements:
-            self.analog_config['elements'][element]['hold_offset'] = {'duration': 16}
+            self.analog_config["elements"][element]["hold_offset"] = {"duration": 16}
             self.analog_data[element] = {
                 "amplitude": 0,
-                "frequency": self.analog_config['elements'][element].get('intermediate_frequency'),
+                "frequency": self.analog_config["elements"][element].get(
+                    "intermediate_frequency"
+                ),
             }
         self.digital_data = [False] * len(self.digital_elements)
 
