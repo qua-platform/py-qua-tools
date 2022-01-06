@@ -166,6 +166,7 @@ class ControlPanel:
         self.analog_elements = list(self.analog_config["elements"].keys())
         self.digital_elements = list(self.digital_config["elements"].keys())
         for element in self.analog_elements:
+            self.analog_config['elements'][element]['hold_offset'] = {'duration': 16}
             self.analog_data[element] = {
                 "amplitude": 0,
                 "frequency": self.analog_config["elements"][element][
