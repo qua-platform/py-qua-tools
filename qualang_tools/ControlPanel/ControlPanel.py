@@ -22,7 +22,6 @@ class ControlPanel:
         :param str port: Port where to find the QM orchestrator. If None, local settings are used
         :param bool close_previous: should previous instances of quantum machine be closed at the initialization.
         :param digital_on: a variable number of digital elements that will be turned on at the initialization.
-
         """
         self.qmm = QuantumMachinesManager(host=host, port=port)
         if close_previous:
@@ -64,7 +63,13 @@ class ControlPanel:
             with switch_(input1):
                 for i in range(len(self.analog_elements)):
                     with case_(i):
-                        update_frequency(self.analog_elements[i], freq)
+                        if (
+                            self.analog_config["elements"][self.analog_elements[i]].get(
+                                "intermediate_frequency"
+                            )
+                            is not None
+                        ):
+                            update_frequency(self.analog_elements[i], freq)
 
     def _process_config(self, config_original):
         """
@@ -76,8 +81,8 @@ class ControlPanel:
         self.analog_config = {}
         self.digital_config = {}
         self.analog_config["version"] = 1
+        self.analog_config["controllers"] = {}
         for controller in list(config["controllers"].keys()):
-            self.analog_config["controllers"] = {}
             self.analog_config["controllers"][controller] = {
                 "type": "opx1",
                 "analog_outputs": {},
@@ -104,11 +109,15 @@ class ControlPanel:
                 "Q": "zero_wf",
             },
         }
+        if config.get("mixers") is not None:
+            self.analog_config["mixers"] = config["mixers"]
         elements = list(config["elements"].keys())
         self.digital_config["version"] = 1
+        self.digital_config["controllers"] = {}
         for controller in list(config["controllers"].keys()):
-            self.digital_config["controllers"] = {
-                controller: {"type": "opx1", "digital_outputs": {}}
+            self.digital_config["controllers"][controller] = {
+                "type": "opx1",
+                "digital_outputs": {},
             }
             self.digital_config["controllers"][controller]["digital_outputs"] = config[
                 "controllers"
@@ -123,7 +132,7 @@ class ControlPanel:
         }
         self.digital_config["digital_waveforms"] = {"ON": {"samples": [(1, 0)]}}
         for element in elements:
-            if bool(config["elements"][element].get("digitalInputs")):
+            if config["elements"][element].get("digitalInputs") is not None:
                 self.digital_config["elements"][element] = {
                     "operations": {
                         "ON": "digital_ON",
@@ -134,15 +143,19 @@ class ControlPanel:
                 ][element]["digitalInputs"]
 
         for i in range(len(elements)):
-            if bool(config["elements"][elements[i]].get("mixInputs")):
+            if config["elements"][elements[i]].get("mixInputs") is not None:
                 self.analog_config["elements"][elements[i]] = config["elements"][
                     elements[i]
                 ]
-                if bool(
+                if (
                     self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    is not None
                 ):
                     self.analog_config["elements"][elements[i]].pop("digitalInputs")
-                if bool(self.analog_config["elements"][elements[i]].get("outputs")):
+                if (
+                    self.analog_config["elements"][elements[i]].get("outputs")
+                    is not None
+                ):
                     self.analog_config["elements"][elements[i]].pop("outputs")
                     self.analog_config["elements"][elements[i]].pop("time_of_flight")
                     self.analog_config["elements"][elements[i]].pop("smearing")
@@ -151,14 +164,22 @@ class ControlPanel:
                     "play": "IQ_Ion"
                 }
 
-            elif bool(config["elements"][elements[i]].get("singleInput")):
+            elif config["elements"][elements[i]].get("singleInput") is not None:
                 self.analog_config["elements"][elements[i]] = config["elements"][
                     elements[i]
                 ]
-                if bool(
+                if (
                     self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    is not None
                 ):
                     self.analog_config["elements"][elements[i]].pop("digitalInputs")
+                if (
+                    self.analog_config["elements"][elements[i]].get("outputs")
+                    is not None
+                ):
+                    self.analog_config["elements"][elements[i]].pop("outputs")
+                    self.analog_config["elements"][elements[i]].pop("time_of_flight")
+                    self.analog_config["elements"][elements[i]].pop("smearing")
                 self.analog_config["elements"][elements[i]].pop("operations")
                 self.analog_config["elements"][elements[i]]["operations"] = {
                     "play": "single_on"
@@ -166,11 +187,12 @@ class ControlPanel:
         self.analog_elements = list(self.analog_config["elements"].keys())
         self.digital_elements = list(self.digital_config["elements"].keys())
         for element in self.analog_elements:
+            self.analog_config["elements"][element]["hold_offset"] = {"duration": 16}
             self.analog_data[element] = {
                 "amplitude": 0,
-                "frequency": self.analog_config["elements"][element][
+                "frequency": self.analog_config["elements"][element].get(
                     "intermediate_frequency"
-                ],
+                ),
             }
         self.digital_data = [False] * len(self.digital_elements)
 
