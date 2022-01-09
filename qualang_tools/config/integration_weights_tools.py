@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def _round_to_fixed_point_accuracy(x, base=2 ** -15):
-    return np.round(base * np.round(np.array(x) / base), 20)
+def _round_to_fixed_point_accuracy(x, accuracy=2 ** -15):
+    return np.round(x / accuracy) * accuracy
 
 
 def convert_integration_weights(
