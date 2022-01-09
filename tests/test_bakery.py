@@ -1,17 +1,24 @@
-import matplotlib.pyplot as plt
-import pytest
-from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm import SimulationConfig
-import numpy as np
-from qualang_tools.bakery.bakery import baking
+import os
 from copy import deepcopy
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+from qualang_tools.bakery.bakery import baking
+from qualang_tools.bakery.randomized_benchmark_c1 import c1_table, c1_ops
 
 
 def gauss(amplitude, mu, sigma, length):
     t = np.linspace(-length / 2, length / 2, length)
     gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
     return [float(x) for x in gauss_wave]
+
+
+def abs_path_to(rel_path: str) -> str:
+    source_path = Path(__file__).resolve()
+    source_dir = source_path.parent
+    return os.path.join(source_dir, rel_path)
 
 
 @pytest.fixture
@@ -114,6 +121,13 @@ def config():
     }
 
 
+def test_c1_data():
+    c1_correct_table = np.load(abs_path_to("c1_table.npy"))
+    c1_correct_ops = np.load(abs_path_to("c1_ops.npy"), allow_pickle=True)
+    assert (c1_correct_table == c1_table).all()
+    assert (c1_correct_ops == np.array(c1_ops, dtype=object)).all()
+
+
 def test_override_waveform(config):
     cfg = deepcopy(config)
     with baking(cfg, padding_method="right", override=True) as b_ref:
@@ -121,10 +135,10 @@ def test_override_waveform(config):
     ref_length = b_ref.get_op_length("qe2")
 
     with baking(
-        cfg,
-        padding_method="right",
-        override=False,
-        baking_index=b_ref.get_baking_index(),
+            cfg,
+            padding_method="right",
+            override=False,
+            baking_index=b_ref.get_baking_index(),
     ) as b_new:
         samples = [[0.2] * 30, [0.0] * 30]
         b_new.add_op("customOp", "qe2", samples)
@@ -218,12 +232,12 @@ def test_negative_wait(config):
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     print(b.get_waveforms_dict())
     assert (
-        np.round(
-            np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4
-        ).all()
-        == np.array(
-            [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0]
-        ).all()
+            np.round(
+                np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4
+            ).all()
+            == np.array(
+        [0, 0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0]
+    ).all()
     )
 
 
