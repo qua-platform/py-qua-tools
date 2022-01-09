@@ -230,7 +230,7 @@ class ControlPanel:
 
     def update_amplitude(self, element, value):
         """
-        Ipdates the amplitude of an analog element.
+        Updates the amplitude of an analog element.
         :param str element: the name of the analog element to be updated
         :param float value: the new amplitude of the analog element
         """
