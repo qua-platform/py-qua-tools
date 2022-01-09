@@ -1,5 +1,3 @@
-from qualang_tools.control_panel import control_panel
+from qualang_tools.control_panel import manual_output_control
 
-__all__ = [
-    "control_panel",
-]
+__all__ = ["manual_output_control"]

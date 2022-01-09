@@ -5,22 +5,23 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm.qua import *
 
 
-class ControlPanel:
+class ManualOutputControl:
     """
     Creates a control panel to turn on and off the analog and digital channels of the OPX.
-    Gets a QUA configuration file of both analog and digital elements, create two separate digital and
-    analog QUA configurations running in on two different jobs, enabling the user control on the amplitude and frequency
-    of a continuously running analog elements, and choose which digital elements will run at the same time, also
-    continuously.
     """
 
     def __init__(
-        self, configuration, host=None, port=None, close_previous=False, *digital_on
+        self, configuration, host=None, port=None, close_previous=True, *digital_on
     ):
         """
-        :param str host: Host where to find the QM orchestrator. If ``None``, local settings are used
-        :param str port: Port where to find the QM orchestrator. If None, local settings are used
-        :param bool close_previous: should previous instances of quantum machine be closed at the initialization.
+        Gets a QUA configuration file and creates two different QuantumMachines. One QM continuously runs all the
+        analog ports and one continuously runs all the digital ports. This enables controlling the amplitude and
+        frequency of the analog ports and turning on and off the digital ports.
+
+        :param str host: The host or IP of the QOP. Defaults to `None`: local settings are used.
+        :param str port: The port used to access the QOP. Defaults to `None`, local settings are used.
+        :param bool close_previous: Close currently running Quantum Machines. Note that if False, and a Quantum Machine
+                                    which uses the same ports is already open, then this function would fail.
         :param digital_on: a variable number of digital elements that will be turned on at the initialization.
         """
         self.qmm = QuantumMachinesManager(host=host, port=port)
@@ -44,9 +45,10 @@ class ControlPanel:
     def _QUA_update_freq_or_amp(self, input1, input2):
         """
         This function updates the amplitude or frequency of an element
+
         :param QUA Int input1: Indicates which element to update and whether it is amplitude or frequency using the
-        following method: If there are 5 elements: ['a', 'b', 'c', 'd', 'e'], and input1 is '0', then it would change the
-        amplitude of the first ('a'). If it input1 is '6', it would change the frequency of the 2nd ('b').
+        following method: If there are 5 elements: ['a', 'b', 'c', 'd', 'e'], and input1 is '0', then it would change
+            the amplitude of the first ('a'). If it input1 is '6', it would change the frequency of the 2nd ('b').
         :param QUA IO input2: The new frequency or delta amplitude to update them element.
         """
         with if_(input1 >= len(self.analog_elements)):
@@ -75,6 +77,7 @@ class ControlPanel:
         """
         This function creates two separate configuration files, on containing only analog elements, and the other
         only contains digital elements
+
         :param config_original: a QUA configuration dictionary which contain all defined analog and digital elements.
         """
         config = copy.deepcopy(config_original)
@@ -104,10 +107,7 @@ class ControlPanel:
         self.analog_config["pulses"]["IQ_Ion"] = {
             "operation": "control",
             "length": 16,
-            "waveforms": {
-                "I": "const_wf",
-                "Q": "zero_wf",
-            },
+            "waveforms": {"I": "const_wf", "Q": "zero_wf"},
         }
         if config.get("mixers") is not None:
             self.analog_config["mixers"] = config["mixers"]
@@ -134,9 +134,7 @@ class ControlPanel:
         for element in elements:
             if config["elements"][element].get("digitalInputs") is not None:
                 self.digital_config["elements"][element] = {
-                    "operations": {
-                        "ON": "digital_ON",
-                    }
+                    "operations": {"ON": "digital_ON"}
                 }
                 self.digital_config["elements"][element]["digitalInputs"] = config[
                     "elements"
@@ -198,8 +196,8 @@ class ControlPanel:
 
     def _start_analog(self):
         """
-        A QUA program that initialize the analog elements at 0 amplitude and awaits IO variables, to update the
-        amplitude and frequency of each element
+        Creates and starts QUA program that initialize the analog elements at 0 amplitude and awaits IO variables to
+        update the amplitude and frequency of each element
         """
 
         with program() as prog:
@@ -215,7 +213,8 @@ class ControlPanel:
 
     def _start_digital(self, element_to_turn_on):
         """
-        A QUA program that is used to run the digital elements in an infinite loop.
+        Creates and starts QUA program that is used to run the digital elements in an infinite loop.
+
         :param element_to_turn_on: A list containing the digital elements to turn on.
         """
         with program() as prog:
@@ -231,6 +230,7 @@ class ControlPanel:
     def update_amplitude(self, element, value):
         """
         Updates the amplitude of an analog element.
+
         :param str element: the name of the analog element to be updated
         :param float value: the new amplitude of the analog element
         """
@@ -251,6 +251,7 @@ class ControlPanel:
     def update_frequency(self, element, value):
         """
         Updates the frequency of an analog element.
+
         :param str element: the name of the analog element to be updated
         :param int value: the new frequency of the analog element
         """
@@ -271,7 +272,8 @@ class ControlPanel:
 
     def digital_switch(self, *digital_element):
         """
-        Switches the state of the given digital elements from on to off, and from off to on
+        Switches the state of the given digital elements from on to off, and from off to on.
+
         :param digital_element: A variable number of elements to be switched.
         """
         for element in digital_element:
@@ -283,6 +285,7 @@ class ControlPanel:
     def digital_on(self, *digital_element):
         """
         Turns on all digital elements inputted by the user and turns off all other elements.
+
         :param digital_element: A variable number of elements to be turned on
         """
         for element in self.digital_elements:
@@ -295,6 +298,7 @@ class ControlPanel:
     def digital_off(self, *digital_element):
         """
         Turns off all digital elements inputted by the user and turns on all other elements.
+
         :param digital_element: A variable number of elements to be turned off
         """
         for element in self.digital_elements:
