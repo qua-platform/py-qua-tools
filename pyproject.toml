@@ -40,6 +40,10 @@ black = "^21.5b2"
 poethepoet = "^0.11.0"
 flake8 = "^4.0.1"
 
+[tool.black]
+line-length = 88
+exclude = "qualang_tools/bakery/randomized_benchmark_c1.py"
+
 [tool.poe.tasks]
 format = "black qualang_tools tests"
 check-format = "black --check qualang_tools"

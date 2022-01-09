@@ -1,42 +1,8 @@
-import pandas as pd
 import numpy as np
-from qualang_tools.bakery.bakery import baking
 from qm.qua import *
-import importlib.resources as pkg_resources
-import qualang_tools.bakery as bakery_resources
 
-c1_ops = [  # Clifford operations
-    ("I",),
-    ("X",),
-    ("Y",),
-    ("Y", "X"),
-    ("X/2", "Y/2"),
-    ("X/2", "-Y/2"),
-    ("-X/2", "Y/2"),
-    ("-X/2", "-Y/2"),
-    ("Y/2", "X/2"),
-    ("Y/2", "-X/2"),
-    ("-Y/2", "X/2"),
-    ("-Y/2", "-X/2"),
-    ("X/2",),
-    ("-X/2",),
-    ("Y/2",),
-    ("-Y/2",),
-    ("-X/2", "Y/2", "X/2"),
-    ("-X/2", "-Y/2", "X/2"),
-    ("X", "Y/2"),
-    ("X", "-Y/2"),
-    ("Y", "X/2"),
-    ("Y", "-X/2"),
-    ("X/2", "Y/2", "X/2"),
-    ("-X/2", "Y/2", "-X/2"),
-]
-
-# Cayley table corresponding to above Clifford group structure
-
-csv = pkg_resources.open_text(bakery_resources, "c1_cayley_table.csv")
-
-c1_table = pd.read_csv(csv).to_numpy()[:, 1:]
+from qualang_tools.bakery.bakery import baking
+from qualang_tools.bakery.randomized_benchmark_c1 import c1_ops, c1_table
 
 
 class RBOneQubit:

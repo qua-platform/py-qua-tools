@@ -130,6 +130,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-qualang_tools/config_gui_temp/config_edits.py
-qualang_tools/config_gui_temp/config_final.py
-qualang_tools/config_gui_temp/config_initial.py
+
+# config gui
+config_gui_temp
