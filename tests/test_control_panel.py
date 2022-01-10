@@ -5,7 +5,7 @@ NV2_conditional_freq = 29.9e6
 
 
 pi_length = 56
-ent_len=32
+ent_len = 32
 red_length = 16
 pi_amplitude = 0.3
 pi_amplitude2 = pi_amplitude / ((pi_length - 2) / pi_length)
@@ -119,7 +119,7 @@ config = {
         },
         "pi_2ns": {
             "operation": "control",
-            "length": pi_length/2,
+            "length": pi_length / 2,
             "waveforms": {"I": "pi_wf_2ns", "Q": "zero_wf"},
         },
         "pi_half": {
@@ -176,17 +176,15 @@ config = {
             "operation": "control",
         },
     },
-    "digital_waveforms":{
-            "ON": {"samples": [(1, 0)]
-                   },
-            "ON_red": {"samples": [(1, 2),(0, 14),(1, 0)]
-                       }
-        },
+    "digital_waveforms": {
+        "ON": {"samples": [(1, 0)]},
+        "ON_red": {"samples": [(1, 2), (0, 14), (1, 0)]},
+    },
     "waveforms": {
         "pi_wf": {"type": "constant", "sample": pi_amplitude},
         "pi_wf_2ns": {
             "type": "arbitrary",
-            "samples": [0]*2 + [pi_amplitude] * int(pi_length/2 - 2),
+            "samples": [0] * 2 + [pi_amplitude] * int(pi_length / 2 - 2),
         },
         "zero_wf": {"type": "constant", "sample": 0.0},
     },
