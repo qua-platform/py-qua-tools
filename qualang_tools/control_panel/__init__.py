@@ -1,3 +1,3 @@
-from qualang_tools.control_panel import manual_output_control
+from qualang_tools.control_panel.manual_output_control import ManualOutputControl
 
-__all__ = ["manual_output_control"]
+__all__ = ["ManualOutputControl"]

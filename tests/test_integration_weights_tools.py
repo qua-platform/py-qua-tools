@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from qualang_tools import *
+from qualang_tools.config import convert_integration_weights
 
 
 def abs_path_to(rel_path: str) -> str:
