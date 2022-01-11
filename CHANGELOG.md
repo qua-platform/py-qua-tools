@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.6.0] - 2022-01-11
 ### Changed
 - The imports from the package, mainly when doing import *, has changed.
 ### Added
@@ -15,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Readme had voltage values in code examples that were not realistic.
 - Fixed convention of input/output ports of Element in config builder
 
-## [0.5.0] - 2021-12-2
+## [0.5.0] - 2021-12-02
 ### Added
 - Added a brand-new Config GUI which can be used to visually edit and modify QUA configurations.
 - A readme has been added for the Config builder which guides you through basic usage (and more).
