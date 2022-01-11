@@ -98,6 +98,8 @@ class ConfigBuilder:
                 self.configuration.add_pulse(obj)
             elif isinstance(obj, ElementCollection):
                 self._add_component(obj)
+            elif isinstance(obj, Element):
+                self.configuration.add_element(obj)
             elif isinstance(obj, IntegrationWeights):
                 self.configuration.add_integration_weights(obj)
             elif isinstance(obj, Mixer):

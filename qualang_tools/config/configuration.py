@@ -63,11 +63,13 @@ class QMConfiguration:
         """
         _dict = copy.deepcopy(pulse.dict)
         self.add_waveforms(pulse.wfs)
+        if pulse.digital_marker is not None:
+            _dict["digital_marker"] = pulse.digital_marker.name
+            self.config["digital_waveforms"][
+                pulse.digital_marker.name
+            ] = pulse.digital_marker.dict
         if isinstance(pulse, MeasurePulse):
             _dict["digital_marker"] = {}
-            for marker in pulse.digital_markers:
-                _dict["digital_marker"] = {marker.name: marker.name}
-                self.config["digital_waveforms"][marker.name] = marker.dict
             _dict["integration_weights"] = dict()
             for w in pulse.integration_weights:
                 _dict["integration_weights"][w.name] = w.weights.name

@@ -86,8 +86,9 @@ class Pulse:
         if len(wfs) == 2:
             self.dict["waveforms"]["I"] = wfs[0].name
             self.dict["waveforms"]["Q"] = wfs[1].name
-        else:
+        elif len(wfs) == 1:
             self.dict["waveforms"]["single"] = wfs[0].name
+        self.digital_marker = None
 
     @property
     def waveform_names(self):
