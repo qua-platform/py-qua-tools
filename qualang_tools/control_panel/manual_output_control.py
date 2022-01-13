@@ -1,8 +1,14 @@
 """calling function libraries"""
 import copy
 from time import sleep
+
+import numpy as np
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm.qua import *
+
+
+def _round_to_fixed_point_accuracy(x, accuracy=2 ** -16):
+    return np.round(x / accuracy) * accuracy
 
 
 class ManualOutputControl:
@@ -11,18 +17,26 @@ class ManualOutputControl:
     """
 
     def __init__(
-        self, configuration, host=None, port=None, close_previous=True, *digital_on
+        self,
+        configuration,
+        host=None,
+        port=None,
+        close_previous=True,
+        elements_to_control=None,
     ):
         """
         Gets a QUA configuration file and creates two different QuantumMachines. One QM continuously runs all the
         analog ports and one continuously runs all the digital ports. This enables controlling the amplitude and
         frequency of the analog ports and turning on and off the digital ports.
+        All digital outputs start turned off, and all analog outputs start with zero amplitude, but with the frequency
+        from the configuration.
 
         :param str host: The host or IP of the QOP. Defaults to `None`: local settings are used.
         :param str port: The port used to access the QOP. Defaults to `None`, local settings are used.
         :param bool close_previous: Close currently running Quantum Machines. Note that if False, and a Quantum Machine
                                     which uses the same ports is already open, then this function would fail.
-        :param digital_on: a variable number of digital elements that will be turned on at the initialization.
+        :param array-like elements_to_control: A list of elements to be controlled.
+                                    If empty, all elements in the config are included.
         """
         self.qmm = QuantumMachinesManager(host=host, port=port)
         if close_previous:
@@ -36,11 +50,10 @@ class ManualOutputControl:
         self.analog_job = None
         self.digital_job = None
         self.ANALOG_WAVEFORM_AMPLITUDE = 0.5 - 2 ** -16
-        self._process_config(configuration)
+        self._process_config(configuration, elements_to_control)
         self.analog_qm = self.qmm.open_qm(self.analog_config, False)
         self.digital_qm = self.qmm.open_qm(self.digital_config, False)
         self._start_analog()
-        self.digital_on(digital_on)
 
     def _QUA_update_freq_or_amp(self, input1, input2):
         """
@@ -58,7 +71,10 @@ class ManualOutputControl:
             with switch_(input1):
                 for i in range(len(self.analog_elements)):
                     with case_(i):
-                        play("play" * amp(a), self.analog_elements[i])
+                        with if_(a == 0):
+                            ramp_to_zero(self.analog_elements[i], 1)
+                        with else_():
+                            play("play" * amp(a), self.analog_elements[i])
         with else_():
             freq = declare(int)
             assign(freq, input2)
@@ -73,16 +89,20 @@ class ManualOutputControl:
                         ):
                             update_frequency(self.analog_elements[i], freq)
 
-    def _process_config(self, config_original):
+    def _process_config(self, config_original, elements_to_control=None):
         """
         This function creates two separate configuration files, on containing only analog elements, and the other
         only contains digital elements
 
         :param config_original: a QUA configuration dictionary which contain all defined analog and digital elements.
+        :param elements_to_control: A list of elements to be controlled.
+                                    If empty, all elements in the config are included.
         """
         config = copy.deepcopy(config_original)
         self.analog_config = {}
         self.digital_config = {}
+
+        # Analog config
         self.analog_config["version"] = 1
         self.analog_config["controllers"] = {}
         for controller in list(config["controllers"].keys()):
@@ -111,7 +131,8 @@ class ManualOutputControl:
         }
         if config.get("mixers") is not None:
             self.analog_config["mixers"] = config["mixers"]
-        elements = list(config["elements"].keys())
+
+        # Digital config
         self.digital_config["version"] = 1
         self.digital_config["controllers"] = {}
         for controller in list(config["controllers"].keys()):
@@ -131,6 +152,12 @@ class ManualOutputControl:
             }
         }
         self.digital_config["digital_waveforms"] = {"ON": {"samples": [(1, 0)]}}
+
+        # Elements
+        if elements_to_control is None:
+            elements = list(config["elements"].keys())
+        else:
+            elements = elements_to_control
         for element in elements:
             if config["elements"][element].get("digitalInputs") is not None:
                 self.digital_config["elements"][element] = {
@@ -139,47 +166,36 @@ class ManualOutputControl:
                 self.digital_config["elements"][element]["digitalInputs"] = config[
                     "elements"
                 ][element]["digitalInputs"]
-
-        for i in range(len(elements)):
-            if config["elements"][elements[i]].get("mixInputs") is not None:
-                self.analog_config["elements"][elements[i]] = config["elements"][
-                    elements[i]
-                ]
+        for element in elements:
+            if config["elements"][element].get("mixInputs") is not None:
+                self.analog_config["elements"][element] = config["elements"][element]
                 if (
-                    self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    self.analog_config["elements"][element].get("digitalInputs")
                     is not None
                 ):
-                    self.analog_config["elements"][elements[i]].pop("digitalInputs")
-                if (
-                    self.analog_config["elements"][elements[i]].get("outputs")
-                    is not None
-                ):
-                    self.analog_config["elements"][elements[i]].pop("outputs")
-                    self.analog_config["elements"][elements[i]].pop("time_of_flight")
-                    self.analog_config["elements"][elements[i]].pop("smearing")
-                self.analog_config["elements"][elements[i]].pop("operations")
-                self.analog_config["elements"][elements[i]]["operations"] = {
+                    self.analog_config["elements"][element].pop("digitalInputs")
+                if self.analog_config["elements"][element].get("outputs") is not None:
+                    self.analog_config["elements"][element].pop("outputs")
+                    self.analog_config["elements"][element].pop("time_of_flight")
+                    self.analog_config["elements"][element].pop("smearing")
+                self.analog_config["elements"][element].pop("operations")
+                self.analog_config["elements"][element]["operations"] = {
                     "play": "IQ_Ion"
                 }
 
-            elif config["elements"][elements[i]].get("singleInput") is not None:
-                self.analog_config["elements"][elements[i]] = config["elements"][
-                    elements[i]
-                ]
+            elif config["elements"][element].get("singleInput") is not None:
+                self.analog_config["elements"][element] = config["elements"][element]
                 if (
-                    self.analog_config["elements"][elements[i]].get("digitalInputs")
+                    self.analog_config["elements"][element].get("digitalInputs")
                     is not None
                 ):
-                    self.analog_config["elements"][elements[i]].pop("digitalInputs")
-                if (
-                    self.analog_config["elements"][elements[i]].get("outputs")
-                    is not None
-                ):
-                    self.analog_config["elements"][elements[i]].pop("outputs")
-                    self.analog_config["elements"][elements[i]].pop("time_of_flight")
-                    self.analog_config["elements"][elements[i]].pop("smearing")
-                self.analog_config["elements"][elements[i]].pop("operations")
-                self.analog_config["elements"][elements[i]]["operations"] = {
+                    self.analog_config["elements"][element].pop("digitalInputs")
+                if self.analog_config["elements"][element].get("outputs") is not None:
+                    self.analog_config["elements"][element].pop("outputs")
+                    self.analog_config["elements"][element].pop("time_of_flight")
+                    self.analog_config["elements"][element].pop("smearing")
+                self.analog_config["elements"][element].pop("operations")
+                self.analog_config["elements"][element]["operations"] = {
                     "play": "single_on"
                 }
         self.analog_elements = list(self.analog_config["elements"].keys())
@@ -202,8 +218,8 @@ class ManualOutputControl:
 
         with program() as prog:
             io_var1 = declare(int)
-            for i in range(len(self.analog_elements)):
-                play("play" * amp(0), self.analog_elements[i])
+            for element in self.analog_elements:
+                play("play" * amp(0), element)
             with infinite_loop_():
                 pause()
                 assign(io_var1, IO1)
@@ -211,15 +227,13 @@ class ManualOutputControl:
 
         self.analog_job = self.analog_qm.execute(prog)
 
-    def _start_digital(self, element_to_turn_on):
+    def _start_digital(self):
         """
         Creates and starts QUA program that is used to run the digital elements in an infinite loop.
-
-        :param element_to_turn_on: A list containing the digital elements to turn on.
         """
         with program() as prog:
-            for i in range(len(element_to_turn_on)):
-                if element_to_turn_on[i]:
+            for i in range(len(self.digital_data)):
+                if self.digital_data[i]:
                     with infinite_loop_():
                         play("ON", self.digital_elements[i])
         pending_job = self.digital_qm.queue.add(prog)
@@ -227,18 +241,24 @@ class ManualOutputControl:
             self.digital_job.halt()
         self.digital_job = pending_job.wait_for_execution()
 
-    def update_amplitude(self, element, value):
+    def set_amplitude(self, element, value):
         """
-        Updates the amplitude of an analog element.
+        Sets the amplitude of an analog element.
 
         :param str element: the name of the analog element to be updated
         :param float value: the new amplitude of the analog element
         """
-        value_tmp = value
-        value = (value - self.analog_data[element]["amplitude"]) * (
-            1 / self.ANALOG_WAVEFORM_AMPLITUDE
-        )
-        self.analog_data[element]["amplitude"] = value_tmp
+        if element not in self.analog_elements:
+            return
+
+        prev_value = self.analog_data[element]["amplitude"]
+        self.analog_data[element]["amplitude"] = value
+        if value != 0:
+            value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
+            value = _round_to_fixed_point_accuracy(value)
+            if value == 0:
+                return
+
         while not self.analog_job.is_paused():
             sleep(0.01)
 
@@ -248,9 +268,9 @@ class ManualOutputControl:
         )
         self.analog_job.resume()
 
-    def update_frequency(self, element, value):
+    def set_frequency(self, element, value):
         """
-        Updates the frequency of an analog element.
+        Sets the frequency of an analog element.
 
         :param str element: the name of the analog element to be updated
         :param int value: the new frequency of the analog element
@@ -280,33 +300,48 @@ class ManualOutputControl:
             self.digital_data[
                 self.digital_elements.index(element)
             ] = not self.digital_data[self.digital_elements.index(element)]
-        self._start_digital(self.digital_data)
+        self._start_digital()
 
-    def digital_on(self, *digital_element):
+    def digital_on(self, *digital_elements):
         """
-        Turns on all digital elements inputted by the user and turns off all other elements.
+        Turns on all digital elements inputted by the user.
+        If no input is given, turns on all elements.
 
-        :param digital_element: A variable number of elements to be turned on
+        :param digital_elements: A variable number of elements to be turned on.
         """
+        if len(digital_elements) == 0:
+            digital_elements = self.digital_elements
         for element in self.digital_elements:
-            if element in digital_element:
+            if element in digital_elements:
                 self.digital_data[self.digital_elements.index(element)] = True
-            else:
-                self.digital_data[self.digital_elements.index(element)] = False
-        self._start_digital(self.digital_data)
+        self._start_digital()
 
-    def digital_off(self, *digital_element):
+    def digital_off(self, *digital_elements):
         """
-        Turns off all digital elements inputted by the user and turns on all other elements.
+        Turns off all digital elements inputted by the user.
+        If no input is given, turns off all elements.
 
-        :param digital_element: A variable number of elements to be turned off
+        :param digital_elements: A variable number of elements to be turned off.
         """
+        if len(digital_elements) == 0:
+            digital_elements = self.digital_elements
         for element in self.digital_elements:
-            if element in digital_element:
+            if element in digital_elements:
                 self.digital_data[self.digital_elements.index(element)] = False
-            else:
-                self.digital_data[self.digital_elements.index(element)] = True
-        self._start_digital(self.digital_data)
+        self._start_digital()
+
+    def turn_off_elements(self, *elements):
+        """
+        Turns off the digital and analog for all the given elements.
+        If no elements are given, turns off all output.
+
+        :param elements: A variable number of elements to be turned off.
+        """
+        self.digital_off(*elements)
+        if len(elements) == 0:
+            elements = self.analog_elements
+        for element in elements:
+            self.set_amplitude(element, 0)
 
     def close(self):
         """

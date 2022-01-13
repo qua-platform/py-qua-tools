@@ -4,18 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- API Changes to the "ManualOutputControl" class:
+  - Constructor does not take "digital_on" elements.
+  - Constructor accepts optional input of elements to include.
+  - "set_amplitude" and "update_frequency" have been renamed to "set_amplitude" and "set_frequency".
+  - "digital_on" and "digital_off" no longer change elements which are not given.
+  - "digital_on" and "digital_off" can accept no input, which makes them turn on and off all channels.
+  - New function, "turn_off_elements" which turns off both digital and analog of the given elements.
 
 ## [0.6.0] - 2022-01-11
 ### Changed
 - The imports from the package, mainly when doing import *, has changed.
 ### Added
 - Add a "Control Panel" - A user interface for controlling the outputs from the OPX in CW mode, based on the user's configuration.
-- Added support for Elements with digital inputs/outputs (in the config builder tool)
+- Added support for Elements with digital inputs/outputs (in the config builder tool).
 ### Fixed
 - Fixed bakery bug - Negative wait for single input element was not working.
 - Fixed bakery bug - Fixed the symmetric padding method when wait duration was even.
 - Readme had voltage values in code examples that were not realistic.
-- Fixed convention of input/output ports of Element in config builder
+- Fixed convention of input/output ports of Element in config builder.
 
 ## [0.5.0] - 2021-12-02
 ### Added
