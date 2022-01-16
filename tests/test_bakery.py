@@ -256,6 +256,51 @@ def test_negative_wait(config):
         [0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]))
 
 
+def test_play_at_negative_t_too_large(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        with pytest.raises(
+                Exception,
+                match="too large for current baked samples length",
+        ):
+            b.play_at(
+                "Op2", "qe2", t=-6
+            )  # t indicates the time index where these new samples should be added
+            # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+            #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+
+
+def test_negative_wait_too_large(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        with pytest.raises(
+                Exception,
+                match="too large for current baked samples length",
+        ):
+            b.wait(-6, "qe2")
+            b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+            # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+            #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+
+
 def test_align_command(config):
     cfg = deepcopy(config)
     with baking(cfg) as b:

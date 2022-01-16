@@ -456,7 +456,9 @@ class Baking:
             elif "singleInput" in self._local_config["elements"][qe]:
                 return len(self._samples_dict[qe]["single"])
             else:
-                raise KeyError("quantum element not in the config")
+                raise KeyError(
+                    "Element not in the config or does not have any analog input."
+                )
 
     def _get_pulse_index(self, qe) -> int:
         index = 0
@@ -790,7 +792,9 @@ class Baking:
             if self._qe_dict[qe]["time_track"] == 0:
 
                 if "mixInputs" in self._local_config["elements"][qe]:
-                    assert isinstance(samples, list)
+                    assert isinstance(
+                        samples, list
+                    ), f"{qe} is a mixInput element, two lists should be provided"
                     assert (
                         len(samples) == 2
                     ), f"{qe} is a mixInput element, two lists should be provided"
@@ -900,7 +904,9 @@ class Baking:
                 samples = self._get_samples(pulse)
                 new_samples = 0
                 if "mixInputs" in self._local_config["elements"][qe]:
-                    assert isinstance(samples, list)
+                    assert isinstance(
+                        samples, list
+                    ), f"{qe} is a mixInput element, two lists should be provided"
                     assert (
                         len(samples) == 2
                     ), f"{qe} is a mixInput element, two lists should be provided"
@@ -1078,8 +1084,10 @@ class Baking:
                 # Duration is negative so just add for subtraction
                 self._qe_dict[qe]["time_track"] = self._qe_dict[qe]["time"] + duration
                 if self._qe_dict[qe]["time_track"] < 0:
-                    raise ValueError(f"Negative wait chosen (= {duration}) too large for current baked samples length ("
-                                     f"= {self.get_current_length(qe)})")
+                    raise ValueError(
+                        f"Negative wait chosen (= {duration}) too large for current baked samples length ("
+                        f"= {self.get_current_length(qe)})"
+                    )
 
     def align(self, *qe_set: str) -> None:
         """

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- Bakery Bug - [delete_samples() crash](https://github.com/qua-platform/py-qua-tools/issues/57)
+- Bakery Bug - [Bakery Bug - using a negative wait can lead to infinite recursion](https://github.com/qua-platform/py-qua-tools/issues/56)
 
 ## [0.6.1] - 2022-01-13
 ### Changed
