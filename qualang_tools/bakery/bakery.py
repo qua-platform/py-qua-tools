@@ -129,7 +129,7 @@ class Baking:
                 "time": 0,
                 "phase": 0.0,
                 "freq": 0,
-                "time_track": 0,
+                "time_track": 0,  # Value used for negative waits, to know where to add the samples (negative int)
             }
             if "mixInputs" in self._local_config["elements"][qe]:
                 sample_dict[qe] = {"I": [], "Q": []}
@@ -503,39 +503,39 @@ class Baking:
         def delete_for_el(q):
             input_type = []
 
-            if "mixInputs" in self._local_config["elements"][q]:
-                input_type.append("I")
-                input_type.append("Q")
-                ref_length = len(self._samples_dict[q]["I"])
-            else:
-                input_type.append("single")
-                ref_length = len(self._samples_dict[q]["single"])
-
             if self._qe_dict[q]["time"] > 0:
                 if "mixInputs" in self._local_config["elements"][q]:
-                    if t_start < 0:
-                        if t_start < ref_length:
-                            for i in input_type:
-                                del self._samples_dict[q][i][t_start:]
-                        else:
-                            raise ValueError(
-                                "Desired deletion exceeds current waveform length"
-                            )
+                    input_type.append("I")
+                    input_type.append("Q")
+                    ref_length = len(self._samples_dict[q]["I"])
+                elif "singleInput" in self._local_config["elements"][q]:
+                    input_type.append("single")
+                    ref_length = len(self._samples_dict[q]["single"])
+                else:
+                    raise ValueError("Element provided does not have any analog input")
+                if t_start < 0:
+                    if t_start < ref_length:
+                        for i in input_type:
+                            del self._samples_dict[q][i][t_start:]
                     else:
-                        if t_stop is not None:
-                            if t_start > t_stop:
-                                raise ValueError("t_stop is smaller than t_start")
-                            else:
-                                if t_stop > ref_length:
-                                    raise ValueError(
-                                        "Desired deletion exceeds current waveform length"
-                                    )
-                                else:
-                                    for i in input_type:
-                                        del self._samples_dict[q][i][t_start:t_stop]
+                        raise ValueError(
+                            "Desired deletion exceeds current waveform length"
+                        )
+                else:
+                    if t_stop is not None:
+                        if t_start > t_stop:
+                            raise ValueError("t_stop is smaller than t_start")
                         else:
-                            for i in input_type:
-                                del self._samples_dict[q][i][t_start:]
+                            if t_stop > ref_length:
+                                raise ValueError(
+                                    "Desired deletion exceeds current waveform length"
+                                )
+                            else:
+                                for i in input_type:
+                                    del self._samples_dict[q][i][t_start:t_stop]
+                    else:
+                        for i in input_type:
+                            del self._samples_dict[q][i][t_start:]
 
         if not self._out:
             if qe is not None:
@@ -560,10 +560,10 @@ class Baking:
 
         :param qe_set:
             tuple of quantum elements, if no element is provided,
-            all of the baked operations associated to this baking object will be deleted
+            all the baked operations associated to this baking object will be deleted
         """
 
-        def remove_Op(q):
+        def remove_op(q):
             if self.length_constraint is None:
                 if self._out:
                     if (
@@ -600,10 +600,10 @@ class Baking:
 
         if len(qe_set) != 0:
             for qe in qe_set:
-                remove_Op(qe)
+                remove_op(qe)
         else:
             for qe in self._qe_dict.keys():
-                remove_Op(qe)
+                remove_op(qe)
 
     def get_op_name(self, qe: str) -> str:
         """
@@ -765,7 +765,8 @@ class Baking:
                     "samples": samples,
                 }
             }
-
+        else:
+            raise ValueError("Element provided does not have any analog input")
         self._local_config["pulses"].update(pulse)
         self._local_config["waveforms"].update(waveform)
         self._local_config["elements"][qe]["operations"].update(Op)
@@ -781,11 +782,12 @@ class Baking:
             (similar to amp(a) or amp(v00, v01, v10, v11) in QUA)
         """
         try:
+            pulse = self._local_config["elements"][qe]["operations"][Op]
+            samples = self._get_samples(pulse)
+            freq = self._qe_dict[qe]["freq"]
+            phi = self._qe_dict[qe]["phase"]
+
             if self._qe_dict[qe]["time_track"] == 0:
-                pulse = self._local_config["elements"][qe]["operations"][Op]
-                samples = self._get_samples(pulse)
-                freq = self._qe_dict[qe]["freq"]
-                phi = self._qe_dict[qe]["phase"]
 
                 if "mixInputs" in self._local_config["elements"][qe]:
                     assert isinstance(samples, list)
@@ -841,6 +843,9 @@ class Baking:
                             amp * np.cos(freq * i * 1e-9 + phi) * samples[i]
                         )
                     self._update_qe_time(qe, len(samples))
+
+                else:
+                    raise ValueError("Element provided does not have any analog input")
                 # Update of digital waveform
                 if "digital_marker" in self._local_config["pulses"][pulse]:
                     digital_marker = self._local_config["pulses"][pulse][
@@ -850,6 +855,7 @@ class Baking:
                         digital_marker
                     ]["samples"]
                     self._digital_samples_dict[qe] += digital_waveform
+
             else:
                 self.play_at(Op, qe, self._qe_dict[qe]["time_track"], amp)
                 self._qe_dict[qe]["time_track"] = 0
@@ -966,6 +972,8 @@ class Baking:
                         else:
                             self._samples_dict[qe]["single"].append(amp * samples[i])
                             new_samples += 1
+                else:
+                    raise ValueError("Element provided does not have any analog input")
 
                 self._update_qe_time(qe, new_samples)
 
@@ -1064,10 +1072,14 @@ class Baking:
                         self._samples_dict[qe]["single"] += [0] * duration
 
                 self._update_qe_time(qe, duration)
+
         else:
             for qe in qe_set:
                 # Duration is negative so just add for subtraction
                 self._qe_dict[qe]["time_track"] = self._qe_dict[qe]["time"] + duration
+                if self._qe_dict[qe]["time_track"] < 0:
+                    raise ValueError(f"Negative wait chosen (= {duration}) too large for current baked samples length ("
+                                     f"= {self.get_current_length(qe)})")
 
     def align(self, *qe_set: str) -> None:
         """
