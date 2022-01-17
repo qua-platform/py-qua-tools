@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Bakery Bug - [delete_samples() crash](https://github.com/qua-platform/py-qua-tools/issues/57)
 - Bakery Bug - [Bakery Bug - using a negative wait can lead to infinite recursion](https://github.com/qua-platform/py-qua-tools/issues/56)
+- ConfigBuilder Bug - renamed digital_inputs in Element to digitalInputs
+- ConfigBuilder Bug - removed empty dictionary of outputPulseParameters when not initialized
+- ConfigBuilder Bug - fixed the format of Mixers in the configuration
 
 ## [0.6.1] - 2022-01-13
 ### Changed

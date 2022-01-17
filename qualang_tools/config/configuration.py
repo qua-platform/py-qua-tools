@@ -26,7 +26,7 @@ class QMConfiguration:
         self.config["digital_waveforms"] = dict()
         self.config["integration_weights"] = dict()
         self.config["mixers"] = dict()
-        self.config["oscillators"] = dict()
+        # self.config["oscillators"] = dict()
 
     def add_waveform(self, wf: Waveform):
         """Add a single waveform to this configuration
@@ -95,7 +95,7 @@ class QMConfiguration:
         self.config["elements"][elm.name] = elm.dict
         if elm.type == "mixInputs":
             if elm.mixer is not None:
-                self.config["mixers"][elm.mixer.name] = elm.mixer.dict
+                self.config["mixers"][elm.mixer.name] = [elm.mixer.dict]
         self.add_pulses(elm.pulses)
 
     def update_pulse(self, elm_name: str, pulse: Pulse):
@@ -212,7 +212,7 @@ class QMConfiguration:
         :param mixer: A Mixer object
         :type mixer: Mixer
         """
-        self.config["mixers"][mixer.name] = mixer.dict
+        self.config["mixers"][mixer.name] = [mixer.dict]
 
     def add_oscillator(self, oscillator: Oscillator):
         """Add an oscillator to this configuration

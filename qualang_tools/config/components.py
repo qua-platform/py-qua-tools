@@ -328,7 +328,7 @@ class Mixer:
         self.dict = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
         self.dict["lo_frequency"] = lo_frequency
-        self.dict["correction"] = tuple(correction.data[0] + correction.data[1])
+        self.dict["correction"] = list(correction.data[0] + correction.data[1])
 
     @property
     def intermediate_frequency(self):
@@ -353,7 +353,7 @@ class Mixer:
     @correction.setter
     def correction(self, correction: Matrix2x2):
         self._correction = correction
-        self.dict["correction"] = tuple(correction.data[0] + correction.data[1])
+        self.dict["correction"] = list(correction.data[0] + correction.data[1])
 
 
 class Element:
@@ -410,25 +410,25 @@ class Element:
                 self.dict["outputs"]["out" + str(i + 1)] = port.info
         self.dict["operations"] = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
-        self.dict["outputPulseParameters"] = dict()
+        # self.dict["outputPulseParameters"] = dict()
         if len(digital_input_ports) > 0:
-            self.dict["digital_inputs"] = dict()
+            self.dict["digitalInputs"] = dict()
             for i, port in enumerate(digital_input_ports):
-                self.dict["digital_inputs"]["in" + str(i + 1)] = {
+                self.dict["digitalInputs"]["in" + str(i + 1)] = {
                     "port": port.info,
                     "delay": 0,
                     "buffer": 0,
                 }
 
     def set_delay(self, port_id: int, val: int):
-        if "in" + str(port_id) in self.dict["digital_inputs"].keys():
-            self.dict["digital_inputs"]["in" + str(port_id)]["delay"] = val
+        if "in" + str(port_id) in self.dict["digitalInputs"].keys():
+            self.dict["digitalInputs"]["in" + str(port_id)]["delay"] = val
         else:
             raise ConfigurationError("digital input port must be set first")
 
     def set_buffer(self, port_id: int, val: int):
-        if "in" + str(port_id) in self.dict["digital_inputs"].keys():
-            self.dict["digital_inputs"]["in" + str(port_id)]["buffer"] = val
+        if "in" + str(port_id) in self.dict["digitalInputs"].keys():
+            self.dict["digitalInputs"]["in" + str(port_id)]["buffer"] = val
         else:
             raise ConfigurationError("digital input port must be set first")
 
@@ -520,6 +520,8 @@ class Element:
 
     @signal_threshold.setter
     def signal_threshold(self, val: int):
+        if "outputPulseParameters" not in self.dict.keys():
+            self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["signalThreshold"] = val
 
     @property
@@ -531,6 +533,8 @@ class Element:
 
     @signal_polarity.setter
     def signal_polarity(self, val: str):
+        if "outputPulseParameters" not in self.dict.keys():
+            self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["signalPolarity"] = val
 
     @property
@@ -542,6 +546,8 @@ class Element:
 
     @derivative_threshold.setter
     def derivative_threshold(self, val: int):
+        if "outputPulseParameters" not in self.dict.keys():
+            self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["derivativeThreshold"] = val
 
     @property
@@ -553,6 +559,8 @@ class Element:
 
     @derivative_polarity.setter
     def derivative_polarity(self, val: str):
+        if "outputPulseParameters" not in self.dict.keys():
+            self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["derivativePolarity"] = val
 
 
