@@ -364,21 +364,20 @@ class InteractivePlotLib_Figure:
                 line.remove()
 
     def predefined_fit(self, req="g"):
-        fit = []
         self.remove_fit()
         print(req)
         if req == "remove":
             return 0
         if req.isnumeric():
-            fit = Fit(int(req), self.ax)
+            Fit(int(req), self.ax)
         elif req == "g":
-            fit = Fit(lambda x: np.exp(-(x ** 2) / 2), self.ax)
+            Fit(lambda x: np.exp(-(x ** 2) / 2), self.ax)
         elif req == "e":
-            fit = Fit(lambda x: np.exp(x), self.ax)
+            Fit(lambda x: np.exp(x), self.ax)
         elif req == "l":
-            fit = Fit(lambda x: 1 / (1 + x ** 2), self.ax)
+            Fit(lambda x: 1 / (1 + x ** 2), self.ax)
         elif req == "r":
-            fit = Fit(lambda x: scipy.special.erf(x), self.ax)
+            Fit(lambda x: scipy.special.erf(x), self.ax)
         elif req == "s":
             x = self.ax.get_lines()[0].get_xdata()
             y = self.ax.get_lines()[0].get_ydata()
@@ -393,11 +392,11 @@ class InteractivePlotLib_Figure:
             xlim = self.ax.get_xlim()
             request_x_scale = 1 / omega / (xlim[1] - xlim[0])
             print(request_x_scale)
-            fit = Fit(lambda x: np.sin(x), self.ax, {"x_scale": request_x_scale})
+            Fit(lambda x: np.sin(x), self.ax, {"x_scale": request_x_scale})
         else:
             idx = req.find(",")
             convert_function = eval("lambda x,a: " + req[:idx])
-            fit = Fit(
+            Fit(
                 convert_function,
                 self.ax,
                 {
@@ -577,7 +576,7 @@ class InteractivePlotLib_Figure:
             # self_state.sup_self.help_box = [] #doent work yet
             try:
                 self_state.sup_self.refresh_figure()
-            except:
+            except BaseException:
                 pass
 
     class StateMachineLegend(ProtoStateMachine):
@@ -667,11 +666,8 @@ class InteractivePlotLib_Figure:
             )
 
         def run_command(self_state, command, type):
-            is_done = True
             if self_state.command_stage == "unit_conversion":
-                # try:
-                value_unit_split = self_state.text_obj.text.split("[")
-                new_units = value_unit_split[1].split("]")[0]
+                pass
 
         def event(self_state, type, event):
             if type == "keyboard_click":
@@ -701,7 +697,7 @@ class InteractivePlotLib_Figure:
                         self_state.sup_self.ax.set_ylim(
                             np.sort([ylim[0], float(self_state.text_obj.text)])
                         )
-                except:
+                except BaseException:
                     pass
 
                 self_state.text_box.remove()
@@ -777,7 +773,7 @@ class InteractivePlotLib_Figure:
                     self_state.sup_self.ax.set_ylim(
                         convert_function(self_state.sup_self.ax.get_ylim())
                     )
-                # except:
+                # except BaseException:
                 #     print("can't parse units")
             else:
                 if command == ":lin" or command == ":linear":
@@ -806,7 +802,7 @@ class InteractivePlotLib_Figure:
                         self_state.text_obj.update_text()
                         self_state.command_stage = "unit_conversion"
                         is_done = False
-                    except:
+                    except BaseException:
                         self_state.text_obj.text = self_state.text_obj.original_text
                         self_state.text_obj.update_text()
                         print("can't parse units - label should be 'Amplitude [mV]'")
@@ -837,7 +833,7 @@ class InteractivePlotLib_Figure:
                             )
                         self_state.text_obj.text = self_state.text_obj.original_text
                         self_state.text_obj.update_text()
-                    except:
+                    except BaseException:
                         print("command not parsed")
 
             return is_done  # mark as done
@@ -1189,7 +1185,7 @@ class InteractivePlotLib_Figure:
         def __del__(self_textobj):
             try:
                 self_textobj.text_obj.remove()
-            except:
+            except BaseException:
                 pass
 
     class CommandText(TextObj):
@@ -1320,7 +1316,7 @@ class Document:
         Data_path = self.Data_path
         try:
             os.remove("./temp_code.txt")
-        except:
+        except BaseException:
             pass
 
         ipython.magic('history -n -f "./temp_code.txt"')
@@ -1358,7 +1354,6 @@ class Document:
 
     def load(self, n, load_figures=True):
         Data_path = self.Data_path
-        file_list = os.listdir(Data_path)
 
         # filename = ""
         # for x in file_list:
@@ -1380,7 +1375,7 @@ class Document:
                 for figure_path in figures_path:
                     dill.load(open(figure_path, "rb"))
 
-            except:
+            except BaseException:
                 print("problem loading figures")
 
             # print("should be closing figures now!!!!!")
@@ -1424,7 +1419,7 @@ class Document:
 
                 t.remove()
 
-        r = plt.text(
+        plt.text(
             plt.gca().get_xlim()[0],
             plt.gca().get_ylim()[1],
             "Scan " + str(self.scan_number),
@@ -1967,7 +1962,7 @@ class Single_Fit:
             funcString = str(inspect.getsourcelines(func)[0])
             funcString = funcString.strip("['\\n']").split(" = ")[1]
             funcString = funcString.split(":")[1][1:]
-        except:
+        except BaseException:
             funcString = "?"
 
         text = f"func: {funcString}\n"
