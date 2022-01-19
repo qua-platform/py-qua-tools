@@ -250,6 +250,8 @@ class ManualOutputControl:
         """
         if element not in self.analog_elements:
             return
+        if abs(value) > self.ANALOG_WAVEFORM_AMPLITUDE:
+            return
 
         prev_value = self.analog_data[element]["amplitude"]
         self.analog_data[element]["amplitude"] = value
@@ -275,6 +277,8 @@ class ManualOutputControl:
         :param str element: the name of the analog element to be updated
         :param int value: the new frequency of the analog element
         """
+        if element not in self.analog_elements:
+            return
         self.analog_data[element]["frequency"] = value
         while not self.analog_job.is_paused():
             sleep(0.01)
@@ -290,12 +294,22 @@ class ManualOutputControl:
         for i in range(len(self.digital_elements)):
             print(self.digital_elements[i] + " - " + str(self.digital_data[i]))
 
+    def analog_status(self):
+        """
+        Prints a list of the analog elements, with their current amplitude and frequency.
+        """
+        for element in self.analog_elements:
+            print(element + " - Amplitude: " + str(self.analog_data[element]["amplitude"]) +
+                  ", Frequency: " + str(self.analog_data[element]["frequency"]))
+
     def digital_switch(self, *digital_element):
         """
         Switches the state of the given digital elements from on to off, and from off to on.
 
         :param digital_element: A variable number of elements to be switched.
         """
+        if len(digital_element) == 0:
+            return
         for element in digital_element:
             self.digital_data[
                 self.digital_elements.index(element)
@@ -343,12 +357,32 @@ class ManualOutputControl:
         for element in elements:
             self.set_amplitude(element, 0)
 
+    def turn_on_element(self, element, amplitude=None, frequency=None):
+        """
+        Turns on the digital and analog oupt of a given element.
+        If no amplitude is given, uses maximum amplitude.
+        If no frequency is given, uses existing frequency.
+
+        :param element: An element to be turned on.
+        :param amplitude: Amplitude of the analog output of the element.
+        :param frequency: Frequency of the analog output of the element.
+        """
+        if element in self.analog_elements:
+            if amplitude is None:
+                amplitude = self.ANALOG_WAVEFORM_AMPLITUDE
+            if frequency is not None:
+                self.set_frequency(element, frequency)
+            self.set_amplitude(element, amplitude)
+        if element in self.digital_elements:
+            self.digital_on(element)
+
     def close(self):
         """
         Halts all jobs sent to the OPX and then closes the quantum machine
         """
-        self.digital_job.halt()
+        if self.digital_job is not None:
+            self.digital_job.halt()
+            self.digital_qm.close()
         self.analog_job.halt()
         self.analog_qm.close()
-        self.digital_qm.close()
         self.qmm.close()
