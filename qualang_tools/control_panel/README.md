@@ -24,9 +24,13 @@ set_frequency(element, value) - Set the frequency of an analog element.
 	element: the name of the analog element to be updated. If element is no in the configuration, the function will exit.
 	value: the new frequency of the analog element. If element frequency is set to None, the function will exit.
 	
-digital_status() - Prints the list of digital elements with their current state (on/off).
+digital_status() - Returns a dictionary of the digital elements, with their current status.
 
-analog_status() - Prints the list of analog elements with their current amplitude and frequency.
+print_digital_status()  - Prints a list of the digital elements, with a True (False) to indicate the element is on (off).
+
+analog_status() - Returns a dictionary of the analog elements, with their current amplitude and frequency.
+
+print_analog_status() - Prints a list of the analog elements, with their current amplitude and frequency.
 
 digital_switch(digital_element) - Switches the state of the given digital elements from on to off, and from off to on.
 	digital_element: A variable number of elements to be turned switched

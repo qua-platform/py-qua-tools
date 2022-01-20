@@ -249,9 +249,9 @@ class ManualOutputControl:
         :param float value: the new amplitude of the analog element
         """
         if element not in self.analog_elements:
-            return
+            raise Exception('Element is not part of the elements in the analog configuration file')
         if abs(value) > self.ANALOG_WAVEFORM_AMPLITUDE:
-            return
+            raise Exception('The absolute value of the amplitude must smaller than 0.5-2**16')
 
         prev_value = self.analog_data[element]["amplitude"]
         self.analog_data[element]["amplitude"] = value
@@ -278,7 +278,9 @@ class ManualOutputControl:
         :param int value: the new frequency of the analog element
         """
         if element not in self.analog_elements:
-            return
+            raise Exception('Element is not part of the elements in the analog configuration file')
+        if int(value) > int(500e6):
+            raise Exception('The frequency should be lower than 500e6')
         self.analog_data[element]["frequency"] = value
         while not self.analog_job.is_paused():
             sleep(0.01)
@@ -289,12 +291,30 @@ class ManualOutputControl:
 
     def digital_status(self):
         """
+        Returns a dictionary of the digital elements, with their current status.
+        """
+        digital_data = {}
+        for i in range(len(self.digital_elements)):
+            if self.digital_data[i]:
+                digital_data[self.digital_elements[i]] = 'On'
+            else:
+                digital_data[self.digital_elements[i]] = 'Off'
+        return digital_data
+
+    def print_digital_status(self):
+        """
         Prints a list of the digital elements, with a True (False) to indicate the element is on (off).
         """
         for i in range(len(self.digital_elements)):
             print(self.digital_elements[i] + " - " + str(self.digital_data[i]))
 
     def analog_status(self):
+        """
+        Returns a dictionary of the analog elements, with their current amplitude and frequency.
+        """
+        return self.analog_data
+
+    def print_analog_status(self):
         """
         Prints a list of the analog elements, with their current amplitude and frequency.
         """
@@ -309,7 +329,7 @@ class ManualOutputControl:
         :param digital_element: A variable number of elements to be switched.
         """
         if len(digital_element) == 0:
-            return
+            raise Exception('Need at least one element to switch')
         for element in digital_element:
             self.digital_data[
                 self.digital_elements.index(element)
@@ -359,7 +379,7 @@ class ManualOutputControl:
 
     def turn_on_element(self, element, amplitude=None, frequency=None):
         """
-        Turns on the digital and analog oupt of a given element.
+        Turns on the digital and analog output of a given element.
         If no amplitude is given, uses maximum amplitude.
         If no frequency is given, uses existing frequency.
 
@@ -367,14 +387,12 @@ class ManualOutputControl:
         :param amplitude: Amplitude of the analog output of the element.
         :param frequency: Frequency of the analog output of the element.
         """
-        if element in self.analog_elements:
-            if amplitude is None:
-                amplitude = self.ANALOG_WAVEFORM_AMPLITUDE
-            if frequency is not None:
-                self.set_frequency(element, frequency)
-            self.set_amplitude(element, amplitude)
-        if element in self.digital_elements:
-            self.digital_on(element)
+        if amplitude is None:
+            amplitude = self.ANALOG_WAVEFORM_AMPLITUDE
+        if frequency is not None:
+            self.set_frequency(element, frequency)
+        self.set_amplitude(element, amplitude)
+        self.digital_on(element)
 
     def close(self):
         """
