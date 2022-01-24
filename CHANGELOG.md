@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- ManualOutputControl - An option to open up the ManualOutputControl without a configuration file. Using ManualOutputControl.ports().
+- ManualOutputControl - Added a readme file to explain how to use.
+- ManualOutputControl - Added various validations and exceptions when illegal operations are performed
+- ManualOutputControl - Added print_analog_status() and print_digital_status() to print the current status.
+### Changed
+- ManualOutputControl - analog_status() and digital_status() now return a dict containing the information.
 
 ## [0.6.2] - 2022-01-18
 ### Fixed
