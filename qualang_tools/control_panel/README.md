@@ -2,14 +2,14 @@
 
 ## Introduction
 
-This module introduces a class that creates two quantum machines to control the analog and digital outputs of the OPX.
+This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
 
 ## Usage Example
 
-Starting and controlling the output using a configuration file:
+### Starting and controlling the output using a configuration file
+This opens up a control panel using an existing configuration. The outputs are controlled by specifying the elements which are connected to them.
 ```python
 from qualang_tools.control_panel import ManualOutputControl
-# This opens up a control panel using the given configuration.
 manual_output_control = ManualOutputControl(config)
 manual_output_control.turn_on_element('qubit')
 manual_output_control.set_amplitude('qubit', 0.25)
@@ -17,7 +17,9 @@ manual_output_control.digital_off('qubit')
 manual_output_control.digital_on('laser')
 ```
 
-Starting and controlling the output by specifying the output ports:
+### Starting and controlling the output by specifying the output ports
+This opens up a control panel by directly specifying which ports to control.
+The outputs are controlled by specifying their port numbers in the API.
 ```python
 from qualang_tools.control_panel import ManualOutputControl
 # This opens up a control panel for controlling digital ports 1,2,3,4. Analog port 1,2,5 are controlled as single analog outputs and (3,4) as an IQ pair.
