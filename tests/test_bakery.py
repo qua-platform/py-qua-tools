@@ -387,6 +387,7 @@ def test_delete_samples_within_baking(config):
         b.play("Op2", "qe2")
         b.delete_samples(-100)
         assert b.get_current_length() == 600
+        assert b._qe_dict["qe2"]["time"] == 600
     assert b.get_op_length() == 600
 
     with baking(cfg) as b2:
@@ -394,18 +395,21 @@ def test_delete_samples_within_baking(config):
         b2.play("Op2", "qe2")
         b2.delete_samples(100)
         assert b2.get_current_length() == 100
+        assert b2._qe_dict["qe2"]["time"] == 100
     assert b2.get_op_length() == 100
 
-    with baking(cfg) as b2:
-        b2.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
-        b2.play("Op2", "qe2")
-        b2.delete_samples(100, 400)
-        assert b2.get_current_length() == 400
-    assert b2.get_op_length() == 400
+    with baking(cfg) as b3:
+        b3.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
+        b3.play("Op2", "qe2")
+        b3.delete_samples(100, 400)
+        assert b3.get_current_length() == 400
+        assert b3._qe_dict["qe2"]["time"] == 400
+    assert b3.get_op_length() == 400
 
-    with baking(cfg) as b2:
-        b2.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
-        b2.play("Op2", "qe2")
-        b2.delete_samples(-100, 400)
-        assert b2.get_current_length() == 600
-    assert b2.get_op_length() == 600
+    with baking(cfg) as b4:
+        b4.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
+        b4.play("Op2", "qe2")
+        b4.delete_samples(-100, 400)
+        assert b4.get_current_length() == 600
+        assert b4._qe_dict["qe2"]["time"] == 600
+    assert b4.get_op_length() == 600
