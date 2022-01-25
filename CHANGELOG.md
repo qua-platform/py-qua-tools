@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- Bakery - Using "delete_samples()" did not update the element internal time tracking. 
 
 ## [0.6.3] - 2022-01-24
 ### Added

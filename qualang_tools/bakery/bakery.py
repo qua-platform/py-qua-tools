@@ -502,53 +502,60 @@ class Baking:
         samples are deleted for all quantum elements involved in the baking object
         """
 
-        def delete_for_el(q):
+        def delete_for_el(qe_internal, t_start_internal, t_stop_internal):
             input_type = []
 
-            if self._qe_dict[q]["time"] > 0:
-                if "mixInputs" in self._local_config["elements"][q]:
+            if self._qe_dict[qe_internal]["time"] > 0:
+                if "mixInputs" in self._local_config["elements"][qe_internal]:
                     input_type.append("I")
                     input_type.append("Q")
-                    ref_length = len(self._samples_dict[q]["I"])
-                elif "singleInput" in self._local_config["elements"][q]:
+                    ref_length = len(self._samples_dict[qe_internal]["I"])
+                elif "singleInput" in self._local_config["elements"][qe_internal]:
                     input_type.append("single")
-                    ref_length = len(self._samples_dict[q]["single"])
+                    ref_length = len(self._samples_dict[qe_internal]["single"])
                 else:
                     raise ValueError("Element provided does not have any analog input")
-                if t_start < 0:
-                    if t_start < ref_length:
+                if t_start_internal < 0:
+                    if t_start_internal < ref_length:
+                        self._update_qe_time(qe_internal, t_start_internal)
                         for i in input_type:
-                            del self._samples_dict[q][i][t_start:]
+                            del self._samples_dict[qe_internal][i][t_start_internal:]
                     else:
                         raise ValueError(
                             "Desired deletion exceeds current waveform length"
                         )
                 else:
-                    if t_stop is not None:
-                        if t_start > t_stop:
-                            raise ValueError("t_stop is smaller than t_start")
-                        else:
-                            if t_stop > ref_length:
-                                raise ValueError(
-                                    "Desired deletion exceeds current waveform length"
-                                )
-                            else:
-                                for i in input_type:
-                                    del self._samples_dict[q][i][t_start:t_stop]
-                    else:
-                        for i in input_type:
-                            del self._samples_dict[q][i][t_start:]
+                    if t_stop_internal is None:
+                        t_stop_internal = ref_length
+                    if t_stop_internal > ref_length:
+                        raise ValueError(
+                            "Desired deletion exceeds current waveform length"
+                        )
+                    if t_start_internal > ref_length:
+                        raise ValueError(
+                            "t_start is higher than current waveform length"
+                        )
+                    if t_start_internal > t_stop_internal:
+                        raise ValueError("t_stop is smaller than t_start")
+
+                    self._update_qe_time(
+                        qe_internal, t_start_internal - t_stop_internal
+                    )
+                    for i in input_type:
+                        del self._samples_dict[qe_internal][i][
+                            t_start_internal:t_stop_internal
+                        ]
 
         if not self._out:
             if qe is not None:
                 if isinstance(qe, List):
                     for q in qe:
-                        delete_for_el(q)
+                        delete_for_el(q, t_start, t_stop)
                 elif isinstance(qe, str):
-                    delete_for_el(qe)
+                    delete_for_el(qe, t_start, t_stop)
             else:
                 for q in self._qe_dict:
-                    delete_for_el(q)
+                    delete_for_el(q, t_start, t_stop)
         else:
             raise Warning(
                 "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op "
