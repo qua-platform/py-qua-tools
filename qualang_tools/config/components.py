@@ -918,6 +918,17 @@ class Oscillator:
     def __init__(
         self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
     ):
+        """A single oscillator 
+
+        :param name: [description]
+        :type name: str
+        :param intermediate_frequency: [description]
+        :type intermediate_frequency: int
+        :param lo_frequency: [description]
+        :type lo_frequency: int
+        :param mixer: [description]
+        :type mixer: str
+        """    
         self.name = name
         self.dict = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency

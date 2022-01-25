@@ -10,6 +10,7 @@ Welcome to qualang_tools's documentation!
    :maxdepth: 2
    :caption: Contents:
    
+   intro
    baking
    configBuilder
 
