@@ -3,6 +3,8 @@ import copy
 from time import sleep
 
 import numpy as np
+from qm import QuantumMachine
+from qm.QmJob import QmJob
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm.qua import *
 
@@ -25,8 +27,8 @@ class ManualOutputControl:
         elements_to_control=None,
     ):
         """
-        Gets a QUA configuration file and creates two different QuantumMachines. One QM continuously runs all the
-        analog ports and one continuously runs all the digital ports. This enables controlling the amplitude and
+        Gets a QUA configuration file and creates different Quantum Machines. One QM continuously runs all the
+        analog ports and the rest continuously runs all the digital ports. This enables controlling the amplitude and
         frequency of the analog ports and turning on and off the digital ports.
         All digital outputs start turned off, and all analog outputs start with zero amplitude, but with the frequency
         from the configuration.
@@ -39,21 +41,23 @@ class ManualOutputControl:
         :param array-like elements_to_control: A list of elements to be controlled.
                                     If empty, all elements in the config are included.
         """
+        logger.setLevel("WARNING")
         self.qmm = QuantumMachinesManager(host=host, port=port)
         if close_previous:
             self.qmm.close_all_quantum_machines()
         self.analog_config = None
-        self.digital_config = None
+        self.digital_configs = None
         self.analog_elements = []
         self.digital_elements = []
+        self.digital_index = {}
         self.analog_data = {}
-        self.digital_data = []
+        self.digital_data = {}
         self.analog_job = None
-        self.digital_job = None
+        self.digital_jobs = None
         self.ANALOG_WAVEFORM_AMPLITUDE = 0.5 - 2 ** -16
         self._process_config(configuration, elements_to_control)
         self.analog_qm = self.qmm.open_qm(self.analog_config, False)
-        self.digital_qm = self.qmm.open_qm(self.digital_config, False)
+        self._start_digital_qms()
         self._start_analog()
 
     @classmethod
@@ -66,9 +70,9 @@ class ManualOutputControl:
         close_previous=True,
     ):
         """
-        Gets a list of analog and digital channels and creates two different QuantumMachines. One QM continuously runs
-        all the analog ports and one continuously runs all the digital ports. This enables controlling the amplitude and
-        frequency of the analog ports and turning on and off the digital ports.
+        Gets a list of analog and digital channels and creates different Quantum Machines. One QM continuously runs all
+        the analog ports and the rest continuously runs all the digital ports. This enables controlling the amplitude
+        and frequency of the analog ports and turning on and off the digital ports.
         All digital outputs start turned off, and all analog outputs start with zero amplitude and zero frequency.
 
         :param list analog_ports: The list of analog ports to control. A tuple creates an IQ pair.
@@ -326,7 +330,7 @@ class ManualOutputControl:
                     raise Exception(
                         f"Element {element} is not part of the elements in the digital configuration file"
                     )
-            self.digital_data[self.digital_elements.index(element)] = True
+            self.digital_data[element] = True
         self._start_digital()
 
     def digital_off(self, *digital_elements, ignore_missing_elements=False):
@@ -350,7 +354,7 @@ class ManualOutputControl:
                     raise Exception(
                         f"Element {element} is not part of the elements in the digital configuration file"
                     )
-            self.digital_data[self.digital_elements.index(element)] = False
+            self.digital_data[element] = False
         self._start_digital()
 
     def digital_switch(self, *digital_element):
@@ -368,9 +372,7 @@ class ManualOutputControl:
                 raise Exception(
                     f"Element {element} is not part of the elements in the digital configuration file"
                 )
-            self.digital_data[
-                self.digital_elements.index(element)
-            ] = not self.digital_data[self.digital_elements.index(element)]
+            self.digital_data[element] = not self.digital_data[element]
         self._start_digital()
 
     def analog_status(self):
@@ -383,13 +385,7 @@ class ManualOutputControl:
         """
         Returns a dictionary of the digital elements, with their current status.
         """
-        digital_data = {}
-        for i in range(len(self.digital_elements)):
-            if self.digital_data[i]:
-                digital_data[self.digital_elements[i]] = "On"
-            else:
-                digital_data[self.digital_elements[i]] = "Off"
-        return digital_data
+        return self.digital_data
 
     def print_analog_status(self):
         """
@@ -408,24 +404,27 @@ class ManualOutputControl:
         """
         Prints a list of the digital elements, with a True (False) to indicate the element is on (off).
         """
-        for i in range(len(self.digital_elements)):
-            print(self.digital_elements[i] + " - " + str(self.digital_data[i]))
+        for element in self.digital_elements:
+            print(element + " - " + str(self.digital_data[element]))
 
     def close(self):
         """
         Halts all jobs sent to the OPX and then closes the quantum machine.
         """
-        if self.digital_job is not None:
-            self.digital_job.halt()
-        self.digital_qm.close()
+        for job in self.digital_jobs:
+            if job is not None:
+                job.halt()
+        for qm in self.digital_qms:
+            if qm is not None:
+                qm.close()
         self.analog_job.halt()
         self.analog_qm.close()
         self.qmm.close()
 
     def _process_config(self, config_original, elements_to_control=None):
         """
-        This function creates two separate configuration files, on containing only analog elements, and the other
-        only contains digital elements
+        This function creates multiple separate configuration files, on containing only analog elements, and the others
+        only contains digital elements.
 
         :param config_original: a QUA configuration dictionary which contain all defined analog and digital elements.
         :param elements_to_control: A list of elements to be controlled.
@@ -433,8 +432,15 @@ class ManualOutputControl:
         """
         config = copy.deepcopy(config_original)
         self.analog_config = {}
-        self.digital_config = {}
+        digital_config = {}
         pulser_count = {}
+
+        highest_con = 0
+        for con in list(config["controllers"].keys()):
+            highest_con = int(con[-1]) if int(con[-1]) > highest_con else highest_con
+        self.digital_configs = np.empty((highest_con, 10), dtype=dict)
+        self.digital_jobs = np.empty((highest_con, 10), dtype=QmJob)
+        self.digital_qms = np.empty((highest_con, 10), dtype=QuantumMachine)
 
         # Analog config
         self.analog_config["version"] = 1
@@ -468,43 +474,60 @@ class ManualOutputControl:
             self.analog_config["mixers"] = config["mixers"]
 
         # Digital config
-        self.digital_config["version"] = 1
-        self.digital_config["controllers"] = {}
-        for controller in list(config["controllers"].keys()):
-            self.digital_config["controllers"][controller] = {
-                "type": "opx1",
-                "digital_outputs": {},
-            }
-            self.digital_config["controllers"][controller]["digital_outputs"] = config[
-                "controllers"
-            ][controller]["digital_outputs"]
-        self.digital_config["elements"] = {}
-        self.digital_config["pulses"] = {
+        digital_config["version"] = 1
+        digital_config["controllers"] = {}
+        digital_config["elements"] = {}
+        digital_config["pulses"] = {
             "digital_ON": {
                 "digital_marker": "ON",
                 "length": 1000,
                 "operation": "control",
             }
         }
-        self.digital_config["digital_waveforms"] = {"ON": {"samples": [(1, 0)]}}
+        digital_config["digital_waveforms"] = {"ON": {"samples": [(1, 0)]}}
 
         # Elements
         if elements_to_control is None:
             elements = list(config["elements"].keys())
         else:
             elements = elements_to_control
+        # Digital
         for element in elements:
             if config["elements"][element].get("digitalInputs") is not None:
-                con = list(config["elements"][element]["digitalInputs"].values())[0][
-                    "port"
-                ][0]
-                pulser_count[con] += 1
-                self.digital_config["elements"][element] = {
-                    "operations": {"ON": "digital_ON"}
-                }
-                self.digital_config["elements"][element]["digitalInputs"] = config[
-                    "elements"
-                ][element]["digitalInputs"]
+                self.digital_index[element] = []
+                self.digital_data[element] = False
+                self.digital_elements.append(element)
+                for digital_input in config["elements"][element]["digitalInputs"]:
+                    con, port = config["elements"][element]["digitalInputs"][
+                        digital_input
+                    ]["port"]
+                    con_int_index = int(con[-1]) - 1
+                    port_index = port - 1
+                    self.digital_index[element].append((con_int_index, port_index))
+                    if self.digital_configs[con_int_index][port_index] is None:
+                        pulser_count[con] += 1
+                        self.digital_configs[con_int_index][port_index] = copy.deepcopy(
+                            digital_config
+                        )
+                        self.digital_configs[con_int_index][port_index]["controllers"][
+                            con
+                        ] = {
+                            "type": "opx1",
+                            "digital_outputs": {port: {}},
+                        }
+                        self.digital_configs[con_int_index][port_index]["elements"][
+                            "digital"
+                        ] = {"operations": {"ON": "digital_ON"}}
+                        self.digital_configs[con_int_index][port_index]["elements"][
+                            "digital"
+                        ]["digitalInputs"] = {
+                            "digital": {
+                                "port": (con, port),
+                                "delay": 0,
+                                "buffer": 0,
+                            },
+                        }
+        # Analog
         for element in elements:
             if config["elements"][element].get("mixInputs") is not None:
                 con = config["elements"][element]["mixInputs"]["I"][0]
@@ -527,6 +550,7 @@ class ManualOutputControl:
                 self.analog_config["elements"][element]["operations"] = {
                     "play": "IQ_Ion"
                 }
+                self.analog_elements.append(element)
 
             elif config["elements"][element].get("singleInput") is not None:
                 con = config["elements"][element]["singleInput"]["port"][0]
@@ -549,8 +573,7 @@ class ManualOutputControl:
                 self.analog_config["elements"][element]["operations"] = {
                     "play": "single_on"
                 }
-        self.analog_elements = list(self.analog_config["elements"].keys())
-        self.digital_elements = list(self.digital_config["elements"].keys())
+                self.analog_elements.append(element)
         for element in self.analog_elements:
             self.analog_config["elements"][element]["hold_offset"] = {"duration": 16}
             self.analog_data[element] = {
@@ -559,7 +582,6 @@ class ManualOutputControl:
                     "intermediate_frequency"
                 ),
             }
-        self.digital_data = [False] * len(self.digital_elements)
 
         opx_plus = True if self.qmm.version()["server"][0] == "2" else False
         for con in list(config["controllers"].keys()):
@@ -589,19 +611,50 @@ class ManualOutputControl:
 
         self.analog_job = self.analog_qm.execute(prog)
 
+    def _start_digital_qms(self):
+        """
+        Opens up multiple Quantum Machines to control the digital outputs
+        """
+        for con_port_list in self.digital_index.values():
+            for con, port in con_port_list:
+                if self.digital_qms[con][port] is None:
+                    self.digital_qms[con][port] = self.qmm.open_qm(
+                        self.digital_configs[con][port], False
+                    )
+
     def _start_digital(self):
         """
         Creates and starts QUA program that is used to run the digital elements in an infinite loop.
         """
         with program() as prog:
-            for i in range(len(self.digital_data)):
-                if self.digital_data[i]:
-                    with infinite_loop_():
-                        play("ON", self.digital_elements[i])
-        pending_job = self.digital_qm.queue.add(prog)
-        if self.digital_job is not None:
-            self.digital_job.halt()
-        self.digital_job = pending_job.wait_for_execution()
+            save(1, "a")
+            with infinite_loop_():
+                play("ON", "digital")
+        digital_on = []
+
+        # Create a list of ports that needs to be on
+        for element in self.digital_elements:
+            for con, port in self.digital_index[element]:
+                if self.digital_data[element]:  # Needs to be on
+                    digital_on.append((con, port))
+
+        for con_port_list in self.digital_index.values():
+            for con, port in con_port_list:
+                if (con, port) in digital_on:  # Needs to be on
+                    if (  # Is not on
+                        self.digital_jobs[con][port] is None
+                        or not self.digital_jobs[con][
+                            port
+                        ].result_handles.is_processing()
+                    ):
+                        self.digital_jobs[con][port] = self.digital_qms[con][
+                            port
+                        ].execute(prog)
+                    else:  # Is already on
+                        pass
+                else:  # Needs to be off
+                    if self.digital_jobs[con][port] is not None:
+                        self.digital_jobs[con][port].halt()
 
     def _QUA_update_freq_or_amp(self, input1, input2):
         """
