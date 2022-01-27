@@ -6,6 +6,8 @@ Some of these tools are experimental and are not fully supported and tested, but
 This package drastically extends the capabilities of matplotlib, enables easily editing various parts of the figure, 
 copy-pasting data between figures and into spreadsheets, fitting the data and saving the figures.
 
+To use, you need to install the package using `pip instal qualang_tools[interplot]`
+
 > **_Note:_** It is currently experimental and only supports win32 with IPython.
 
 ## Example
