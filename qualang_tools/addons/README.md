@@ -1,15 +1,16 @@
 # Introduction
-This package includes tools which are still a work-in-progress. 
+This package includes tools which are more generic and not necessarily related to QUA.
+Some of these tools are experimental and are not fully supported and tested, but we believe have a true product value.
 
 ## InteractivePlotLib
 This package drastically extends the capabilities of matplotlib, enables easily editing various parts of the figure, 
 copy-pasting data between figures and into spreadsheets, fitting the data and saving the figures.
 
-It is currently experimental and only supports win32 with IPython.
+> **_Note:_** It is currently experimental and only supports win32 with IPython.
 
 ## Example
 ```python
-from qualang_tools.experimental.InteractivePlotLib import InteractivePlotLib 
+from qualang_tools.addons.InteractivePlotLib import InteractivePlotLib 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import erf
