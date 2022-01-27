@@ -11,9 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import win32clipboard as clip
 import win32con
-import scipy
-
-
+from scipy.special import erf
+import pandas as pd
 import __main__ as _main_module
 
 
@@ -43,11 +42,10 @@ class InteractivePlotLib:
 
         for i in list(set(plt.get_fignums()) - set(self.figs.keys())):
             fig = plt.figure(i)
-            self.figs[fig.number] = InteractivePlotLib_Figure(fig, self.doc, self)
+            self.figs[fig.number] = InteractivePlotLibFigure(fig, self.doc, self)
 
     def figure(self, ind=-1):
         self.garbage_collector()
-        # why is this here?
         if ind in list(self.figs.keys()):
             self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid)
             self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid2)
@@ -57,28 +55,23 @@ class InteractivePlotLib:
         else:
             fig = plt.figure(ind)
         plt.axes()
-        self.figs[fig.number] = InteractivePlotLib_Figure(fig, self.doc, self)
+        self.figs[fig.number] = InteractivePlotLibFigure(fig, self.doc, self)
         return fig
 
     def load(self, number):
         pre_load_fig_numbers = plt.get_fignums()
         out = self.doc.load(number)
         self.garbage_collector()
-        # plt.show()
-        # plt.pause(1e-6)
-        # NOT WORKING!!!
         post_load_fig_numbers = plt.get_fignums()
         for i in list(set(post_load_fig_numbers) - set(pre_load_fig_numbers)):
             h = self.figure(i)
             for t in h.axes[0].texts:
                 if len(t.get_text()) > 5 and t.get_text()[:5] == "Scan ":
                     t.remove()
-        #     plt.show()
-        #     plt.pause(1e-6)
         return out
 
 
-class InteractivePlotLib_Figure:
+class InteractivePlotLibFigure:
     def __init__(self, fig, doc, master_obj):
 
         self.fig = fig
@@ -97,28 +90,20 @@ class InteractivePlotLib_Figure:
 
         self.grid_state = False
 
-        # self.glob = glob
-        # self.doc = glob["doc"]
-        # print("binding")
         self.fig.canvas.mpl_disconnect(self.fig.canvas.manager.key_press_handler_id)
         self.cid = self.fig.canvas.mpl_connect("button_press_event", self.mouse_click)
         self.cid2 = self.fig.canvas.mpl_connect("key_press_event", self.keyboard_click)
         self.cid3 = self.fig.canvas.mpl_connect(
             "key_release_event", self.keyboard_release
         )
-        # self.cid4 = self.fig.canvas.mpl_connect("pick_event", self.onpick)
 
         self.lines = []
         self.state = self.ProtoStateMachine(self, done=True)
 
     def user_interaction(self, type, event):
-
-        # print(f"interaction! {type}")
         self.refresh_axis()
         if self.state.done:
             if type == "mouse_click":
-                # print("bla")
-                # self.ax.set_title("bla")
                 xlim = self.ax.get_xlim()
                 ylim = self.ax.get_ylim()
                 bbox = self.ax.get_window_extent().transformed(  # axes bounding box
@@ -130,23 +115,23 @@ class InteractivePlotLib_Figure:
                         event.x
                         < (bbox.xmin + (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
                     ):
-                        self.state = InteractivePlotLib_Figure.StateMachineLim(
+                        self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "xstart"
                         )
                     elif (
                         event.x
                         > (bbox.xmax - (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
                     ):
-                        self.state = InteractivePlotLib_Figure.StateMachineLim(
+                        self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "xend"
                         )
                     else:
-                        self.state = InteractivePlotLib_Figure.StateMachineLabel(
+                        self.state = InteractivePlotLibFigure.StateMachineLabel(
                             self, "xlabel"
                         )
 
                 elif event.y > bbox.ymax * self.fig.dpi:
-                    self.state = InteractivePlotLib_Figure.StateMachineLabel(
+                    self.state = InteractivePlotLibFigure.StateMachineLabel(
                         self, "title"
                     )
 
@@ -155,36 +140,34 @@ class InteractivePlotLib_Figure:
                         event.y
                         < (bbox.ymin + (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
                     ):
-                        self.state = InteractivePlotLib_Figure.StateMachineLim(
+                        self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "ystart"
                         )
                     elif (
                         event.y
                         > (bbox.ymax - (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
                     ):
-                        self.state = InteractivePlotLib_Figure.StateMachineLim(
+                        self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "yend"
                         )
                     else:
-                        self.state = InteractivePlotLib_Figure.StateMachineLabel(
+                        self.state = InteractivePlotLibFigure.StateMachineLabel(
                             self, "ylabel"
                         )
 
                 elif event.x > bbox.xmax * self.fig.dpi:
-                    self.state = InteractivePlotLib_Figure.StateMachineLegend(self)
+                    self.state = InteractivePlotLibFigure.StateMachineLegend(self)
 
                 else:
-                    out = self.detect_curve_click(
+                    self.detect_curve_click(
                         event.xdata, event.ydata, xlim, ylim, bbox.width, bbox.height
                     )
 
             elif type == "keyboard_click":
-
                 if event.key == "ctrl+v":
                     clip.OpenClipboard()
                     data = clip.GetClipboardData()
                     clip.CloseClipboard()
-                    # print(data)
 
                     out = np.array(
                         ([i.split("\t") for i in data.split("\r\n")[:-1]]), "double"
@@ -202,7 +185,7 @@ class InteractivePlotLib_Figure:
                     self.marker_mode = False
 
                 if event.key == "f":
-                    self.state = InteractivePlotLib_Figure.StateMachineFit(self)
+                    self.state = InteractivePlotLibFigure.StateMachineFit(self)
 
                 if event.key == "g":
                     self.grid_state = not self.grid_state
@@ -218,7 +201,7 @@ class InteractivePlotLib_Figure:
                 if self.line_selected:
 
                     if event.key == "c":
-                        self.state = InteractivePlotLib_Figure.StateMachineColor(self)
+                        self.state = InteractivePlotLibFigure.StateMachineColor(self)
 
                     if event.key == "ctrl+c":
                         self.line_selected.copy_to_clipboard()
@@ -247,10 +230,9 @@ class InteractivePlotLib_Figure:
         self.refresh_figure()
 
     def detect_curve_click(self, base_x, base_y, base_xlim, base_ylim, width, height):
-        scale_convert = InteractivePlotLib_Figure.ConvertLogLin(
+        scale_convert = InteractivePlotLibFigure.ConvertLogLin(
             [self.ax.get_xscale(), self.ax.get_yscale()]
         )
-        # line_list = self.get_lines()
         line_list = self.get_lines_fit_extended()
         candidate = {"line_index": -1, "distance_2": np.inf, "xy": (0, 0)}
         x0 = scale_convert.convert[0](base_x)
@@ -261,11 +243,6 @@ class InteractivePlotLib_Figure:
         xdiff = np.sqrt((xlim[1] - xlim[0]) ** 2 / width ** 2)
         ydiff = np.sqrt((ylim[1] - ylim[0]) ** 2 / height ** 2)
 
-        # print(xlim)
-        # print(ylim)
-        # print(xdiff)
-        # print(ydiff)
-        # print("checking all lines")
         for j, line in enumerate(line_list):
             x = scale_convert.bound[0](line.get_xdata())
             y = scale_convert.bound[1](line.get_ydata())
@@ -290,9 +267,6 @@ class InteractivePlotLib_Figure:
             x0_n = x0 / xdiff
             y0_n = y0 / ydiff
             if line.get_linestyle() == "None":
-                # print("testing for point")
-                # if self.line_type == ".":
-
                 norm_2 = (
                     (x0_n - x_n) ** 2 + (y0_n - y_n) ** 2
                 ) / self.th_point_advantage  # give advantage for choosing a point compared to a line
@@ -321,33 +295,7 @@ class InteractivePlotLib_Figure:
 
         self.line_selected = None  # deselect line if selected
         if candidate["distance_2"] < self.th ** 2:
-            # if hasattr(line_list[self.line_selected], "print"):
-            #     print(line_list[self.line_selected].print)
-            # if hasattr(line_list[self.line_selected], "fit_func"):
-            #     print("fit_func extand!")
-            #     x_data = line_list[self.line_selected].x_original
-            #     y_data = line_list[self.line_selected].fit_func(x_data)
-
-            #     xlim = self.ax.get_xlim()
-            #     ylim = self.ax.get_ylim()
-            #     # for line in lines:
-
-            #     # line = lines[0]
-
-            #     idx = (
-            #         (x_data >= xlim[0])
-            #         & (x_data <= xlim[1])
-            #         & (y_data >= ylim[0])
-            #         & (y_data <= ylim[1])
-            #     )
-            #     x_data = x_data[idx]
-            #     y_data = y_data[idx]
-
-            #     line_list[self.line_selected].set_xdata(x_data)
-            #     line_list[self.line_selected].set_ydata(y_data)
-
-            # self.line_selected_obj = line_list[self.line_selected]
-            self.line_selected = InteractivePlotLib_Figure.LineSelected(
+            self.line_selected = InteractivePlotLibFigure.LineSelected(
                 self,
                 line_list[candidate["line_index"]],
                 candidate["line_index"],
@@ -377,18 +325,15 @@ class InteractivePlotLib_Figure:
         elif req == "l":
             Fit(lambda x: 1 / (1 + x ** 2), self.ax)
         elif req == "r":
-            Fit(lambda x: scipy.special.erf(x), self.ax)
+            Fit(lambda x: erf(x), self.ax)
         elif req == "s":
             x = self.ax.get_lines()[0].get_xdata()
             y = self.ax.get_lines()[0].get_ydata()
             w = np.fft.fft(y)
             freqs = np.fft.fftfreq(len(x))
-            # plt.clf()
-            # plt.plot(freqs[1 : len(freqs // 2)], np.abs(w[1 : len(freqs // 2)]))
             new_f = freqs[1 : len(freqs // 2)]
             out_freq = new_f[np.argmax(np.abs(w[1 : len(freqs // 2)]))]
             omega = out_freq / np.mean(np.diff(x)) * 2 * np.pi
-            # 0.002997002997002997/0.019999999999999574*np.pi*2 -> diff(x)
             xlim = self.ax.get_xlim()
             request_x_scale = 1 / omega / (xlim[1] - xlim[0])
             print(request_x_scale)
@@ -404,8 +349,6 @@ class InteractivePlotLib_Figure:
                     "func": "lambda x,a: " + req[:idx],
                 },
             )
-        # else:
-        #     print(f"Unknown {req}")
 
     def p4(self, p1, p2, p3):
         x1, y1 = p1
@@ -428,16 +371,13 @@ class InteractivePlotLib_Figure:
             self_line.sup_self = sup_self
             self_line.obj = obj
             self_line.line_index_selected = line_index_selected
-            # if self_line.obj.get_linestyle() == "None":
-            # self_line.line_width = self_line.obj.get_markersize()
-            # else:
             self_line.line_width = self_line.obj.get_linewidth()
 
             self_line.emphasize_line_width()
             self_line.alive = True
             self_line.click_xy = xy
             if sup_self.marker_mode:
-                sup_self.marker_list[-1] = InteractivePlotLib_Figure.Marker(
+                sup_self.marker_list[-1] = InteractivePlotLibFigure.Marker(
                     sup_self.ax, self_line.click_xy
                 )
 
@@ -507,8 +447,6 @@ class InteractivePlotLib_Figure:
 
     def get_lines(self, compare_list=["Native"]):
         self.lines = []
-        # self.ax_list = self.fig.axes
-        # self.ax = self.ax_list[0]  # only 1 axes for now
         lines_list_raw = self.ax.get_lines()
         for line in lines_list_raw:
             if not hasattr(line, "InteractivePlotLib_Type"):
@@ -517,10 +455,7 @@ class InteractivePlotLib_Figure:
                 if line.InteractivePlotLib_Type == comp:
                     self.lines.append(line)
                     break
-        # self.lines = self.ax.get_lines()
 
-        # for ax in self.ax_list:
-        #     self.lines.append(ax.get_lines())
         return self.lines
 
     def get_lines_fit_extended(self):
@@ -544,16 +479,10 @@ class InteractivePlotLib_Figure:
                     print("unknown scale")
 
     def refresh_axis(self):
-        # self.ax = self.fig.get_axes()[0] #change this to accommodate different axes
         self.ax = plt.gca()
 
     def refresh_figure(self):
-
-        # plt.pause(1e-6)
         self.fig.canvas.draw()
-        # plt.show(block=False)
-        # self.fig.show()
-        # self.fig.canvas.draw()
 
     def mouse_click(self, event):
         self.user_interaction("mouse_click", event)
@@ -570,10 +499,6 @@ class InteractivePlotLib_Figure:
             self_state.sup_self = sup_self
 
         def __del__(self_state):
-            # print("This")
-            # if hasattr(self_state, "help_box"):
-            # print("here")
-            # self_state.sup_self.help_box = [] #doent work yet
             try:
                 self_state.sup_self.refresh_figure()
             except BaseException:
@@ -590,7 +515,7 @@ class InteractivePlotLib_Figure:
                 ]
             self_state.legend_original = self_state.legend[:]
             self_state.index = 0
-            self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                 self_state.legend[self_state.index], self_state.update_legend
             )
 
@@ -602,7 +527,7 @@ class InteractivePlotLib_Figure:
                         self_state.index += 1
                         if self_state.index >= len(self_state.legend):
                             self_state.legend.append("")
-                        self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+                        self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                             self_state.legend[self_state.index],
                             self_state.update_legend,
                         )
@@ -611,7 +536,7 @@ class InteractivePlotLib_Figure:
                     if self_state.index > 0:
                         self_state.text_obj.done()
                         self_state.index -= 1
-                        self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+                        self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                             self_state.legend[self_state.index],
                             self_state.update_legend,
                         )
@@ -658,10 +583,10 @@ class InteractivePlotLib_Figure:
                 ha = "left"
             else:
                 pass
-            self_state.text_box = InteractivePlotLib_Figure.TextObj(
+            self_state.text_box = InteractivePlotLibFigure.TextObj(
                 sup_self.ax, loc, text, ha=ha, va=va
             )
-            self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                 "", self_state.text_box.update_text, format_text=lambda x: x
             )
 
@@ -729,27 +654,14 @@ class InteractivePlotLib_Figure:
                 def set_label(t):
                     return sup_self.ax.set_title(t)
 
-            # print("label start")
-            # doesnt work for some reason
             text_help = "commands: \n:lin[ear]\n:log\n:u[nits]\n:[func]"
-            self_state.help_box = InteractivePlotLib_Figure.HelperText(
+            self_state.help_box = InteractivePlotLibFigure.HelperText(
                 self_state.sup_self.ax, text_help
             )
 
-            self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                 text, set_label, lambda x: x, lambda x: self_state.run_command(x, type)
             )
-            # self_state.help_box = InteractivePlotLib_Figure.HelperText(
-            #     self_state.sup_self.ax, text_help)
-
-            # def __del__(self_state):
-            #     self_state.help_box.remove()
-
-        # def __del__(self_state):
-        #     print("i am here - doesnt work")
-        #     self_state.help_box.remove()
-        #     self_state.sup_self.refresh_figure()
-        # plt.pause(0.00001)
 
         def run_command(self_state, command, type):
             is_done = True
@@ -773,8 +685,6 @@ class InteractivePlotLib_Figure:
                     self_state.sup_self.ax.set_ylim(
                         convert_function(self_state.sup_self.ax.get_ylim())
                     )
-                # except BaseException:
-                #     print("can't parse units")
             else:
                 if command == ":lin" or command == ":linear":
                     self_state.text_obj.text = self_state.text_obj.original_text
@@ -1003,25 +913,22 @@ class InteractivePlotLib_Figure:
     class StateMachineColor(ProtoStateMachine):
         def __init__(self_state, sup_self):
             super().__init__(sup_self)
-            self_state.text_box = InteractivePlotLib_Figure.CommandText(sup_self.ax)
-            self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+            self_state.text_box = InteractivePlotLibFigure.CommandText(sup_self.ax)
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                 "", self_state.text_box.update_text, format_text=lambda x: f"color: {x}"
             )
-            # print("generated text obj")
 
         def event(self_state, type, event):
             if type == "keyboard_click" or type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
                 if type == "keyboard_click":
                     self_state.sup_self.line_selected.color(event.key)
-                    # self_state.done = self_state.text_obj.react_to_key_press(event.key)
                 else:
                     self_state.sup_self.user_interaction("mouse_click", event)
 
     class StateMachineFit(ProtoStateMachine):
         def __init__(self_state, sup_self):
             super().__init__(sup_self)
-            # text = "  fit options:\n"
             text = "x*a[0]+a[1],[1,1]\n"
             text += "# - polynom\n"
             text += "g - gaussian\n"
@@ -1030,13 +937,13 @@ class InteractivePlotLib_Figure:
             text += "r - erf\n"
             text += "s - sine\n"
 
-            self_state.text_box = InteractivePlotLib_Figure.CommandText(sup_self.ax)
-            self_state.text_obj = InteractivePlotLib_Figure.InteractiveText(
+            self_state.text_box = InteractivePlotLibFigure.CommandText(sup_self.ax)
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
                 "",
                 self_state.text_box.update_text,
                 format_text=lambda x: f"Fit type: {x}",
             )
-            self_state.help_box = InteractivePlotLib_Figure.HelperText(
+            self_state.help_box = InteractivePlotLibFigure.HelperText(
                 self_state.sup_self.ax, text
             )
 
@@ -1051,26 +958,10 @@ class InteractivePlotLib_Figure:
             if self_state.done:
                 self_state.help_box.remove()
                 print(self_state.text_obj.text)
-                InteractivePlotLib_Figure.predefined_fit(
+                InteractivePlotLibFigure.predefined_fit(
                     self_state.sup_self, self_state.text_obj.text
                 )
                 self_state.sup_self.refresh_figure()
-
-        # def event(self_state, type, event):
-        #     if type == "mouse_click":
-        #         self_state.done = self_state.text_obj.done()
-        #         self_state.sup_self.user_interaction("mouse_click", event)
-        #     elif type == "keyboard_click":
-        #         if event.key != "x":
-        #             self_state.done = self_state.text_obj.done()
-        #         else:
-        #             self_state.done = self_state.text_obj.react_to_key_press(
-        #                 event.key)
-
-        #         if self_state.done:
-        #             InteractivePlotLib_Figure.predefined_fit(
-        #                 self_state.sup_self, event.key
-        #             )
 
     class InteractiveText:
         # :
@@ -1115,7 +1006,6 @@ class InteractivePlotLib_Figure:
                     len(self_text.text) > 0 and self_text.text[0] == ":"
                 ) or self_text.command_mode:
                     is_done = self_text.command_func(self_text.text)
-                    # self_text.text = self_text.original_text
                     if is_done:
                         return self_text.done()
                     else:
@@ -1212,7 +1102,7 @@ class InteractivePlotLib_Figure:
                     else f"{loc[1]:0.2e}"
                 )
                 text = f"[{x_text},{y_text}]"
-            self_marker.text = InteractivePlotLib_Figure.TextObj(
+            self_marker.text = InteractivePlotLibFigure.TextObj(
                 ax, loc, text, "left", "bottom"
             )
             (self_marker.point,) = ax.plot(loc[0], loc[1], ".g")
@@ -1222,16 +1112,9 @@ class InteractivePlotLib_Figure:
             self_marker.point.remove()
 
 
-# import dill
-# import dill
-
-
 class Document:
-    def __init__(self, Data_path, no_onenote=False):
-        # if not no_onenote:
-        # self.on = OnenoteBridge(Data_path)
+    def __init__(self, Data_path):
         self.Data_path = Data_path
-        # self.code = ""
 
     def doc(self, figs, unfiltered_variables=[], ignore=[]):
         print(figs)
@@ -1248,12 +1131,8 @@ class Document:
                     continue
                 unfiltered_variables[att] = getattr(unfiltered_variables_module, att)
 
-        # on = self.on
         self.ignore = ignore
-        # tree = on.get_active_page()
 
-        # on.write_line("Test Entree",{"font-family": "Calibri", "font-size" : "20.0pt", "color": "#FA0000"})
-        # on.write_line(text)
         scan_number = self.save(unfiltered_variables)
         self.scan_number = scan_number
         print(type(figs))
@@ -1287,16 +1166,12 @@ class Document:
 
     def get_variables(self, unfiltered_variables):
         out = []
-        # print(unfiltered_variables)
 
         for x in sorted(unfiltered_variables.keys()):
             to_append = self.white_list(x, unfiltered_variables[x])
             if to_append:
                 out.append(to_append)
         return out
-        # return [x for x in sorted(globals().keys()) if (x[0] != "_") &
-        #  (x not in ['In', 'Out', 'exit', 'get_ipython', 'quit','line1','temp','scope']) &
-        #  ((type(globals()[x]).__name__) not in ["module", "function", "class","type","GPIBInstrument","ResourceManager"])]
 
     def get_last_scan_number(self):
         file_list = os.listdir(self.Data_path)
@@ -1339,34 +1214,18 @@ class Document:
                     ):
                         info[variable][i] = []
         info["code"] = code
-        # self.code = code
         dill.dump(
             info,
             open(
                 (Data_path + "/scan{}_{}.dat").format(scan_number, current_time), "wb"
             ),
         )
-        # dill.dump_session(
-        #     (Data_path + "/scan{}_{}.dat").format(scan_number, current_time)
-        # )
         print(variables)
         return scan_number
 
     def load(self, n, load_figures=True):
         Data_path = self.Data_path
 
-        # filename = ""
-        # for x in file_list:
-        #     if "scan" in x:
-        #         number = int(x.split("_")[0].split("scan")[1])
-        #         if number == n:
-        #             filename = x
-        #             break
-        # if not filename:
-        #     print("no such scan!")
-        #     return []
-
-        # filename = os.listdir(Data_path)[[int(os.listdir(Data_path)[i].split("_")[0].split("scan")[1]) for i in range(len(os.listdir(Data_path)))].index(n)]
         if load_figures:
 
             try:
@@ -1378,30 +1237,19 @@ class Document:
             except BaseException:
                 print("problem loading figures")
 
-            # print("should be closing figures now!!!!!")
         data_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.dat")
         if len(data_path) > 0:
             loaded_data = dill.load(open(data_path[0], "rb"))
         else:
             print("no such scan!")
             return 0
-        # print(data_path)
 
-        # loaded_data = dill.load(open(Data_path + "\\" + filename, "rb"))
-        # loaded_data = dill.load(open(Data_path + "\\" + filename, "rb"))
         print(loaded_data.keys())
-        # print([i for i in dir(loaded_data) if i[0] != "_"])
-        # print(loaded_data.keys())
 
         return loaded_data
 
     def save_fig(self, fig_number, scan_number=0):
         path = self.Data_path
-        # cascade = [self.notebook_name, self.section_name, self.page_name]
-        # for hirarchy in cascade:
-        #     path = os.path.join(path, hirarchy)
-        #     if not os.path.exists(path):
-        #         os.mkdir(path)
 
         name = (
             "scan"
@@ -1431,12 +1279,6 @@ class Document:
 
         dill.dump(h, open(path + ".pkl", "wb"))
 
-        # new method!!!! move to this :)
-        # filename = "T:\\users\\Asafr\\data\\tests\\globalsave.pkl"
-        # dill.dump_session(filename)
-        # import dill
-        # dill.load_session('T:\\users\\Asafr\\data\\tests\\globalsave.pkl')
-
         self.generate_csv_data(h, path)
 
         image = ImageGrab.grab()
@@ -1457,8 +1299,6 @@ class Document:
         return path
 
     def generate_csv_data(self, fig, path):
-        import pandas as pd
-
         data = []
         ax = fig.get_axes()[0]
         for line in ax.get_lines():
@@ -1503,10 +1343,6 @@ class Document:
         df.to_csv(path + ".csv")
 
 
-# def fit_line():
-#     pass
-
-
 class Fit:
     def __init__(self, fit_type=1, ax=[], options={}):
         self.res = []
@@ -1514,14 +1350,6 @@ class Fit:
             ax = plt.gca()
         self.ax = ax
         lines = self.ax.get_lines()
-        # this doeswnt work for some reason...
-        # for i in range(len(lines)):
-        #     if hasattr(lines[i], "InteractivePlotLib_Type") and (
-        #         lines[i].InteractivePlotLib_Type == "Fit"
-        #         or lines[i].InteractivePlotLib_Type == "Fit_markers"
-        #     ):
-        #         print(lines[i].InteractivePlotLib_Type)
-        #         lines[i].remove()
         if type(fit_type) == int:
             self.res = {
                 "fit_type": [],
@@ -1568,7 +1396,6 @@ class Fit:
         order_list = []
         for line in lines:
             order_list.append(line.zorder)
-        # idx = np.argsort(order_list)
         idx = range(len(lines))
         for i in idx:
             if hasattr(lines[i], "InteractivePlotLib_Type") and (
@@ -1577,8 +1404,7 @@ class Fit:
                 or lines[i].InteractivePlotLib_Type == "Marker"
             ):
                 continue
-            single_fit = Single_Fit(lines[i], fit_type, ax, options)
-            # print(single_fit.ok)
+            single_fit = SingleFit(lines[i], fit_type, ax, options)
             if not single_fit.ok:
                 continue
             self.res["fit_type"].append(single_fit.fit_type)
@@ -1619,7 +1445,7 @@ class Fit:
         return str(self.res)
 
 
-class Single_Fit:
+class SingleFit:
     def __init__(self, line, fit_type=1, ax=[], options={}):
         if not ax:
             ax = plt.gca()
@@ -1634,8 +1460,6 @@ class Single_Fit:
         self.x_scale = (1,)
         self.y_scale = (1,)
         self.y_mid = (0,)
-
-        # print(type(fit_type))
 
         if callable(fit_type):
 
@@ -1662,54 +1486,23 @@ class Single_Fit:
                 self.x = x_data
                 self.y = y_data
                 self.yf = self.fit_func(x_data)
-                # pass
-                # print("not coded yet! see command at end of file for ref")
             else:
-                # print("error")
-                # error
                 pass
 
         elif type(fit_type) == int:
-
             self.ok = self.fit_polygon(line, options)
 
         else:
             pass
 
-    # class Fit_parms:
-    #     def __init__(
-    #         self,
-    #         x=[],
-    #         y=[],
-    #         yf=[],
-    #         x_shift=0,
-    #         y_shift=0,
-    #         x_scale=1,
-    #         y_scale=1,
-    #         y_mid=0,
-    #     ):
-    #         self.x = x
-    #         self.y = y
-    #         self.yf = yf
-    #         self.x_shift = x_shift
-    #         self.y_shift = y_shift
-    #         self.x_scale = x_scale
-    #         self.y_scale = y_scale
-    #         self.y_mid = y_mid
-
     def get_xdata_ydata_from_axes(self, line):
 
         ax = self.ax
 
-        # lines = ax.get_lines()
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
-        # for line in lines:
-
-        # line = lines[0]
 
         x_data = np.array(line.get_xdata())
-        # + np.random.rand(len(x_data))*0.2
         y_data = np.array(line.get_ydata())
 
         idx = (
@@ -1720,18 +1513,13 @@ class Single_Fit:
         )
         x_data = x_data[idx]
         y_data = y_data[idx]
-        return (x_data, y_data)
+        return x_data, y_data
 
     def plot_points_of_interest(self, points_of_interest_x, points_of_interest_y):
 
         xlim = plt.gca().get_xlim()
         ylim = plt.gca().get_ylim()
-        (l2,) = plt.plot(
-            points_of_interest_x,
-            points_of_interest_y,
-            ".r"
-            # marker_size=3,
-        )
+        (l2,) = plt.plot(points_of_interest_x, points_of_interest_y, ".r")
         self.fit_line_markers_obj = l2
         setattr(self.fit_line_markers_obj, "InteractivePlotLib_Type", "Fit_markers")
         setattr(
@@ -1772,10 +1560,6 @@ class Single_Fit:
 
         self.plot_points_of_interest(points_of_interest_x, points_of_interest_y)
 
-        # )
-
-        # func = lambda x: x ** 2
-
         funcString = f"poly {self.fit_type}"
         text = f"func: {funcString}\n"
 
@@ -1798,9 +1582,6 @@ class Single_Fit:
             self.slope = poly[0]
             text += f"slope: {self.slope:2.2e}\n"
 
-        # text += f"Δx:{self.x_shift:2.2e},Δy:{self.y_shift:2.2e}\n"
-        # text += f"↕x:{self.y_scale:2.2e},↕y:{self.y_scale:2.2e}\n"
-        # text += f"y_mid:{self.y_mid:2.2e}"
         self.text = text
         print(text)
         return True
@@ -1808,33 +1589,13 @@ class Single_Fit:
     def fit_scaled_function(self, line, options):
         func = self.fit_type
 
-        # ax = plt.gca()
         ax = self.ax
 
-        # lines = ax.get_lines()
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
-        # # for line in lines:
-
-        # line = lines[0]
-
-        # x_data = np.array(line.get_xdata())
-        # y_data = np.array(line.get_ydata())  # + np.random.rand(len(x_data))*0.2
-
-        # idx = (
-        #     (x_data >= xlim[0])
-        #     & (x_data <= xlim[1])
-        #     & (y_data >= ylim[0])
-        #     & (y_data <= ylim[1])
-        # )
-        # x_data = x_data[idx]
-        # y_data = y_data[idx]
         x_data, y_data = self.get_xdata_ydata_from_axes(line)
         if len(x_data) == 0:
             return False
-        # func = lambda x: np.exp(-(x ** 2) / 2)
-        # func = lambda x: np.exp(-(x ** 2) / 2)
-        # func = lambda x: scipy.special.erf(x)
 
         x_dummy = np.linspace(-np.pi / 2, np.pi / 2, 11)
         y_dummy = func(x_dummy)
@@ -1850,9 +1611,6 @@ class Single_Fit:
         scale_data_x = xlim[1] - xlim[0]
         scale_data_y = ylim[1] - ylim[0]
 
-        # plt.clf()
-        # plt.plot(scaled_x, (y_data - shift_data_y) / scale_data_y)
-        # plt.plot(scaled_x, scale_and_fit_function(func, scaled_x, 0.0, 0.5/4, 0.0 + (y_dummy_max + y_dummy_min) / 2, y_dummy_max - y_dummy_min))
         scaled_x = (x_data - shift_data_x) / scale_data_x
         scaled_y = (y_data - shift_data_y) / scale_data_y
 
@@ -1906,13 +1664,6 @@ class Single_Fit:
                 guess,
             )
 
-            # popt, pcov = curve_fit(
-            #     lambda x, *args: scale_and_fit_function(func, x, *args),
-            #     scaled_x,
-            #     scaled_y,
-            #     guess,
-            #     bounds=(-3, 3),
-            # )
             candidate_list.append(
                 {
                     "popt": popt,
@@ -1922,11 +1673,6 @@ class Single_Fit:
 
         idx = np.argmin([1 - i["R2"] for i in candidate_list])
         popt = candidate_list[idx]["popt"]
-
-        # plt.plot(scaled_x, scale_and_fit_function(func, scaled_x, *popt))
-        # print(popt)
-
-        # plt.plot(scaled_x, scale_and_fit_function(func, scaled_x, *popt))
 
         output = [
             popt[0] * scale_data_x + shift_data_x,
@@ -1957,7 +1703,6 @@ class Single_Fit:
         )
         self.plot_points_of_interest(points_of_interest_x, points_of_interest_y)
 
-        # func = lambda x: x ** 2
         try:
             funcString = str(inspect.getsourcelines(func)[0])
             funcString = funcString.strip("['\\n']").split(" = ")[1]
@@ -1969,36 +1714,8 @@ class Single_Fit:
         text += f"→x:{self.x_shift:2.2e},↑y:{self.y_shift:2.2e}\n"
         text += f"↔x:{self.x_scale:2.2e},↕y:{self.y_scale:2.2e}\n"
         self.text = text
-        # text += f"y_mid:{self.y_mid:2.2e}"
         print(text)
         return True
-        # self.fit_line_text = plt.text(xlim[0], ylim[1], text)
-        # self.fit_line_text = plt.text(
-        #     self.parms.x_shift, self.fit_func(self.parms.x_shift), text
-        # )
-
-
-# def fit_line(x,y,f,Range = None,a0 = [0,0]):
-#     if type(f) == int:
-
-#         if Range != None:
-#             ind = (x>Range[0]) & (x<Range[1])
-#             x=x[ind];y=y[ind]
-
-#         p = np.polyfit(x,y,1)
-#         return (p, lambda x: np.polyval(p,x))
-
-
-#     else:
-#         if Range is None:
-#             Range = [min(x),max(x)]
-#         ind = (x>=Range[0]) & (x<=Range[1])
-#         x=x[ind];y=y[ind]
-#         opt = lambda x,y,a: np.sum(np.abs(f(x,a) - y)**2)
-#         out = optimize.minimize(lambda a: opt(x,y,a),a0)
-#         # print(out)
-#         f_eval = lambda x: f(x,out['x'])
-#         return (out['x'],f_eval)
 
 
 def curve_fit2(f, x, y, a0):
