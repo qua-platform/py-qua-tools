@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- Add experimental feature - [InteractivePlotLib](https://github.com/qua-platform/py-qua-tools/tree/main/qualang_tools/experimental).
+  This plotting library, built on Matplotlib, adds many new features to it. 
 
 ## [0.6.5] - 2022-01-26
 ### Changed
