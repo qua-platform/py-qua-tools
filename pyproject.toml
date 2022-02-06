@@ -33,12 +33,18 @@ dash-table = "^5.0.0"
 docutils = "^0.18.1"
 dash-dangerously-set-inner-html = "^0.0.2"
 waitress = "^2.0.0"
+dill = { version = "^0.3.4", optional = true }
+pypiwin32 = { version = "^223", optional = true }
+ipython = { version = "^7.31.1", optional = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 black = "^21.5b2"
 poethepoet = "^0.11.0"
 flake8 = "^4.0.1"
+
+[tool.poetry.extras]
+interplot = ["dill", "pypiwin32", "ipython"]
 
 [tool.black]
 line-length = 88
