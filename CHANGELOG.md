@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.7.0]
 ### Added
 - Add experimental feature - [InteractivePlotLib](https://github.com/qua-platform/py-qua-tools/tree/main/qualang_tools/addons).
   This plotting library, built on Matplotlib, adds many new features to it.
@@ -120,8 +122,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.5...HEAD
-[0.6.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.4...v0.6.5
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.5...v0.7.0
+[0.6.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.1...v0.6.2
