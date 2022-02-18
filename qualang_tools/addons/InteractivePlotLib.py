@@ -1115,7 +1115,9 @@ class Marker:
         self_marker.text = InteractivePlotLibFigure.TextObj(
             ax, loc, text, "left", "bottom"
         )
-        self_marker.text.text_obj.set_bbox(dict(facecolor="white", alpha=0.5,edgecolor='none'))
+        self_marker.text.text_obj.set_bbox(
+            dict(facecolor="white", alpha=0.5, edgecolor="none")
+        )
         (self_marker.point,) = ax.plot(loc[0], loc[1], color)
         setattr(self_marker.point, "InteractivePlotLib_Type", "Marker")
         plt.pause(0.001)
