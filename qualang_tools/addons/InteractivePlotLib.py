@@ -1360,7 +1360,6 @@ class Fit:
         if type(fit_type) == int:
             self.res = {
                 "fit_type": [],
-                # "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1378,7 +1377,6 @@ class Fit:
         elif fit_type.__code__.co_argcount == 2:
             self.res = {
                 "fit_type": [],
-                # "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1389,7 +1387,6 @@ class Fit:
         else:
             self.res = {
                 "fit_type": [],
-                # "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1415,7 +1412,6 @@ class Fit:
             if not single_fit.ok:
                 continue
             self.res["fit_type"].append(single_fit.fit_type)
-            # self.res["ax"].append(single_fit.ax)
             self.res["fit_func"].append(single_fit.fit_func)
             self.res["x"].append(single_fit.x)
             self.res["y"].append(single_fit.y)
