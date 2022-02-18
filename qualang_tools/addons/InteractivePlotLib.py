@@ -54,7 +54,8 @@ class InteractivePlotLib:
             fig = plt.figure()
         else:
             fig = plt.figure(ind)
-        plt.axes()
+        if len(fig.axes) == 0:
+            plt.axes()
         self.figs[fig.number] = InteractivePlotLibFigure(fig, self.doc, self)
         return fig
 
@@ -68,6 +69,8 @@ class InteractivePlotLib:
             for t in h.axes[0].texts:
                 if len(t.get_text()) > 5 and t.get_text()[:5] == "Scan ":
                     t.remove()
+            plt.show()
+            plt.pause(1e-6)
         return out
 
 
@@ -194,9 +197,13 @@ class InteractivePlotLibFigure:
                 if event.key == "alt+f":
                     self.remove_fit()
 
-                if event.key == "s":
+                if event.key == "shift+s" or event.key == "S":
                     if self.doc.doc:
                         self.doc.doc(list(self.master_obj.figs.keys()))
+
+                if event.key == "s":
+                    if self.doc.doc:
+                        self.doc.doc([plt.gcf().number])
 
                 if self.line_selected:
 
