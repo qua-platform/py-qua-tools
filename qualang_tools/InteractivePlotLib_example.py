@@ -57,17 +57,19 @@ import scipy
 # This is where the data will be stored.
 Qplt = InteractivePlotLib("c:\\data")
 
-x = np.linspace(-10, 10, 2001)
+x = np.linspace(-10, 10, 501)
 
-y1 = 3 * np.exp(-((x - 4) ** 2) / (2 * 2 ** 2)) + 0.1 * np.random.rand(len(x))
-y2 = -scipy.special.erf(x) + np.random.rand(len(x)) * 0.1
-y3 = 1 * np.exp(-((x + 4) ** 2) / (2 * 4 ** 2)) + 0.1 * np.random.rand(len(x))
+y1 = 3 / (1 + (x - 3)**2) + 0.5 * np.random.rand(len(x)) + 4
+y2 = -scipy.special.erf(x) + np.random.rand(len(x)) * 0.1 + 4
+y3 = x + np.sin(x) - 40 + np.random.rand(len(x)) * 0.1
 
 fig = Qplt.figure(1)
 plt.clf()
-plt.plot(x, y1)
-plt.plot(x, y2)
+plt.plot(x * 1e6, y1)
+plt.plot(x * 1e6, y2)
 
 fig = Qplt.figure(2)
 plt.clf()
 plt.plot(x, y3)
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Power [dBm]")
