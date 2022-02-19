@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def _round_to_fixed_point_accuracy(x, base=2 ** -15):
-    return np.round(base * np.round(np.array(x) / base), 20)
+def _round_to_fixed_point_accuracy(x, accuracy=2 ** -15):
+    return np.round(x / accuracy) * accuracy
 
 
 def convert_integration_weights(
@@ -26,6 +26,7 @@ def convert_integration_weights(
     :type plot: bool
     :return: List of tuples representing the integration weights
     """
+    integration_weights = np.array(integration_weights)
     integration_weights = _round_to_fixed_point_accuracy(integration_weights, accuracy)
     changes_indices = np.where(np.abs(np.diff(integration_weights)) > 0)[0].tolist()
     prev_index = -1
@@ -98,6 +99,8 @@ def plot_integration_weights(integration_weights):
         a = [[i] * 4 for i in integration_weights]
         unpacked_weights = sum(a, start=[])
         label = "Original"
+    else:
+        raise Exception("Unknown input")
 
     plt.plot(unpacked_weights, label=label)
     plt.legend()

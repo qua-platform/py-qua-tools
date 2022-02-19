@@ -85,7 +85,7 @@ in the first case, you will use `iw1` in the `measure` statement, whereas in the
 
 A microwave mixer is initialized with the name, lo_frequency, intermediate_frequency and a correction matrix,
 ```
-mixer = Mixers("mx1", 5e9, 4e6, Matrix2x2([[1, 0][0, 1]]))
+mixer = Mixers("mx1", 5e9, 4e6, Matrix2x2([[1, 0],[0, 1]]))
 ```
 Mixers can be added to an `Element` or `MeasureElement` (see below) with the `add` method.
 

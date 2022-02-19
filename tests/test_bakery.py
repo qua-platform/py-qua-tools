@@ -1,17 +1,24 @@
-import matplotlib.pyplot as plt
-import pytest
-from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm import SimulationConfig
-import numpy as np
-from qualang_tools.bakery.bakery import baking
+import os
 from copy import deepcopy
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+from qualang_tools.bakery.bakery import baking
+from qualang_tools.bakery.randomized_benchmark_c1 import c1_table, c1_ops
 
 
 def gauss(amplitude, mu, sigma, length):
     t = np.linspace(-length / 2, length / 2, length)
     gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
     return [float(x) for x in gauss_wave]
+
+
+def abs_path_to(rel_path: str) -> str:
+    source_path = Path(__file__).resolve()
+    source_dir = source_path.parent
+    return os.path.join(source_dir, rel_path)
 
 
 @pytest.fixture
@@ -114,6 +121,13 @@ def config():
     }
 
 
+def test_c1_data():
+    c1_correct_table = np.load(abs_path_to("c1_table.npy"))
+    c1_correct_ops = np.load(abs_path_to("c1_ops.npy"), allow_pickle=True)
+    assert (c1_correct_table == c1_table).all()
+    assert (c1_correct_ops == np.array(c1_ops, dtype=object)).all()
+
+
 def test_override_waveform(config):
     cfg = deepcopy(config)
     with baking(cfg, padding_method="right", override=True) as b_ref:
@@ -121,10 +135,10 @@ def test_override_waveform(config):
     ref_length = b_ref.get_op_length("qe2")
 
     with baking(
-        cfg,
-        padding_method="right",
-        override=False,
-        baking_index=b_ref.get_baking_index(),
+            cfg,
+            padding_method="right",
+            override=False,
+            baking_index=b_ref.get_baking_index(),
     ) as b_new:
         samples = [[0.2] * 30, [0.0] * 30]
         b_new.add_op("customOp", "qe2", samples)
@@ -197,6 +211,94 @@ def test_indices_behavior(config):
         ]
     )
     print(config["waveforms"].keys())
+
+
+def test_play_at_negative_t(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.play_at(
+            "Op2", "qe2", t=-2
+        )  # t indicates the time index where these new samples should be added
+        # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+        #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+    print(b.get_waveforms_dict())
+    assert np.array_equal(np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
+                          np.array([0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0, 0]))
+
+
+def test_negative_wait(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.wait(-3, "qe2")
+        b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+        # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+        #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+    print(b.get_waveforms_dict())
+    assert np.array_equal(np.round( np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4), np.array(
+        [0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]))
+
+
+def test_play_at_negative_t_too_large(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        with pytest.raises(
+                Exception,
+                match="too large for current baked samples length",
+        ):
+            b.play_at(
+                "Op2", "qe2", t=-6
+            )  # t indicates the time index where these new samples should be added
+            # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+            #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+
+
+def test_negative_wait_too_large(config):
+    cfg = deepcopy(config)
+    with baking(config=cfg, padding_method="symmetric_r") as b:
+        const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
+        const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
+        b.add_op("Op1", "qe2", [const_Op, const_Op2])  # qe1 is a mixInputs element
+        Op3 = [0.1, 0.1, 0.1, 0.1]
+        Op4 = [0.1, 0.1, 0.1, 0.1]
+        b.add_op("Op2", "qe2", [Op3, Op4])
+        b.play("Op1", "qe2")
+        # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
+        #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
+        with pytest.raises(
+                Exception,
+                match="too large for current baked samples length",
+        ):
+            b.wait(-6, "qe2")
+            b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+            # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
+            #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
 
 
 def test_align_command(config):
@@ -285,6 +387,7 @@ def test_delete_samples_within_baking(config):
         b.play("Op2", "qe2")
         b.delete_samples(-100)
         assert b.get_current_length() == 600
+        assert b._qe_dict["qe2"]["time"] == 600
     assert b.get_op_length() == 600
 
     with baking(cfg) as b2:
@@ -292,18 +395,21 @@ def test_delete_samples_within_baking(config):
         b2.play("Op2", "qe2")
         b2.delete_samples(100)
         assert b2.get_current_length() == 100
+        assert b2._qe_dict["qe2"]["time"] == 100
     assert b2.get_op_length() == 100
 
-    with baking(cfg) as b2:
-        b2.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
-        b2.play("Op2", "qe2")
-        b2.delete_samples(100, 400)
-        assert b2.get_current_length() == 400
-    assert b2.get_op_length() == 400
+    with baking(cfg) as b3:
+        b3.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
+        b3.play("Op2", "qe2")
+        b3.delete_samples(100, 400)
+        assert b3.get_current_length() == 400
+        assert b3._qe_dict["qe2"]["time"] == 400
+    assert b3.get_op_length() == 400
 
-    with baking(cfg) as b2:
-        b2.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
-        b2.play("Op2", "qe2")
-        b2.delete_samples(-100, 400)
-        assert b2.get_current_length() == 600
-    assert b2.get_op_length() == 600
+    with baking(cfg) as b4:
+        b4.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
+        b4.play("Op2", "qe2")
+        b4.delete_samples(-100, 400)
+        assert b4.get_current_length() == 600
+        assert b4._qe_dict["qe2"]["time"] == 600
+    assert b4.get_op_length() == 600

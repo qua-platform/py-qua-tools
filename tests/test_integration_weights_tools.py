@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-from qualang_tools import *
+from qualang_tools.config import convert_integration_weights
 
 
 def abs_path_to(rel_path: str) -> str:
@@ -13,7 +13,7 @@ def abs_path_to(rel_path: str) -> str:
 
 
 def test_validity_arbitrary_integration_weights():
-    weights_before = np.load(abs_path_to("iw1_cos1.npy"))
+    weights_before = np.load(abs_path_to("iw1_cos1.npy")).tolist()
     weights_after = convert_integration_weights(weights_before, N=len(weights_before))
     ii = 0
     for i in range(len(weights_after) // 4):
@@ -24,6 +24,6 @@ def test_validity_arbitrary_integration_weights():
 
 
 def test_compression_arbitrary_integration_weights():
-    weights_before = np.load(abs_path_to("iw1_cos1.npy"))
+    weights_before = np.load(abs_path_to("iw1_cos1.npy")).tolist()
     weights_after = convert_integration_weights(weights_before, N=500)
     assert sum([i[1] for i in weights_after]) == 4 * len(weights_before)
