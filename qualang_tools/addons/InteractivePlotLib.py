@@ -1,8 +1,6 @@
 import inspect
 from scipy import optimize
 import glob
-from PIL import ImageGrab
-from io import BytesIO
 import os
 import datetime
 from IPython import get_ipython
@@ -1008,7 +1006,6 @@ class InteractivePlotLibFigure:
             return self_text.is_done
 
         def react_to_key_press(self_text, key):
-            # print(self_text.first_key_stroke)
             if key == "enter":
                 if (
                     len(self_text.text) > 0 and self_text.text[0] == ":"
@@ -1301,22 +1298,6 @@ class Document:
         dill.dump(h, open(path + ".pkl", "wb"))
 
         self.generate_csv_data(h, path)
-
-        image = ImageGrab.grab()
-        output = BytesIO()
-        mngr = plt.get_current_fig_manager()
-        rect = mngr.window.geometry().getRect()
-        image = image.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
-
-        image.convert("RGB").save(output, "BMP")
-        data = output.getvalue()[14:]
-        output.close()
-        clip.OpenClipboard()
-        clip.EmptyClipboard()
-        clip.SetClipboardData(win32con.CF_DIB, data)
-        clip.CloseClipboard()
-        # plt.pause(1)
-        # r.remove()
         return path
 
     def generate_csv_data(self, fig, path):
@@ -1538,7 +1519,6 @@ class SingleFit:
 
         xlim = plt.gca().get_xlim()
         ylim = plt.gca().get_ylim()
-        # (l2,) = plt.plot(points_of_interest_x, points_of_interest_y, ".r")
         self.fit_line_markers_obj = []
         for x, y in zip(points_of_interest_x, points_of_interest_y):
             self.fit_line_markers_obj.append(Marker(plt.gca(), [x, y], color=".r"))
@@ -1563,7 +1543,6 @@ class SingleFit:
         (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
         self.fit_line_obj = l
         setattr(self.fit_line_obj, "InteractivePlotLib_Type", "Fit")
-        # self.parms = self.Fit_parms(
         self.x = x_data
         self.y = y_data
         self.yf = self.fit_func(x_data)
@@ -1709,7 +1688,6 @@ class SingleFit:
         (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
         self.fit_line_obj = l
         setattr(self.fit_line_obj, "InteractivePlotLib_Type", "Fit")
-        # self.parms = self.Fit_parms(
         self.x = x_data
         self.y = y_data
         self.yf = self.fit_func(x_data)
@@ -1718,7 +1696,6 @@ class SingleFit:
         self.x_scale = output[1]
         self.y_scale = output[3]
         self.y_mid = self.fit_func(0)
-        # )
         points_of_interest_x = np.hstack([self.x_shift, 0])
         points_of_interest_y = np.hstack(
             [self.fit_func(self.x_shift), self.fit_func(0)]
