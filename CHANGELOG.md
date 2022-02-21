@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- Interactive Plotting Toolbox - Fixed several small issues when loading a figure 
+### Added
+- Interactive Plotting Toolbox - Added default markers when fitting 
+- Interactive Plotting Toolbox - Improved example and added a demo video 
 
 ## [0.7.0]
 ### Added
