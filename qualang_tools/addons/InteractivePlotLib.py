@@ -1123,7 +1123,7 @@ class Marker:
         try:
             self_marker.point.remove()
             self_marker.text.remove()
-        except:
+        except BaseException:
             pass
 
     def __del__(self_marker):
