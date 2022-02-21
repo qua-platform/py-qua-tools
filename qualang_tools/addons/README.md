@@ -11,6 +11,9 @@ To use, you need to install the package using `pip instal qualang_tools[interplo
 > **_Note:_** It is currently experimental and only supports win32 with IPython.
 
 ## Example
+
+[![Example Video](InteractivePlotLib_demonstration.png)](https://www.youtube.com/watch?v=LaaNTySw1fY "Example Video")
+
 ```python
 from qualang_tools.addons.InteractivePlotLib import InteractivePlotLib 
 import numpy as np
