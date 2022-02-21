@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 
-class Port:
+class Port(object):
     def __init__(self, controller: str, port_id: int, offset: float = 0) -> None:
         self.info = (controller, port_id)
         self.offset = offset
@@ -50,7 +50,7 @@ class DigitalOutputPort(Port):
         super().__init__(controller, port_id, offset)
 
 
-class Waveform:
+class Waveform(object):
     def __init__(self, name: str, dictionary: Dict[str, Any]):
         """A waveform played by the QOP
 
@@ -63,7 +63,7 @@ class Waveform:
         self.dict = dictionary
 
 
-class Pulse:
+class Pulse(object):
     def __init__(self, name: str, wfs: List[Waveform], operation: str, length: int):
         """A an analog pulse
 
@@ -95,13 +95,13 @@ class Pulse:
         return [wf.name for wf in self.wfs]
 
 
-class Operation:
+class Operation(object):
     def __init__(self, pulse: Pulse, name: str = ""):
         self.pulse = pulse
         self.name = pulse.name if name == "" else name
 
 
-class IntegrationWeights:
+class IntegrationWeights(object):
     def __init__(self, name: str, cosine: List, sine: List):
         """A vector of integration weights used in integration and demodulation
 
@@ -118,13 +118,13 @@ class IntegrationWeights:
         self.dict["sine"] = sine
 
 
-class Weights:
+class Weights(object):
     def __init__(self, weights: IntegrationWeights, name: str = ""):
         self.name = weights.name if name == "" else name
         self.weights = weights
 
 
-class DigitalSample:
+class DigitalSample(object):
     def __init__(self, state: int, duration: int):
         """A sample to describe digital waveform
 
@@ -138,7 +138,7 @@ class DigitalSample:
         self.duration = duration
 
 
-class Matrix2x2:
+class Matrix2x2(object):
     def __init__(self, data: List[List[float]]):
         """A correction matrix for the IQ mixer
 
@@ -151,7 +151,7 @@ class Matrix2x2:
         self.data = data
 
 
-class AnalogOutputFilter:
+class AnalogOutputFilter(object):
     def __init__(self, feedback: List[float], feedforward: List[float]):
         """A filter applied to the analog output ports
 

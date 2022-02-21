@@ -4,7 +4,7 @@ from qualang_tools.config.primitive_components import *
 from qualang_tools.config.exceptions import ConfigurationError
 
 
-class Controller:
+class Controller(object):
     def __init__(
         self,
         name: str,
@@ -282,10 +282,13 @@ class MeasurePulse(Pulse):
 
     def _add(self, w: Union[Weights, DigitalWaveform]):
         if isinstance(w, Weights):
-            if isinstance(w.weights, ConstantIntegrationWeights):
-                assert w.weights.dict["cosine"][0][1] == self.dict["length"]
-            else:
-                assert len(w.weights.dict["sine"]) == self.dict["length"] // 4
+            if callable(self.dict):
+                if isinstance(w.weights, ConstantIntegrationWeights):
+                    if not w.weights.dict["cosine"][0][1] != self.dict["length"]:
+                        assert w.weights.dict["cosine"][0][1]() == self.dict["length"]()
+
+                else:
+                    assert len(w.weights.dict["sine"]) == self.dict["length"] // 4
             self.integration_weights.append(w)
         elif isinstance(w, DigitalWaveform):
             self.digital_marker = w
@@ -304,7 +307,7 @@ class ControlPulse(Pulse):
         return self
 
 
-class Mixer:
+class Mixer(object):
     def __init__(
         self,
         name: str,
@@ -356,7 +359,7 @@ class Mixer:
         self.dict["correction"] = list(correction.data[0] + correction.data[1])
 
 
-class Element:
+class Element(object):
     def __init__(
         self,
         name: str,
@@ -964,7 +967,7 @@ class FluxTunableTransmon(Transmon):
 
 class Coupler(ElementCollection):
     def __init__(self, name: str, p: AnalogOutputPort):
-        coupler = Element(name, analog_output_ports=[p])
+        coupler = Element(name, analog_input_ports=[p])
         super().__init__(name=name, elements=[coupler])
 
     def _add(self, op: Operation):
@@ -992,7 +995,7 @@ class Coupler(ElementCollection):
         self.elements[0].analog_output_ports[0] = p
 
 
-class Oscillator:
+class Oscillator(object):
     def __init__(
         self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
     ):

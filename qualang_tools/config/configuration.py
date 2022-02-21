@@ -1,6 +1,8 @@
 import copy
 from typing import List, Dict
 
+from numpy import isin
+
 from qualang_tools.config.primitive_components import *
 from qualang_tools.config.components import *
 from qualang_tools.config.parameters import *
@@ -19,7 +21,9 @@ class QMConfiguration:
         self.config["version"] = 1
         self.config["controllers"] = dict()
         for cont in controllers:
-            self.config["controllers"][cont.name] = cont.dict
+            self.config["controllers"][cont.name] = self._call_dict_parameters(
+                cont.dict
+            )
         self.config["elements"] = dict()
         self.config["pulses"] = dict()
         self.config["waveforms"] = dict()
@@ -42,7 +46,41 @@ class QMConfiguration:
                 _dic = copy.deepcopy(dic)
                 for (k, v) in _dic.items():
                     if iscallable(v):
-                        _dic[k] = v()
+                        if isinstance(v, dict):
+                            _dic[k] = self._call_dict_parameters(v)
+                        else:
+                            _dic[k] = v()
+                return _dic
+        return dic
+
+    def _call_weights_dict(self, dic: Dict):
+        if iscallable(dic):
+            if not isparametric(dic):
+                _dic = copy.deepcopy(dic)
+                for (k, v) in _dic.items():
+                    if isinstance(_dic["cosine"][0], tuple):
+                        val = _dic["cosine"][0][0]
+                        if iscallable(_dic["cosine"][0][0]):
+                            val = _dic["cosine"][0][0]()
+                        dur = _dic["cosine"][0][1]
+                        if iscallable(_dic["cosine"][0][1]):
+                            dur = _dic["cosine"][0][1]()
+                        _dic["cosine"][0] = (val, dur)
+
+                    if isinstance(_dic["sine"][0], tuple):
+                        val = _dic["sine"][0][0]
+                        if iscallable(_dic["sine"][0][0]):
+                            val = _dic["sine"][0][0]()
+                        dur = _dic["sine"][0][1]
+                        if iscallable(_dic["sine"][0][1]):
+                            dur = _dic["sine"][0][1]()
+                        _dic["sine"][0] = (val, dur)
+
+                    elif iscallable(_dic["cosine"]):
+                        _dic["cosine"] = _dic["cosine"]()
+
+                        if iscallable(_dic["sine"]):
+                            _dic["sine"] = _dic["sine"]()
                 return _dic
         return dic
 
@@ -67,14 +105,15 @@ class QMConfiguration:
             _dict["digital_marker"] = pulse.digital_marker.name
             self.config["digital_waveforms"][
                 pulse.digital_marker.name
-            ] = pulse.digital_marker.dict
+            ] = self._call_dict_parameters(pulse.digital_marker.dict)
         if isinstance(pulse, MeasurePulse):
-            _dict["digital_marker"] = {}
             _dict["integration_weights"] = dict()
             for w in pulse.integration_weights:
                 _dict["integration_weights"][w.name] = w.weights.name
-                self.config["integration_weights"][w.weights.name] = w.weights.dict
-        self.config["pulses"][pulse.name] = _dict
+                self.config["integration_weights"][
+                    w.weights.name
+                ] = self._call_weights_dict(w.weights.dict)
+        self.config["pulses"][pulse.name] = self._call_dict_parameters(_dict)
 
     def add_pulses(self, pulses: List[Pulse]):
         """Add a list of Pulses to this configuration
@@ -92,10 +131,12 @@ class QMConfiguration:
         :type elm: Element
         """
         # check if input/output ports belong to the controller
-        self.config["elements"][elm.name] = elm.dict
+        self.config["elements"][elm.name] = self._call_dict_parameters(elm.dict)
         if elm.type == "mixInputs":
             if elm.mixer is not None:
-                self.config["mixers"][elm.mixer.name] = [elm.mixer.dict]
+                self.config["mixers"][elm.mixer.name] = [
+                    self._call_dict_parameters(elm.mixer.dict)
+                ]
         self.add_pulses(elm.pulses)
 
     def update_pulse(self, elm_name: str, pulse: Pulse):
@@ -122,7 +163,9 @@ class QMConfiguration:
         assert self.config["pulses"][pulse_name]["operation"] == "measure"
         assert len(self.config["pulses"][pulse_name]["waveforms"].keys()) == 2
         weight_name = pulse_name + "_weight"
-        self.config["integration_weights"][weight_name] = iw.dict
+        self.config["integration_weights"][weight_name] = self._call_dict_parameters(
+            iw.dict
+        )
 
     def update_constant_waveform(self, wf_name: str, amp: float):
         """Update the amplitude of an existing constant waveform
@@ -204,7 +247,9 @@ class QMConfiguration:
         :param weight: an IntegrationWeights object
         :type weight: IntegrationWeights
         """
-        self.config["integration_weights"][weight.name] = weight.dict
+        self.config["integration_weights"][weight.name] = self._call_dict_parameters(
+            weight.dict
+        )
 
     def add_mixer(self, mixer: Mixer):
         """Add a mixer to this configuration
@@ -212,7 +257,7 @@ class QMConfiguration:
         :param mixer: A Mixer object
         :type mixer: Mixer
         """
-        self.config["mixers"][mixer.name] = [mixer.dict]
+        self.config["mixers"][mixer.name] = [self._call_dict_parameters(mixer.dict)]
 
     def add_oscillator(self, oscillator: Oscillator):
         """Add an oscillator to this configuration
@@ -220,4 +265,6 @@ class QMConfiguration:
         :param oscillator: an Oscillator object
         :type oscillator: Oscillator
         """
-        self.config["oscillators"][oscillator.name] = oscillator.dict
+        self.config["oscillators"][oscillator.name] = self._call_dict_parameters(
+            oscillator.dict
+        )
