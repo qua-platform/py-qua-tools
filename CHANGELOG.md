@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Fixed
-- Interactive Plotting Toolbox - Fixed several small issues when loading a figure 
+- Interactive Plotting Toolbox - Fixed several small issues when loading a figure
+- Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown. 
 ### Added
 - Interactive Plotting Toolbox - Added default markers when fitting 
 - Interactive Plotting Toolbox - Improved example and added a demo video 
