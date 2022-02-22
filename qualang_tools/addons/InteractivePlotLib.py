@@ -1,8 +1,6 @@
 import inspect
 from scipy import optimize
 import glob
-from PIL import ImageGrab
-from io import BytesIO
 import os
 import datetime
 from IPython import get_ipython
@@ -54,7 +52,8 @@ class InteractivePlotLib:
             fig = plt.figure()
         else:
             fig = plt.figure(ind)
-        plt.axes()
+        if len(fig.axes) == 0:
+            plt.axes()
         self.figs[fig.number] = InteractivePlotLibFigure(fig, self.doc, self)
         return fig
 
@@ -68,6 +67,8 @@ class InteractivePlotLib:
             for t in h.axes[0].texts:
                 if len(t.get_text()) > 5 and t.get_text()[:5] == "Scan ":
                     t.remove()
+            plt.show()
+            plt.pause(1e-6)
         return out
 
 
@@ -194,9 +195,13 @@ class InteractivePlotLibFigure:
                 if event.key == "alt+f":
                     self.remove_fit()
 
-                if event.key == "s":
+                if event.key == "shift+s" or event.key == "S":
                     if self.doc.doc:
                         self.doc.doc(list(self.master_obj.figs.keys()))
+
+                if event.key == "s":
+                    if self.doc.doc:
+                        self.doc.doc([plt.gcf().number])
 
                 if self.line_selected:
 
@@ -303,6 +308,9 @@ class InteractivePlotLibFigure:
             )
 
     def remove_fit(self):
+        if hasattr(self.ax, "fit_markers"):
+            for marker in self.ax.fit_markers:
+                marker.remove()
         lines = self.ax.get_lines()
         for line in lines:
             if hasattr(line, "InteractivePlotLib_Type") and (
@@ -377,9 +385,7 @@ class InteractivePlotLibFigure:
             self_line.alive = True
             self_line.click_xy = xy
             if sup_self.marker_mode:
-                sup_self.marker_list[-1] = InteractivePlotLibFigure.Marker(
-                    sup_self.ax, self_line.click_xy
-                )
+                sup_self.marker_list[-1] = Marker(sup_self.ax, self_line.click_xy)
 
         def emphasize_line_width(self_line):
             if self_line.obj.get_linestyle() == "None":
@@ -1000,7 +1006,6 @@ class InteractivePlotLibFigure:
             return self_text.is_done
 
         def react_to_key_press(self_text, key):
-            # print(self_text.first_key_stroke)
             if key == "enter":
                 if (
                     len(self_text.text) > 0 and self_text.text[0] == ":"
@@ -1058,6 +1063,7 @@ class InteractivePlotLibFigure:
 
     class TextObj:
         def __init__(self_textobj, ax, loc, text="", ha="left", va="top"):
+            print(loc)
             self_textobj.text_obj = ax.text(
                 loc[0],
                 loc[1],
@@ -1088,28 +1094,40 @@ class InteractivePlotLibFigure:
                 ax, (max(ax.get_xlim()), max(ax.get_ylim())), text, ha="right"
             )
 
-    class Marker:
-        def __init__(self_marker, ax, loc, text=""):
-            if not text:
-                x_text = (
-                    f"{loc[0]:0.3f}"
-                    if ((np.abs(loc[0]) > 1e-2) and (np.abs(loc[0]) < 1e2))
-                    else f"{loc[0]:0.2e}"
-                )
-                y_text = (
-                    f"{loc[1]:0.3f}"
-                    if ((np.abs(loc[1]) > 1e-2) and (np.abs(loc[1]) < 1e2))
-                    else f"{loc[1]:0.2e}"
-                )
-                text = f"[{x_text},{y_text}]"
-            self_marker.text = InteractivePlotLibFigure.TextObj(
-                ax, loc, text, "left", "bottom"
-            )
-            (self_marker.point,) = ax.plot(loc[0], loc[1], ".g")
-            setattr(self_marker.point, "InteractivePlotLib_Type", "Marker")
 
-        def __del__(self_marker):
+class Marker:
+    def __init__(self_marker, ax, loc, text="", color=".g"):
+        if not text:
+            x_text = (
+                f"{loc[0]:0.3f}"
+                if ((np.abs(loc[0]) > 1e-2) and (np.abs(loc[0]) < 1e2))
+                else f"{loc[0]:0.2e}"
+            )
+            y_text = (
+                f"{loc[1]:0.3f}"
+                if ((np.abs(loc[1]) > 1e-2) and (np.abs(loc[1]) < 1e2))
+                else f"{loc[1]:0.2e}"
+            )
+            text = f"[{x_text},{y_text}]"
+        self_marker.text = InteractivePlotLibFigure.TextObj(
+            ax, loc, text, "left", "bottom"
+        )
+        self_marker.text.text_obj.set_bbox(
+            dict(facecolor="white", alpha=0.5, edgecolor="none")
+        )
+        (self_marker.point,) = ax.plot(loc[0], loc[1], color)
+        setattr(self_marker.point, "InteractivePlotLib_Type", "Marker")
+        plt.pause(0.001)
+
+    def remove(self_marker):
+        try:
             self_marker.point.remove()
+            self_marker.text.remove()
+        except BaseException:
+            pass
+
+    def __del__(self_marker):
+        self_marker.remove()
 
 
 class Document:
@@ -1280,22 +1298,6 @@ class Document:
         dill.dump(h, open(path + ".pkl", "wb"))
 
         self.generate_csv_data(h, path)
-
-        image = ImageGrab.grab()
-        output = BytesIO()
-        mngr = plt.get_current_fig_manager()
-        rect = mngr.window.geometry().getRect()
-        image = image.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
-
-        image.convert("RGB").save(output, "BMP")
-        data = output.getvalue()[14:]
-        output.close()
-        clip.OpenClipboard()
-        clip.EmptyClipboard()
-        clip.SetClipboardData(win32con.CF_DIB, data)
-        clip.CloseClipboard()
-        # plt.pause(1)
-        # r.remove()
         return path
 
     def generate_csv_data(self, fig, path):
@@ -1353,7 +1355,6 @@ class Fit:
         if type(fit_type) == int:
             self.res = {
                 "fit_type": [],
-                "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1371,7 +1372,6 @@ class Fit:
         elif fit_type.__code__.co_argcount == 2:
             self.res = {
                 "fit_type": [],
-                "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1382,7 +1382,6 @@ class Fit:
         else:
             self.res = {
                 "fit_type": [],
-                "ax": [],
                 "fit_func": [],
                 "x": [],
                 "y": [],
@@ -1408,7 +1407,6 @@ class Fit:
             if not single_fit.ok:
                 continue
             self.res["fit_type"].append(single_fit.fit_type)
-            self.res["ax"].append(single_fit.ax)
             self.res["fit_func"].append(single_fit.fit_func)
             self.res["x"].append(single_fit.x)
             self.res["y"].append(single_fit.y)
@@ -1439,6 +1437,8 @@ class Fit:
             setattr(single_fit.fit_line_obj, "y_original", lines[i].get_ydata())
 
         setattr(self.ax, "fit", self.res)
+        if hasattr(single_fit, "fit_line_markers_obj"):
+            setattr(self.ax, "fit_markers", single_fit.fit_line_markers_obj)
         setattr(_main_module, "fit", self.res)
 
     def __repr__(self):
@@ -1519,14 +1519,16 @@ class SingleFit:
 
         xlim = plt.gca().get_xlim()
         ylim = plt.gca().get_ylim()
-        (l2,) = plt.plot(points_of_interest_x, points_of_interest_y, ".r")
-        self.fit_line_markers_obj = l2
-        setattr(self.fit_line_markers_obj, "InteractivePlotLib_Type", "Fit_markers")
-        setattr(
-            self.fit_line_markers_obj,
-            "InteractivePlotLib_Fit_Parent",
-            self.fit_line_obj,
-        )
+        self.fit_line_markers_obj = []
+        for x, y in zip(points_of_interest_x, points_of_interest_y):
+            self.fit_line_markers_obj.append(Marker(plt.gca(), [x, y], color=".r"))
+        for marker in self.fit_line_markers_obj:
+            setattr(marker.point, "InteractivePlotLib_Type", "Fit_markers")
+            setattr(
+                marker.point,
+                "InteractivePlotLib_Fit_Parent",
+                self.fit_line_obj,
+            )
         plt.gca().set_xlim(xlim)
         plt.gca().set_ylim(ylim)
 
@@ -1541,7 +1543,6 @@ class SingleFit:
         (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
         self.fit_line_obj = l
         setattr(self.fit_line_obj, "InteractivePlotLib_Type", "Fit")
-        # self.parms = self.Fit_parms(
         self.x = x_data
         self.y = y_data
         self.yf = self.fit_func(x_data)
@@ -1687,7 +1688,6 @@ class SingleFit:
         (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
         self.fit_line_obj = l
         setattr(self.fit_line_obj, "InteractivePlotLib_Type", "Fit")
-        # self.parms = self.Fit_parms(
         self.x = x_data
         self.y = y_data
         self.yf = self.fit_func(x_data)
@@ -1696,7 +1696,6 @@ class SingleFit:
         self.x_scale = output[1]
         self.y_scale = output[3]
         self.y_mid = self.fit_func(0)
-        # )
         points_of_interest_x = np.hstack([self.x_shift, 0])
         points_of_interest_y = np.hstack(
             [self.fit_func(self.x_shift), self.fit_func(0)]
