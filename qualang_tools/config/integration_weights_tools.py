@@ -79,29 +79,29 @@ def compress_integration_weights(integration_weights, N=100, plot=False):
     )
     if plot:
         plt.figure()
-        plot_integration_weights(integration_weights_before)
-        plot_integration_weights(integration_weights)
+        plot_integration_weights(integration_weights_before, label="Original")
+        plot_integration_weights(integration_weights, label="Compressed")
+        plt.show()
     return integration_weights
 
 
-def plot_integration_weights(integration_weights):
+def plot_integration_weights(integration_weights, label=None):
     """
     Plot the integration weights in units of ns, receives the integration weights in both formats
 
     :param integration_weights: The integration_weights to be plotted.
+    :param str label: The label of the integration_weights.
     """
 
     if isinstance(integration_weights[0], tuple):
         a = [[i[0]] * i[1] for i in integration_weights]
         unpacked_weights = sum(a, start=[])
-        label = "Converted"
     elif isinstance(integration_weights[0], float):
         a = [[i] * 4 for i in integration_weights]
         unpacked_weights = sum(a, start=[])
-        label = "Original"
     else:
         raise Exception("Unknown input")
 
     plt.plot(unpacked_weights, label=label)
-    plt.legend()
-    plt.show()
+    if label is not None:
+        plt.legend()
