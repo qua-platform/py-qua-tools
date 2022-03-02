@@ -41,7 +41,7 @@ Coding tips to avoid [merge conflicts](https://docs.github.com/en/pull-requests/
 
 Code standard guidelines:
 1. When you are ready to merge your code into the main repository, you need to make sure that all of your commits and commit messages are good and descriptive. You can always squash your commits into a few (or a single) commits.
-2. We use [black](https://pypi.org/project/black/) to make sure that our code is standardized. Format your code before opening the PR by first install black:```pip install black``` and then type in the terminal ```black .``` (At the root of the repository)
+2. We use [black](https://pypi.org/project/black/) to make sure that our code is standardized. Format your code before opening the PR by first install black:```pip install black``` and then type in the terminal ```black .\qualang_tools\``` (At the root of the repository)
 3. When adding new features, add appropriate tests to the test folder that checks the validity of the tools/features.
     
     Note: If you're not sure how to write tests or which test to write, just leave it to us. 
