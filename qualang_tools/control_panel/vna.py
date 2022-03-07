@@ -68,7 +68,7 @@ class VNA:
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output port of the element (defined in the configuration)
-        :param int_weights:  name of the integration weigths used for integration
+        :param int_weights:  name of the integration weights used for integration
         :return: None
         """
         self.measurements.append(
@@ -87,7 +87,7 @@ class VNA:
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output port of the element (defined in the configuration). For instance outputs="out1"
-        :param int_weights: name of the integration weigths used for integration. For instance int_weights="Wc"
+        :param int_weights: name of the integration weights used for integration. For instance int_weights="Wc"
         :return: None
         """
         # Check inputs errors
@@ -99,7 +99,7 @@ class VNA:
                 self.config["elements"][self.element]["operations"][self.operation]
             ]["integration_weights"]
         ):
-            raise KeyError(f"Integration weigths '{int_weights}' is not in the config")
+            raise KeyError(f"Integration weights '{int_weights}' is not in the config")
         elif not (measurement in ["S11", "S21"]):
             raise KeyError(
                 f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
@@ -114,7 +114,7 @@ class VNA:
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output port of the element (defined in the configuration). for instance: outputs="out1"
-        :param int_weights: names of the integration weigths used for integration. For instance int_weights=["Wc", "Ws"]
+        :param int_weights: names of the integration weights used for integration. For instance int_weights=["Wc", "Ws"]
         :return: None
         """
         # Check inputs errors
@@ -146,7 +146,7 @@ class VNA:
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output ports of the element (defined in the configuration). For instance out=["out1", "out2"]
-        :param int_weights: names of the integration weigths used for integration. for instance int_weights=[["Wc", "Ws"], ["-Ws", "Wc"]]
+        :param int_weights: names of the integration weights used for integration. for instance int_weights=[["Wc", "Ws"], ["-Ws", "Wc"]]
         :return: None
         """
         # Check inputs errors
@@ -645,12 +645,13 @@ class VNA:
                 plt.subplot(211)
                 plt.title(f"Spectroscopy of '{self.element}'")
                 plt.plot(self.results[ss]["f"] / 1e6, self.results[ss]["S"], label=ss)
-                plt.ylabel(r"$\\sqrt{I^2+Q^2}$ [V]")
+                plt.ylabel(r"$\sqrt{I^2+Q^2}$ [V]")
                 plt.legend()
                 plt.subplot(212)
                 plt.plot(
                     self.results[ss]["f"] / 1e6, self.results[ss]["phase"], label=ss
                 )
                 plt.ylabel("phase [rad]")
+                plt.xlabel("Frequency [Hz]")
                 plt.legend()
         plt.show()
