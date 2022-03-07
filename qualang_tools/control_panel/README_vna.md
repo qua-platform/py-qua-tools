@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This module allows to configure the OPX as a VNA for a given quantum element (readout resonator for instance) and 
+This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and 
 operation (readout pulse for instance) already defined in the configuration. Once created, it has an API for 
 defining which measurements are to be run depending on the downconversion solution used (ED: envolope detector, 
 IR: image rejection mixer, IQ: IQ mixer).
@@ -10,8 +10,8 @@ IR: image rejection mixer, IQ: IQ mixer).
 ## Usage Example
 
 ### Initializing the VNA and set up a S-parameter measurement
-This opens up a VNA using an existing configuration and initializes it for the quantum element _qe_ and operation _op_. 
-If the quantum element is a resonator, then its quality factor _Q_ can be specified for estimating its relaxation time.
+This opens up a VNA using an existing configuration and initializes it for the element _element_ and operation _op_. 
+If the element is a resonator, then its quality factor _Q_ can be specified for estimating its relaxation time.
 VNA measurements can then be added using the _add_ED()_ (envelope detector), _add_IR()_ (image rejection mixer) and 
 _add_IQ()_
 (IQ mixer) methods depending on the downconversion device used.
@@ -21,8 +21,8 @@ These data can then be plotted using the _plot_all()_ method.
 ```python
 from configuration import *
 from vna import VNA
-# This initializes the VNA for the quantum element 'res' and operation 'readout'
-vna_mode = VNA(config, qe="res", op="readout", Q=10000)
+# This initializes the VNA for the element 'res' and operation 'readout'
+vna_mode = VNA(config, element="res", op="readout", Q=10000)
 # This adds S11 and S12 measurements using IR mixers
 vna_mode.add_IR(measurement="S11", outputs="out1", int_weights=["Wc", "Ws"])
 vna_mode.add_IR(measurement="S21", outputs="out2", int_weights=["Wc", "Ws"])
@@ -38,7 +38,7 @@ vna_mode.plot_all()
 ```
 
 ### Set-up the spectrum analyzer mode
-The program below opens up a VNA using an existing configuration and initializes it for the quantum element _qe_ and 
+The program below opens up a VNA using an existing configuration and initializes it for the element _element_ and 
 operation _op_.
 A spectrum analyzer measurement is added, which will display the temporal trace and fft of the measured signal.
 The results (frequency, raw and fft data) are stored into the dictionary _vna_mode.results['SA']_.
@@ -46,8 +46,8 @@ The results (frequency, raw and fft data) are stored into the dictionary _vna_mo
 ```python
 from configuration import *
 from vna import VNA
-# This initializes the VNA for the quantum element 'res' and operation 'readout'
-vna_mode = VNA(config, qe="res", op="fake_readout")
+# This initializes the VNA for the element 'res' and operation 'readout'
+vna_mode = VNA(config, element="res", op="fake_readout")
 # This adds a spectrum analyzer measurements
 vna_mode.add_spectrum_analyzer(bandwidth=1e5)
 # This runs the two measurements simultaneously with averaging over a 100 iterations 
@@ -56,15 +56,15 @@ vna_mode.plot_all()
 ```
 
 ## List of functions
-* ```vna_mode = VNA(config, qe, op, Q=None)``` - Gets a QUA configuration, a corresponding quantum element and an associated 
+* ```vna_mode = VNA(config, element, operation, Q=None)``` - Gets a QUA configuration, a corresponding element and an associated 
 operation and creates one quantum machine behaving like a VNA.
   * config - A python dictionary containing the QUA configuration.
-  * qe - Quantum element, defined in the configuration, used for subsequent measurements ('readout_res' for example).
-  * op - Operation, defined in the configuration and associated to the quantum element, used to perform subsequent 
+  * element - element, defined in the configuration, used for subsequent measurements ('readout_res' for example).
+  * operation - Operation, defined in the configuration and associated to the element, used to perform subsequent 
   measurements ('readout_pulse' for example). 
   * Q - Quality factor of the resonator under study used to estimate its relaxation time.
 * ```add_spectrum_analyzer(bandwidth)``` - Adds a spectrum analyzer measurement to the vna_mode, that will acquire
-raw signals outputed by the quantum element and derive its FFT. The correponding results are stored in the dictionary
+raw signals outputed by the element and derive its FFT. The correponding results are stored in the dictionary
 my_vna.results['SA'] with the following keys: 'f' for the frequency in Hz, 'raw' for the raw ADC data in V and 'fft' for
 the corresponding FFT in V.
   * bandwidth - Measurement bandwidth defining the measurement pulse duration as pulse_length = 2/bandwidth 
@@ -74,7 +74,7 @@ downconversion is made with an envelope detector. The correponding results are s
 my_vna.results[measurement] with the following keys: 'f' for the frequency in Hz, 'S' for the S magnitude in V and 
 'phase' for the S phase in rad.
   * measurement - Measurement type, can be either 'S11' or 'S21'.
-  * outputs - Name of the quantum element output port, as defined in the configuration, used for this measurement 
+  * outputs - Name of the element output port, as defined in the configuration, used for this measurement 
   ('out1' for example).
   * int_weights - Integration weights for the corresponding operation, as defined in the configuration ('Wc' for example).
 * ```add_IR(measurement, outputs, int_weights)``` - Adds a S-parameter measurement to the vna_mode in the case where an
@@ -82,7 +82,7 @@ downconversion is made with an image rejection mixer. The correponding results a
 my_vna.results[measurement] with the following keys: 'f' for the frequency in Hz, 'S' for the S magnitude in V and 
 'phase' for the S phase in rad.
   * measurement - Measurement type, can be either 'S11' or 'S21'.
-  * outputs - Name of the quantum element output port, as defined in the configuration, used for this measurement 
+  * outputs - Name of the element output port, as defined in the configuration, used for this measurement 
   ('out1' for example).
   * int_weights - list of integration weights for the corresponding operation, as defined in the configuration 
   (['Wc','Ws'] for example).
@@ -91,7 +91,7 @@ downconversion is made with an IQ mixer. The correponding results are stored in 
 my_vna.results[measurement] with the following keys: 'f' for the frequency in Hz, 'S' for the S magnitude in V and 
 'phase' for the S phase in rad.
   * measurement - Measurement type, can be either 'S11' or 'S21'.
-  * outputs - List of the quantum element output ports, as defined in the configuration, used for this measurement 
+  * outputs - List of the element output ports, as defined in the configuration, used for this measurement 
   (["out1", "out2"] for example).
   * int_weights - 2D list of integration weights for the corresponding operation, as defined in the configuration 
   ([["Wc", "Ws"], ["-Ws", "Wc"]] for example).

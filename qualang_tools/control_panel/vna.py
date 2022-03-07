@@ -12,28 +12,28 @@ class VNA:
         - Spectrum analyzer
     """
 
-    def __init__(self, config: dict, qe: str, op: str, Q: int = None):
+    def __init__(self, config: dict, element: str, operation: str, Q: int = None):
         """
         Gets a QUA configuration file and configure the OPX to perform VNA measurements.
 
         :param config: configuration file
-        :param qe: name of the quantum element to be measured (defined in the configuration)
-        :param op: name of the measurement operation associated to the qe (defined in the configuration)
+        :param element: name of the element to be measured (defined in the configuration)
+        :param operation: name of the measurement operation associated to the element (defined in the configuration)
         :param Q: value of the resonator quality factor for estimating the cavity relaxation time (optional).
         """
         # Check inputs errors
-        if not (qe in config["elements"]):
-            raise KeyError(f"Quantum element {qe} is not in the config")
-        elif not (op in config["elements"][qe]["operations"]):
-            raise KeyError(f"Operation {op} is not in the config")
+        if not (element in config["elements"]):
+            raise KeyError(f"element {element} is not in the config")
+        elif not (operation in config["elements"][element]["operations"]):
+            raise KeyError(f"Operation {operation} is not in the config")
 
         self.qmm = None
         self.config = config
-        self.qe = qe
-        self.op = op
+        self.element = element
+        self.operation = operation
         self.inputs = [
-            config["elements"][qe]["outputs"][out][1]
-            for out in config["elements"][qe]["outputs"].keys()
+            config["elements"][element]["outputs"][out][1]
+            for out in config["elements"][element]["outputs"].keys()
         ]
         print(self.inputs)
         if Q is not None:
@@ -42,7 +42,7 @@ class VNA:
                 / (
                     2
                     * np.pi
-                    * config["elements"][qe]["mixInputs"]["lo_frequency"]
+                    * config["elements"][element]["mixInputs"]["lo_frequency"]
                     * 1e-9
                 )
                 / 4
@@ -55,8 +55,8 @@ class VNA:
         self.results = {}
 
     def __str__(self):
-        s = f"\nVNA mode initialized for quantum element '{self.qe}'"
-        s += f" and operation '{self.op}'"
+        s = f"\nVNA mode initialized for element '{self.element}'"
+        s += f" and operation '{self.operation}'"
         s += f" with {len(self.measurements)} measurements:\n"
         for M in self.measurements:
             s += str(M) + "\n"
@@ -67,7 +67,7 @@ class VNA:
         Add measurement outputs and integration weights and initialize self.results.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
-        :param outputs: name of the output port of the qe (defined in the configuration)
+        :param outputs: name of the output port of the element (defined in the configuration)
         :param int_weights:  name of the integration weigths used for integration
         :return: None
         """
@@ -86,17 +86,17 @@ class VNA:
         Adds a S-measurement downconverted with an envelop detector.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
-        :param outputs: name of the output port of the qe (defined in the configuration). For instance outputs="out1"
+        :param outputs: name of the output port of the element (defined in the configuration). For instance outputs="out1"
         :param int_weights: name of the integration weigths used for integration. For instance int_weights="Wc"
         :return: None
         """
         # Check inputs errors
-        if not (outputs in self.config["elements"][self.qe]["outputs"]):
+        if not (outputs in self.config["elements"][self.element]["outputs"]):
             raise KeyError(f"Output '{outputs}' is not in the config")
         elif not (
             int_weights
             in self.config["pulses"][
-                self.config["elements"][self.qe]["operations"][self.op]
+                self.config["elements"][self.element]["operations"][self.operation]
             ]["integration_weights"]
         ):
             raise KeyError(f"Integration weigths '{int_weights}' is not in the config")
@@ -113,19 +113,19 @@ class VNA:
         Adds a S-measurement downconverted with an image rejection mixer.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
-        :param outputs: name of the output port of the qe (defined in the configuration). for instance: outputs="out1"
+        :param outputs: name of the output port of the element (defined in the configuration). for instance: outputs="out1"
         :param int_weights: names of the integration weigths used for integration. For instance int_weights=["Wc", "Ws"]
         :return: None
         """
         # Check inputs errors
-        if not (outputs in self.config["elements"][self.qe]["outputs"]):
+        if not (outputs in self.config["elements"][self.element]["outputs"]):
             raise KeyError(f"Output '{outputs}' is not in the config")
         elif not (
             all(
                 [
                     iw
                     in self.config["pulses"][
-                        self.config["elements"][self.qe]["operations"][self.op]
+                        self.config["elements"][self.element]["operations"][self.operation]
                     ]["integration_weights"]
                     for iw in int_weights
                 ]
@@ -145,7 +145,7 @@ class VNA:
         Adds a S-measurement downconverted with an IQ mixer.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
-        :param outputs: name of the output ports of the qe (defined in the configuration). For instance out=["out1", "out2"]
+        :param outputs: name of the output ports of the element (defined in the configuration). For instance out=["out1", "out2"]
         :param int_weights: names of the integration weigths used for integration. for instance int_weights=[["Wc", "Ws"], ["-Ws", "Wc"]]
         :return: None
         """
@@ -155,7 +155,7 @@ class VNA:
         if np.array(int_weights).shape != (2, 2):
             raise TypeError(f"Output '{int_weights}' must be a 2x2 list.")
         if not (
-            all([out in self.config["elements"][self.qe]["outputs"] for out in outputs])
+            all([out in self.config["elements"][self.element]["outputs"] for out in outputs])
         ):
             raise KeyError(f"Integration weights '{outputs}' are not in the config")
         elif not (
@@ -163,7 +163,7 @@ class VNA:
                 [
                     iw
                     in self.config["pulses"][
-                        self.config["elements"][self.qe]["operations"][self.op]
+                        self.config["elements"][self.element]["operations"][self.operation]
                     ]["integration_weights"]
                     for iw in np.array(int_weights).reshape(1, 4)[0]
                 ]
@@ -204,7 +204,7 @@ class VNA:
             adc_st = declare_stream(adc_trace=True)
 
             with for_(n, 0, n < n_avg, n + 1):
-                measure(self.op, self.qe, adc_st)
+                measure(self.operation, self.element, adc_st)
 
             with stream_processing():
                 if 1 in self.inputs:
@@ -283,14 +283,14 @@ class VNA:
                     f + freq_sweep["step"],
                 ):
                     # Wait 3 photons lifetime until the resonator relaxes to vacuum (clock cycles)
-                    wait(3 * self.relax_time, self.qe)
+                    wait(3 * self.relax_time, self.element)
                     # Update the IF
-                    update_frequency(self.qe, f, units="Hz")
+                    update_frequency(self.element, f, units="Hz")
                     # Measure and demodulate the transmitted signal
                     if sequence["down_converter"] == "ED":
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             integration.full(
                                 sequence["integration_weights"], I, sequence["outputs"]
@@ -299,8 +299,8 @@ class VNA:
 
                     elif sequence["down_converter"] == "IR":
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             demod.full(
                                 sequence["integration_weights"][0],
@@ -316,8 +316,8 @@ class VNA:
 
                     elif sequence["down_converter"] == "IQ":
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             dual_demod.full(
                                 sequence["integration_weights"][0][0],
@@ -373,7 +373,7 @@ class VNA:
                 * 4096
                 / (
                     self.config["pulses"][
-                        self.config["elements"][self.qe]["operations"][self.op]
+                        self.config["elements"][self.element]["operations"][self.operation]
                     ]["length"]
                 )
             )
@@ -415,17 +415,17 @@ class VNA:
                     f + freq_sweep["step"],
                 ):
                     # Wait 3 photons lifetime until the resonator relaxes to vacuum (clock cycles)
-                    wait(3 * self.relax_time, self.qe)
+                    wait(3 * self.relax_time, self.element)
                     # Update the IF
-                    update_frequency(self.qe, f, units="Hz")
+                    update_frequency(self.element, f, units="Hz")
                     # Measure and demodulate the transmitted signal
                     if (
                         self.measurements[0]["down_converter"] == "ED"
                         and self.measurements[1]["down_converter"] == "ED"
                     ):
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             integration.full(
                                 self.measurements[0]["integration_weights"],
@@ -444,8 +444,8 @@ class VNA:
                         and self.measurements[1]["down_converter"] == "IR"
                     ):
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             demod.full(
                                 self.measurements[0]["integration_weights"][0],
@@ -474,8 +474,8 @@ class VNA:
                         and self.measurements[1]["down_converter"] == "IQ"
                     ):
                         measure(
-                            self.op,
-                            self.qe,
+                            self.operation,
+                            self.element,
                             None,
                             dual_demod.full(
                                 self.measurements[0]["integration_weights"][0][0],
@@ -585,7 +585,7 @@ class VNA:
         if "spectrum_analyzer" in self.meas_list:
             print("Spectrum analyzer...")
             # update measurement pulse duration to match bandwidth
-            pulse = self.config["elements"][self.qe]["operations"][self.op]
+            pulse = self.config["elements"][self.element]["operations"][self.operation]
             self.config["pulses"][pulse]["length"] = self.calibration["SA"][
                 "pulse_length"
             ]
@@ -643,9 +643,9 @@ class VNA:
             else:
                 plt.figure(1002, figsize=(9, 8))
                 plt.subplot(211)
-                plt.title(f"Spectroscopy of '{self.qe}'")
+                plt.title(f"Spectroscopy of '{self.element}'")
                 plt.plot(self.results[ss]["f"] / 1e6, self.results[ss]["S"], label=ss)
-                plt.ylabel("$\sqrt{I^2+Q^2}$ [V]")
+                plt.ylabel(r"$\\sqrt{I^2+Q^2}$ [V]")
                 plt.legend()
                 plt.subplot(212)
                 plt.plot(
