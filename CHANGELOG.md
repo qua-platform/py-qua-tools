@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown.
+- various issues were fixed in config builder
+### Added
+- In interactive plotlib, Support for 2d plot, better data manipulation and better fits
+- config builder MeasurePulse now accepts IntegrationWeights object as well
+### Changed
+- All config builder objects can be initialized with all the data (but still can be built step by step)
+- config builder FluxTunableTransmon - parameter name changed from fl_port to flux_port
+- config builder Coupler - parameter name changed from p to port
+
 
 ## [0.8.0] - 2022-04-04
 ### Added

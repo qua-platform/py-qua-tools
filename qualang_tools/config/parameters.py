@@ -44,8 +44,7 @@ class ConfigVars(object):
             self.params[key].value = value
 
 
-def isparametric(obj):
-
+def _is_parametric(obj):
     if callable(obj):
         try:
             obj()
@@ -59,27 +58,27 @@ def isparametric(obj):
             _obj = getattr(obj, elm)
             if hasattr(_obj, "__dict__"):
                 for (k, v) in _obj.__dict__.items():
-                    if isparametric(v):
+                    if _is_parametric(v):
                         return True
             elif isinstance(_obj, dict):
                 for (k, v) in _obj.items():
-                    if isparametric(v):
+                    if _is_parametric(v):
                         return True
             elif isinstance(_obj, list):
                 for elm in _obj:
-                    if isparametric(elm):
+                    if _is_parametric(elm):
                         return True
             elif isinstance(_obj, tuple):
                 for elm in list(_obj):
-                    if isparametric(elm):
+                    if _is_parametric(elm):
                         return True
             else:
-                if isparametric(_obj):
+                if _is_parametric(_obj):
                     return True
         return False
     elif isinstance(obj, dict):
         for (k, v) in obj.items():
-            if isparametric(v):
+            if _is_parametric(v):
                 return True
     elif isinstance(obj, str):
         return False
@@ -87,30 +86,30 @@ def isparametric(obj):
         return False
     elif isinstance(obj, list):
         for elm in obj:
-            if isparametric(elm):
+            if _is_parametric(elm):
                 return True
     elif isinstance(obj, tuple):
         for elm in list(obj):
-            if isparametric(elm):
+            if _is_parametric(elm):
                 return True
     else:
         return False
 
 
-def iscallable(obj):
+def _is_callable(obj):
     if callable(obj):
         return True
     elif isinstance(obj, dict):
         for (k, v) in obj.items():
-            if iscallable(v):
+            if _is_callable(v):
                 return True
         return False
     elif isinstance(obj, list):
         for e in obj:
-            if iscallable(e):
+            if _is_callable(e):
                 return True
         return False
     elif isinstance(obj, tuple):
-        return iscallable(list(obj))
+        return _is_callable(list(obj))
     else:
         return False

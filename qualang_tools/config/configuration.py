@@ -1,11 +1,21 @@
 import copy
 from typing import List, Dict
 
-from numpy import isin
-
-from qualang_tools.config.primitive_components import *
-from qualang_tools.config.components import *
-from qualang_tools.config.parameters import *
+from qualang_tools.config.components import (
+    Controller,
+    MeasurePulse,
+    Element,
+    ConstantWaveform,
+    ArbitraryWaveform,
+    Mixer,
+    Oscillator,
+)
+from qualang_tools.config.parameters import _is_callable, _is_parametric
+from qualang_tools.config.primitive_components import (
+    Waveform,
+    Pulse,
+    IntegrationWeights,
+)
 
 
 class QMConfiguration:
@@ -41,11 +51,11 @@ class QMConfiguration:
         self.config["waveforms"][wf.name] = self._call_dict_parameters(wf.dict)
 
     def _call_dict_parameters(self, dic: Dict):
-        if iscallable(dic):
-            if not isparametric(dic):
+        if _is_callable(dic):
+            if not _is_parametric(dic):
                 _dic = copy.deepcopy(dic)
                 for (k, v) in _dic.items():
-                    if iscallable(v):
+                    if _is_callable(v):
                         if isinstance(v, dict):
                             _dic[k] = self._call_dict_parameters(v)
                         else:
@@ -54,32 +64,32 @@ class QMConfiguration:
         return dic
 
     def _call_weights_dict(self, dic: Dict):
-        if iscallable(dic):
-            if not isparametric(dic):
+        if _is_callable(dic):
+            if not _is_parametric(dic):
                 _dic = copy.deepcopy(dic)
                 for (k, v) in _dic.items():
                     if isinstance(_dic["cosine"][0], tuple):
                         val = _dic["cosine"][0][0]
-                        if iscallable(_dic["cosine"][0][0]):
+                        if _is_callable(_dic["cosine"][0][0]):
                             val = _dic["cosine"][0][0]()
                         dur = _dic["cosine"][0][1]
-                        if iscallable(_dic["cosine"][0][1]):
+                        if _is_callable(_dic["cosine"][0][1]):
                             dur = _dic["cosine"][0][1]()
                         _dic["cosine"][0] = (val, dur)
 
                     if isinstance(_dic["sine"][0], tuple):
                         val = _dic["sine"][0][0]
-                        if iscallable(_dic["sine"][0][0]):
+                        if _is_callable(_dic["sine"][0][0]):
                             val = _dic["sine"][0][0]()
                         dur = _dic["sine"][0][1]
-                        if iscallable(_dic["sine"][0][1]):
+                        if _is_callable(_dic["sine"][0][1]):
                             dur = _dic["sine"][0][1]()
                         _dic["sine"][0] = (val, dur)
 
-                    elif iscallable(_dic["cosine"]):
+                    elif _is_callable(_dic["cosine"]):
                         _dic["cosine"] = _dic["cosine"]()
 
-                        if iscallable(_dic["sine"]):
+                        if _is_callable(_dic["sine"]):
                             _dic["sine"] = _dic["sine"]()
                 return _dic
         return dic
@@ -191,7 +201,9 @@ class QMConfiguration:
         assert self.config["waveforms"][wf_name]["type"] == "arbitrary"
         self.config["waveforms"][wf_name]["samples"] = samples
 
-    def reset(self, controllers: List[Controller] = []):
+    def reset(self, controllers=None):
+        if controllers is None:
+            controllers = []
         self.__init__(controllers)
 
     def update_intermediate_frequency(

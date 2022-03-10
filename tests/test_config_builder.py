@@ -1,10 +1,8 @@
 import pytest
 import numpy as np
 
-from qualang_tools.config.configuration import *
 from qualang_tools.config.components import *
 from qualang_tools.config.builder import ConfigBuilder
-from qualang_tools.config.exceptions import ConfigurationError
 
 from qm.program._qua_config_schema import load_config
 
@@ -147,7 +145,7 @@ def config_transmon():
         "qb2",
         I=cont.analog_output(2),
         Q=cont.analog_output(3),
-        fl_port=cont.analog_output(4),
+        flux_port=cont.analog_output(4),
         intermediate_frequency=5e6,
     )
     qb2.lo_frequency = 4.5e9
@@ -238,9 +236,9 @@ def config_3qb_3res():
     qb2.add(Operation(rxpio2_pulse))
     qb3.add(Operation(rxpio2_pulse))
 
-    cc12 = Coupler("cc12", p=con1.analog_output(5))
-    cc23 = Coupler("cc23", p=con2.analog_output(5))
-    cc31 = Coupler("cc31", p=con3.analog_output(5))
+    cc12 = Coupler("cc12", port=con1.analog_output(5))
+    cc23 = Coupler("cc23", port=con2.analog_output(5))
+    cc31 = Coupler("cc31", port=con3.analog_output(5))
 
     cb.add(cc12)
     cb.add(cc23)
@@ -329,3 +327,7 @@ def test_load_config(config_3qb_3res):
         load_config(config)
     except:
         assert False
+
+
+def test_config_vars():
+    raise NotImplementedError()

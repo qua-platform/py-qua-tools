@@ -1,9 +1,28 @@
-from typing import Union, Dict
+import copy
+from typing import Union, List
 
-from qualang_tools.config.configuration import *
+from qualang_tools.config.components import (
+    Controller,
+    ElementCollection,
+    Element,
+    Mixer,
+    Oscillator,
+    MeasureElement,
+    MeasurePulse,
+)
+from qualang_tools.config.configuration import QMConfiguration
 from qualang_tools.config.exceptions import ConfigurationError
-from qualang_tools.config.components import *
-from qualang_tools.config.parameters import isparametric
+from qualang_tools.config.parameters import _is_parametric
+from qualang_tools.config.primitive_components import (
+    AnalogOutputPort,
+    AnalogInputPort,
+    DigitalOutputPort,
+    Waveform,
+    Pulse,
+    IntegrationWeights,
+    DigitalInputPort,
+    Port,
+)
 
 
 class ConfigBuilder:
@@ -12,7 +31,7 @@ class ConfigBuilder:
         self.objects = []
         self.configuration = QMConfiguration([])
         self.controllers = []
-        self.components = []
+        self.components: List[ElementCollection] = []
 
     def add(self, obj):
         """Adds an entity to the configuraiton.
@@ -22,9 +41,15 @@ class ConfigBuilder:
         """
         if isinstance(obj, list):
             for _obj in obj:
-                self.objects.append(_obj)
+                if isinstance(_obj, ElementCollection):
+                    self.components.append(_obj)
+                else:
+                    self.objects.append(_obj)
         else:
-            self.objects.append(obj)
+            if isinstance(obj, ElementCollection):
+                self.components.append(obj)
+            else:
+                self.objects.append(obj)
         return self
 
     @property
@@ -68,12 +93,7 @@ class ConfigBuilder:
 
         self.configuration.config["controllers"][cont.name] = cont.dict
 
-    def _add_component(self, comp: ElementCollection):
-        self.components.append(comp)
-        for elm in comp.elements:
-            self.configuration.add_element(elm)
-
-    def build(self, config: Dict = {}):
+    def build(self, config=None):
         """Generates the QUA configuration represented by the current state of the builder object
 
         :param config: An initial QUA config, defaults to {}
@@ -81,29 +101,35 @@ class ConfigBuilder:
         :return: QUA configuration
         :rtype: Dict
         """
+        if config is None:
+            config = {}
         if config == {}:
             self.configuration.reset()
             self.controllers = []
-            self.components = []
         else:
             self.configuration.config = copy.deepcopy(config)
-        for obj in self.objects:
-            if isparametric(obj):
+        objects = self.objects
+        for c in self.components:
+            objects = objects + c.get_elements()
+
+        for obj in objects:
+            if _is_parametric(obj):
                 raise ConfigurationError("set the parameters of {0}".format(obj.name))
             if isinstance(obj, Controller):
                 self._add_controller(obj)
+            elif isinstance(obj, ElementCollection):
+                for _obj in obj.get_elements():
+                    self.objects.append(_obj)
             elif isinstance(obj, Waveform):
                 self.configuration.add_waveform(obj)
             elif isinstance(obj, Pulse):
                 self.configuration.add_pulse(obj)
-            elif isinstance(obj, ElementCollection):
-                self._add_component(obj)
             elif isinstance(obj, Element):
                 self.configuration.add_element(obj)
             elif isinstance(obj, IntegrationWeights):
                 self.configuration.add_integration_weights(obj)
             elif isinstance(obj, Mixer):
-                self.configuraiton.add_mixer(obj)
+                self.configuration.add_mixer(obj)
             elif isinstance(obj, Oscillator):
                 self.configuration.add_oscillator(obj)
             else:
@@ -166,11 +192,7 @@ class ConfigBuilder:
     def _find_users_of_port(self, port: Port):
         objects = []
         for obj in self.objects:
-            if (
-                isinstance(obj, Element)
-                or isinstance(obj, ElementCollection)
-                or isinstance(obj, MeasureElement)
-            ):
+            if isinstance(obj, Element) or isinstance(obj, MeasureElement):
                 if port in obj.ports:
                     objects.append(obj)
         return set(objects)
@@ -183,22 +205,12 @@ class ConfigBuilder:
                     if port in cont.ports:
                         objects.append(obj)
                         break
-            elif isinstance(obj, ElementCollection):
-                for _obj in obj.elements:
-                    for port in _obj.ports:
-                        if port in cont.ports:
-                            objects.append(obj)
-                        break
         return set(objects)
 
     def _find_users_of_waveform(self, wf: Waveform):
         objects = []
         for obj in self.objects:
-            if (
-                isinstance(obj, Element)
-                or isinstance(obj, MeasureElement)
-                or isinstance(obj, ElementCollection)
-            ):
+            if isinstance(obj, Element) or isinstance(obj, MeasureElement):
                 for name in obj.waveform_names:
                     if name == wf.name:
                         objects.append(obj)
@@ -207,11 +219,7 @@ class ConfigBuilder:
     def _find_users_of_pulse(self, elm: Pulse):
         objects = []
         for obj in self.objects:
-            if (
-                isinstance(obj, Element)
-                or isinstance(obj, MeasureElement)
-                or isinstance(obj, ElementCollection)
-            ):
+            if isinstance(obj, Element) or isinstance(obj, MeasureElement):
                 for name in obj.pulse_names:
                     if name == elm.name:
                         objects.append(obj)

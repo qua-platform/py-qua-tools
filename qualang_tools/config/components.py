@@ -1,17 +1,31 @@
-from typing import Union, List, Tuple
+import abc
+from typing import Union, List, Tuple, Optional, Dict
 
-from qualang_tools.config.primitive_components import *
 from qualang_tools.config.exceptions import ConfigurationError
+from qualang_tools.config.primitive_components import (
+    ConfigBuilderElement,
+    AnalogInputPort,
+    DigitalOutputPort,
+    Waveform,
+    DigitalSample,
+    Pulse,
+    Weights,
+    Matrix2x2,
+    AnalogOutputPort,
+    DigitalInputPort,
+    Operation,
+    IntegrationWeights,
+)
 
 
-class Controller(object):
+class Controller(ConfigBuilderElement):
     def __init__(
         self,
         name: str,
-        n_analog_outputs: int = 0,
-        n_analog_inputs: int = 0,
-        n_digital_outputs: int = 0,
-        n_digital_inputs: int = 0,
+        analog_outputs: Optional[Union[int, List[AnalogOutputPort]]] = None,
+        analog_inputs: Optional[Union[int, List[AnalogInputPort]]] = None,
+        digital_outputs: Optional[Union[int, List[DigitalOutputPort]]] = None,
+        digital_inputs: Optional[Union[int, List[DigitalInputPort]]] = None,
         controller_type: str = "opx1",
     ):
         """A QOP controller
@@ -29,33 +43,66 @@ class Controller(object):
         :param controller_type: defaults to "opx1"
         :type controller_type: str, optional
         """
-        self.name = name
+        super(Controller, self).__init__(name)
         self.dict = dict()
         self.dict["type"] = controller_type
+        self.controller_type = controller_type
+        if isinstance(analog_outputs, int):
+            n_analog_outputs = analog_outputs
+        else:
+            n_analog_outputs = 0
+        if isinstance(analog_inputs, int):
+            n_analog_inputs = analog_inputs
+        else:
+            n_analog_inputs = 0
+        if isinstance(digital_outputs, int):
+            n_digital_outputs = digital_outputs
+        else:
+            n_digital_outputs = 0
+        if isinstance(digital_inputs, int):
+            n_digital_inputs = digital_inputs
+        else:
+            n_digital_inputs = 0
         self.dict["analog_outputs"] = {
             i: {"offset": 0} for i in range(1, n_analog_outputs + 1)
         }
+        self.analog_output_ports: List[AnalogOutputPort] = [
+            AnalogOutputPort(name, i) for i in range(1, n_analog_outputs + 1)
+        ]
         self.dict["analog_inputs"] = {
             i: {"offset": 0} for i in range(1, n_analog_inputs + 1)
         }
+        self.analog_input_ports: List[AnalogInputPort] = [
+            AnalogInputPort(name, i) for i in range(1, n_analog_inputs + 1)
+        ]
         self.dict["digital_outputs"] = {
             i: {"offset": 0} for i in range(1, n_digital_outputs + 1)
         }
+        self.digital_output_ports: List[DigitalOutputPort] = [
+            DigitalOutputPort(name, i) for i in range(1, n_digital_outputs + 1)
+        ]
         self.dict["digital_inputs"] = {
             i: {"offset": 0} for i in range(1, n_digital_inputs + 1)
         }
-        self.analog_input_ports = [
-            AnalogInputPort(name, i) for i in range(1, n_analog_inputs + 1)
-        ]
-        self.analog_output_ports = [
-            AnalogOutputPort(name, i) for i in range(1, n_analog_outputs + 1)
-        ]
-        self.digital_output_ports = [
-            DigitalOutputPort(name, i) for i in range(1, n_digital_outputs + 1)
-        ]
-        self.digital_input_ports = [
+        self.digital_input_ports: List[DigitalInputPort] = [
             DigitalInputPort(name, i) for i in range(1, n_digital_inputs + 1)
         ]
+        if isinstance(analog_outputs, List):
+            self.analog_output_ports = analog_outputs
+            for output in analog_outputs:
+                self.dict["analog_outputs"][output.info[1]] = output.offset
+        if isinstance(analog_inputs, List):
+            self.analog_input_ports = analog_inputs
+            for inp in analog_inputs:
+                self.dict["analog_inputs"][inp.info[1]] = inp.offset
+        if isinstance(digital_outputs, List):
+            self.digital_output_ports = digital_outputs
+            for output in digital_outputs:
+                self.dict["digital_outputs"][output.info[1]] = output.offset
+        if isinstance(digital_inputs, List):
+            self.digital_input_ports = digital_inputs
+            for inp in digital_inputs:
+                self.dict["digital_inputs"][inp.info[1]] = inp.offset
 
     def analog_output(self, port: int, offset: float = 0):
         """Returns an instance of AnalogOutputPort associated  with a specific port number and offset if already in the configuration.
@@ -207,6 +254,7 @@ class ArbitraryWaveform(Waveform):
         :type samples: List[float]
         """
         super().__init__(name, {"type": "arbitrary", "samples": samples})
+        self.samples = samples
 
 
 class ConstantWaveform(Waveform):
@@ -219,26 +267,28 @@ class ConstantWaveform(Waveform):
         :type sample: float
         """
         super().__init__(name, {"type": "constant", "sample": sample})
+        self.sample = sample
 
 
-class DigitalWaveform:
+class DigitalWaveform(Waveform):
     def __init__(self, name: str, samples: List[DigitalSample]):
-        """A ditial waveform played from a digital output
+        """A digital waveform played from a digital output
 
         :param name: The name of the digital waveform, defaults to "ON"
         :type name: str
         :param samples: The digital waveforms, specified in the format [(1/0, dur),...] where dur is in nanoseconds.  defaults to [(1, 0)]
         :type samples: List[DigitalSample]
         """
-        self.name = name
-        self.dict = dict()
+
         if isinstance(samples[0], DigitalSample):
             self._samples = samples
         else:
             self._samples = [
                 DigitalSample(state, duration) for (state, duration) in samples
             ]
-        self.dict["samples"] = [(ds.state, ds.duration) for ds in self._samples]
+        dic = dict()
+        dic["samples"] = [(ds.state, ds.duration) for ds in self._samples]
+        super(DigitalWaveform, self).__init__(name, dic)
 
     @property
     def samples(self):
@@ -256,7 +306,14 @@ class DigitalWaveform:
 
 
 class MeasurePulse(Pulse):
-    def __init__(self, name: str, wfs: List[Waveform], length: int):
+    def __init__(
+        self,
+        name: str,
+        wfs: List[Waveform],
+        length: int,
+        integration_weights: List[Weights] = None,
+        digital_marker: Optional[DigitalWaveform] = None,
+    ):
         """A pulse which can be used by a QUA measure() command
 
         :param name: name for this pulse
@@ -266,8 +323,10 @@ class MeasurePulse(Pulse):
         :param length: duration of the measurment pulse
         :type length: int, optional
         """
-        super().__init__(name, wfs, "measure", length)
-        self.integration_weights = []
+        super().__init__(name, wfs, "measure", length, digital_marker)
+        if integration_weights is None:
+            integration_weights = []
+        self.integration_weights = integration_weights
 
     def add(
         self,
@@ -280,11 +339,14 @@ class MeasurePulse(Pulse):
             self._add(objs)
         return self
 
-    def _add(self, w: Union[Weights, DigitalWaveform]):
+    def _add(self, w: Union[Weights, IntegrationWeights, DigitalWaveform]):
+        if isinstance(w, IntegrationWeights):
+            w = Weights(w)
+
         if isinstance(w, Weights):
             if callable(self.dict):
                 if isinstance(w.weights, ConstantIntegrationWeights):
-                    if not w.weights.dict["cosine"][0][1] != self.dict["length"]:
+                    if w.weights.dict["cosine"][0][1] == self.dict["length"]:
                         assert w.weights.dict["cosine"][0][1]() == self.dict["length"]()
 
                 else:
@@ -295,19 +357,25 @@ class MeasurePulse(Pulse):
 
 
 class ControlPulse(Pulse):
-    def __init__(self, name: str, wfs: List[Waveform], length: int):
+    def __init__(
+        self,
+        name: str,
+        wfs: List[Waveform],
+        length: int,
+        digital_marker: Optional[DigitalWaveform] = None,
+    ):
         """A pulse which can be used by a QUA play() command
         :return:
         :rtype: ControlPulse
         """
-        super().__init__(name, wfs, "control", length)
+        super().__init__(name, wfs, "control", length, digital_marker)
 
     def add(self, w: DigitalWaveform):
         self.digital_marker = w
         return self
 
 
-class Mixer(object):
+class Mixer(ConfigBuilderElement):
     def __init__(
         self,
         name: str,
@@ -326,7 +394,7 @@ class Mixer(object):
         :param correction: correction matrix for this mixer
         :type correction: Matrix2x2
         """
-        self.name = name
+        super(Mixer, self).__init__(name)
         self._correction = correction
         self.dict = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
@@ -359,16 +427,19 @@ class Mixer(object):
         self.dict["correction"] = list(correction.data[0] + correction.data[1])
 
 
-class Element(object):
+class Element(ConfigBuilderElement):
     def __init__(
         self,
         name: str,
-        analog_input_ports: List[AnalogOutputPort] = [],
-        analog_output_ports: List[AnalogInputPort] = [],
-        digital_input_ports: List[DigitalOutputPort] = [],
-        digital_output_ports: List[DigitalInputPort] = [],
-        intermediate_frequency: int = None,
-        lo_frequency: int = None,
+        analog_input_ports: Optional[List[AnalogOutputPort]] = None,
+        analog_output_ports: Optional[List[AnalogInputPort]] = None,
+        digital_input_ports: Optional[List[DigitalOutputPort]] = None,
+        digital_output_ports: Optional[List[DigitalInputPort]] = None,
+        intermediate_frequency: Optional[int] = None,
+        lo_frequency: Optional[int] = None,
+        mixer: Optional[Mixer] = None,
+        pulses: Optional[List[Pulse]] = None,
+        operations: Optional[Dict[str, str]] = None,
     ):
         """A quantum element in a configuration
 
@@ -385,16 +456,27 @@ class Element(object):
         :param lo_frequency: LO frequency associated wit this element, defaults to None
         :type lo_frequency: int, optional
         """
-        self.name = name
+        super(Element, self).__init__(name)
+        if digital_output_ports is None:
+            digital_output_ports = []
+        if digital_input_ports is None:
+            digital_input_ports = []
+        if analog_output_ports is None:
+            analog_output_ports = []
+        if analog_input_ports is None:
+            analog_input_ports = []
         self.dict = dict()
         assert len(analog_input_ports) <= 2
         self.type = "singleInput" if len(analog_input_ports) == 1 else "mixInputs"
         self.pulses = []
-        self.analog_input_ports = analog_input_ports
-        self.analog_output_ports = analog_output_ports
-        self.digital_output_ports = digital_output_ports
-        self.digital_input_ports = digital_input_ports
-        self.mixer = None
+        if pulses is not None:
+            self.pulses = pulses
+        self.analog_input_ports: List[AnalogOutputPort] = analog_input_ports
+        self.analog_output_ports: List[AnalogInputPort] = analog_output_ports
+        self.digital_output_ports: List[DigitalInputPort] = digital_output_ports
+        self.digital_input_ports: List[DigitalOutputPort] = digital_input_ports
+        self.mixer: Mixer = mixer
+
         if len(analog_input_ports) > 0:
             if self.type == "singleInput":
                 port = analog_input_ports[0]
@@ -412,6 +494,8 @@ class Element(object):
             for i, port in enumerate(analog_output_ports):
                 self.dict["outputs"]["out" + str(i + 1)] = port.info
         self.dict["operations"] = dict()
+        if operations is not None:
+            self.dict["operations"] = operations
         self.dict["intermediate_frequency"] = intermediate_frequency
         # self.dict["outputPulseParameters"] = dict()
         if len(digital_input_ports) > 0:
@@ -435,10 +519,14 @@ class Element(object):
         else:
             raise ConfigurationError("digital input port must be set first")
 
-    def _add_mixer(self, mix: Mixer):
+    def _set_mixer(self, mix: Mixer):
         assert "mixInputs" in self.dict.keys()
         self.dict["mixInputs"]["mixer"] = mix.name
         self.mixer = mix
+
+    @property
+    def has_lo_frequency(self):
+        return "mixInputs" in self.dict.keys()
 
     @property
     def lo_frequency(self):
@@ -464,6 +552,10 @@ class Element(object):
         assert self.type == "mixInputs"
         self.dict["intermediate_frequency"] = omega_IF
 
+    @property
+    def operations(self):
+        return self.dict["operations"]
+
     def _add_operation(self, op: Operation):
         self.dict["operations"][op.name] = op.pulse.name
         self.pulses.append(op.pulse)
@@ -478,7 +570,7 @@ class Element(object):
         if isinstance(obj, Operation):
             self._add_operation(obj)
         elif isinstance(obj, Mixer):
-            self._add_mixer(obj)
+            self._set_mixer(obj)
         else:
             raise ConfigurationError("Adding unsupported object")
 
@@ -515,6 +607,13 @@ class Element(object):
         )
 
     @property
+    def has_signal_threshold(self):
+        return (
+            "outputPulseParameters" in self.dict
+            and "signalThreshold" in self.dict["outputPulseParameters"].keys()
+        )
+
+    @property
     def signal_threshold(self):
         if "signalThreshold" in self.dict["outputPulseParameters"].keys():
             return self.dict["outputPulseParameters"]["signalThreshold"]
@@ -526,6 +625,13 @@ class Element(object):
         if "outputPulseParameters" not in self.dict.keys():
             self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["signalThreshold"] = val
+
+    @property
+    def has_signal_polarity(self):
+        return (
+            "outputPulseParameters" in self.dict
+            and "signalPolarity" in self.dict["outputPulseParameters"].keys()
+        )
 
     @property
     def signal_polarity(self):
@@ -541,6 +647,13 @@ class Element(object):
         self.dict["outputPulseParameters"]["signalPolarity"] = val
 
     @property
+    def has_derivative_threshold(self):
+        return (
+            "outputPulseParameters" in self.dict
+            and "derivativeThreshold" in self.dict["outputPulseParameters"].keys()
+        )
+
+    @property
     def derivative_threshold(self):
         if "derivativeThreshold" in self.dict["outputPulseParameters"].keys():
             return self.dict["outputPulseParameters"]["derivativeThreshold"]
@@ -552,6 +665,13 @@ class Element(object):
         if "outputPulseParameters" not in self.dict.keys():
             self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["derivativeThreshold"] = val
+
+    @property
+    def has_derivative_polarity(self):
+        return (
+            "outputPulseParameters" in self.dict
+            and "derivativePolarity" in self.dict["outputPulseParameters"].keys()
+        )
 
     @property
     def derivative_polarity(self):
@@ -573,9 +693,15 @@ class MeasureElement(Element):
         name: str,
         analog_input_ports: List[AnalogOutputPort],
         analog_output_ports: List[AnalogInputPort],
-        digital_input_ports: List[DigitalOutputPort] = [],
-        intermediate_frequency: int = None,
-        lo_frequency: int = None,
+        digital_input_ports: Optional[List[DigitalOutputPort]] = None,
+        intermediate_frequency: Optional[int] = None,
+        lo_frequency: Optional[int] = None,
+        time_of_flight: Optional[int] = 0,
+        smearing: Optional[int] = 0,
+        digital_output_ports: Optional[List[DigitalInputPort]] = None,
+        mixer: Optional[Mixer] = None,
+        pulses: Optional[List[Pulse]] = None,
+        operations: Optional[Dict[str, str]] = None,
     ):
         """A quantum element set for performing measurment
 
@@ -593,11 +719,19 @@ class MeasureElement(Element):
         :type lo_frequency: int, optional
         """
         super().__init__(
-            name, analog_output_ports, analog_input_ports, digital_input_ports
+            name,
+            analog_input_ports,
+            analog_output_ports,
+            digital_input_ports,
+            digital_output_ports,
+            intermediate_frequency,
+            lo_frequency,
+            mixer,
+            pulses,
+            operations,
         )
-        self.dict["time_of_flight"] = 0
-        self.dict["smearing"] = 0
-        self.dict["intermediate_frequency"] = intermediate_frequency
+        self.dict["time_of_flight"] = time_of_flight
+        self.dict["smearing"] = smearing
 
     @property
     def time_of_flight(self):
@@ -629,7 +763,11 @@ class ConstantIntegrationWeights(IntegrationWeights):
         :type duration: int
         """
         self._duration = duration
-        super().__init__(name, [(cosine, duration)], [(sine, duration)])
+        self._cosine = cosine
+        self._sine = sine
+        super(ConstantIntegrationWeights, self).__init__(
+            name, [(cosine, duration)], [(sine, duration)]
+        )
 
     @property
     def cosine(self):
@@ -658,8 +796,8 @@ class ArbitraryIntegrationWeights(IntegrationWeights):
         :param sine: a list of weights to be used with the sine demodulation element, specified at 1 sample per 4 nanoseconds
         :type sine: List
         """
-        assert len(sine) == len(cosine)
         super().__init__(name, cosine, sine)
+        assert len(sine) == len(cosine)
 
     @property
     def cosine(self):
@@ -678,40 +816,43 @@ class ArbitraryIntegrationWeights(IntegrationWeights):
         self.dict["sine"] = w
 
 
-class ElementCollection:
-    def __init__(self, name: str, elements: List[Element] = []):
+class ElementCollection(ConfigBuilderElement):
+    def __init__(self, name: str):
         """A named collection of Elements
 
         It also a useful base class for building components.
         """
-        self.name = name
-        self.elements = elements
+        super(ElementCollection, self).__init__(name)
+
+    @abc.abstractmethod
+    def get_elements(self) -> List[ConfigBuilderElement]:
+        pass
 
     @property
     def ports(self):
         ports = []
-        for elm in self.elements:
+        for elm in self.get_elements():
             ports += elm.ports
         return ports
 
     @property
     def waveform_names(self):
         names = []
-        for elm in self.elements:
+        for elm in self.get_elements():
             names += elm.waveform_names
         return names
 
     @property
     def operation_names(self):
         names = []
-        for elm in self.elements:
+        for elm in self.get_elements():
             names += elm.operation_names
         return names
 
     @property
     def pulse_names(self):
         names = []
-        for elm in self.elements:
+        for elm in self.get_elements():
             names += elm.pulse_names
         return names
 
@@ -723,6 +864,11 @@ class ReadoutResonator(ElementCollection):
         outputs: List[AnalogOutputPort],
         inputs: List[AnalogInputPort],
         intermediate_frequency: int,
+        operations: Optional[List[Operation]] = None,
+        time_of_flight: Optional[int] = 0,
+        smearing: Optional[int] = 0,
+        mixer: Optional[Mixer] = None,
+        lo_frequency: Optional[int] = None,
     ):
         """
         A Microwave readout resonator
@@ -736,18 +882,53 @@ class ReadoutResonator(ElementCollection):
         :param intermediate_frequency: The intermediate frequency
         :type intermediate_frequency: int
         """
+        super(ReadoutResonator, self).__init__(name=name)
         if len(outputs) != 2:
             raise ConfigurationError("Number of output ports is not equal to 2")
         if len(inputs) != 2:
             raise ConfigurationError("Number of input ports is not equal to 2")
+        self.drive_name = name
+        self.drive_outputs = outputs
+        self.drive_inputs = inputs
+        self.drive_operations = []
+        if operations is not None:
+            self.drive_operations = operations
+        self.drive_intermediate_frequency = intermediate_frequency
+        self.drive_time_of_flight = time_of_flight
+
+        self.drive_mixer = mixer
+        self.drive_lo_frequency = lo_frequency
+        self.drive_smearing = smearing
+
+    def get_elements(self) -> List[ConfigBuilderElement]:
         drive = MeasureElement(
-            name, outputs, inputs, intermediate_frequency=intermediate_frequency
+            self.drive_name,
+            self.drive_outputs,
+            self.drive_inputs,
+            intermediate_frequency=self.drive_intermediate_frequency,
+            time_of_flight=self.drive_time_of_flight,
+            mixer=self.drive_mixer,
+            lo_frequency=self.drive_lo_frequency,
+            smearing=self.drive_smearing,
         )
-        super().__init__(name=name, elements=[drive])
+        for op in self.drive_operations:
+            drive.add(op)
+
+        if self.drive_outputs:
+            for i, port in enumerate(self.drive_outputs):
+                drive.dict["outputs"]["out" + str(i)] = port.info
+
+            drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
+            drive.dict["mixInputs"]["Q"] = self.drive_outputs[1].info
+
+        if self.drive_mixer:
+            drive.dict["mixInputs"]["mixer"] = self.drive_mixer.name
+
+        return [drive]
 
     @property
     def intermediate_frequency(self):
-        return self.elements[0].intermediate_frequency
+        return self.drive_intermediate_frequency
 
     @intermediate_frequency.setter
     def intermediate_frequency(self, if_freq: int):
@@ -756,7 +937,7 @@ class ReadoutResonator(ElementCollection):
         :param if_freq: A frequency in MHz
         :type if_freq: int
         """
-        self.elements[0].intermediate_frequency = if_freq
+        self.drive_intermediate_frequency = if_freq
 
     def add(self, obj: Union[Operation, List[Operation]]):
         """Add list of operations associated with the Transmon
@@ -779,64 +960,59 @@ class ReadoutResonator(ElementCollection):
 
         """
         if len(op.pulse.wfs) == 2:
-            self.elements[0].add(op)
+            self.drive_operations.append(op)
         else:
             raise ConfigurationError("adding unsupported object")
 
     @property
     def time_of_flight(self):
-        return self.elements[0].time_of_flight
+        return self.drive_time_of_flight
 
     @time_of_flight.setter
     def time_of_flight(self, tof: int):
-        self.elements[0].time_of_flight = tof
+        self.drive_time_of_flight = tof
 
     @property
     def smearing(self):
-        return self.elements[0].smearing
+        return self.drive_smearing
 
     @smearing.setter
     def smearing(self, t: int):
-        self.elements[0].smearing = t
+        self.drive_smearing = t
 
     @property
     def lo_frequency(self):
-        return self.elements[0].lo_frequency
+        return self.drive_lo_frequency
 
     @lo_frequency.setter
     def lo_frequency(self, lo_frequency: int):
-        self.elements[0].lo_frequency = lo_frequency
+        self.drive_lo_frequency = lo_frequency
 
     @property
     def input_ports(self):
-        return self.elements[0].analog_input_ports
+        return self.drive_inputs
 
     @input_ports.setter
     def input_ports(self, ports: List[AnalogInputPort]):
         assert len(ports) == 2
-        self.elements[0].analog_input_ports = ports
-        for i, port in enumerate(ports):
-            self.elements[0].dict["outputs"]["out" + str(i)] = port.info
+        self.drive_inputs = ports
 
     @property
     def output_ports(self):
-        return self.elements[0].analog_output_ports
+        return self.drive_outputs
 
     @output_ports.setter
     def output_ports(self, ports: List[AnalogOutputPort]):
         assert len(ports) == 2
-        self.elements[0].analog_output_ports = ports
-        self.elements[0].dict["mixInputs"]["I"] = ports[0].info
-        self.elements[0].dict["mixInputs"]["Q"] = ports[1].info
+        self.drive_outputs = ports
 
     @property
     def mixer(self):
-        return self.elements[0].mixer
+        return self.drive_mixer
 
     @mixer.setter
     def mixer(self, mixer: Mixer):
-        self.elements[0].mixer = mixer
-        self.elements[0].dict["mixInputs"]["mixer"] = mixer.name
+        self.drive_mixer = mixer
 
 
 class Transmon(ElementCollection):
@@ -846,6 +1022,9 @@ class Transmon(ElementCollection):
         I: AnalogOutputPort,
         Q: AnalogOutputPort,
         intermediate_frequency: int,
+        mixer: Optional[Mixer] = None,
+        lo_frequency: Optional[int] = None,
+        operations: Optional[List[Operation]] = None,
     ):
         """A superconducting transmon qubit
 
@@ -858,53 +1037,79 @@ class Transmon(ElementCollection):
         :param intermediate_frequency: intermediate frequency of the upconversion IQ mixer in MHz
         :type intermediate_frequency: int
         """
-        drive = Element(name, [I, Q], intermediate_frequency=intermediate_frequency)
-        super().__init__(name=name, elements=[drive])
+        super(Transmon, self).__init__(name=name)
+        self.drive_I = I
+        self.drive_Q = Q
+        self.drive_intermediate_frequency = intermediate_frequency
+
+        self.drive_operations = []
+        if operations is not None:
+            self.drive_operations = operations
+        self.drive_intermediate_frequency = intermediate_frequency
+        self.drive_mixer = mixer
+        self.drive_lo_frequency = lo_frequency
+
+    def get_elements(self) -> List[ConfigBuilderElement]:
+        drive = Element(
+            self.name,
+            [self.drive_I, self.drive_Q],
+            intermediate_frequency=self.drive_intermediate_frequency,
+            mixer=self.drive_mixer,
+            lo_frequency=self.drive_lo_frequency,
+        )
+        drive.dict["mixInputs"]["I"] = self.drive_I.info
+        drive.dict["mixInputs"]["Q"] = self.drive_Q.info
+
+        for op in self.drive_operations:
+            drive.add(op)
+
+        if self.drive_mixer:
+            drive.dict["mixInputs"]["mixer"] = self.drive_mixer.name
+
+        return [drive]
 
     @property
     def I(self):
-        return self.elements[0].output_ports[0]
+        return self.drive_I
 
     @I.setter
     def I(self, p: AnalogOutputPort):
-        self.elements[0].output_ports[0] = p
-        self.elements[0].dict["mixInputs"]["I"] = p.info
+        self.drive_I = p
 
     @property
     def Q(self):
-        return self.elements[0].output_ports[1]
+        return self.drive_Q
 
     @Q.setter
     def Q(self, p: AnalogOutputPort):
-        self.elements[0].output_ports[1] = p
-        self.elements[0].dict["mixInputs"]["Q"] = p.info
+        self.drive_Q = p
 
     @property
     def lo_frequency(self):
-        return self.elements[0].lo_frequency
+        return self.drive_lo_frequency
 
     @lo_frequency.setter
     def lo_frequency(self, lo_frequency: int):
-        self.elements[0].lo_frequency = lo_frequency
+        self.drive_lo_frequency = lo_frequency
 
     @property
     def intermediate_frequency(self):
-        return self.elements[0].intermediate_frequency
+        return self.drive_intermediate_frequency
 
     @intermediate_frequency.setter
     def intermediate_frequency(self, if_freq: int):
-        """Set an IF for the transmon
-
+        """
+            Set an IF for the transmon
         :param if_freq: A frequency in MHz
         :type if_freq: int
         """
-        self.elements[0].intermediate_frequency = if_freq
+        self.drive_intermediate_frequency = if_freq
 
     def add(self, op: Union[Operation, List[Operation]]):
-        """Add list of operations associated with the Transmon
-
-        :param obj: The operations
-        :type obj: list or an instance of Operation
+        """
+            Add list of operations associated with the Transmon
+        :param op: The operations
+        :type op: list or an instance of Operation
         """
         if isinstance(op, list):
             for o in op:
@@ -915,18 +1120,17 @@ class Transmon(ElementCollection):
 
     def _add(self, op: Operation):
         if len(op.pulse.wfs) == 2:
-            self.elements[0].add(op)
+            self.drive_operations.append(op)
         else:
             raise ConfigurationError("adding unsupported object")
 
     @property
     def mixer(self):
-        return self.elements[0].mixer
+        return self.drive_mixer
 
     @mixer.setter
     def mixer(self, mixer: Mixer):
-        self.elements[0].mixer = mixer
-        self.elements[0].dict["mixInputs"]["mixer"] = mixer.name
+        self.drive_mixer = mixer
 
 
 class FluxTunableTransmon(Transmon):
@@ -935,8 +1139,12 @@ class FluxTunableTransmon(Transmon):
         name: str,
         I: AnalogOutputPort,
         Q: AnalogOutputPort,
-        fl_port: AnalogOutputPort,
+        flux_port: AnalogOutputPort,
         intermediate_frequency: int,
+        mixer: Optional[Mixer] = None,
+        lo_frequency: Optional[int] = None,
+        operations: Optional[List[Operation]] = None,
+        flux_operations: Optional[List[Operation]] = None,
     ):
         """A flux tuneable superconducting transmon qubit
 
@@ -946,19 +1154,34 @@ class FluxTunableTransmon(Transmon):
         :type I: AnalogOutputPort
         :param Q: Q output port
         :type Q: AnalogOutputPort
-        :param fl_port:  Flux line output Port
-        :type fl_port: AnalogOutputPort
+        :param flux_port:  Flux line output Port
+        :type flux_port: AnalogOutputPort
         :param intermediate_frequency: intermediate frequency of the upconversion IQ mixer in MHz
         :type intermediate_frequency: int
         """
-        super().__init__(name, I, Q, intermediate_frequency)
-        self.elements.append(Element(name + "_flux_line", [fl_port]))
+        super(FluxTunableTransmon, self).__init__(
+            name, I, Q, intermediate_frequency, mixer, lo_frequency, operations
+        )
+        self.flux_port = flux_port
+        self.flux_operations = []
+        if flux_operations is not None:
+            self.flux_operations = flux_operations
+
+    def get_elements(self) -> List[ConfigBuilderElement]:
+        els = super().get_elements()
+
+        el = Element(self.name + "_flux_line", [self.flux_port])
+        for op in self.flux_operations:
+            el.add(op)
+
+        els.append(el)
+        return els
 
     def _add(self, op: Operation):
         if len(op.pulse.wfs) == 2:
-            self.elements[0].add(op)
+            super(FluxTunableTransmon, self)._add(op)
         elif len(op.pulse.wfs) == 1:
-            self.elements[1].add(op)
+            self.flux_operations.append(op)
         else:
             raise ConfigurationError(
                 "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
@@ -966,13 +1189,27 @@ class FluxTunableTransmon(Transmon):
 
 
 class Coupler(ElementCollection):
-    def __init__(self, name: str, p: AnalogOutputPort):
-        coupler = Element(name, analog_input_ports=[p])
-        super().__init__(name=name, elements=[coupler])
+    def __init__(
+        self,
+        name: str,
+        port: AnalogOutputPort,
+        operations: Optional[List[Operation]] = None,
+    ):
+        super(Coupler, self).__init__(name=name)
+        self._port = port
+        self.operations = []
+        if operations is not None:
+            self.operations = operations
+
+    def get_elements(self) -> List[ConfigBuilderElement]:
+        coupler = Element(self.name, analog_input_ports=[self._port])
+        for op in self.operations:
+            coupler.add(op)
+        return [coupler]
 
     def _add(self, op: Operation):
         if len(op.pulse.wfs) == 1:
-            self.elements[0].add(op)
+            self.operations.append(op)
         else:
             raise ConfigurationError(
                 "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
@@ -987,19 +1224,19 @@ class Coupler(ElementCollection):
         return self
 
     @property
-    def p(self):
-        return self.elements[0].analog_output_ports[0]
+    def port(self):
+        return self._port
 
-    @p.setter
-    def p(self, p: AnalogOutputPort):
-        self.elements[0].analog_output_ports[0] = p
+    @port.setter
+    def port(self, p: AnalogOutputPort):
+        self._port = p
 
 
-class Oscillator(object):
+class Oscillator(ConfigBuilderElement):
     def __init__(
         self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
     ):
-        self.name = name
+        super(Oscillator, self).__init__(name)
         self.dict = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
         self.dict["lo_frequency"] = lo_frequency
