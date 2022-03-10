@@ -1,9 +1,9 @@
 # Feature
 
 GUI for creating configuration. It allows:
-* visualization of existing config
-* edits of existing fields
-* addition of components based on `ConfigBuilder` from `qualang_tools.config`.
+* Visualization of existing config
+* Edits of existing fields
+* Addition of components based on `ConfigBuilder` from `qualang_tools.config`
 
 # Use
 
@@ -13,7 +13,7 @@ When edits are made, user can download two files `config_edits.py` that contains
 
 # Restrictions
 
-* while configuration can be explored when being build from `components` of `ConfigBuilder`, currently it cannot be directly edited if the items are initially added as objects. On the other hand, if configuration is purely config variable (no component objects are used in building it), it can be edited through the GUI.
+* While configuration can be explored when being build from `components` of `ConfigBuilder`, currently it cannot be directly edited if the items are initially added as objects. On the other hand, if configuration is purely config variable (no component objects are used in building it), it can be edited through the GUI.
 
 # Possible future extensions
 
