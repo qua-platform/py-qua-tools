@@ -7,9 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Interactive Plotting Toolbox - Fixed several small issues when loading a figure
 - Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown. 
+- Set minimum version of docutils dependency to 0.14
+- Fix config builder GUI imports
 ### Added
 - Interactive Plotting Toolbox - Added default markers when fitting 
 - Interactive Plotting Toolbox - Improved example and added a demo video 
+- readme for config builder GUI
 
 ## [0.7.0]
 ### Added
