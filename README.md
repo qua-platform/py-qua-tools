@@ -1,3 +1,8 @@
+![PyPI](https://img.shields.io/pypi/v/qualang-tools)
+[![discord](https://img.shields.io/discord/806244683403100171?label=QUA&logo=Discord&style=plastic)](https://discord.gg/7FfhhpswbP)
+
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 # QUA Language Tools
 
 The QUA language tools package includes various tools useful while writing QUA programs and performing experiments.
