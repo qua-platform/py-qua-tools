@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+
+## [0.7.1] - 2022-03-13
 ### Fixed
 - Interactive Plotting Toolbox - Fixed several small issues when loading a figure
 - Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown. 
@@ -14,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Interactive Plotting Toolbox - Improved example and added a demo video 
 - readme for config builder GUI
 
-## [0.7.0]
+## [0.7.0] - 2022-02-10
 ### Added
 - Add experimental feature - [InteractivePlotLib](https://github.com/qua-platform/py-qua-tools/tree/main/qualang_tools/addons).
   This plotting library, built on Matplotlib, adds many new features to it.
@@ -131,7 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.5...v0.7.0
 [0.6.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.3...v0.6.4
