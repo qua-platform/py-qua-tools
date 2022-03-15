@@ -64,3 +64,12 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: ${{env.JUNIT_REPORT_PATH}}/*.xml
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v2
+        with:
+          name: python_pkg
+          path: |
+            dist/*.tar.gz
+            dist/*.whl
+          retention-days: 3
