@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 
+## [0.7.2] - 2022-03-15
+### Fixed
+- Set minimum version of docutils dependency to 0.14
+
 ## [0.7.1] - 2022-03-13
 ### Fixed
 - Interactive Plotting Toolbox - Fixed several small issues when loading a figure
@@ -134,7 +138,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.5...v0.7.0
 [0.6.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.6.4...v0.6.5
