@@ -586,7 +586,8 @@ class VNA:
 
         :param freq_sweep: dictionary containing the frequency sweep information. For instance freq_sweep = {"fmin": 10e6,"fmax": 150e6,"step": 0.01e6,}
         :param n_avg: number of averaged iterations
-        :param dual: if True, runs measurements S11 and S21 simultaneously, otherwise runs them sequentially
+        :param dual: Boolean flag controlling the parallelism of the measurements. If two measurements were added, then dual=True
+        will run them simultaneously, whereas if dual=False the measurements will be run sequentially.
         :return: None
         """
         print(self)
