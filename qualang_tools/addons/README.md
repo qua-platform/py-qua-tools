@@ -13,6 +13,7 @@ To use, you need to install the package using `pip instal qualang_tools[interplo
 ## Example
 
 [![Example Video](InteractivePlotLib_demonstration.png)](https://www.youtube.com/watch?v=LaaNTySw1fY "Example Video")
+[![Example Video](InteractivePlotLib_demonstration.png)](https://www.youtube.com/watch?v=bC409aeA8p4 "Example Video part 2")
 
 ```python
 from qualang_tools.addons.InteractivePlotLib import InteractivePlotLib 
@@ -41,6 +42,11 @@ plt.plot(x, y3)
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Power [dBm]")
 ```
+## Support
+- Plot
+- Hist2d
+- Pcolor
+- PcolorMesh
 
 ## Commands
 - Click on title area - write the title
@@ -77,8 +83,14 @@ plt.ylabel("Power [dBm]")
   - e - Exponent
   - r - Erg
   - s - Sine
+  - S - Sine * exp
   - f(x) - User defined - For example: "x**2 * a[0] + a[1], [1,1]" will fit to a parabola with initial gauss for a: [1,1]
   - The output is recorded in the "fit" variable in the main workspace.
   - For example, fit["x_shift"] after a gaussian fit will give the peak location
   - Each type of fit will have different fields. Special points are marked with red dots.
   - Alt+f to remove fit
+- l - convert 2d plot to 1d plot lines
+- p - convert lines to pcolor
+- r - rectange - define a rectange to interact with the figure - to delete/copy only inside the rectangle
+- t - transpose - transpose data in 1d\2d plot
+- v - voronoi - define centers of voronoi and count population in each cell
