@@ -2475,10 +2475,10 @@ def curve_fit3(f, x, y, a0):
 
 def line_in_lim(point0, slope, xlim, ylim):
     def line(x):
-        (x - point0[0]) * slope + point0[1]
+        return (x - point0[0]) * slope + point0[1]
 
     def inv_line(y):
-        (y - point0[1]) / slope + point0[0]
+        return (y - point0[1]) / slope + point0[0]
 
     xy = []
     for x in [min(xlim), max(xlim)]:
