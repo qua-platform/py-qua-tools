@@ -1,22 +1,25 @@
-import inspect
-from scipy import optimize
-import glob
-from PIL import ImageGrab
-from io import BytesIO
-import os
+import __main__ as _main_module
 import datetime
-from IPython import get_ipython
+import glob
+import inspect
+import os
+from io import BytesIO
+
 import dill
+import matplotlib.colors as Colors
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import win32clipboard as clip
 import win32con
-from scipy.special import erf
-import pandas as pd
-import __main__ as _main_module
-import matplotlib.patches as patches
+from IPython import get_ipython
+from PIL import ImageGrab
+from matplotlib.collections import PolyCollection
+from matplotlib.collections import QuadMesh
+from scipy import optimize
 from scipy.spatial import Voronoi
-import matplotlib.colors as Colors
+from scipy.special import erf
 
 ipython = get_ipython()
 
@@ -75,10 +78,6 @@ class InteractivePlotLib:
             plt.show()
             plt.pause(1e-6)
         return out
-
-
-from matplotlib.collections import PolyCollection
-from matplotlib.collections import QuadMesh
 
 
 def extract_data_from_mesh(obj):
@@ -236,7 +235,7 @@ class InteractivePlotLibFigure:
                         self.line_selected.obj.set_ydata(y)
 
                         print("FITTTTT")
-                    if self.line_selected == None and isinstance(
+                    if self.line_selected is None and isinstance(
                         self.ax.get_children()[0], PolyCollection
                     ):
                         self.plot_type = "pcolor"
@@ -244,7 +243,7 @@ class InteractivePlotLibFigure:
                             self, self.ax.get_children()[0]
                         )
 
-                    if self.line_selected == None and isinstance(
+                    if self.line_selected is None and isinstance(
                         self.ax.get_children()[0], QuadMesh
                     ):
                         self.plot_type = "mesh"
@@ -1826,14 +1825,11 @@ class Marker:
         try:
             self_marker.point.remove()
             self_marker.text.remove()
-        except:
+        except BaseException:
             pass
 
     def __del__(self_marker):
         self_marker.remove()
-
-
-import re
 
 
 class Document:
@@ -2478,8 +2474,12 @@ def curve_fit3(f, x, y, a0):
 
 
 def line_in_lim(point0, slope, xlim, ylim):
-    line = lambda x: (x - point0[0]) * slope + point0[1]
-    inv_line = lambda y: (y - point0[1]) / slope + point0[0]
+    def line(x):
+        (x - point0[0]) * slope + point0[1]
+
+    def inv_line(y):
+        (y - point0[1]) / slope + point0[0]
+
     xy = []
     for x in [min(xlim), max(xlim)]:
         if line(x) > max(ylim):
