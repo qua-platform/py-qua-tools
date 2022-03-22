@@ -1,18 +1,25 @@
-import inspect
-from scipy import optimize
-import glob
-import os
+import __main__ as _main_module
 import datetime
-from IPython import get_ipython
+import glob
+import inspect
+import os
+from io import BytesIO
+
 import dill
+import matplotlib.colors as Colors
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import win32clipboard as clip
 import win32con
+from IPython import get_ipython
+from PIL import ImageGrab
+from matplotlib.collections import PolyCollection
+from matplotlib.collections import QuadMesh
+from scipy import optimize
+from scipy.spatial import Voronoi
 from scipy.special import erf
-import pandas as pd
-import __main__ as _main_module
-
 
 ipython = get_ipython()
 
@@ -48,6 +55,7 @@ class InteractivePlotLib:
             self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid)
             self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid2)
             self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid3)
+            self.figs[ind].fig.canvas.mpl_disconnect(self.figs[ind].cid4)
         if ind < 0:
             fig = plt.figure()
         else:
@@ -72,6 +80,42 @@ class InteractivePlotLib:
         return out
 
 
+def extract_data_from_mesh(obj):
+    array = obj.get_array()
+    width = obj._meshWidth
+    height = obj._meshHeight
+    data = np.reshape(array, [height, width])
+    x = np.unique(obj._coordinates[:, :, 0].flatten())
+    y = np.unique(obj._coordinates[:, :, 1].flatten())
+    x2 = (x[:-1] + x[1:]) / 2
+    y2 = (y[:-1] + y[1:]) / 2
+    return data, x, y, x2, y2
+
+
+def extract_data_from_pcolor(obj):
+    array = obj.get_array()
+    x_ext = np.unique(
+        np.array(
+            [[vertex[0] for vertex in path.vertices] for path in obj._paths]
+        ).flatten()
+    )
+    y_ext = np.unique(
+        np.array(
+            [[vertex[1] for vertex in path.vertices] for path in obj._paths]
+        ).flatten()
+    )
+    x_ext2 = (x_ext[:-1] + x_ext[1:]) / 2
+    if len(y_ext) > 1:
+        y_ext2 = (y_ext[:-1] + y_ext[1:]) / 2
+    else:
+        y_ext2 = y_ext
+    x2d = np.tile(x_ext2, [len(y_ext2), 1])
+    y2d = np.tile(y_ext2, [len(x_ext2), 1]).T
+    print(len(y_ext2))
+    data = np.reshape(array, [len(y_ext2), len(x_ext2)])
+    return data, x2d, y2d, x_ext2, y_ext2, x_ext, y_ext
+
+
 class InteractivePlotLibFigure:
     def __init__(self, fig, doc, master_obj):
 
@@ -89,6 +133,9 @@ class InteractivePlotLibFigure:
         self.marker_mode = False
         self.marker_list = [[]]
 
+        self.voronoi_mode = False
+        self.voronoi_obj = InteractivePlotLibFigure.Voronoi_Qplt(self)
+
         self.grid_state = False
 
         self.fig.canvas.mpl_disconnect(self.fig.canvas.manager.key_press_handler_id)
@@ -97,9 +144,14 @@ class InteractivePlotLibFigure:
         self.cid3 = self.fig.canvas.mpl_connect(
             "key_release_event", self.keyboard_release
         )
+        self.cid4 = self.fig.canvas.mpl_connect(
+            "button_release_event", self.mouse_release
+        )
 
         self.lines = []
+        self.rectangle = None
         self.state = self.ProtoStateMachine(self, done=True)
+        self.plot_type = "plot"
 
     def user_interaction(self, type, event):
         self.refresh_axis()
@@ -160,30 +212,98 @@ class InteractivePlotLibFigure:
                     self.state = InteractivePlotLibFigure.StateMachineLegend(self)
 
                 else:
+                    self.plot_type = "plot"
                     self.detect_curve_click(
-                        event.xdata, event.ydata, xlim, ylim, bbox.width, bbox.height
+                        event.xdata,
+                        event.ydata,
+                        xlim,
+                        ylim,
+                        bbox.width,
+                        bbox.height,
                     )
+                    if (
+                        self.line_selected is not None
+                        and event.button == 3
+                        and hasattr(self.line_selected.obj, "InteractivePlotLib_Type")
+                        and self.line_selected.obj.InteractivePlotLib_Type == "Fit"
+                    ):
+                        func = self.line_selected.obj.fit_func
+                        xlim = self.ax.get_xlim()
+                        x = np.linspace(min(xlim), max(xlim), 1001)
+                        y = func(x)
+                        self.line_selected.obj.set_xdata(x)
+                        self.line_selected.obj.set_ydata(y)
+
+                        print("FITTTTT")
+                    if self.line_selected is None and isinstance(
+                        self.ax.get_children()[0], PolyCollection
+                    ):
+                        self.plot_type = "pcolor"
+                        self.line_selected = InteractivePlotLibFigure.PcolorSelected(
+                            self, self.ax.get_children()[0]
+                        )
+
+                    if self.line_selected is None and isinstance(
+                        self.ax.get_children()[0], QuadMesh
+                    ):
+                        self.plot_type = "mesh"
+                        self.line_selected = InteractivePlotLibFigure.MeshSelected(
+                            self, self.ax.get_children()[0]
+                        )
 
             elif type == "keyboard_click":
                 if event.key == "ctrl+v":
                     clip.OpenClipboard()
                     data = clip.GetClipboardData()
                     clip.CloseClipboard()
+                    lines = data.split("\r\n")[:-1]
+                    if len(lines[0].split("\t")) <= 2:
+                        out = np.array(
+                            ([i.split("\t") for i in data.split("\r\n")[:-1]]), "double"
+                        )
+                        if np.shape(out)[1] == 2:
+                            self.ax.plot(out[:, 0], out[:, 1], linewidth=1)
+                        elif np.shape(out)[1] == 1:
+                            self.ax.plot(out[:, 1], linewidth=1)
 
-                    out = np.array(
-                        ([i.split("\t") for i in data.split("\r\n")[:-1]]), "double"
-                    )
-                    self.ax.plot(out[:, 0], out[:, 1], linewidth=1)
+                    elif (len(lines[0].split("\t")) > 2) and len(lines) == 2:
+                        self.ax.plot(
+                            np.array(lines[0].split("\t")[1:], "double"),
+                            np.array(lines[1].split("\t")[1:], "double"),
+                            linewidth=1,
+                        )
+                        self.ax.legend([np.array(lines[1].split("\t")[0], "double")])
+                    else:
+                        x_values = np.array(lines[0].split("\t")[1:], "double")
+                        y_values = np.array(
+                            [i.split("\t")[0] for i in lines[1:]], "double"
+                        )
+                        out_2d = np.array(
+                            ([i.split("\t")[1:] for i in lines[1:]]), "double"
+                        )
+                        print(x_values)
+                        print(y_values)
+                        print(out_2d)
+                        self.ax.pcolormesh(x_values, y_values, out_2d, shading="auto")
 
                 if event.key == "m":
                     self.marker_mode = not self.marker_mode
 
-                if event.key == "M":
+                if event.key == "shift+m" or event.key == "M":
                     self.marker_list.append([])
 
                 if event.key == "alt+m":
                     self.marker_list = [[]]
                     self.marker_mode = False
+
+                if event.key == "a":
+                    self.ax.axis("equal")
+
+                if event.key == "v":
+                    self.state = InteractivePlotLibFigure.StateMachineVoronoi(self)
+
+                if event.key == "alt+v":
+                    self.voronoi_obj.remove()
 
                 if event.key == "f":
                     self.state = InteractivePlotLibFigure.StateMachineFit(self)
@@ -203,16 +323,49 @@ class InteractivePlotLibFigure:
                     if self.doc.doc:
                         self.doc.doc([plt.gcf().number])
 
+                if event.key == "r":
+                    self.state = InteractivePlotLibFigure.StateMachineRect(self)
+
+                if event.key == "alt+r":
+                    self.rectangle = None
+
+                if event.key == "n":
+                    self.master_obj.figure()
+
+                if event.key == "alt+l":
+                    self.ax.get_legend().set_visible(
+                        not self.ax.get_legend().get_visible()
+                    )
+
+                if event.key == "p" and self.plot_type == "plot":
+                    self.convert_to_pcolormesh()
+                    self.plot_type = "mesh"
+
                 if self.line_selected:
+                    if event.key == "t":
+                        self.line_selected.transpose()
+
+                    if event.key == "l" and (
+                        self.plot_type == "pcolor" or self.plot_type == "mesh"
+                    ):
+                        self.line_selected.convert_to_lines()
+                        self.line_selected = None
+                        self.plot_type = "plot"
 
                     if event.key == "c":
                         self.state = InteractivePlotLibFigure.StateMachineColor(self)
+
+                    if event.key == ":":
+                        self.state = InteractivePlotLibFigure.StateMachineCommand(self)
 
                     if event.key == "ctrl+c":
                         self.line_selected.copy_to_clipboard()
 
                     if event.key == "delete":
                         self.line_selected.delete()
+
+                    if event.key == "alt+delete":
+                        self.line_selected.delete_neg()
 
                     if event.key == "up":
                         self.line_selected.correct_order(1)
@@ -233,6 +386,25 @@ class InteractivePlotLibFigure:
             self.state = self.ProtoStateMachine(self, done=True)
 
         self.refresh_figure()
+
+    def convert_to_pcolormesh(self):
+        self.lines = self.get_lines()
+        y_bare = [float(value.get_text()) for value in self.ax.get_legend().texts]
+        xmat = []
+        ymat = []
+        datamat = []
+        for i, line in enumerate(self.lines):
+            xmat.append(line.get_xdata())
+            ymat.append([y_bare[i]] * len(line.get_xdata()))
+            datamat.append(line.get_ydata())
+        for line in self.lines:
+            line.remove()
+        self.lines = []
+        obj = self.ax.pcolormesh(xmat, ymat, datamat, shading="auto")
+        _, x, y, _, _ = extract_data_from_mesh(obj)
+        self.ax.set_xlim([min(x), max(x)])
+        self.ax.set_ylim([min(y), max(y)])
+        self.ax.get_legend().remove()
 
     def detect_curve_click(self, base_x, base_y, base_xlim, base_ylim, width, height):
         scale_convert = InteractivePlotLibFigure.ConvertLogLin(
@@ -274,7 +446,7 @@ class InteractivePlotLibFigure:
             if line.get_linestyle() == "None":
                 norm_2 = (
                     (x0_n - x_n) ** 2 + (y0_n - y_n) ** 2
-                ) / self.th_point_advantage  # give advantage for choosing a point compared to a line
+                ) / self.th_point_advantage  # give advantage for choosing a point over a line
                 ind = np.argmin(norm_2)
                 if norm_2[ind] < candidate["distance_2"]:
                     candidate["line_index"] = j
@@ -319,6 +491,28 @@ class InteractivePlotLibFigure:
             ):
                 line.remove()
 
+    def predefined_fit_pcolor(self, req="n", Type="pcolor"):
+        if Type == "pcolor":
+            data, x2d, y2d, x_ext2, y_ext2, x_ext, y_ext = extract_data_from_pcolor(
+                self.line_selected.obj
+            )
+        else:
+            data, x2d, y2d, x_ext2, y_ext2 = extract_data_from_mesh(
+                self.line_selected.obj
+            )
+
+        fit_line_x = []
+        fit_line_y = []
+        if req == "n":
+            data = -data
+        if req == "p":
+            pass
+        for i, d in enumerate(data):
+            fit_line_x.append(x_ext2[np.argmax(d)])
+            fit_line_y.append([y_ext2[i]])
+        (line,) = self.ax.plot(fit_line_x, fit_line_y, ".m")
+        setattr(line, "InteractivePlotLib_Type", "Fit")
+
     def predefined_fit(self, req="g"):
         self.remove_fit()
         print(req)
@@ -346,6 +540,35 @@ class InteractivePlotLibFigure:
             request_x_scale = 1 / omega / (xlim[1] - xlim[0])
             print(request_x_scale)
             Fit(lambda x: np.sin(x), self.ax, {"x_scale": request_x_scale})
+        elif req == "S":
+            ax = self.ax
+            x = ax.get_lines()[0].get_xdata()
+            y = ax.get_lines()[0].get_ydata()
+            w = np.fft.fft(y)
+            freqs = np.fft.fftfreq(len(x))
+            new_w = w[1 : len(freqs // 2)]
+            new_f = freqs[1 : len(freqs // 2)]
+
+            ind = new_f > 0
+            new_f = new_f[ind]
+            new_w = new_w[ind]
+
+            out_freq = new_f[np.argmax(np.abs(new_w))]
+            omega = out_freq / np.mean(np.diff(x)) * 2 * np.pi
+            xlim = ax.get_xlim()
+            request_x_scale = 1 / omega / (xlim[1] - xlim[0])
+            print(request_x_scale)
+            y_extra_scale = np.diff(ax.get_ylim())[0]
+            Fit(
+                lambda x, a: a[3] + a[2] * np.sin(a[0] * x) * np.exp(-x * a[1]),
+                ax,
+                {
+                    "initial_guess": [omega, 1, 1, 0],
+                    "func": "sin*exp",
+                    "y_scale": y_extra_scale,
+                    "text": lambda a: f"f = {a[0]/(2*np.pi)} [Hz]\n tau = {1/a[1]} [s]\n amp = {a[2]*y_extra_scale}\n y_offset={a[3]*y_extra_scale}",
+                },
+            )
         else:
             idx = req.find(",")
             convert_function = eval("lambda x,a: " + req[:idx])
@@ -374,6 +597,263 @@ class InteractivePlotLibFigure:
         d_2 = (x4 - x3) ** 2 + (y4 - y3) ** 2
         return d_2, x4, y4
 
+    class proto_2d_graphics:
+        def delete(self_2d):
+            if self_2d.sup_self.rectangle:
+                x_list = self_2d.x
+                y_list = self_2d.y
+                data = self_2d.data
+                ind_x = np.array([True] * len(x_list))
+                ind_y = np.array([True] * len(y_list))
+
+                ind_x = (x_list >= self_2d.sup_self.rectangle.x[0]) & (
+                    x_list <= self_2d.sup_self.rectangle.x[1]
+                )
+                ind_y = (y_list >= self_2d.sup_self.rectangle.y[0]) & (
+                    y_list <= self_2d.sup_self.rectangle.y[1]
+                )
+                self_2d.sup_self.rectangle = None
+                x_list = x_list[ind_x]
+                y_list = y_list[ind_y]
+                data = np.array(data, "double")
+                data[
+                    np.where(ind_y)[0][0] : np.where(ind_y)[0][-1] + 1,
+                    np.where(ind_x)[0][0] : np.where(ind_x)[0][-1] + 1,
+                ] = np.NaN
+                self_2d.obj.set_array(data.flatten())
+                self_2d.data = data
+
+            else:
+                self_2d.obj.remove()
+                self_2d.alive = False
+
+        def transpose(self_2d):
+            self_2d.obj.remove()
+            xlim = self_2d.sup_self.ax.get_xlim()
+            ylim = self_2d.sup_self.ax.get_ylim()
+            x_new = self_2d.y
+            y_new = self_2d.x
+            data_new = self_2d.data.T
+            print("HI")
+            self_2d.obj = self_2d.plot(x_new, y_new, data_new)
+
+            self_2d.x = x_new
+            self_2d.y = y_new
+            self_2d.data = data_new
+            self_2d.sup_self.ax.set_xlim(ylim)
+            self_2d.sup_self.ax.set_ylim(xlim)
+
+        def copy_to_clipboard(self_2d):
+            data = ""
+            x_list = self_2d.x2
+            y_list = self_2d.y2
+            data = self_2d.data
+            ind_x = np.array([True] * len(x_list))
+            ind_y = np.array([True] * len(y_list))
+            data_s = ""
+            if self_2d.sup_self.rectangle:
+                ind_x = (x_list >= self_2d.sup_self.rectangle.x[0]) & (
+                    x_list <= self_2d.sup_self.rectangle.x[1]
+                )
+                ind_y = (y_list >= self_2d.sup_self.rectangle.y[0]) & (
+                    y_list <= self_2d.sup_self.rectangle.y[1]
+                )
+                self_2d.sup_self.rectangle = None
+                x_list = x_list[ind_x]
+                y_list = y_list[ind_y]
+                data = data[
+                    np.where(ind_y)[0][0] : np.where(ind_y)[0][-1] + 1,
+                    np.where(ind_x)[0][0] : np.where(ind_x)[0][-1] + 1,
+                ]
+                print(data)
+
+            data_s += f" ,{','.join([str(i) for i in x_list])}\r\n".replace(",", "\t")
+            for j in range(len(y_list)):
+                data_s += (
+                    f"{y_list[j]},{','.join([str(i) for i in data[j]])}\r\n".replace(
+                        ",", "\t"
+                    )
+                )
+            clip.OpenClipboard()
+            clip.EmptyClipboard()
+            clip.SetClipboardData(win32con.CF_UNICODETEXT, data_s)
+            clip.CloseClipboard()
+
+        def convert_to_lines(self_2d):
+            print("HI")
+            self_2d.obj.remove()
+            cmap = plt.cm.get_cmap("jet")
+            if len(self_2d.y2) == 1:
+                self_2d.sup_self.ax.plot(self_2d.x2, self_2d.data[0])
+            else:
+                for i in range(len(self_2d.y2)):
+                    self_2d.sup_self.ax.plot(
+                        self_2d.x2,
+                        self_2d.data[i],
+                        color=cmap(i / (len(self_2d.y2) - 1)),
+                    )
+            self_2d.sup_self.ax.legend(self_2d.y2)
+            self_2d.sup_self.ax.set_xlim([min(self_2d.x2), max(self_2d.x2)])
+            self_2d.sup_self.ax.set_ylim(
+                [
+                    min(np.array(self_2d.data).flatten()),
+                    max(np.array(self_2d.data).flatten()),
+                ]
+            )
+
+    class Voronoi_Qplt:
+        def __init__(self_voronoi, sup_self):
+            self_voronoi.sup_self = sup_self
+            self_voronoi.markers = []
+            self_voronoi.graphical_objects = []
+
+        def remove(self_voronoi):
+            for obj in self_voronoi.graphical_objects:
+                obj.remove()
+            self_voronoi.graphical_objects = []
+            self_voronoi.markers = []
+
+        def generate_voronoi(self_voronoi):
+            xlim = self_voronoi.sup_self.ax.get_xlim()
+            ylim = self_voronoi.sup_self.ax.get_ylim()
+            sup_self = self_voronoi.sup_self
+
+            for obj in self_voronoi.graphical_objects:
+                obj.remove()
+            self_voronoi.graphical_objects = []
+
+            points = np.array(self_voronoi.markers)
+            (l,) = sup_self.ax.plot(points[:, 0], points[:, 1], "om")
+            self_voronoi.graphical_objects.append(l)
+
+            if len(points) == 2:
+                if points[0][1] - points[1][1] == 0:
+                    x = (points[0][0] + points[1][0]) / 2
+                    (l,) = sup_self.ax.plot([x, x], [max(ylim), min(ylim)], "m")
+                elif points[0][0] - points[1][0] == 0:
+                    y = (points[0][1] + points[1][1]) / 2
+                    (l,) = sup_self.ax.plot([max(xlim), min(xlim)], [y, y], "m")
+                else:
+                    slope = (points[0][1] - points[1][1]) / (
+                        points[0][0] - points[1][0]
+                    )
+                    prep_slope = -1 / slope
+                    point0 = (
+                        np.array(
+                            [points[0][0] + points[1][0], points[0][1] + points[1][1]]
+                        )
+                        / 2
+                    )
+                    xy = line_in_lim(point0, prep_slope, xlim, ylim)
+                    (l,) = sup_self.ax.plot(
+                        [xy[0][0], xy[1][0]], [xy[0][1], xy[1][1]], "m"
+                    )
+                    self_voronoi.graphical_objects.append(l)
+
+            if len(points) > 2:
+                vor = Voronoi(points)
+
+                (l,) = sup_self.ax.plot(vor.vertices[:, 0], vor.vertices[:, 1], "*y")
+                self_voronoi.graphical_objects.append(l)
+
+                for simplex in vor.ridge_vertices:
+                    simplex = np.asarray(simplex)
+                    if np.all(simplex >= 0):
+                        (l,) = sup_self.ax.plot(
+                            vor.vertices[simplex, 0], vor.vertices[simplex, 1], "r-"
+                        )
+                        self_voronoi.graphical_objects.append(l)
+
+                center = points.mean(axis=0)
+                for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
+                    simplex = np.asarray(simplex)
+                    if np.any(simplex < 0):
+                        i = simplex[simplex >= 0][0]  # finite end Voronoi vertex
+                        t = points[pointidx[1]] - points[pointidx[0]]  # tangent
+                        t /= np.linalg.norm(t)
+                        n = np.array([-t[1], t[0]])  # normal
+                        midpoint = points[pointidx].mean(axis=0)
+                        point = vor.vertices[i]
+                        far_point = point + np.sign(
+                            np.dot(midpoint - center, n)
+                        ) * n * np.sqrt(np.diff(xlim) ** 2 + np.diff(ylim) ** 2)
+
+                        (l,) = sup_self.ax.plot(
+                            [vor.vertices[i, 0], far_point[0]],
+                            [vor.vertices[i, 1], far_point[1]],
+                            "r-",
+                        )
+                        self_voronoi.graphical_objects.append(l)
+
+            data, x, y, _, _ = extract_data_from_mesh(
+                self_voronoi.sup_self.ax.get_children()[0]
+            )
+
+            x_mean = (x[1:] + x[:-1]) / 2
+            y_mean = (y[1:] + y[:-1]) / 2
+            x_rep = np.tile(x_mean, [len(y_mean), 1])
+            y_rep = np.tile(y_mean, [len(x_mean), 1]).T
+
+            distances_2 = []
+            for p in points:
+                distances_2.append((x_rep - p[0]) ** 2 + (y_rep - p[1]) ** 2)
+
+            ind = np.argmin(distances_2, axis=0)
+            sum_vec = []
+            for i in range(len(points)):
+                sum_vec.append(np.sum(data[ind == i]))
+            print(f"points: {points}")
+            print(f"population: {sum_vec}")
+
+            plt.pause(0.0001)
+
+        def add_marker(self_voronoi, x, y):
+            self_voronoi.markers.append([x, y])
+            self_voronoi.generate_voronoi()
+
+        def mouse_click(self_voronoi, x, y):
+            self_voronoi.x_click = x
+            self_voronoi.y_click = y
+
+        def move_marker(self_voronoi, x_click, y_click, x_release, y_release):
+            distance = []
+            for xy in self_voronoi.markers:
+                distance.append((x_click - xy[0]) ** 2 + (y_click - xy[1]) ** 2)
+            ind = np.argmin(distance)
+            self_voronoi.markers[ind] = [x_release, y_release]
+            self_voronoi.generate_voronoi()
+
+    class MeshSelected(proto_2d_graphics):
+        def __init__(self_mesh, sup_self, obj):
+            self_mesh.sup_self = sup_self
+            self_mesh.obj = obj
+            (
+                self_mesh.data,
+                self_mesh.x,
+                self_mesh.y,
+                self_mesh.x2,
+                self_mesh.y2,
+            ) = extract_data_from_mesh(obj)
+
+            self_mesh.plot = lambda x, y, data: self_mesh.sup_self.ax.pcolormesh(
+                x, y, data
+            )
+
+    class PcolorSelected(proto_2d_graphics):
+        def __init__(self_pcolor, sup_self, obj):
+            self_pcolor.sup_self = sup_self
+            self_pcolor.obj = obj
+            data, x2d, y2d, x, y, x2, y2 = extract_data_from_pcolor(obj)
+            self_pcolor.data = data
+
+            self_pcolor.x = x2
+            self_pcolor.y = y2
+            self_pcolor.x2 = x
+            self_pcolor.y2 = y
+            self_pcolor.plot = lambda x, y, data: self_pcolor.sup_self.ax.pcolormesh(
+                x, y, data
+            )
+
     class LineSelected:
         def __init__(self_line, sup_self, obj, line_index_selected, xy):
             self_line.sup_self = sup_self
@@ -386,6 +866,23 @@ class InteractivePlotLibFigure:
             self_line.click_xy = xy
             if sup_self.marker_mode:
                 sup_self.marker_list[-1] = Marker(sup_self.ax, self_line.click_xy)
+            if hasattr(self_line.obj, "fit_text"):
+                print(self_line.obj.fit_text)
+                clip.OpenClipboard()
+                clip.EmptyClipboard()
+                clip.SetClipboardData(win32con.CF_UNICODETEXT, self_line.obj.fit_text)
+                clip.CloseClipboard()
+
+        def transpose(self_line):
+            y = self_line.obj.get_xdata()
+            x = self_line.obj.get_ydata()
+            self_line.obj.set_xdata(x)
+            self_line.obj.set_ydata(y)
+            xlim = self_line.sup_self.ax.get_xlim()
+            ylim = self_line.sup_self.ax.get_ylim()
+            self_line.sup_self.ax.set_xlim(ylim)
+
+            self_line.sup_self.ax.set_ylim(xlim)
 
         def emphasize_line_width(self_line):
             if self_line.obj.get_linestyle() == "None":
@@ -403,6 +900,9 @@ class InteractivePlotLibFigure:
             data = ""
             x_list = self_line.obj.get_xdata()
             y_list = self_line.obj.get_ydata()
+            if self_line.sup_self.rectangle:
+                x_list, y_list = self_line.sup_self.rectangle.filter(x_list, y_list)
+                self_line.sup_self.rectangle = None
             for x, y in zip(x_list, y_list):
                 data += f"{x}\t{y}\r\n"
             clip.OpenClipboard()
@@ -411,8 +911,27 @@ class InteractivePlotLibFigure:
             clip.CloseClipboard()
 
         def delete(self_line):
-            self_line.obj.remove()
-            self_line.alive = False
+            if self_line.sup_self.rectangle:
+                x_list = self_line.obj.get_xdata()
+                y_list = self_line.obj.get_ydata()
+                x_list, y_list, _ = self_line.sup_self.rectangle.filter_neg(
+                    x_list, y_list
+                )
+                self_line.obj.set_xdata(x_list)
+                self_line.obj.set_ydata(y_list)
+                self_line.sup_self.rectangle = None
+            else:
+                self_line.obj.remove()
+                self_line.alive = False
+
+        def delete_neg(self_line):
+            if self_line.sup_self.rectangle:
+                x_list = self_line.obj.get_xdata()
+                y_list = self_line.obj.get_ydata()
+                x_list, y_list, _ = self_line.sup_self.rectangle.filter(x_list, y_list)
+                self_line.obj.set_xdata(x_list)
+                self_line.obj.set_ydata(y_list)
+                self_line.sup_self.rectangle = None
 
         def color(self_line, key):
             self_line.obj.set_color(key)
@@ -493,6 +1012,9 @@ class InteractivePlotLibFigure:
     def mouse_click(self, event):
         self.user_interaction("mouse_click", event)
 
+    def mouse_release(self, event):
+        self.user_interaction("mouse_release", event)
+
     def keyboard_click(self, event):
         self.user_interaction("keyboard_click", event)
 
@@ -516,6 +1038,7 @@ class InteractivePlotLibFigure:
             self_state.legend = [""]
             self_state.lines = sup_self.get_lines()
             if sup_self.ax.get_legend():
+                sup_self.ax.get_legend().set_visible(True)
                 self_state.legend = [
                     i.get_text() for i in sup_self.ax.get_legend().texts
                 ]
@@ -916,6 +1439,52 @@ class InteractivePlotLibFigure:
 
             return lambda x: from_SI2(to_SI2(np.array(x)))
 
+    class StateMachineCommand(ProtoStateMachine):
+        def __init__(self_state, sup_self):
+            super().__init__(sup_self)
+            self_state.text_box = InteractivePlotLibFigure.CommandText(sup_self.ax)
+            self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
+                "",
+                self_state.text_box.update_text,
+                format_text=lambda x: f"command: {x}",
+            )
+
+        def event(self_state, type, event):
+            if type == "keyboard_click":
+                self_state.done = self_state.text_obj.react_to_key_press(event.key)
+            if type == "mouse_click":
+                self_state.done = self_state.text_obj.done()
+            if self_state.done:
+                if self_state.text_obj.text == "colorbar":
+                    if (
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
+                    ):
+                        plt.colorbar()
+
+                if self_state.text_obj.text == "log":
+                    if (
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
+                    ):
+                        self_state.sup_self.line_selected.obj.set_norm(Colors.LogNorm())
+                    elif self_state.sup_self.plot_type == "plot":
+                        self_state.sup_self.ax.set_yscale("log")
+
+                if (
+                    self_state.text_obj.text == "lin"
+                    or self_state.text_obj.text == "linear"
+                ):
+                    if (
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
+                    ):
+                        self_state.sup_self.line_selected.obj.set_norm(
+                            Colors.Normalize()
+                        )
+                    elif self_state.sup_self.plot_type == "plot":
+                        self_state.sup_self.ax.set_yscale("linear")
+
     class StateMachineColor(ProtoStateMachine):
         def __init__(self_state, sup_self):
             super().__init__(sup_self)
@@ -932,6 +1501,127 @@ class InteractivePlotLibFigure:
                 else:
                     self_state.sup_self.user_interaction("mouse_click", event)
 
+    class Rectangle:
+        def __init__(self, ax, x, y):
+            self.x = np.sort(x)
+            self.y = np.sort(y)
+            rect = patches.Rectangle(
+                (self.x[0], self.y[0]),
+                self.x[1] - self.x[0],
+                self.y[1] - self.y[0],
+                edgecolor="r",
+                facecolor="none",
+            )
+            print(f"x:[{self.x[0]} , {self.x[1]}] \n y:[{self.y[0]} , {self.y[0]}]")
+            self.obj = ax.add_patch(rect)
+
+        def filter(self, x, y):
+            ind_bool = (
+                (x >= self.x[0])
+                * (x <= self.x[1])
+                * (y >= self.y[0])
+                * (y <= self.y[1])
+            )
+            return np.array(x)[ind_bool], np.array(y)[ind_bool], ind_bool
+
+        def filter_neg(self, x, y):
+            ind_bool = (
+                (x <= self.x[0])
+                | (x >= self.x[1])
+                | (y <= self.y[0])
+                | (y >= self.y[1])
+            )
+            return np.array(x)[ind_bool], np.array(y)[ind_bool], ind_bool
+
+        def __del__(self):
+            self.obj.remove()
+
+    class StateMachineVoronoi(ProtoStateMachine):
+        def __init__(self_state, sup_self):
+            super().__init__(sup_self)
+            text = "click to add node\n click&drag to move"
+            self_state.help_box = InteractivePlotLibFigure.HelperText(
+                self_state.sup_self.ax, text
+            )
+            self_state.x = [None, None]
+            self_state.y = [None, None]
+
+        def event(self_state, type, event):
+
+            if type == "keyboard_click":
+                self_state.done = True  # any key will stop voronoi
+
+            if type == "mouse_click":
+
+                self_state.x[0] = event.xdata
+                self_state.y[0] = event.ydata
+
+            if type == "mouse_release":
+
+                self_state.x[1] = event.xdata
+                self_state.y[1] = event.ydata
+                if (
+                    self_state.x[1] == self_state.x[0]
+                    and self_state.y[1] == self_state.y[0]
+                ):
+                    self_state.sup_self.voronoi_obj.add_marker(
+                        self_state.x[0], self_state.y[0]
+                    )
+                else:
+                    self_state.sup_self.voronoi_obj.move_marker(
+                        self_state.x[0],
+                        self_state.y[0],
+                        self_state.x[1],
+                        self_state.y[1],
+                    )
+
+            if self_state.done:
+                self_state.help_box.remove()
+
+    class StateMachineRect(ProtoStateMachine):
+        def __init__(self_state, sup_self):
+            super().__init__(sup_self)
+            text = "Select rectangle\nclick & drag"
+            self_state.help_box = InteractivePlotLibFigure.HelperText(
+                self_state.sup_self.ax, text
+            )
+            self_state.x = [None, None]
+            self_state.y = [None, None]
+
+        def event(self_state, type, event):
+
+            if type == "mouse_click":
+                self_state.x[0] = event.xdata
+                self_state.y[0] = event.ydata
+
+            if type == "mouse_release":
+                self_state.x[1] = event.xdata
+                self_state.y[1] = event.ydata
+                if (
+                    self_state.x[1] == self_state.x[0]
+                    and self_state.y[1] == self_state.y[0]
+                ):
+
+                    self_state.x = self_state.sup_self.ax.get_xlim()
+                    if self_state.sup_self.plot_type == "pcolor":
+                        _, _, _, _, _, _, y_ext = extract_data_from_pcolor(
+                            self_state.sup_self.line_selected.obj  # plt.gca().get_children()[0]
+                        )
+                        mx = y_ext[y_ext <= self_state.y[0]].max()
+                        mm = y_ext[y_ext >= self_state.y[0]].min()
+                        self_state.y = [
+                            mm - (mx - mm) / 3,
+                            mx + (mx - mm) / 3,
+                        ]
+
+                self_state.sup_self.rectangle = InteractivePlotLibFigure.Rectangle(
+                    self_state.sup_self.ax, self_state.x, self_state.y
+                )
+                self_state.done = True
+
+            if self_state.done:
+                self_state.help_box.remove()
+
     class StateMachineFit(ProtoStateMachine):
         def __init__(self_state, sup_self):
             super().__init__(sup_self)
@@ -942,6 +1632,7 @@ class InteractivePlotLibFigure:
             text += "e - exponent\n"
             text += "r - erf\n"
             text += "s - sine\n"
+            text += "S - decay sine\n"
 
             self_state.text_box = InteractivePlotLibFigure.CommandText(sup_self.ax)
             self_state.text_obj = InteractivePlotLibFigure.InteractiveText(
@@ -964,9 +1655,19 @@ class InteractivePlotLibFigure:
             if self_state.done:
                 self_state.help_box.remove()
                 print(self_state.text_obj.text)
-                InteractivePlotLibFigure.predefined_fit(
-                    self_state.sup_self, self_state.text_obj.text
-                )
+                if self_state.sup_self.plot_type == "plot":
+                    InteractivePlotLibFigure.predefined_fit(
+                        self_state.sup_self, self_state.text_obj.text
+                    )
+                elif (
+                    self_state.sup_self.plot_type == "pcolor"
+                    or self_state.sup_self.plot_type == "mesh"
+                ):
+                    InteractivePlotLibFigure.predefined_fit_pcolor(
+                        self_state.sup_self,
+                        self_state.text_obj.text,
+                        self_state.sup_self.plot_type,
+                    )
                 self_state.sup_self.refresh_figure()
 
     class InteractiveText:
@@ -1006,6 +1707,7 @@ class InteractivePlotLibFigure:
             return self_text.is_done
 
         def react_to_key_press(self_text, key):
+            # print(self_text.first_key_stroke)
             if key == "enter":
                 if (
                     len(self_text.text) > 0 and self_text.text[0] == ":"
@@ -1247,15 +1949,24 @@ class Document:
         if load_figures:
 
             try:
+                if isinstance(n, int):
+                    figures_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.pkl")
+                else:
+                    figures_path = [n]
 
-                figures_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.pkl")
                 for figure_path in figures_path:
                     dill.load(open(figure_path, "rb"))
 
             except BaseException:
                 print("problem loading figures")
 
-        data_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.dat")
+        if isinstance(n, int):
+            data_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.dat")
+        else:
+            data_path = glob.glob(n.split("fig")[0] + "*.dat")
+
+            print(data_path)
+
         if len(data_path) > 0:
             loaded_data = dill.load(open(data_path[0], "rb"))
         else:
@@ -1298,6 +2009,21 @@ class Document:
         dill.dump(h, open(path + ".pkl", "wb"))
 
         self.generate_csv_data(h, path)
+
+        image = ImageGrab.grab()
+        output = BytesIO()
+        mngr = plt.get_current_fig_manager()
+        rect = mngr.window.geometry().getRect()
+        image = image.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
+
+        image.convert("RGB").save(output, "BMP")
+        data = output.getvalue()[14:]
+        output.close()
+        clip.OpenClipboard()
+        clip.EmptyClipboard()
+        clip.SetClipboardData(win32con.CF_DIB, data)
+        clip.CloseClipboard()
+
         return path
 
     def generate_csv_data(self, fig, path):
@@ -1468,21 +2194,31 @@ class SingleFit:
 
             if fit_type.__code__.co_argcount == 2:
                 x_data, y_data = self.get_xdata_ydata_from_axes(line)
+                x_scale, y_scale = 1, 1
+
+                if "y_scale" in options:
+                    y_scale = options["y_scale"]
+                if "x_scale" in options:
+                    x_scale = options["y_scale"]
 
                 popt = curve_fit3(
                     lambda x, a: fit_type(x, a),
-                    x_data,
-                    y_data,
+                    x_data / x_scale,
+                    y_data / y_scale,
                     options["initial_guess"],
                 )
                 print(f"func = { options ['func'] }, a = {popt}")
-                self.fit_func = lambda x: fit_type(x, popt)
+                self.fit_func = lambda x: fit_type(x / x_scale, popt) * y_scale
                 (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
                 self.fit_line_obj = l
                 setattr(self.fit_line_obj, "InteractivePlotLib_Type", "Fit")
                 self.ok = True
                 self.popt = popt
-                self.text = f"a = {popt}"
+                if "text" in options:
+                    self.text = options["text"](popt)
+                else:
+                    self.text = f"a = {popt}"
+                print(self.text)
                 self.x = x_data
                 self.y = y_data
                 self.yf = self.fit_func(x_data)
@@ -1574,6 +2310,7 @@ class SingleFit:
             for dx0, dy0 in zip(self.dx0, self.dy0):
                 text += f"({dx0:2.2e},{dy0:2.2e}),"
             text = text[:-1]
+        text += f" poly:{self.p}\n"
 
         if self.fit_type == 0:
             self.mean = poly[0]
@@ -1584,6 +2321,8 @@ class SingleFit:
             text += f"slope: {self.slope:2.2e}\n"
 
         self.text = text
+        setattr(self.fit_line_obj, "fit_text", text)
+        setattr(self.fit_line_obj, "fit_func", self.fit_func)
         print(text)
         return True
 
@@ -1713,6 +2452,7 @@ class SingleFit:
         text += f"→x:{self.x_shift:2.2e},↑y:{self.y_shift:2.2e}\n"
         text += f"↔x:{self.x_scale:2.2e},↕y:{self.y_scale:2.2e}\n"
         self.text = text
+        setattr(self.fit_line_obj, "fit_text", text)
         print(text)
         return True
 
@@ -1731,3 +2471,21 @@ def curve_fit3(f, x, y, a0):
 
     out = optimize.minimize(lambda a: opt(x, y, a), a0)
     return out["x"]
+
+
+def line_in_lim(point0, slope, xlim, ylim):
+    def line(x):
+        return (x - point0[0]) * slope + point0[1]
+
+    def inv_line(y):
+        return (y - point0[1]) / slope + point0[0]
+
+    xy = []
+    for x in [min(xlim), max(xlim)]:
+        if line(x) > max(ylim):
+            xy.append([inv_line(max(ylim)), max(ylim)])
+        elif line(x) < min(ylim):
+            xy.append([inv_line(min(ylim)), min(ylim)])
+        else:
+            xy.append([x, line(min(xlim))])
+    return xy

@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-
+### Added
+- In interactive plotlib, Support for 2d plot, better data manipulation and better fits
 
 ## [0.7.2] - 2022-03-15
 ### Fixed
