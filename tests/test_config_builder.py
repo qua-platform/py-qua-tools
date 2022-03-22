@@ -151,10 +151,12 @@ def test_transmon(config_transmon):
     assert [*config["elements"]] == ["qb1", "qb2", "qb2_flux_line"]
     assert [*config["mixers"]] == ["mx1"]
     assert [*config["waveforms"]] == ["wf1", "wf2"]
-    assert config["mixers"]["mx1"] == [{
-        "intermediate_frequency": 5e6,
-        "lo_frequency": 4e9,
-        "correction": [1.0, 0.0, 1.0, 0.0],
-    }]
+    assert config["mixers"]["mx1"] == [
+        {
+            "intermediate_frequency": 5e6,
+            "lo_frequency": 4e9,
+            "correction": [1.0, 0.0, 1.0, 0.0],
+        }
+    ]
     assert config["elements"]["qb2_flux_line"]["singleInput"]["port"] == ("con1", 4)
     assert [*config["pulses"]] == ["pi_pulse", "fl_pulse"]

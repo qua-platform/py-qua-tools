@@ -135,10 +135,10 @@ def test_override_waveform(config):
     ref_length = b_ref.get_op_length("qe2")
 
     with baking(
-            cfg,
-            padding_method="right",
-            override=False,
-            baking_index=b_ref.get_baking_index(),
+        cfg,
+        padding_method="right",
+        override=False,
+        baking_index=b_ref.get_baking_index(),
     ) as b_new:
         samples = [[0.2] * 30, [0.0] * 30]
         b_new.add_op("customOp", "qe2", samples)
@@ -231,8 +231,10 @@ def test_play_at_negative_t(config):
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     print(b.get_waveforms_dict())
-    assert np.array_equal(np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
-                          np.array([0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0, 0]))
+    assert np.array_equal(
+        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
+        np.array([0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0, 0]),
+    )
 
 
 def test_negative_wait(config):
@@ -248,12 +250,16 @@ def test_negative_wait(config):
         # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
         #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
         b.wait(-3, "qe2")
-        b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+        b.play(
+            "Op2", "qe2"
+        )  # t indicates the time index where these new samples should be added
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     print(b.get_waveforms_dict())
-    assert np.array_equal(np.round( np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4), np.array(
-        [0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]))
+    assert np.array_equal(
+        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
+        np.array([0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]),
+    )
 
 
 def test_play_at_negative_t_too_large(config):
@@ -269,8 +275,8 @@ def test_play_at_negative_t_too_large(config):
         # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
         #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
         with pytest.raises(
-                Exception,
-                match="too large for current baked samples length",
+            Exception,
+            match="too large for current baked samples length",
         ):
             b.play_at(
                 "Op2", "qe2", t=-6
@@ -292,11 +298,13 @@ def test_negative_wait_too_large(config):
         # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
         #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
         with pytest.raises(
-                Exception,
-                match="too large for current baked samples length",
+            Exception,
+            match="too large for current baked samples length",
         ):
             b.wait(-6, "qe2")
-            b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+            b.play(
+                "Op2", "qe2"
+            )  # t indicates the time index where these new samples should be added
             # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
             #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
 
