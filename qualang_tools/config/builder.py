@@ -117,9 +117,9 @@ class ConfigBuilder:
                 raise ConfigurationError("set the parameters of {0}".format(obj.name))
             if isinstance(obj, Controller):
                 self._add_controller(obj)
-            elif isinstance(obj, ElementCollection):
-                for _obj in obj.get_elements():
-                    self.objects.append(_obj)
+            # elif isinstance(obj, ElementCollection):
+            #    for _obj in obj.get_elements():
+            #        self._objects.append(_obj)
             elif isinstance(obj, Waveform):
                 self.configuration.add_waveform(obj)
             elif isinstance(obj, Pulse):
@@ -244,3 +244,8 @@ class ConfigBuilder:
                 if obj.mixer.name == elm.name:
                     objects.append(obj)
         return set(objects)
+
+    def component(self, name: str):
+        for c in self.components:
+            if c.name == name:
+                return c

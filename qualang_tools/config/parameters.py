@@ -1,3 +1,6 @@
+algebra_supported_types = (int, float)
+
+
 class Parameter(object):
     def __init__(self, name: str):
         self.is_set = False
@@ -22,6 +25,175 @@ class Parameter(object):
         self.is_set = True
         self._value = v
 
+    @property
+    def len(self):
+        len_self = Parameter("len_" + self.name)
+
+        def func():
+            if self.is_set:
+                return len(self._value)
+            else:
+                raise AssertionError("Parameter {} is not set".format(self.name))
+
+        len_self._value = func
+        len_self.is_set = True
+        return len_self
+
+    def __add__(self, other):
+        if isinstance(other, Parameter):
+            new_param = Parameter("add_" + self.name + "_" + other.name)
+
+            def func():
+                if self.is_set and other.is_set:
+                    return self() + other()
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+                elif not other.is_set:
+                    raise AssertionError("Parameter {} is not set".format(other.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+        elif isinstance(other, algebra_supported_types):
+            new_param = Parameter("add_" + self.name + "_" + str(other))
+
+            def func():
+                if self.is_set:
+                    return self() + other
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        if isinstance(other, Parameter):
+            new_param = Parameter("sub_ " + self.name + "_" + other.name)
+
+            def func():
+                if self.is_set and other.is_set:
+                    return self() - other()
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+                elif not other.is_set:
+                    raise AssertionError("Parameter {} is not set".format(other.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+        elif isinstance(other, algebra_supported_types):
+            new_param = Parameter("sub_" + self.name + "_" + str(other))
+
+            def func():
+                if self.is_set:
+                    return self() - other
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __mul__(self, other):
+        if isinstance(other, Parameter):
+            new_param = Parameter("mul_ " + self.name + "_" + other.name)
+
+            def func():
+                if self.is_set and other.is_set:
+                    return self() * other()
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+                elif not other.is_set:
+                    raise AssertionError("Parameter {} is not set".format(other.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+        elif isinstance(other, algebra_supported_types):
+            new_param = Parameter("mul_" + self.name + "_" + str(other))
+
+            def func():
+                if self.is_set:
+                    return self() * other
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        if isinstance(other, Parameter):
+            new_param = Parameter("div_ " + self.name + "_" + other.name)
+
+            def func():
+                if self.is_set and other.is_set:
+                    return self() / other()
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+                elif not other.is_set:
+                    raise AssertionError("Parameter {} is not set".format(other.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+        elif isinstance(other, algebra_supported_types):
+            new_param = Parameter("div_" + self.name + "_" + str(other))
+
+            def func():
+                if self.is_set:
+                    return self() / other
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+
+    def __rtruediv__(self, other):
+        return self.__truediv__(other)
+
+    def __pow__(self, other):
+        if isinstance(other, Parameter):
+            new_param = Parameter("pow_ " + self.name + "_" + other.name)
+
+            def func():
+                if self.is_set and other.is_set:
+                    return self() ** other()
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+                elif not other.is_set:
+                    raise AssertionError("Parameter {} is not set".format(other.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+        elif isinstance(other, algebra_supported_types):
+            new_param = Parameter("pow_" + self.name + "_" + str(other))
+
+            def func():
+                if self.is_set:
+                    return self() ** other
+                elif not self.is_set:
+                    raise AssertionError("Parameter {} is not set".format(self.name))
+
+            new_param._value = func
+            new_param.is_set = True
+            return new_param
+
+    def __rpow__(self, other):
+        return self.__pow__(other)
+
 
 class ConfigVars(object):
     def __init__(self):
@@ -34,7 +206,8 @@ class ConfigVars(object):
             )
         if name not in self.params.keys():
             self.params[name] = Parameter(name)
-            self.params[name].value = setter
+            if setter is not None:
+                self.params[name].value = setter
         return self.params[name]
 
     def set(self, **kwargs):
@@ -94,6 +267,7 @@ def _is_parametric(obj):
                 return True
     else:
         return False
+    return False
 
 
 def _is_callable(obj):
@@ -113,3 +287,4 @@ def _is_callable(obj):
         return _is_callable(list(obj))
     else:
         return False
+    return False

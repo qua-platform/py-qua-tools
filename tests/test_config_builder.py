@@ -1,8 +1,10 @@
+from tracemalloc import stop
 import pytest
 import numpy as np
 
 from qualang_tools.config.components import *
 from qualang_tools.config.builder import ConfigBuilder
+from qualang_tools.config.parameters import Parameter, ConfigVars
 
 from qm.program._qua_config_schema import load_config
 
@@ -302,6 +304,7 @@ def config_3qb_3res():
     ro_Q = ConstantWaveform("ro_Q", 0.0)
 
     ro_pulse = MeasurePulse("ro_pulse", [ro_I, ro_Q], 100)
+
     ro_pulse.add(
         Weights(ConstantIntegrationWeights("cos", cosine=1, sine=0, duration=100))
     )
@@ -330,4 +333,45 @@ def test_load_config(config_3qb_3res):
 
 
 def test_config_vars():
-    raise NotImplementedError()
+    c_vars = ConfigVars()
+    a = c_vars.parameter("a")
+
+    try:
+        a()
+    except AssertionError:
+        assert True
+
+    c_vars.set(a=3)
+    assert a() == 3
+
+    b = c_vars.parameter("a")
+    assert b == a
+
+    def setter(a, b):
+        return a + b
+
+    c = c_vars.parameter("c", setter=setter)
+    assert c(1, 2) == 3
+
+
+def test_parameter_algebra():
+    c_vars = ConfigVars()
+    a = c_vars.parameter("a")
+    d = a.len
+    assert type(d) == Parameter
+    c_vars.set(a=[1, 3])
+    assert d() == a.len()
+    assert a.len() == 2
+
+    c = c_vars.parameter("c")
+    d = c_vars.parameter("d")
+
+    c_vars.set(c=4, d=10)
+    assert (c + d)() == c() + d()
+    assert (c * d)() == c() * d()
+    assert (c - d)() == c() - d()
+    assert (2 * c)() == 2 * c()
+    assert (c / d)() == c() / d()
+    assert (c / 10)() == c() / 10
+    assert (d ** c)() == 10000
+    assert (c ** 2)() == 16

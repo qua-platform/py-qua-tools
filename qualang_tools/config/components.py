@@ -507,13 +507,13 @@ class Element(ConfigBuilderElement):
                     "buffer": 0,
                 }
 
-    def set_delay(self, port_id: int, val: int):
+    def set_digital_input_delay(self, port_id: int, val: int):
         if "in" + str(port_id) in self.dict["digitalInputs"].keys():
             self.dict["digitalInputs"]["in" + str(port_id)]["delay"] = val
         else:
             raise ConfigurationError("digital input port must be set first")
 
-    def set_buffer(self, port_id: int, val: int):
+    def set_digital_input_buffer(self, port_id: int, val: int):
         if "in" + str(port_id) in self.dict["digitalInputs"].keys():
             self.dict["digitalInputs"]["in" + str(port_id)]["buffer"] = val
         else:
@@ -560,7 +560,7 @@ class Element(ConfigBuilderElement):
         self.dict["operations"][op.name] = op.pulse.name
         self.pulses.append(op.pulse)
 
-    def _add(self, obj: Union[Operation, Mixer]):
+    def _add(self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse]):
         """A method to add components to an element
 
         :param obj: The component to be added
@@ -571,6 +571,9 @@ class Element(ConfigBuilderElement):
             self._add_operation(obj)
         elif isinstance(obj, Mixer):
             self._set_mixer(obj)
+        elif isinstance(obj, ControlPulse) or isinstance(obj, MeasurePulse):
+            self.dict["operations"][obj.name] = obj.name
+            self.pulses.append(obj)
         else:
             raise ConfigurationError("Adding unsupported object")
 
@@ -952,15 +955,23 @@ class ReadoutResonator(ElementCollection):
             self._add(obj)
         return self
 
-    def _add(self, op: Operation):
+    def _add(self, op: Union[Operation, MeasurePulse]):
         """Add operation associated with the Readout resonator
 
         :param obj: The operation
         :type obj: Operation
 
         """
-        if len(op.pulse.wfs) == 2:
-            self.drive_operations.append(op)
+        if isinstance(op, Operation):
+            if len(op.pulse.wfs) == 2:
+                self.drive_operations.append(op)
+            else:
+                raise ConfigurationError("adding unsupported object")
+        elif isinstance(op, MeasurePulse):
+            if len(op.wfs) == 2:
+                self.drive_operations.append(op)
+            else:
+                raise ConfigurationError("adding unsupported object")
         else:
             raise ConfigurationError("adding unsupported object")
 
@@ -1118,9 +1129,17 @@ class Transmon(ElementCollection):
             self._add(op)
         return self
 
-    def _add(self, op: Operation):
-        if len(op.pulse.wfs) == 2:
-            self.drive_operations.append(op)
+    def _add(self, op: Union[Operation, ControlPulse]):
+        if isinstance(op, Operation):
+            if len(op.pulse.wfs) == 2:
+                self.drive_operations.append(op)
+            else:
+                raise ConfigurationError("adding unsupported object")
+        elif isinstance(op, ControlPulse):
+            if len(op.wfs) == 2:
+                self.drive_operations.append(op)
+            else:
+                raise ConfigurationError("adding unsupported object")
         else:
             raise ConfigurationError("adding unsupported object")
 
@@ -1177,14 +1196,29 @@ class FluxTunableTransmon(Transmon):
         els.append(el)
         return els
 
-    def _add(self, op: Operation):
-        if len(op.pulse.wfs) == 2:
-            super(FluxTunableTransmon, self)._add(op)
-        elif len(op.pulse.wfs) == 1:
-            self.flux_operations.append(op)
+    def _add(self, op: Union[Operation, ControlPulse]):
+        if isinstance(op, Operation):
+            if len(op.pulse.wfs) == 2:
+                super(FluxTunableTransmon, self)._add(op)
+            elif len(op.pulse.wfs) == 1:
+                self.flux_operations.append(op)
+            else:
+                raise ConfigurationError(
+                    "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
+                )
+        elif isinstance(op, ControlPulse):
+            if len(op.wfs) == 2:
+                super(FluxTunableTransmon, self)._add(op)
+            elif len(op.wfs) == 1:
+                self.flux_operations.append(op)
+            else:
+                raise ConfigurationError(
+                    "Can not add a pulse with {0} waveforms".format(len(op.wfs))
+                )
+
         else:
             raise ConfigurationError(
-                "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
+                "adding unsupported object of type {}".format(type(op))
             )
 
 
