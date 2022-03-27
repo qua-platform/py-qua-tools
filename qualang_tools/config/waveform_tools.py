@@ -1,22 +1,5 @@
 import numpy as np
 
-"""
-Example of parameters and how the waveforms can be defined:
-
-drag_len = 16  # length of pulse in ns
-drag_amp = 0.1  # amplitude of pulse in Volts
-drag_del_f = - 0e6  # Detuning frequency in Hz
-drag_alpha = 1  # DRAG coefficient
-drag_delta = 2 * np.pi * (- 200e6 - drag_del_f)  # in Hz
-
-Gaussian envelope:
-drag_gauss_I_wf, drag_gauss_Q_wf = drag_gaussian_pulse_waveforms(drag_amp, drag_len, drag_len / 5, drag_alpha, drag_delta, drag_del_f, subtracted=False)  # pi pulse
-
-Cosine envelope:
-drag_cos_I_wf, drag_cos_Q_wf = drag_cosine_pulse_waveforms(drag_amp, drag_len, drag_alpha, drag_delta, drag_del_f)  # pi pulse
-
-"""
-
 
 def drag_gaussian_pulse_waveforms(
     amplitude, length, sigma, alpha, delta, detuning=0, subtracted=True
