@@ -6,8 +6,8 @@ This package includes tools for creating waveforms.
 
 ## Functions
 ------------
-* `drag_gaussian_pulse_waveforms` - Creates a gaussian based DRAG waveforms that compensate for the leakage and for the AC stark shift.
-* `drag_cosine_pulse_waveforms` - Creates a cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
+* `drag_gaussian_pulse_waveforms` - Creates Gaussian based DRAG waveforms that compensate for the leakage and for the AC stark shift.
+* `drag_cosine_pulse_waveforms` - Creates Cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
 
 ## Example use case
 Example of parameters and how the waveforms can be defined:

@@ -5,9 +5,9 @@ def drag_gaussian_pulse_waveforms(
     amplitude, length, sigma, alpha, delta, detuning=0, subtracted=True
 ):
     """
-    Creates a gaussian based DRAG waveforms that compensate for the leakage and for the AC stark shift.
+    Creates Gaussian based DRAG waveforms that compensate for the leakage and for the AC stark shift.
 
-    These DRAG waveforms has been implemented following the next refs.:
+    These DRAG waveforms has been implemented following the next Refs.:
     Chen et al. PRL, 116, 020501 (2016)
     https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.116.020501
     and Chen's thesis
@@ -17,20 +17,21 @@ def drag_gaussian_pulse_waveforms(
     :param int length: The pulse length in ns.
     :param float sigma: The gaussian standard deviation.
     :param float alpha: The DRAG coefficient.
-    :param float detuning: The frequency shift to correct for AC stark shift, in MHz.
-    :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in MHz.
+    :param float detuning: The frequency shift to correct for AC stark shift, in Hz.
+    :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in Hz.
     :param bool subtracted: If true, returns a subtracted Gaussian, such that the first and last points will be at 0
         volts. This reduces high-frequency components due to the initial and final points offset. Default is true.
 
     """
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
+    center = (length - 1) / 2
     gauss_wave = amplitude * np.exp(
-        -((t - length / 2) ** 2) / (2 * sigma ** 2)
+        -((t - center) ** 2) / (2 * sigma ** 2)
     )  # The gaussian function
     gauss_der_wave = (
         amplitude
-        * (-2 * 1e9 * (t - length / 2) / (2 * sigma ** 2))
-        * np.exp(-((t - length / 2) ** 2) / (2 * sigma ** 2))
+        * (-2 * 1e9 * (t - center) / (2 * sigma ** 2))
+        * np.exp(-((t - center) ** 2) / (2 * sigma ** 2))
     )  # The derivative of gaussian
     if subtracted:
         gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
@@ -47,7 +48,7 @@ def drag_gaussian_pulse_waveforms(
 
 def drag_cosine_pulse_waveforms(amplitude, length, alpha, delta, detuning=0):
     """
-    Creates a cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
+    Creates Cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
 
     These DRAG waveforms has been implemented following the next Refs.:
     Chen et al. PRL, 116, 020501 (2016)
@@ -59,15 +60,19 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, delta, detuning=0):
     :param int length: The pulse length in ns.
     :param float sigma: The gaussian standard deviation.
     :param float alpha: The DRAG coefficient.
-    :param float detuning: The frequency shift to correct for AC stark shift, in MHz.
-    :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in MHz.
+    :param float detuning: The frequency shift to correct for AC stark shift, in Hz.
+    :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in Hz.
     """
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
+    end_point = length - 1
     cos_wave = (
-        0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / length))
+        0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))
     )  # The cosine function
     sin_wave = (
-        0.5 * amplitude * (2 * np.pi / length * 1e9) * np.sin(t * 2 * np.pi / length)
+        0.5
+        * amplitude
+        * (2 * np.pi / end_point * 1e9)
+        * np.sin(t * 2 * np.pi / end_point)
     )  # The derivative of cosine function
     z = cos_wave + 1j * sin_wave * (
         alpha / (delta - detuning)
