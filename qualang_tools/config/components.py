@@ -917,12 +917,12 @@ class ReadoutResonator(ElementCollection):
         for op in self.drive_operations:
             drive.add(op)
 
-        if self.drive_outputs:
-            for i, port in enumerate(self.drive_outputs):
-                drive.dict["outputs"]["out" + str(i)] = port.info
+        if self.drive_inputs:
+            for (i, port) in enumerate(self.drive_inputs):
+                drive.dict["outputs"]["out" + str(i+1)] = port.info
 
-            drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
-            drive.dict["mixInputs"]["Q"] = self.drive_outputs[1].info
+        drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
+        drive.dict["mixInputs"]["Q"] = self.drive_outputs[1].info
 
         if self.drive_mixer:
             drive.dict["mixInputs"]["mixer"] = self.drive_mixer.name

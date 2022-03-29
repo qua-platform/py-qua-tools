@@ -78,6 +78,8 @@ def test_element(config_resonator):
     assert config["elements"]["res1"]["mixInputs"]["lo_frequency"] == 4e9
     assert config["elements"]["res1"]["mixInputs"]["I"] == ("con1", 0)
     assert config["elements"]["res1"]["mixInputs"]["Q"] == ("con1", 1)
+    assert config["elements"]["res1"]["outputs"]["out1"] == ("con1", 0)
+    assert config["elements"]["res1"]["outputs"]["out2"] == ("con1", 1)
     assert "ro_pulse" in [*config["elements"]["res1"]["operations"]]
 
 
