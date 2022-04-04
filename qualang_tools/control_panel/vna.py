@@ -35,7 +35,7 @@ class VNA:
             config["elements"][element]["outputs"][out][1]
             for out in config["elements"][element]["outputs"].keys()
         ]
-        print(self.inputs)
+
         if Q is not None:
             self.relax_time = int(
                 Q
@@ -62,7 +62,7 @@ class VNA:
             s += str(M) + "\n"
         return s
 
-    def _add_Smeasurement(self, measurement: str, outputs, int_weights):
+    def _add_S_measurement(self, measurement: str, outputs, int_weights):
         """
         Add measurement outputs and integration weights and initialize self.results.
 
@@ -81,9 +81,9 @@ class VNA:
         self.meas_list.append(measurement)
         self.results[measurement] = {"f": [], "S": [], "phase": []}
 
-    def add_ED(self, measurement: str, outputs: str, int_weights: str):
+    def add_envelope_detector(self, measurement: str, outputs: str, int_weights: str):
         """
-        Adds a S-measurement downconverted with an envelop detector.
+        Adds an S-measurement down-converted with an envelope detector.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output port of the element (defined in the configuration). For instance outputs="out1"
@@ -105,12 +105,12 @@ class VNA:
                 f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
             )
 
-        self._add_Smeasurement(measurement, outputs, int_weights)
+        self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "ED"
 
-    def add_IR(self, measurement: str, outputs: str, int_weights: list):
+    def add_IR_mixer(self, measurement: str, outputs: str, int_weights: list):
         """
-        Adds a S-measurement downconverted with an image rejection mixer.
+        Adds an S-measurement down-converted with an image rejection mixer.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output port of the element (defined in the configuration). for instance: outputs="out1"
@@ -125,7 +125,9 @@ class VNA:
                 [
                     iw
                     in self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][self.operation]
+                        self.config["elements"][self.element]["operations"][
+                            self.operation
+                        ]
                     ]["integration_weights"]
                     for iw in int_weights
                 ]
@@ -137,12 +139,12 @@ class VNA:
                 f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
             )
 
-        self._add_Smeasurement(measurement, outputs, int_weights)
+        self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "IR"
 
-    def add_IQ(self, measurement: str, outputs: list, int_weights: list):
+    def add_IQ_mixer(self, measurement: str, outputs: list, int_weights: list):
         """
-        Adds a S-measurement downconverted with an IQ mixer.
+        Adds an S-measurement down-converted with an IQ mixer.
 
         :param measurement: name of the measurement type ('S11' or 'S21')
         :param outputs: name of the output ports of the element (defined in the configuration). For instance out=["out1", "out2"]
@@ -155,7 +157,12 @@ class VNA:
         if np.array(int_weights).shape != (2, 2):
             raise TypeError(f"Output '{int_weights}' must be a 2x2 list.")
         if not (
-            all([out in self.config["elements"][self.element]["outputs"] for out in outputs])
+            all(
+                [
+                    out in self.config["elements"][self.element]["outputs"]
+                    for out in outputs
+                ]
+            )
         ):
             raise KeyError(f"Integration weights '{outputs}' are not in the config")
         elif not (
@@ -163,7 +170,9 @@ class VNA:
                 [
                     iw
                     in self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][self.operation]
+                        self.config["elements"][self.element]["operations"][
+                            self.operation
+                        ]
                     ]["integration_weights"]
                     for iw in np.array(int_weights).reshape(1, 4)[0]
                 ]
@@ -175,7 +184,7 @@ class VNA:
                 f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
             )
 
-        self._add_Smeasurement(measurement, outputs, int_weights)
+        self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "IQ"
 
     def add_spectrum_analyzer(self, bandwidth: int):
@@ -185,7 +194,7 @@ class VNA:
             - 'fft': fft data [V]
             - 'f': frequency [Hz]
 
-        :param bandwidth: Spectrum analyzer bandwith [Hz]
+        :param bandwidth: Spectrum analyzer bandwidth [Hz]
         :return: None
         """
         self.meas_list.append("spectrum_analyzer")
@@ -373,7 +382,9 @@ class VNA:
                 * 4096
                 / (
                     self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][self.operation]
+                        self.config["elements"][self.element]["operations"][
+                            self.operation
+                        ]
                     ]["length"]
                 )
             )
@@ -573,9 +584,10 @@ class VNA:
         """
         Run all previously defined VNA measurements and store results in self.results.
 
-        :param freq_sweep: dictionary containing the frequency sweep information. For instance fraq_sweep = {"fmin": 10e6,"fmax": 150e6,"step": 0.01e6,}
+        :param freq_sweep: dictionary containing the frequency sweep information. For instance freq_sweep = {"fmin": 10e6,"fmax": 150e6,"step": 0.01e6,}
         :param n_avg: number of averaged iterations
-        :param dual: if True, runs measurements S11 and S21 simultaneously, otherwise runs them sequentially
+        :param dual: Boolean flag controlling the parallelism of the measurements. If two measurements were added, then dual=True
+        will run them simultaneously, whereas if dual=False the measurements will be run sequentially.
         :return: None
         """
         print(self)
