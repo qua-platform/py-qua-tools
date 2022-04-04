@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
-- In interactive plotlib, Support for 2d plot, better data manipulation and better fits
+- In interactive plotlib - Support for 2d plot, better data manipulation and better fits
+- Waveform tools - Added the waveform tool package, currently including scripts for creating Gaussian and Cosine DRAG waveforms
 
 ## [0.7.2] - 2022-03-15
 ### Fixed
