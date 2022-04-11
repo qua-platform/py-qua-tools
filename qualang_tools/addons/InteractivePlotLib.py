@@ -1,25 +1,22 @@
-import __main__ as _main_module
-import datetime
-import glob
 import inspect
-import os
+from scipy import optimize
+import glob
+from PIL import ImageGrab
 from io import BytesIO
-
+import os
+import datetime
+from IPython import get_ipython
 import dill
-import matplotlib.colors as Colors
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import win32clipboard as clip
 import win32con
-from IPython import get_ipython
-from PIL import ImageGrab
-from matplotlib.collections import PolyCollection
-from matplotlib.collections import QuadMesh
-from scipy import optimize
-from scipy.spatial import Voronoi
 from scipy.special import erf
+import pandas as pd
+import __main__ as _main_module
+import matplotlib.patches as patches
+from scipy.spatial import Voronoi
+import matplotlib.colors as Colors
 
 ipython = get_ipython()
 
@@ -78,6 +75,10 @@ class InteractivePlotLib:
             plt.show()
             plt.pause(1e-6)
         return out
+
+
+from matplotlib.collections import PolyCollection
+from matplotlib.collections import QuadMesh
 
 
 def extract_data_from_mesh(obj):
@@ -234,8 +235,7 @@ class InteractivePlotLibFigure:
                         self.line_selected.obj.set_xdata(x)
                         self.line_selected.obj.set_ydata(y)
 
-                        print("FITTTTT")
-                    if self.line_selected is None and isinstance(
+                    if self.line_selected == None and isinstance(
                         self.ax.get_children()[0], PolyCollection
                     ):
                         self.plot_type = "pcolor"
@@ -243,7 +243,7 @@ class InteractivePlotLibFigure:
                             self, self.ax.get_children()[0]
                         )
 
-                    if self.line_selected is None and isinstance(
+                    if self.line_selected == None and isinstance(
                         self.ax.get_children()[0], QuadMesh
                     ):
                         self.plot_type = "mesh"
@@ -491,16 +491,10 @@ class InteractivePlotLibFigure:
             ):
                 line.remove()
 
-    def predefined_fit_pcolor(self, req="n", Type="pcolor"):
-        if Type == "pcolor":
-            data, x2d, y2d, x_ext2, y_ext2, x_ext, y_ext = extract_data_from_pcolor(
-                self.line_selected.obj
-            )
-        else:
-            data, x2d, y2d, x_ext2, y_ext2 = extract_data_from_mesh(
-                self.line_selected.obj
-            )
-
+    def predefined_fit_pcolor(self, req="n"):
+        data, x2d, y2d, x_ext2, y_ext2, x_ext, y_ext = extract_data_from_pcolor(
+            self.line_selected.obj
+        )
         fit_line_x = []
         fit_line_y = []
         if req == "n":
@@ -515,19 +509,44 @@ class InteractivePlotLibFigure:
 
     def predefined_fit(self, req="g"):
         self.remove_fit()
-        print(req)
+        # print(req)
         if req == "remove":
             return 0
         if req.isnumeric():
             Fit(int(req), self.ax)
         elif req == "g":
-            Fit(lambda x: np.exp(-(x ** 2) / 2), self.ax)
+            Fit(
+                lambda x: np.exp(-(x ** 2) / 2),
+                self.ax,
+                {
+                    "text": lambda x_shift, y_shift, x_scale, y_scale: f" A = {y_scale},Sigma = {x_scale} \n y_shift = {y_shift},Center_x = {x_shift}"
+                },
+            )
         elif req == "e":
-            Fit(lambda x: np.exp(x), self.ax)
+            gauss_factor = 5
+            Fit(
+                lambda x: np.exp(x * gauss_factor),
+                self.ax,
+                {
+                    "text": lambda x_shift, y_shift, x_scale, y_scale: f" A = {y_scale*np.exp(-x_shift/x_scale*gauss_factor)}, \n Tau = {-x_scale/gauss_factor}"
+                },
+            )
         elif req == "l":
-            Fit(lambda x: 1 / (1 + x ** 2), self.ax)
+            Fit(
+                lambda x: 1 / (1 + x ** 2),
+                self.ax,
+                {
+                    "text": lambda x_shift, y_shift, x_scale, y_scale: f" A = {y_scale},1/x_prefactor = {x_scale} \n y_shift = {y_shift},Center_x = {x_shift}"
+                },
+            )
         elif req == "r":
-            Fit(lambda x: erf(x), self.ax)
+            Fit(
+                lambda x: erf(x),
+                self.ax,
+                {
+                    "text": lambda x_shift, y_shift, x_scale, y_scale: f" A = {y_scale},1/x_prefactor = {x_scale} \n y_shift = {y_shift},Center_x = {x_shift}"
+                },
+            )
         elif req == "s":
             x = self.ax.get_lines()[0].get_xdata()
             y = self.ax.get_lines()[0].get_ydata()
@@ -564,7 +583,7 @@ class InteractivePlotLibFigure:
                 ax,
                 {
                     "initial_guess": [omega, 1, 1, 0],
-                    "func": "sin*exp",
+                    "func": "a[3] + a[2] * np.sin(a[0] * x) * np.exp(-x * a[1])",
                     "y_scale": y_extra_scale,
                     "text": lambda a: f"f = {a[0]/(2*np.pi)} [Hz]\n tau = {1/a[1]} [s]\n amp = {a[2]*y_extra_scale}\n y_offset={a[3]*y_extra_scale}",
                 },
@@ -634,7 +653,7 @@ class InteractivePlotLibFigure:
             x_new = self_2d.y
             y_new = self_2d.x
             data_new = self_2d.data.T
-            print("HI")
+            # print("HI")
             self_2d.obj = self_2d.plot(x_new, y_new, data_new)
 
             self_2d.x = x_new
@@ -680,7 +699,7 @@ class InteractivePlotLibFigure:
             clip.CloseClipboard()
 
         def convert_to_lines(self_2d):
-            print("HI")
+            # print("HI")
             self_2d.obj.remove()
             cmap = plt.cm.get_cmap("jet")
             if len(self_2d.y2) == 1:
@@ -1659,14 +1678,9 @@ class InteractivePlotLibFigure:
                     InteractivePlotLibFigure.predefined_fit(
                         self_state.sup_self, self_state.text_obj.text
                     )
-                elif (
-                    self_state.sup_self.plot_type == "pcolor"
-                    or self_state.sup_self.plot_type == "mesh"
-                ):
+                elif self_state.sup_self.plot_type == "pcolor":
                     InteractivePlotLibFigure.predefined_fit_pcolor(
-                        self_state.sup_self,
-                        self_state.text_obj.text,
-                        self_state.sup_self.plot_type,
+                        self_state.sup_self, self_state.text_obj.text
                     )
                 self_state.sup_self.refresh_figure()
 
@@ -1765,7 +1779,7 @@ class InteractivePlotLibFigure:
 
     class TextObj:
         def __init__(self_textobj, ax, loc, text="", ha="left", va="top"):
-            print(loc)
+            # print(loc)
             self_textobj.text_obj = ax.text(
                 loc[0],
                 loc[1],
@@ -1825,11 +1839,14 @@ class Marker:
         try:
             self_marker.point.remove()
             self_marker.text.remove()
-        except BaseException:
+        except:
             pass
 
     def __del__(self_marker):
         self_marker.remove()
+
+
+import re
 
 
 class Document:
@@ -2448,9 +2465,14 @@ class SingleFit:
         except BaseException:
             funcString = "?"
 
-        text = f"func: {funcString}\n"
-        text += f"→x:{self.x_shift:2.2e},↑y:{self.y_shift:2.2e}\n"
-        text += f"↔x:{self.x_scale:2.2e},↕y:{self.y_scale:2.2e}\n"
+        if "text" in options:
+            text = options["text"](
+                self.x_shift, self.y_shift, self.x_scale, self.y_scale
+            )
+        else:
+            text = f"func: {funcString}\n"
+            text += f"→x:{self.x_shift:2.2e},↑y:{self.y_shift:2.2e}\n"
+            text += f"↔x:{self.x_scale:2.2e},↕y:{self.y_scale:2.2e}\n"
         self.text = text
         setattr(self.fit_line_obj, "fit_text", text)
         print(text)
@@ -2474,12 +2496,8 @@ def curve_fit3(f, x, y, a0):
 
 
 def line_in_lim(point0, slope, xlim, ylim):
-    def line(x):
-        return (x - point0[0]) * slope + point0[1]
-
-    def inv_line(y):
-        return (y - point0[1]) / slope + point0[0]
-
+    line = lambda x: (x - point0[0]) * slope + point0[1]
+    inv_line = lambda y: (y - point0[1]) / slope + point0[0]
     xy = []
     for x in [min(xlim), max(xlim)]:
         if line(x) > max(ylim):
