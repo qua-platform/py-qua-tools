@@ -457,50 +457,43 @@ class Element(ConfigBuilderElement):
         :type lo_frequency: int, optional
         """
         super(Element, self).__init__(name)
-        if digital_output_ports is None:
-            digital_output_ports = []
-        if digital_input_ports is None:
-            digital_input_ports = []
-        if analog_output_ports is None:
-            analog_output_ports = []
-        if analog_input_ports is None:
-            analog_input_ports = []
+
         self.dict = dict()
         assert len(analog_input_ports) <= 2
         self.type = "singleInput" if len(analog_input_ports) == 1 else "mixInputs"
         self.pulses = []
         if pulses is not None:
             self.pulses = pulses
-        self.analog_input_ports: List[AnalogOutputPort] = analog_input_ports
-        self.analog_output_ports: List[AnalogInputPort] = analog_output_ports
-        self.digital_output_ports: List[DigitalInputPort] = digital_output_ports
-        self.digital_input_ports: List[DigitalOutputPort] = digital_input_ports
+        self.analog_input_ports = [] if analog_input_ports is None else analog_input_ports
+        self.analog_output_ports = [] if analog_output_ports is None else analog_output_ports
+        self.digital_output_ports = [] if digital_output_ports is None else digital_output_ports
+        self.digital_input_ports = [] if digital_input_ports is None else digital_input_ports
         self.mixer: Mixer = mixer
 
-        if len(analog_input_ports) > 0:
+        if len(self.analog_input_ports) > 0:
             if self.type == "singleInput":
-                port = analog_input_ports[0]
+                port = self.analog_input_ports[0]
                 self.dict["singleInput"] = dict()
                 self.dict["singleInput"]["port"] = port.info
             elif self.type == "mixInputs":
-                I = analog_input_ports[0]
-                Q = analog_input_ports[1]
+                I = self.analog_input_ports[0]
+                Q = self.analog_input_ports[1]
                 self.dict["mixInputs"] = dict()
                 self.dict["mixInputs"]["I"] = I.info
                 self.dict["mixInputs"]["Q"] = Q.info
                 self.dict["mixInputs"]["lo_frequency"] = lo_frequency
-        if len(analog_output_ports) > 0:
+        if len(self.analog_output_ports) > 0:
             self.dict["outputs"] = dict()
-            for i, port in enumerate(analog_output_ports):
+            for i, port in enumerate(self.analog_output_ports):
                 self.dict["outputs"]["out" + str(i + 1)] = port.info
         self.dict["operations"] = dict()
         if operations is not None:
             self.dict["operations"] = operations
         self.dict["intermediate_frequency"] = intermediate_frequency
         # self.dict["outputPulseParameters"] = dict()
-        if len(digital_input_ports) > 0:
+        if len(self.digital_input_ports) > 0:
             self.dict["digitalInputs"] = dict()
-            for i, port in enumerate(digital_input_ports):
+            for i, port in enumerate(self.digital_input_ports):
                 self.dict["digitalInputs"]["in" + str(i + 1)] = {
                     "port": port.info,
                     "delay": 0,
