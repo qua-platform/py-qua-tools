@@ -22,24 +22,12 @@ class Controller(ConfigBuilderElement):
     def __init__(
         self,
         name: str,
-        analog_outputs: Optional[Union[int, List[AnalogOutputPort]]] = None,
-        analog_inputs: Optional[Union[int, List[AnalogInputPort]]] = None,
-        digital_outputs: Optional[Union[int, List[DigitalOutputPort]]] = None,
-        digital_inputs: Optional[Union[int, List[DigitalInputPort]]] = None,
         controller_type: str = "opx1",
     ):
         """A QOP controller
 
         :param name: Name for this controller
         :type name: str
-        :param n_analog_outputs: Number of analog outputs defined at initialization, defaults to 0
-        :type n_analog_outputs: int, optional
-        :param n_analog_inputs: Number of analog inputs defined at initialization, defaults to 0
-        :type n_analog_inputs: int, optional
-        :param n_digital_outputs: Number of digital outputs defined at initialization, defaults to 0
-        :type n_digital_outputs: int, optional
-        :param n_digital_inputs: Number of digital inputs defined at initialization, defaults to 0
-        :type n_digital_inputs: int, optional
         :param controller_type: defaults to "opx1"
         :type controller_type: str, optional
         """
@@ -47,62 +35,14 @@ class Controller(ConfigBuilderElement):
         self.dict = dict()
         self.dict["type"] = controller_type
         self.controller_type = controller_type
-        if isinstance(analog_outputs, int):
-            n_analog_outputs = analog_outputs
-        else:
-            n_analog_outputs = 0
-        if isinstance(analog_inputs, int):
-            n_analog_inputs = analog_inputs
-        else:
-            n_analog_inputs = 0
-        if isinstance(digital_outputs, int):
-            n_digital_outputs = digital_outputs
-        else:
-            n_digital_outputs = 0
-        if isinstance(digital_inputs, int):
-            n_digital_inputs = digital_inputs
-        else:
-            n_digital_inputs = 0
-        self.dict["analog_outputs"] = {
-            i: {"offset": 0} for i in range(1, n_analog_outputs + 1)
-        }
-        self.analog_output_ports: List[AnalogOutputPort] = [
-            AnalogOutputPort(name, i) for i in range(1, n_analog_outputs + 1)
-        ]
-        self.dict["analog_inputs"] = {
-            i: {"offset": 0} for i in range(1, n_analog_inputs + 1)
-        }
-        self.analog_input_ports: List[AnalogInputPort] = [
-            AnalogInputPort(name, i) for i in range(1, n_analog_inputs + 1)
-        ]
-        self.dict["digital_outputs"] = {
-            i: {"offset": 0} for i in range(1, n_digital_outputs + 1)
-        }
-        self.digital_output_ports: List[DigitalOutputPort] = [
-            DigitalOutputPort(name, i) for i in range(1, n_digital_outputs + 1)
-        ]
-        self.dict["digital_inputs"] = {
-            i: {"offset": 0} for i in range(1, n_digital_inputs + 1)
-        }
-        self.digital_input_ports: List[DigitalInputPort] = [
-            DigitalInputPort(name, i) for i in range(1, n_digital_inputs + 1)
-        ]
-        if isinstance(analog_outputs, List):
-            self.analog_output_ports = analog_outputs
-            for output in analog_outputs:
-                self.dict["analog_outputs"][output.info[1]] = output.offset
-        if isinstance(analog_inputs, List):
-            self.analog_input_ports = analog_inputs
-            for inp in analog_inputs:
-                self.dict["analog_inputs"][inp.info[1]] = inp.offset
-        if isinstance(digital_outputs, List):
-            self.digital_output_ports = digital_outputs
-            for output in digital_outputs:
-                self.dict["digital_outputs"][output.info[1]] = output.offset
-        if isinstance(digital_inputs, List):
-            self.digital_input_ports = digital_inputs
-            for inp in digital_inputs:
-                self.dict["digital_inputs"][inp.info[1]] = inp.offset
+        self.dict["analog_outputs"] = {}
+        self.analog_output_ports = []
+        self.dict["analog_inputs"] = {}
+        self.analog_input_ports = []
+        self.dict["digital_outputs"] = {}
+        self.digital_output_ports = []
+        self.dict["digital_inputs"] = {}
+        self.digital_input_ports = []
 
     def analog_output(self, port: int, offset: float = 0):
         """Returns an instance of AnalogOutputPort associated  with a specific port number and offset if already in the configuration.
@@ -119,7 +59,7 @@ class Controller(ConfigBuilderElement):
             if port == p.info[1]:
                 p.offset = offset
                 return p
-        self.use_analog_output_port(port, offset)
+        self._use_analog_output_port(port, offset)
         return self.analog_output_ports[-1]
 
     def analog_input(self, port: int, offset: float = 0):
@@ -137,7 +77,7 @@ class Controller(ConfigBuilderElement):
             if port == p.info[1]:
                 p.offset = offset
                 return p
-        self.use_analog_input_port(port, offset)
+        self._use_analog_input_port(port, offset)
         return self.analog_input_ports[-1]
 
     def digital_output(self, port: int, offset: float = 0):
@@ -155,7 +95,7 @@ class Controller(ConfigBuilderElement):
             if port == p.info[1]:
                 p.offset = offset
                 return p
-        self.use_digital_output_port(port, offset)
+        self._use_digital_output_port(port, offset)
         return self.digital_output_ports[-1]
 
     def digital_input(self, port: int, offset: float = 0):
@@ -164,7 +104,7 @@ class Controller(ConfigBuilderElement):
             if port == p.info[1]:
                 p.offset = offset
                 return p
-        self.use_digital_input_port(port, offset)
+        self._use_digital_input_port(port, offset)
         return self.digital_input_ports[-1]
 
     def __contains__(self, port) -> bool:
@@ -173,7 +113,7 @@ class Controller(ConfigBuilderElement):
                 return True
         return False
 
-    def use_analog_input_port(self, port_num: int, offset: float = 0.0):
+    def _use_analog_input_port(self, port_num: int, offset: float = 0.0):
         """Adds an instance of  AnalogInputPort to configuration if it is not used
 
         :param port_num: port number
@@ -187,7 +127,7 @@ class Controller(ConfigBuilderElement):
                 AnalogInputPort(self.name, port_num, offset=offset)
             ]
 
-    def use_analog_output_port(self, port_num: int, offset: float = 0.0):
+    def _use_analog_output_port(self, port_num: int, offset: float = 0.0):
         """Adds an instance of  AnalogOutputPort to configuration if it is not used
 
         :param port_num: port number
@@ -201,7 +141,7 @@ class Controller(ConfigBuilderElement):
                 AnalogOutputPort(self.name, port_num, offset=offset)
             ]
 
-    def use_digital_output_port(self, port_num: int, offset: float = 0.0):
+    def _use_digital_output_port(self, port_num: int, offset: float = 0.0):
         """Adds an instance of  DigitalOutputPort to configuration if it is not used
 
         :param port_num: port number
@@ -215,7 +155,7 @@ class Controller(ConfigBuilderElement):
                 DigitalOutputPort(self.name, port_num, offset=offset)
             ]
 
-    def use_digital_input_port(self, port_num: int, offset: float = 0.0):
+    def _use_digital_input_port(self, port_num: int, offset: float = 0.0):
         """Adds an instance of  DigitalInputPort to configuration if it is not used
 
         :param port_num: port number
@@ -464,10 +404,18 @@ class Element(ConfigBuilderElement):
         self.pulses = []
         if pulses is not None:
             self.pulses = pulses
-        self.analog_input_ports = [] if analog_input_ports is None else analog_input_ports
-        self.analog_output_ports = [] if analog_output_ports is None else analog_output_ports
-        self.digital_output_ports = [] if digital_output_ports is None else digital_output_ports
-        self.digital_input_ports = [] if digital_input_ports is None else digital_input_ports
+        self.analog_input_ports = (
+            [] if analog_input_ports is None else analog_input_ports
+        )
+        self.analog_output_ports = (
+            [] if analog_output_ports is None else analog_output_ports
+        )
+        self.digital_output_ports = (
+            [] if digital_output_ports is None else digital_output_ports
+        )
+        self.digital_input_ports = (
+            [] if digital_input_ports is None else digital_input_ports
+        )
         self.mixer: Mixer = mixer
 
         if len(self.analog_input_ports) > 0:
@@ -912,7 +860,7 @@ class ReadoutResonator(ElementCollection):
 
         if self.drive_inputs:
             for (i, port) in enumerate(self.drive_inputs):
-                drive.dict["outputs"]["out" + str(i+1)] = port.info
+                drive.dict["outputs"]["out" + str(i + 1)] = port.info
 
         drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
         drive.dict["mixInputs"]["Q"] = self.drive_outputs[1].info
