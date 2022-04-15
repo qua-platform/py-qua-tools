@@ -74,11 +74,13 @@ class ConfigBuilder:
                     cont.dict["analog_outputs"][port.info[1]][
                         "channel_weights"
                     ] = port.channel_weights
+                cont.dict["analog_outputs"][port.info[1]]["offset"] = port.offset
             elif isinstance(port, AnalogInputPort):
                 if port.gain_db is not None:
                     cont.dict["analog_inputs"][port.info[1]]["gain_db"] = port.gain_db
+                cont.dict["analog_inputs"][port.info[1]]["offset"] = port.offset
             elif isinstance(port, DigitalOutputPort):
-                pass
+                cont.dict["digital_outputs"][port.info[1]]["offset"] = port.offset
             elif isinstance(port, DigitalInputPort):
                 if port.polarity is not None:
                     cont.dict["digital_inputs"][port.info[1]][

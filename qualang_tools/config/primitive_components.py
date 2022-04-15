@@ -14,11 +14,10 @@ class ConfigBuilderElement(ConfigBuilderClass):
 
 
 class Port(ConfigBuilderClass):
-    def __init__(self, controller: str, port_id: int, offset: float = 0) -> None:
+    def __init__(self, controller: str, port_id: int) -> None:
         super(Port, self).__init__()
         self.controller = controller
         self.port_id = port_id
-        self.offset = offset
 
     @property
     def info(self):
@@ -29,16 +28,7 @@ class Port(ConfigBuilderClass):
 
     def __str__(self):
         cont, port_id = self.info
-        return (
-            type(self).__name__
-            + "("
-            + str(cont)
-            + " , "
-            + str(port_id)
-            + ", offset = "
-            + str(self.offset)
-            + ")"
-        )
+        return type(self).__name__ + "(" + str(cont) + " , " + str(port_id) + ")"
 
 
 class AnalogInputPort(Port):
@@ -49,7 +39,8 @@ class AnalogInputPort(Port):
         offset: float = 0,
         gain_db: Optional[float] = None,
     ):
-        super(AnalogInputPort, self).__init__(controller, port_id, offset)
+        super(AnalogInputPort, self).__init__(controller, port_id)
+        self.offset = offset
         self.gain_db = gain_db
 
 
@@ -63,7 +54,8 @@ class AnalogOutputPort(Port):
         filter: Optional[float] = None,
         channel_weights: Optional[float] = None,
     ):
-        super(AnalogOutputPort, self).__init__(controller, port_id, offset)
+        super(AnalogOutputPort, self).__init__(controller, port_id)
+        self.offset = offset
         self.delay = delay
         self.filter = filter
         self.channel_weights = channel_weights
@@ -74,12 +66,11 @@ class DigitalInputPort(Port):
         self,
         controller: str,
         port_id: int,
-        offset: float = 0,
         polarity: Optional[float] = None,
         window: Optional[float] = None,
         threshold: Optional[float] = None,
     ):
-        super(DigitalInputPort, self).__init__(controller, port_id, offset)
+        super(DigitalInputPort, self).__init__(controller, port_id)
         self.polarity = polarity
         self.window = window
         self.threshold = threshold
@@ -87,7 +78,8 @@ class DigitalInputPort(Port):
 
 class DigitalOutputPort(Port):
     def __init__(self, controller: str, port_id: int, offset: float = 0):
-        super(DigitalOutputPort, self).__init__(controller, port_id, offset)
+        super(DigitalOutputPort, self).__init__(controller, port_id)
+        self.offset = offset
 
 
 class Waveform(ConfigBuilderElement):
