@@ -15,6 +15,7 @@ from qualang_tools.config.primitive_components import (
     DigitalInputPort,
     Operation,
     IntegrationWeights,
+    MixerData,
 )
 
 
@@ -319,55 +320,29 @@ class ControlPulse(Pulse):
 
 
 class Mixer(ConfigBuilderElement):
-    def __init__(
-        self,
-        name: str,
-        intermediate_frequency: int,
-        lo_frequency: int,
-        correction: Matrix2x2,
-    ):
+    def __init__(self, name: str, data: Optional[List[MixerData]] = []):
         """A microwave mixer
 
         :param name: name for this mixer
         :type name: str
-        :param intermediate_frequency: intermediate_frequency in MHz
-        :type intermediate_frequency: int
-        :param lo_frequency:  local oscillator frequency in MHz
-        :type lo_frequency: int
-        :param correction: correction matrix for this mixer
-        :type correction: Matrix2x2
+        :param data: a list of mixer data with correction matrices for every pair of IF and LO
+        :type data: List[MixerData]
+
         """
         super(Mixer, self).__init__(name)
-        self._correction = correction
-        self.dict = dict()
-        self.dict["intermediate_frequency"] = intermediate_frequency
-        self.dict["lo_frequency"] = lo_frequency
-        self.dict["correction"] = list(correction.data[0] + correction.data[1])
+        self.dict = []
+        for e in data:
+            self.add(e)
 
-    @property
-    def intermediate_frequency(self):
-        return self.dict["intermediate_frequency"]
-
-    @intermediate_frequency.setter
-    def intermediate_frequency(self, if_freq: int):
-        self.dict["intermediate_frequency"] = if_freq
-
-    @property
-    def lo_frequency(self):
-        return self.dict["lo_frequency"]
-
-    @lo_frequency.setter
-    def lo_frequency(self, lo_freq: int):
-        self.dict["lo_frequency"] = lo_freq
-
-    @property
-    def correction(self):
-        return self._correction
-
-    @correction.setter
-    def correction(self, correction: Matrix2x2):
-        self._correction = correction
-        self.dict["correction"] = list(correction.data[0] + correction.data[1])
+    def add(self, data: MixerData):
+        self.dict.append(
+            {
+                "intermediate_frequency": data.intermediate_frequency,
+                "lo_frequency": data.lo_frequency,
+                "correction": list(data.correction.data[0] + data.correction.data[1]),
+            }
+        )
+        return self
 
 
 class Element(ConfigBuilderElement):

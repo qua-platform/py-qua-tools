@@ -46,6 +46,7 @@ __all__ = [
     "Weights",
     "DigitalSample",
     "Matrix2x2",
+    "MixerData",
     "AnalogOutputFilter",
     "ConfigBuilder",
 ]

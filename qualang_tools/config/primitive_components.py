@@ -44,6 +44,20 @@ class AnalogInputPort(Port):
         self.gain_db = gain_db
 
 
+class AnalogOutputFilter(ConfigBuilderClass):
+    def __init__(self, feedback: List[float], feedforward: List[float]):
+        """A filter applied to the analog output ports
+
+        :param feedback: feedback taps for the output filter
+        :type feedback: List[float]
+        :param feedforward: feedforward taps for the output filter
+        :type feedforward: List[float]
+        """
+        super(AnalogOutputFilter, self).__init__()
+        self.feedback = feedback
+        self.feedforward = feedforward
+
+
 class AnalogOutputPort(Port):
     def __init__(
         self,
@@ -51,7 +65,7 @@ class AnalogOutputPort(Port):
         port_id: int,
         offset: float = 0,
         delay: Optional[float] = None,
-        filter: Optional[float] = None,
+        filter: Optional[AnalogOutputFilter] = None,
         channel_weights: Optional[float] = None,
     ):
         super(AnalogOutputPort, self).__init__(controller, port_id)
@@ -213,15 +227,19 @@ class Matrix2x2(ConfigBuilderClass):
         self.data = data
 
 
-class AnalogOutputFilter(ConfigBuilderClass):
-    def __init__(self, feedback: List[float], feedforward: List[float]):
-        """A filter applied to the analog output ports
+class MixerData(ConfigBuilderClass):
+    def __init__(
+        self, intermediate_frequency: int, lo_frequency: int, correction: Matrix2x2
+    ):
+        """Mixer data
 
-        :param feedback: feedback taps for the output filter
-        :type feedback: List[float]
-        :param feedforward: feedforward taps for the output filter
-        :type feedforward: List[float]
+        :param intermediate_frequency: intermediate frequency
+        :type intermediate_frequency: int
+        :param lo_frequency: frequency of the local oscillator
+        :type lo_frequency: int
+        :param correction: correction matrix of the mixer
+        :type correction: Matrix2x2
         """
-        super(AnalogOutputFilter, self).__init__()
-        self.feedback = feedback
-        self.feedforward = feedforward
+        self.intermediate_frequency = intermediate_frequency
+        self.lo_frequency = lo_frequency
+        self.correction = correction

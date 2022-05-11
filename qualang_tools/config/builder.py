@@ -252,6 +252,6 @@ class ConfigBuilder:
         :param name: name of the object
         :type name: str
         """
-        for c in self.objects +  self.components:
+        for c in self.objects + self.components:
             if c.name == name:
                 return c

@@ -159,9 +159,13 @@ def config_transmon():
     cb.add(qb2)
     qb1.mixer = Mixer(
         "mx1",
-        intermediate_frequency=5e6,
-        lo_frequency=4e9,
-        correction=Matrix2x2([[1.0, 0.0], [1.0, 0.0]]),
+        [
+            MixerData(
+                intermediate_frequency=5e6,
+                lo_frequency=4e9,
+                correction=Matrix2x2([[1.0, 0.0], [1.0, 0.0]]),
+            )
+        ],
     )
 
     return cb.build()
