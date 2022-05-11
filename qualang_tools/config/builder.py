@@ -248,6 +248,10 @@ class ConfigBuilder:
         return set(objects)
 
     def component(self, name: str):
-        for c in self.components:
+        """Returns a config builder object with the given name
+        :param name: name of the object
+        :type name: str
+        """
+        for c in self.objects +  self.components:
             if c.name == name:
                 return c

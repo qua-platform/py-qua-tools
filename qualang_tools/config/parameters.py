@@ -3,6 +3,10 @@ algebra_supported_types = (int, float)
 
 class Parameter(object):
     def __init__(self, name: str):
+        """An object to represents a simple parameter or any setter.
+        :param name: Name of the parameter
+        :type name: str
+        """
         self.is_set = False
         self._value = None
         self.name = name
@@ -18,6 +22,7 @@ class Parameter(object):
 
     @property
     def value(self):
+        """Returns the value of the parameter"""
         return self._value
 
     @value.setter
@@ -27,6 +32,7 @@ class Parameter(object):
 
     @property
     def len(self):
+        """Returns a new parameter with a value equal to the length of the current parameter."""
         len_self = Parameter("len_" + self.name)
 
         def func():
@@ -197,9 +203,18 @@ class Parameter(object):
 
 class ConfigVars(object):
     def __init__(self):
+        """An object that holds a collection of Parameters. Useful to write parametric
+        QUA configurations.
+        """
         self.params = {}
 
-    def parameter(self, name, setter=None):
+    def parameter(self, name: str, setter=None):
+        """Returns a Parameter with the given name
+        :param name: Name of the parameter
+        :type name: str
+        :param setter: any function
+        :type setter: Callable
+        """
         if name.find(" ") != -1:
             raise ValueError(
                 "Parameter name cannot contain spaces. " "Use underscore of camelCase."
@@ -211,6 +226,7 @@ class ConfigVars(object):
         return self.params[name]
 
     def set(self, **kwargs):
+        """sets the parameters with the given values specified as a dictionary"""
         for key, value in kwargs.items():
             if key not in self.params.keys():
                 self.params[key] = Parameter(key)

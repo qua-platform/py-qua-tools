@@ -5,10 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Fixed
-- Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown.
 - various issues were fixed in config builder
 ### Added
-- In interactive plotlib, Support for 2d plot, better data manipulation and better fits
 - config builder MeasurePulse now accepts IntegrationWeights object as well
 - config builder Element now accepts ControlPulse and MeasurePulse
 - config builder Parameter class now support basic algebra (+, -, /, *, **)
