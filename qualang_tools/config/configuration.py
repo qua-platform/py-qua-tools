@@ -144,9 +144,7 @@ class QMConfiguration:
         self.config["elements"][elm.name] = self._call_dict_parameters(elm.dict)
         if elm.type == "mixInputs":
             if elm.mixer is not None:
-                self.config["mixers"][elm.mixer.name] = self._call_dict_parameters(
-                    elm.mixer.dict
-                )
+                self.add_mixer(elm.mixer)
         self.add_pulses(elm.pulses)
 
     def update_pulse(self, elm_name: str, pulse: Pulse):
@@ -269,7 +267,9 @@ class QMConfiguration:
         :param mixer: A Mixer object
         :type mixer: Mixer
         """
-        self.config["mixers"][mixer.name] = self._call_dict_parameters(mixer.dict)
+        self.config["mixers"][mixer.name] = [
+            self._call_dict_parameters(data) for data in mixer.dict
+        ]
 
     def add_oscillator(self, oscillator: Oscillator):
         """Add an oscillator to this configuration
