@@ -20,7 +20,7 @@ Waveform baking is done via a new context manager, declared prior to the QUA pro
 
 The simplest declaration is done before the QUA program as follows: 
 
-```
+```python
 with baking(config, padding_method = "symmetric_r") as b:
   b.align("qe1", "qe2", "qe3")
   b.frame_rotation(0.78, "qe2")
@@ -56,7 +56,7 @@ All those commands concatenated altogether eventually build one single “big”
 Here is a basic code example that simply plays two pulses of short lengths: 
 
 
-```
+```python
 with baking(config, padding_method = "symmetric_r") as b:
 
 # Create arbitrary waveforms 
@@ -102,7 +102,7 @@ It is also possible to delete samples within the baking context manager using th
 The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms.
 Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
 
-```
+```python
 with baking(config, "left"):
   #Create your baked waveform, see snippet above
   
@@ -113,7 +113,7 @@ with program() as QUA_prog:
 
 As in QUA, you can still modulate in real time (using QUA variables) properties of the pulse like its amplitude, or to truncate it.
 You can indeed pass into a set of two lists, parameters for truncating pulses and for amplitude modulation. The syntax goes as follows:
-```
+```python
 with program() as QUA_prog:
     truncate = declare(int, value = 18)
     amp = declare(fixed, value = 0.4)
@@ -127,7 +127,7 @@ The baking aims to be as versatile as possible in the way of editing samples. Th
 
 Let’s take a look at the code below to understand what these two features do: 
 
-```
+```python
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
     const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
@@ -152,7 +152,7 @@ Q: [0, 0, 0, 0, 0, 0.2, 0.2, 0.3, 0.4, 0.4, 0, 0, 0, 0, 0, 0]
 ```
 If the time index t is positive, the samples will be added precisely at the index indicated in the existing samples.
 Contrariwise, if the provided index t is negative, we call here automatically the function ``negative_wait()``, which adds the samples at the provided index starting to count from the end of the existing samples: 
-```
+```python
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
     const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.3]
@@ -174,7 +174,7 @@ Q:  [0, 0, 0, 0, 0, 0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0]
 ```
 The ``play_at()`` command can also be used as a single play statement involving a wait time and a play statement. In fact, if the time index indicated in the function is actually out of the range of the existing samples, a wait command is automatically added until reaching this time index (recall that the index corresponds to the time in ns) and starts inserting the operation indicated at this time. See the example below: 
 
-```
+```python
 with baking(config=config, padding_method="symmetric_r") as b:
     const_Op = [0.3, 0.3, 0.3, 0.3, 0.3]
     const_Op2 = [0.2, 0.2, 0.2, 0.3, 0.4]
@@ -216,19 +216,19 @@ Negative wait is at the moment, just an equivalent way of writing the ``play_at(
 The idea is to move backwards the time index at which the following play statement should start. For example, wait[-3] means that the following waveform will be added on top of the existing sequence on the 3 last samples and will append the rest like a usual play statement.
 
 We have the equivalence between:
-```
+```python
 b.wait(-3)
 b.play('my_pulse',qe)
 ```
 and 
-```
+```python
 b.play_at('my_pulse', qe, t=-3)
 ```
 
 # Editing the sampling rate with the baking
 
 The baking tool can also be used to tune up the sampling rate of your baked waveform by declaring the baking with the following argument:
-```
+```python
 my_sampling_rate = 3e9  # Expressed in number of samples per second
 with baking(config, ..., sampling_rate = my_sampling_rate) as b:
     ...
@@ -256,7 +256,7 @@ in order to save waveform memory (see example below).
 To do so, one can use the baking tool to generate the waveform, store the waveform in a Python variable using the method
 ```b.get_waveform_dict() ```, followed by a deletion of the operation in the input configuration using ```b.delete_op(qe)```:
 
-```
+```python
 with baking(config, padding_method = "right") as b :
     # Generate the desired set of baked waveforms
      # (one per involved quantum element)

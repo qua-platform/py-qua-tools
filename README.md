@@ -30,7 +30,7 @@ fitting the data and saving the figures.
 
 Install the current version using `pip`, the `--upgrade` flag ensures that you will get the latest version.
 
-```
+```commandline
 pip install --upgrade qualang-tools
 ```
 
