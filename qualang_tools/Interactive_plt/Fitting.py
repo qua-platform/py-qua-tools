@@ -1,17 +1,18 @@
 from fit_decay_sine import *
 from fit_transmission_resonator_spectroscopy import *
 from fit_linear import *
-from fit_reflection_resonator_spectroscopy import  *
+from fit_reflection_resonator_spectroscopy import *
 from fit_phase_resonator_spectroscopy import *
 import itertools
 import json
 import matplotlib.pyplot as plt
 
+
 class Fitting:
     def __init__(self):
         pass
 
-    def linear(self,x ,y):
+    def linear(self, x, y):
         fit_function = fit_linear(x, y)
         return fit_function
 
@@ -19,15 +20,15 @@ class Fitting:
         fit_function = fit_decay_sine(x, y)
         return fit_function
 
-    def transmitted_lorenzian(self,x ,y):
+    def transmitted_lorenzian(self, x, y):
         fit_function = fit_transmission(x, y)
         return fit_function
 
-    def reflected_lorenzian(self,x ,y):
+    def reflected_lorenzian(self, x, y):
         fit_function = fit_reflection(x, y)
         return fit_function
 
-    def phase(self,x ,y):
+    def phase(self, x, y):
         fit_function = fit_phase(x, y)
         return fit_function
 
@@ -55,9 +56,11 @@ class Open:
         f = open(file)
         data = json.load(f)
         return data
+
     def print_params(self, data):
         for key, value in data.items():
             print("{} = {}".format(key, value))
+
 
 class Plot:
     def __init__(self):

@@ -1,15 +1,11 @@
-import matplotlib.pyplot as plt
-import numpy as np
 from Fitting import *
-import json
-
 
 k = 10
 kc = 5
 A = 10
 
 x = np.linspace(-100, 100, 200)
-y = kc/2*((k/2)/(1+(4/k**2)*(x+10)**2)) + 1 * (np.random.rand(len(x)) - 0.5) + 200
+y = kc / 2 * ((k / 2) / (1 + (4 / k ** 2) * (x + 10) ** 2)) + 1 * (np.random.rand(len(x)) - 0.5) + 200
 
 # fitting
 fit = Fitting()
@@ -33,5 +29,3 @@ save.save_params(x, y, fit_function, id=file_name)
 open = Open()
 data = open.open_saved_params(f"data_fit_{file_name}.json")
 open.print_params(data)
-
-

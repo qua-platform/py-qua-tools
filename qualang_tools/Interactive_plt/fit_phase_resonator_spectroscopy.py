@@ -6,7 +6,6 @@ def fit_phase(x, y):
     # find guess of offset
     v0 = y[0]
 
-    # fit_type = lambda x, a: (((a[0] / 2) * (x - a[3])) / ((a[1] ** 2 / 4) + ((x-a[3]) ** 2))) * (4/a[1] ** 2) + v0 * a[2]
     fit_type = lambda x, a: (((a[0] / 2) * (x - a[3])) / ((a[1] ** 2 / 4) + ((x - a[3]) ** 2))) + v0 * a[2]
 
     def curve_fit(f, x, y, a0):
