@@ -229,7 +229,10 @@ class Matrix2x2(ConfigBuilderClass):
 
 class MixerData(ConfigBuilderClass):
     def __init__(
-        self, intermediate_frequency: int, lo_frequency: int, correction: Matrix2x2
+        self,
+        intermediate_frequency: int,
+        lo_frequency: int,
+        correction: Matrix2x2,
     ):
         """Mixer data
 
@@ -240,6 +243,7 @@ class MixerData(ConfigBuilderClass):
         :param correction: correction matrix of the mixer
         :type correction: Matrix2x2
         """
+        super().__init__()
         self.intermediate_frequency = intermediate_frequency
         self.lo_frequency = lo_frequency
         self.correction = correction

@@ -18,7 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - config builder ConfigVar is changed to ConfigVars
 - config builder ConfigVars - parameter method now returns a Parameter object instead of lambda function
 - config builder ConfigVars - parameter method optionally accepts a setter
-
+- config builder Controller - does not accept number of outputs and inputs anymore
+- config builder Mixer - added MixerData class (holds intermediate_frequency, lo_frequecy and correction matrix), we now support correction matrix for every pair of IF and LO frequencies
 
 ## [0.8.0] - 2022-04-04
 ### Added

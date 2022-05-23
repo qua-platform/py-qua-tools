@@ -10,7 +10,6 @@ from qualang_tools.config.primitive_components import (
     DigitalSample,
     Pulse,
     Weights,
-    Matrix2x2,
     AnalogOutputPort,
     DigitalInputPort,
     Operation,
@@ -198,7 +197,14 @@ class ArbitraryWaveform(Waveform):
         :type samples: List[float]
         """
         super().__init__(name, {"type": "arbitrary", "samples": samples})
-        self.samples = samples
+
+    @property
+    def samples(self):
+        return self.dict["samples"]
+
+    @samples.setter
+    def samples(self, samples: List[float]):
+        self.dict["samples"] = samples
 
 
 class ConstantWaveform(Waveform):
@@ -211,7 +217,14 @@ class ConstantWaveform(Waveform):
         :type sample: float
         """
         super().__init__(name, {"type": "constant", "sample": sample})
-        self.sample = sample
+
+    @property
+    def sample(self):
+        return self.dict["sample"]
+
+    @sample.setter
+    def sample(self, samples: List[float]):
+        self.dict["sample"] = samples
 
 
 class DigitalWaveform(Waveform):
@@ -250,14 +263,7 @@ class DigitalWaveform(Waveform):
 
 
 class MeasurePulse(Pulse):
-    def __init__(
-        self,
-        name: str,
-        wfs: List[Waveform],
-        length: int,
-        integration_weights: List[Weights] = None,
-        digital_marker: Optional[DigitalWaveform] = None,
-    ):
+    def __init__(self, name: str, wfs: List[Waveform], length: int, **kwargs):
         """A pulse which can be used by a QUA measure() command
 
         :param name: name for this pulse
@@ -267,6 +273,9 @@ class MeasurePulse(Pulse):
         :param length: duration of the measurment pulse
         :type length: int, optional
         """
+
+        integration_weights: List[Weights] = kwargs.get("integration_weights", None)
+        digital_marker: Optional[DigitalWaveform] = kwargs.get("digital_marker", None)
         super().__init__(name, wfs, "measure", length, digital_marker)
         if integration_weights is None:
             integration_weights = []
@@ -301,17 +310,12 @@ class MeasurePulse(Pulse):
 
 
 class ControlPulse(Pulse):
-    def __init__(
-        self,
-        name: str,
-        wfs: List[Waveform],
-        length: int,
-        digital_marker: Optional[DigitalWaveform] = None,
-    ):
+    def __init__(self, name: str, wfs: List[Waveform], length: int, **kwargs):
         """A pulse which can be used by a QUA play() command
         :return:
         :rtype: ControlPulse
         """
+        digital_marker: Optional[DigitalWaveform] = kwargs.get("digital_marker", None)
         super().__init__(name, wfs, "control", length, digital_marker)
 
     def add(self, w: DigitalWaveform):
@@ -320,7 +324,7 @@ class ControlPulse(Pulse):
 
 
 class Mixer(ConfigBuilderElement):
-    def __init__(self, name: str, data: Optional[List[MixerData]] = []):
+    def __init__(self, name: str, data: Optional[List[MixerData]] = None):
         """A microwave mixer
 
         :param name: name for this mixer
@@ -330,6 +334,8 @@ class Mixer(ConfigBuilderElement):
 
         """
         super(Mixer, self).__init__(name)
+        if data is None:
+            data = []
         self.dict = []
         for e in data:
             self.add(e)
@@ -355,9 +361,7 @@ class Element(ConfigBuilderElement):
         digital_output_ports: Optional[List[DigitalInputPort]] = None,
         intermediate_frequency: Optional[int] = None,
         lo_frequency: Optional[int] = None,
-        mixer: Optional[Mixer] = None,
-        pulses: Optional[List[Pulse]] = None,
-        operations: Optional[Dict[str, str]] = None,
+        **kwargs
     ):
         """A quantum element in a configuration
 
@@ -375,6 +379,10 @@ class Element(ConfigBuilderElement):
         :type lo_frequency: int, optional
         """
         super(Element, self).__init__(name)
+
+        mixer: Optional[Mixer] = kwargs.get("mixer", None)
+        pulses: Optional[List[Pulse]] = kwargs.get("pulses", None)
+        operations: Optional[Dict[str, str]] = kwargs.get("digital_marker", None)
 
         self.dict = dict()
         assert len(analog_input_ports) <= 2
@@ -618,12 +626,7 @@ class MeasureElement(Element):
         digital_input_ports: Optional[List[DigitalOutputPort]] = None,
         intermediate_frequency: Optional[int] = None,
         lo_frequency: Optional[int] = None,
-        time_of_flight: Optional[int] = 0,
-        smearing: Optional[int] = 0,
-        digital_output_ports: Optional[List[DigitalInputPort]] = None,
-        mixer: Optional[Mixer] = None,
-        pulses: Optional[List[Pulse]] = None,
-        operations: Optional[Dict[str, str]] = None,
+        **kwargs
     ):
         """A quantum element set for performing measurment
 
@@ -640,6 +643,15 @@ class MeasureElement(Element):
         :param lo_frequency: [description], defaults to None
         :type lo_frequency: int, optional
         """
+
+        time_of_flight: Optional[int] = kwargs.get("time_of_flight", 0)
+        smearing: Optional[int] = kwargs.get("smearing", 0)
+        digital_output_ports: Optional[List[DigitalInputPort]] = kwargs.get(
+            "digital_output_ports", None
+        )
+        mixer: Optional[Mixer] = kwargs.get("mixer", None)
+        pulses: Optional[List[Pulse]] = kwargs.get("pulses", None)
+        operations: Optional[Dict[str, str]] = kwargs.get("operations", None)
         super().__init__(
             name,
             analog_input_ports,
@@ -648,9 +660,9 @@ class MeasureElement(Element):
             digital_output_ports,
             intermediate_frequency,
             lo_frequency,
-            mixer,
-            pulses,
-            operations,
+            mixer=mixer,
+            pulses=pulses,
+            operations=operations,
         )
         self.dict["time_of_flight"] = time_of_flight
         self.dict["smearing"] = smearing
@@ -786,11 +798,7 @@ class ReadoutResonator(ElementCollection):
         outputs: List[AnalogOutputPort],
         inputs: List[AnalogInputPort],
         intermediate_frequency: int,
-        operations: Optional[List[Operation]] = None,
-        time_of_flight: Optional[int] = 0,
-        smearing: Optional[int] = 0,
-        mixer: Optional[Mixer] = None,
-        lo_frequency: Optional[int] = None,
+        **kwargs
     ):
         """
         A Microwave readout resonator
@@ -804,6 +812,13 @@ class ReadoutResonator(ElementCollection):
         :param intermediate_frequency: The intermediate frequency
         :type intermediate_frequency: int
         """
+
+        operations: Optional[List[Operation]] = kwargs.get("operations", None)
+        time_of_flight: Optional[int] = kwargs.get("time_of_flight", 0)
+        smearing: Optional[int] = kwargs.get("smearing", 0)
+        mixer: Optional[Mixer] = kwargs.get("mixer", None)
+        lo_frequency: Optional[int] = kwargs.get("lo_frequency", None)
+
         super(ReadoutResonator, self).__init__(name=name)
         if len(outputs) != 2:
             raise ConfigurationError("Number of output ports is not equal to 2")
@@ -952,9 +967,7 @@ class Transmon(ElementCollection):
         I: AnalogOutputPort,
         Q: AnalogOutputPort,
         intermediate_frequency: int,
-        mixer: Optional[Mixer] = None,
-        lo_frequency: Optional[int] = None,
-        operations: Optional[List[Operation]] = None,
+        **kwargs
     ):
         """A superconducting transmon qubit
 
@@ -967,6 +980,11 @@ class Transmon(ElementCollection):
         :param intermediate_frequency: intermediate frequency of the upconversion IQ mixer in MHz
         :type intermediate_frequency: int
         """
+
+        mixer: Optional[Mixer] = kwargs.get("mixer", None)
+        lo_frequency: Optional[int] = kwargs.get("lo_frequency", None)
+        operations: Optional[List[Operation]] = kwargs.get("operations", None)
+
         super(Transmon, self).__init__(name=name)
         self.drive_I = I
         self.drive_Q = Q
@@ -1079,10 +1097,7 @@ class FluxTunableTransmon(Transmon):
         Q: AnalogOutputPort,
         flux_port: AnalogOutputPort,
         intermediate_frequency: int,
-        mixer: Optional[Mixer] = None,
-        lo_frequency: Optional[int] = None,
-        operations: Optional[List[Operation]] = None,
-        flux_operations: Optional[List[Operation]] = None,
+        **kwargs
     ):
         """A flux tuneable superconducting transmon qubit
 
@@ -1097,8 +1112,20 @@ class FluxTunableTransmon(Transmon):
         :param intermediate_frequency: intermediate frequency of the upconversion IQ mixer in MHz
         :type intermediate_frequency: int
         """
+
+        mixer: Optional[Mixer] = kwargs.get("mixer", None)
+        lo_frequency: Optional[int] = kwargs.get("lo_frequency", None)
+        operations: Optional[List[Operation]] = kwargs.get("operations", None)
+        flux_operations: Optional[List[Operation]] = kwargs.get("flux_operations", None)
+
         super(FluxTunableTransmon, self).__init__(
-            name, I, Q, intermediate_frequency, mixer, lo_frequency, operations
+            name,
+            I,
+            Q,
+            intermediate_frequency,
+            mixer=mixer,
+            lo_frequency=lo_frequency,
+            operations=operations,
         )
         self.flux_port = flux_port
         self.flux_operations = []
@@ -1142,12 +1169,8 @@ class FluxTunableTransmon(Transmon):
 
 
 class Coupler(ElementCollection):
-    def __init__(
-        self,
-        name: str,
-        port: AnalogOutputPort,
-        operations: Optional[List[Operation]] = None,
-    ):
+    def __init__(self, name: str, port: AnalogOutputPort, **kwargs):
+        operations: Optional[List[Operation]] = kwargs.get("operations", None)
         super(Coupler, self).__init__(name=name)
         self._port = port
         self.operations = []
