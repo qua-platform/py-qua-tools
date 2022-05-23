@@ -1,11 +1,7 @@
-from fit_decay_sine import *
-from fit_transmission_resonator_spectroscopy import *
-from fit_linear import *
-from fit_reflection_resonator_spectroscopy import *
-from fit_phase_resonator_spectroscopy import *
 import itertools
 import json
 import matplotlib.pyplot as plt
+from Fitting_functions import *
 
 
 class Fitting:
