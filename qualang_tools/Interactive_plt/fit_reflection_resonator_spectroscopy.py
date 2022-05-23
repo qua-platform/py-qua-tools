@@ -2,7 +2,7 @@ from scipy import optimize
 import numpy as np
 
 
-def fit_reflection(x, y):
+def fit_reflection_resonator_spectroscopy(x, y):
     # find guess to peak
     peak0 = min(y)
     # find guess to width

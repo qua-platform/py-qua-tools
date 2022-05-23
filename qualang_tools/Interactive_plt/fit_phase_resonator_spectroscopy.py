@@ -2,7 +2,7 @@ from scipy import optimize
 import numpy as np
 
 
-def fit_phase(x, y):
+def fit_phase_resonator_spectroscopy(x, y):
     # find guess of offset
     v0 = y[0]
 

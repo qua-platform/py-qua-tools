@@ -20,16 +20,16 @@ class Fitting:
         fit_function = fit_decay_sine(x, y)
         return fit_function
 
-    def transmitted_lorenzian(self, x, y):
-        fit_function = fit_transmission(x, y)
+    def transmission_resonator_spectroscopy(self, x, y):
+        fit_function = fit_transmission_resonator_spectroscopy(x, y)
         return fit_function
 
-    def reflected_lorenzian(self, x, y):
-        fit_function = fit_reflection(x, y)
+    def reflection_resonator_spectroscopy(self, x, y):
+        fit_function = fit_reflection_resonator_spectroscopy(x, y)
         return fit_function
 
-    def phase(self, x, y):
-        fit_function = fit_phase(x, y)
+    def phase_resonator_spectroscopy(self, x, y):
+        fit_function = fit_phase_resonator_spectroscopy(x, y)
         return fit_function
 
 

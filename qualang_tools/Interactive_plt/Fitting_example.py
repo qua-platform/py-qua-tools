@@ -1,5 +1,6 @@
 from Fitting import *
 
+# Simulating the measured data
 k = 10
 kc = 5
 A = 10
@@ -11,25 +12,23 @@ y = (
     + 200
 )
 
-# fitting
+# Fit
 fit = Fitting()
-fit_function = fit.transmitted_lorenzian(x, y)
+fit_function = fit.transmission_resonator_spectroscopy(x, y)
 fit_params = dict(itertools.islice(fit_function.items(), 1, len(fit_function)))
 yfit = fit_function["fit_func"](x)
 
-x = np.linspace(0, 100, 100)
-y = 4 * (x + 5 * (np.random.rand(len(x)) - 0.5)) + 10
 
-# plotting
+# Plot
 plt = Plot()
-plt.plot(x, y, yfit, xlabel="frequancy[MHz]", ylabel="transmission[a.u.]")
+plt.plot(x, y, yfit, xlabel="frequency[Hz]", ylabel="transmission[a.u.]")
 
-# saving
+# Save
 save = Save()
 file_name = "linear_data"
 save.save_params(x, y, fit_function, id=file_name)
 
-# open saved items
+# 0pen saved items
 open = Open()
 data = open.open_saved_params(f"data_fit_{file_name}.json")
 open.print_params(data)

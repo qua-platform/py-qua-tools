@@ -529,7 +529,7 @@ class InteractivePlotLibFigure:
 
             if req == "tl":
                 fit = Fitting()
-                fit_function = fit.transmitted_lorenzian(x, y)
+                fit_function = fit.transmission_resonator_spectroscopy(x, y)
                 save = Save()
                 save.save_params(
                     x, y, fit_function, id="transmitted_lorenzian" + "_#" + str(i)
@@ -542,7 +542,7 @@ class InteractivePlotLibFigure:
 
             if req == "rl":
                 fit = Fitting()
-                fit_function = fit.reflected_lorenzian(x, y)
+                fit_function = fit.reflection_resonator_spectroscopy(x, y)
                 save = Save()
                 save.save_params(
                     x, y, fit_function, id="reflected_lorenzian" + "_#" + str(i)
@@ -555,7 +555,7 @@ class InteractivePlotLibFigure:
 
             if req == "ph":
                 fit = Fitting()
-                fit_function = fit.phase(x, y)
+                fit_function = fit.phase_resonator_spectroscopy(x, y)
                 save = Save()
                 save.save_params(x, y, fit_function, id="phase" + "_#" + str(i))
 

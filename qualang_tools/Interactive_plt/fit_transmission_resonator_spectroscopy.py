@@ -2,7 +2,7 @@ from scipy import optimize
 import numpy as np
 
 
-def fit_transmission(x, y):
+def fit_transmission_resonator_spectroscopy(x, y):
     # find guess to peak
     peak0 = max(y)
     # find guess to width
