@@ -5,7 +5,11 @@ kc = 5
 A = 10
 
 x = np.linspace(-100, 100, 200)
-y = kc / 2 * ((k / 2) / (1 + (4 / k ** 2) * (x + 10) ** 2)) + 1 * (np.random.rand(len(x)) - 0.5) + 200
+y = (
+    kc / 2 * ((k / 2) / (1 + (4 / k**2) * (x + 10) ** 2))
+    + 1 * (np.random.rand(len(x)) - 0.5)
+    + 200
+)
 
 # fitting
 fit = Fitting()
@@ -18,11 +22,11 @@ y = 4 * (x + 5 * (np.random.rand(len(x)) - 0.5)) + 10
 
 # plotting
 plt = Plot()
-plt.plot(x, y, yfit, xlabel='frequancy[MHz]', ylabel='transmission[a.u.]')
+plt.plot(x, y, yfit, xlabel="frequancy[MHz]", ylabel="transmission[a.u.]")
 
 # saving
 save = Save()
-file_name = 'linear_data'
+file_name = "linear_data"
 save.save_params(x, y, fit_function, id=file_name)
 
 # open saved items

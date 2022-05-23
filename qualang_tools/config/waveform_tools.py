@@ -26,12 +26,12 @@ def drag_gaussian_pulse_waveforms(
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
     center = (length - 1) / 2
     gauss_wave = amplitude * np.exp(
-        -((t - center) ** 2) / (2 * sigma ** 2)
+        -((t - center) ** 2) / (2 * sigma**2)
     )  # The gaussian function
     gauss_der_wave = (
         amplitude
-        * (-2 * 1e9 * (t - center) / (2 * sigma ** 2))
-        * np.exp(-((t - center) ** 2) / (2 * sigma ** 2))
+        * (-2 * 1e9 * (t - center) / (2 * sigma**2))
+        * np.exp(-((t - center) ** 2) / (2 * sigma**2))
     )  # The derivative of gaussian
     if subtracted:
         gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian

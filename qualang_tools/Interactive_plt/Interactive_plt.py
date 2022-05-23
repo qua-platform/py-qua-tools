@@ -167,15 +167,15 @@ class InteractivePlotLibFigure:
 
                 if event.y < bbox.ymin * self.fig.dpi:
                     if (
-                            event.x
-                            < (bbox.xmin + (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
+                        event.x
+                        < (bbox.xmin + (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
                     ):
                         self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "xstart"
                         )
                     elif (
-                            event.x
-                            > (bbox.xmax - (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
+                        event.x
+                        > (bbox.xmax - (bbox.xmax - bbox.xmin) / 5) * self.fig.dpi
                     ):
                         self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "xend"
@@ -192,15 +192,15 @@ class InteractivePlotLibFigure:
 
                 elif event.x < bbox.xmin * self.fig.dpi:
                     if (
-                            event.y
-                            < (bbox.ymin + (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
+                        event.y
+                        < (bbox.ymin + (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
                     ):
                         self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "ystart"
                         )
                     elif (
-                            event.y
-                            > (bbox.ymax - (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
+                        event.y
+                        > (bbox.ymax - (bbox.ymax - bbox.ymin) / 5) * self.fig.dpi
                     ):
                         self.state = InteractivePlotLibFigure.StateMachineLim(
                             self, "yend"
@@ -224,10 +224,10 @@ class InteractivePlotLibFigure:
                         bbox.height,
                     )
                     if (
-                            self.line_selected is not None
-                            and event.button == 3
-                            and hasattr(self.line_selected.obj, "InteractivePlotLib_Type")
-                            and self.line_selected.obj.InteractivePlotLib_Type == "Fit"
+                        self.line_selected is not None
+                        and event.button == 3
+                        and hasattr(self.line_selected.obj, "InteractivePlotLib_Type")
+                        and self.line_selected.obj.InteractivePlotLib_Type == "Fit"
                     ):
                         func = self.line_selected.obj.fit_func
                         xlim = self.ax.get_xlim()
@@ -237,7 +237,7 @@ class InteractivePlotLibFigure:
                         self.line_selected.obj.set_ydata(y)
 
                     if self.line_selected == None and isinstance(
-                            self.ax.get_children()[0], PolyCollection
+                        self.ax.get_children()[0], PolyCollection
                     ):
                         self.plot_type = "pcolor"
                         self.line_selected = InteractivePlotLibFigure.PcolorSelected(
@@ -245,7 +245,7 @@ class InteractivePlotLibFigure:
                         )
 
                     if self.line_selected == None and isinstance(
-                            self.ax.get_children()[0], QuadMesh
+                        self.ax.get_children()[0], QuadMesh
                     ):
                         self.plot_type = "mesh"
                         self.line_selected = InteractivePlotLibFigure.MeshSelected(
@@ -347,7 +347,7 @@ class InteractivePlotLibFigure:
                         self.line_selected.transpose()
 
                     if event.key == "l" and (
-                            self.plot_type == "pcolor" or self.plot_type == "mesh"
+                        self.plot_type == "pcolor" or self.plot_type == "mesh"
                     ):
                         self.line_selected.convert_to_lines()
                         self.line_selected = None
@@ -418,17 +418,17 @@ class InteractivePlotLibFigure:
         xlim = scale_convert.convert[0](base_xlim)
         ylim = scale_convert.convert[1](base_ylim)
 
-        xdiff = np.sqrt((xlim[1] - xlim[0]) ** 2 / width ** 2)
-        ydiff = np.sqrt((ylim[1] - ylim[0]) ** 2 / height ** 2)
+        xdiff = np.sqrt((xlim[1] - xlim[0]) ** 2 / width**2)
+        ydiff = np.sqrt((ylim[1] - ylim[0]) ** 2 / height**2)
 
         for j, line in enumerate(line_list):
             x = scale_convert.bound[0](line.get_xdata())
             y = scale_convert.bound[1](line.get_ydata())
             idx = (
-                    (x >= base_xlim[0])
-                    & (x <= base_xlim[1])
-                    & (y >= base_ylim[0])
-                    & (y <= base_ylim[1])
+                (x >= base_xlim[0])
+                & (x <= base_xlim[1])
+                & (y >= base_ylim[0])
+                & (y <= base_ylim[1])
             )
             idx = np.where(idx)[0]
             idx = list(set.union(set(idx), set(idx + 1), set(idx - 1)))
@@ -446,8 +446,8 @@ class InteractivePlotLibFigure:
             y0_n = y0 / ydiff
             if line.get_linestyle() == "None":
                 norm_2 = (
-                                 (x0_n - x_n) ** 2 + (y0_n - y_n) ** 2
-                         ) / self.th_point_advantage  # give advantage for choosing a point over a line
+                    (x0_n - x_n) ** 2 + (y0_n - y_n) ** 2
+                ) / self.th_point_advantage  # give advantage for choosing a point over a line
                 ind = np.argmin(norm_2)
                 if norm_2[ind] < candidate["distance_2"]:
                     candidate["line_index"] = j
@@ -472,7 +472,7 @@ class InteractivePlotLibFigure:
                         )
 
         self.line_selected = None  # deselect line if selected
-        if candidate["distance_2"] < self.th ** 2:
+        if candidate["distance_2"] < self.th**2:
             self.line_selected = InteractivePlotLibFigure.LineSelected(
                 self,
                 line_list[candidate["line_index"]],
@@ -487,8 +487,8 @@ class InteractivePlotLibFigure:
         lines = self.ax.get_lines()
         for line in lines:
             if hasattr(line, "InteractivePlotLib_Type") and (
-                    line.InteractivePlotLib_Type == "Fit"
-                    or line.InteractivePlotLib_Type == "Fit_markers"
+                line.InteractivePlotLib_Type == "Fit"
+                or line.InteractivePlotLib_Type == "Fit_markers"
             ):
                 line.remove()
 
@@ -516,54 +516,58 @@ class InteractivePlotLibFigure:
             x = line.get_xdata()
             y = line.get_ydata()
 
-            if req == 'd_sin':
+            if req == "d_sin":
                 fit = Fitting()
                 fit_function = fit.decay_sine(x, y)
                 save = Save()
-                save.save_params(x, y, fit_function, id='sin'+'_#'+str(i))
+                save.save_params(x, y, fit_function, id="sin" + "_#" + str(i))
 
                 (l,) = plt.plot(x, fit_function["fit_func"](x), "m", linewidth=2)
                 setattr(l, "InteractivePlotLib_Type", "Fit")
                 setattr(l, "fit_func", fit_function["fit_func"])
                 i = i + 1
 
-            if req == 'tl':
+            if req == "tl":
                 fit = Fitting()
                 fit_function = fit.transmitted_lorenzian(x, y)
                 save = Save()
-                save.save_params(x, y, fit_function, id='transmitted_lorenzian'+'_#'+str(i))
+                save.save_params(
+                    x, y, fit_function, id="transmitted_lorenzian" + "_#" + str(i)
+                )
 
                 (l,) = plt.plot(x, fit_function["fit_func"](x), "m", linewidth=2)
                 setattr(l, "InteractivePlotLib_Type", "Fit")
                 setattr(l, "fit_func", fit_function["fit_func"])
                 i = i + 1
 
-            if req == 'rl':
+            if req == "rl":
                 fit = Fitting()
                 fit_function = fit.reflected_lorenzian(x, y)
                 save = Save()
-                save.save_params(x, y, fit_function, id='reflected_lorenzian'+'_#'+str(i))
+                save.save_params(
+                    x, y, fit_function, id="reflected_lorenzian" + "_#" + str(i)
+                )
 
                 (l,) = plt.plot(x, fit_function["fit_func"](x), "m", linewidth=2)
                 setattr(l, "InteractivePlotLib_Type", "Fit")
                 setattr(l, "fit_func", fit_function["fit_func"])
                 i = i + 1
 
-            if req == 'ph':
+            if req == "ph":
                 fit = Fitting()
                 fit_function = fit.phase(x, y)
                 save = Save()
-                save.save_params(x, y, fit_function, id='phase' + '_#' + str(i))
+                save.save_params(x, y, fit_function, id="phase" + "_#" + str(i))
 
                 (l,) = plt.plot(x, fit_function["fit_func"](x), "m", linewidth=2)
                 setattr(l, "InteractivePlotLib_Type", "Fit")
                 setattr(l, "fit_func", fit_function["fit_func"])
                 i = i + 1
-            if req == 'lin':
+            if req == "lin":
                 fit = Fitting()
                 fit_function = fit.linear(x, y)
                 save = Save()
-                save.save_params(x, y, fit_function, id='linear' + '_#' + str(i))
+                save.save_params(x, y, fit_function, id="linear" + "_#" + str(i))
 
                 (l,) = plt.plot(x, fit_function["fit_func"](x), "m", linewidth=2)
                 setattr(l, "InteractivePlotLib_Type", "Fit")
@@ -690,18 +694,18 @@ class InteractivePlotLibFigure:
                 ind_y = np.array([True] * len(y_list))
 
                 ind_x = (x_list >= self_2d.sup_self.rectangle.x[0]) & (
-                        x_list <= self_2d.sup_self.rectangle.x[1]
+                    x_list <= self_2d.sup_self.rectangle.x[1]
                 )
                 ind_y = (y_list >= self_2d.sup_self.rectangle.y[0]) & (
-                        y_list <= self_2d.sup_self.rectangle.y[1]
+                    y_list <= self_2d.sup_self.rectangle.y[1]
                 )
                 self_2d.sup_self.rectangle = None
                 x_list = x_list[ind_x]
                 y_list = y_list[ind_y]
                 data = np.array(data, "double")
                 data[
-                np.where(ind_y)[0][0]: np.where(ind_y)[0][-1] + 1,
-                np.where(ind_x)[0][0]: np.where(ind_x)[0][-1] + 1,
+                    np.where(ind_y)[0][0] : np.where(ind_y)[0][-1] + 1,
+                    np.where(ind_x)[0][0] : np.where(ind_x)[0][-1] + 1,
                 ] = np.NaN
                 self_2d.obj.set_array(data.flatten())
                 self_2d.data = data
@@ -736,18 +740,18 @@ class InteractivePlotLibFigure:
             data_s = ""
             if self_2d.sup_self.rectangle:
                 ind_x = (x_list >= self_2d.sup_self.rectangle.x[0]) & (
-                        x_list <= self_2d.sup_self.rectangle.x[1]
+                    x_list <= self_2d.sup_self.rectangle.x[1]
                 )
                 ind_y = (y_list >= self_2d.sup_self.rectangle.y[0]) & (
-                        y_list <= self_2d.sup_self.rectangle.y[1]
+                    y_list <= self_2d.sup_self.rectangle.y[1]
                 )
                 self_2d.sup_self.rectangle = None
                 x_list = x_list[ind_x]
                 y_list = y_list[ind_y]
                 data = data[
-                       np.where(ind_y)[0][0]: np.where(ind_y)[0][-1] + 1,
-                       np.where(ind_x)[0][0]: np.where(ind_x)[0][-1] + 1,
-                       ]
+                    np.where(ind_y)[0][0] : np.where(ind_y)[0][-1] + 1,
+                    np.where(ind_x)[0][0] : np.where(ind_x)[0][-1] + 1,
+                ]
                 print(data)
 
             data_s += f" ,{','.join([str(i) for i in x_list])}\r\n".replace(",", "\t")
@@ -818,14 +822,14 @@ class InteractivePlotLibFigure:
                     (l,) = sup_self.ax.plot([max(xlim), min(xlim)], [y, y], "m")
                 else:
                     slope = (points[0][1] - points[1][1]) / (
-                            points[0][0] - points[1][0]
+                        points[0][0] - points[1][0]
                     )
                     prep_slope = -1 / slope
                     point0 = (
-                            np.array(
-                                [points[0][0] + points[1][0], points[0][1] + points[1][1]]
-                            )
-                            / 2
+                        np.array(
+                            [points[0][0] + points[1][0], points[0][1] + points[1][1]]
+                        )
+                        / 2
                     )
                     xy = line_in_lim(point0, prep_slope, xlim, ylim)
                     (l,) = sup_self.ax.plot(
@@ -1027,7 +1031,7 @@ class InteractivePlotLibFigure:
             new_order = local_order + change
 
             if new_order > np.max(sup_self.correct_order) or new_order < np.min(
-                    sup_self.correct_order
+                sup_self.correct_order
             ):
                 return
             # test
@@ -1078,7 +1082,7 @@ class InteractivePlotLibFigure:
                 if t == "log":
                     self_loglin.convert.append(lambda x: np.log10(np.maximum(x, 1e-16)))
                     self_loglin.bound.append(lambda x: np.maximum(x, 1e-16))
-                    self_loglin.un_convert.append(lambda x: 10 ** x)
+                    self_loglin.un_convert.append(lambda x: 10**x)
                 elif t == "linear":
                     self_loglin.convert.append(lambda x: x)
                     self_loglin.bound.append(lambda x: x)
@@ -1318,7 +1322,7 @@ class InteractivePlotLibFigure:
                         self_state.old_units = value_unit_split[1].split("]")[0]
                         self_state.text_obj.text = value_unit_split[0] + "[]"
                         self_state.text_obj.curser_location = (
-                                len(self_state.text_obj.text) - 1
+                            len(self_state.text_obj.text) - 1
                         )
                         self_state.text_obj.command_mode = True
                         self_state.text_obj.update_text()
@@ -1540,27 +1544,27 @@ class InteractivePlotLibFigure:
             if self_state.done:
                 if self_state.text_obj.text == "colorbar":
                     if (
-                            self_state.sup_self.plot_type == "mesh"
-                            or self_state.sup_self.plot_type == "pcolor"
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
                     ):
                         plt.colorbar()
 
                 if self_state.text_obj.text == "log":
                     if (
-                            self_state.sup_self.plot_type == "mesh"
-                            or self_state.sup_self.plot_type == "pcolor"
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
                     ):
                         self_state.sup_self.line_selected.obj.set_norm(Colors.LogNorm())
                     elif self_state.sup_self.plot_type == "plot":
                         self_state.sup_self.ax.set_yscale("log")
 
                 if (
-                        self_state.text_obj.text == "lin"
-                        or self_state.text_obj.text == "linear"
+                    self_state.text_obj.text == "lin"
+                    or self_state.text_obj.text == "linear"
                 ):
                     if (
-                            self_state.sup_self.plot_type == "mesh"
-                            or self_state.sup_self.plot_type == "pcolor"
+                        self_state.sup_self.plot_type == "mesh"
+                        or self_state.sup_self.plot_type == "pcolor"
                     ):
                         self_state.sup_self.line_selected.obj.set_norm(
                             Colors.Normalize()
@@ -1600,19 +1604,19 @@ class InteractivePlotLibFigure:
 
         def filter(self, x, y):
             ind_bool = (
-                    (x >= self.x[0])
-                    * (x <= self.x[1])
-                    * (y >= self.y[0])
-                    * (y <= self.y[1])
+                (x >= self.x[0])
+                * (x <= self.x[1])
+                * (y >= self.y[0])
+                * (y <= self.y[1])
             )
             return np.array(x)[ind_bool], np.array(y)[ind_bool], ind_bool
 
         def filter_neg(self, x, y):
             ind_bool = (
-                    (x <= self.x[0])
-                    | (x >= self.x[1])
-                    | (y <= self.y[0])
-                    | (y >= self.y[1])
+                (x <= self.x[0])
+                | (x >= self.x[1])
+                | (y <= self.y[0])
+                | (y >= self.y[1])
             )
             return np.array(x)[ind_bool], np.array(y)[ind_bool], ind_bool
 
@@ -1643,8 +1647,8 @@ class InteractivePlotLibFigure:
                 self_state.x[1] = event.xdata
                 self_state.y[1] = event.ydata
                 if (
-                        self_state.x[1] == self_state.x[0]
-                        and self_state.y[1] == self_state.y[0]
+                    self_state.x[1] == self_state.x[0]
+                    and self_state.y[1] == self_state.y[0]
                 ):
                     self_state.sup_self.voronoi_obj.add_marker(
                         self_state.x[0], self_state.y[0]
@@ -1680,8 +1684,8 @@ class InteractivePlotLibFigure:
                 self_state.x[1] = event.xdata
                 self_state.y[1] = event.ydata
                 if (
-                        self_state.x[1] == self_state.x[0]
-                        and self_state.y[1] == self_state.y[0]
+                    self_state.x[1] == self_state.x[0]
+                    and self_state.y[1] == self_state.y[0]
                 ):
 
                     self_state.x = self_state.sup_self.ax.get_xlim()
@@ -1750,11 +1754,11 @@ class InteractivePlotLibFigure:
     class InteractiveText:
         # :
         def __init__(
-                self_text,
-                initial_text,
-                update_text_fun,
-                format_text=lambda x: x,
-                command_func=lambda x: [],
+            self_text,
+            initial_text,
+            update_text_fun,
+            format_text=lambda x: x,
+            command_func=lambda x: [],
         ):
             self_text.text = initial_text
             self_text.original_text = initial_text
@@ -1771,9 +1775,9 @@ class InteractivePlotLibFigure:
             buf = self_text.text
             if not self_text.is_done:
                 buf = (
-                        buf[: self_text.curser_location]
-                        + "|"
-                        + buf[self_text.curser_location:]
+                    buf[: self_text.curser_location]
+                    + "|"
+                    + buf[self_text.curser_location :]
                 )
             self_text.update_text_fun(self_text.format_text(buf))
             self_text.first_key_stroke = False
@@ -1787,7 +1791,7 @@ class InteractivePlotLibFigure:
             # print(self_text.first_key_stroke)
             if key == "enter":
                 if (
-                        len(self_text.text) > 0 and self_text.text[0] == ":"
+                    len(self_text.text) > 0 and self_text.text[0] == ":"
                 ) or self_text.command_mode:
                     is_done = self_text.command_func(self_text.text)
                     if is_done:
@@ -1804,8 +1808,8 @@ class InteractivePlotLibFigure:
             elif key == "backspace":
                 if (len(self_text.text) > 0) and (self_text.curser_location > 0):
                     self_text.text = (
-                            self_text.text[: self_text.curser_location - 1]
-                            + self_text.text[self_text.curser_location:]
+                        self_text.text[: self_text.curser_location - 1]
+                        + self_text.text[self_text.curser_location :]
                     )
                     self_text.curser_location -= 1
 
@@ -1827,9 +1831,9 @@ class InteractivePlotLibFigure:
 
             elif len(key) == 1:
                 self_text.text = (
-                        self_text.text[: self_text.curser_location]
-                        + key
-                        + self_text.text[self_text.curser_location:]
+                    self_text.text[: self_text.curser_location]
+                    + key
+                    + self_text.text[self_text.curser_location :]
                 )
                 self_text.curser_location += 1
 
@@ -1907,8 +1911,6 @@ class Marker:
 
     def __del__(self_marker):
         self_marker.remove()
-
-
 
 
 class Document:
@@ -2008,8 +2010,8 @@ class Document:
             if type(info[variable]) is list:
                 for i in range(len(info[variable])):
                     if (
-                            str(type(info[variable][i])).split("'")[1].split(".")[0]
-                            == "matplotlib"
+                        str(type(info[variable][i])).split("'")[1].split(".")[0]
+                        == "matplotlib"
                     ):
                         info[variable][i] = []
         info["code"] = code
@@ -2060,12 +2062,12 @@ class Document:
         path = self.Data_path
 
         name = (
-                "scan"
-                + str(scan_number)
-                + "_fig"
-                + str(fig_number)
-                + "_"
-                + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            "scan"
+            + str(scan_number)
+            + "_fig"
+            + str(fig_number)
+            + "_"
+            + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         )
         path = os.path.join(path, name)
 

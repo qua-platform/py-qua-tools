@@ -40,9 +40,9 @@ class Save:
     def save_params(self, x, y, fit_function, id):
         fit_func = fit_function
         fit_params = dict(itertools.islice(fit_function.items(), 1, len(fit_function)))
-        fit_params['x'] = x.tolist()
-        fit_params['y_data'] = y.tolist()
-        fit_params['y_fit'] = fit_func["fit_func"](x).tolist()
+        fit_params["x"] = x.tolist()
+        fit_params["y_data"] = y.tolist()
+        fit_params["y_fit"] = fit_func["fit_func"](x).tolist()
         json_object = json.dumps(fit_params)
         with open(f"data_fit_{id}.json", "w") as outfile:
             outfile.write(json_object)
@@ -67,8 +67,8 @@ class Plot:
         pass
 
     def plot(self, x, ydata, yfit, xlabel, ylabel):
-        plt.plot(x, ydata, 'b.')
-        plt.plot(x, yfit, 'g')
-        plt.legend(['measurement', 'fit'])
+        plt.plot(x, ydata, "b.")
+        plt.plot(x, yfit, "g")
+        plt.legend(["measurement", "fit"])
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
