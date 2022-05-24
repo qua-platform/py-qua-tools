@@ -4,12 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+### Fixed
+- various issues were fixed in config builder
+- Waveform tools - DRAG now handles alpha=0 correctly
 ### Added
+- config builder MeasurePulse now accepts IntegrationWeights object as well
+- config builder Element now accepts ControlPulse and MeasurePulse
+- config builder Parameter class now support basic algebra (+, -, /, *, **)
 - A new tool for discriminating two states in the IQ blob under `analysis.discriminator`
 ### Changed
+- All config builder objects can be initialized with all the data (but still can be built step by step)
+- config builder FluxTunableTransmon - parameter name changed from fl_port to flux_port
+- config builder Coupler - parameter name changed from p to port
+- config builder Element - renamed set_delay/buffer methods as set_digital_input_delay/buffer
+- config builder ConfigVar is changed to ConfigVars
+- config builder ConfigVars - parameter method now returns a Parameter object instead of lambda function
+- config builder ConfigVars - parameter method optionally accepts a setter
+- config builder Controller - does not accept number of outputs and inputs anymore
+- config builder Mixer - added MixerData class (holds intermediate_frequency, lo_frequecy and correction matrix), we now support correction matrix for every pair of IF and LO frequencies
 - Waveform tools - now return Numpy arrays
-### Fixed
-- Waveform tools - DRAG now handles alpha=0 correctly
+
 
 ## [0.8.0] - 2022-04-04
 ### Added
