@@ -81,7 +81,7 @@ def two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True):
         -----------------
         IQ plane rotated by: {180 / np.pi * angle:.1f}{chr(176)}
         Threshold: {threshold:.3e}
-        Readout Fidelity: {fidelity:.1f}%
+        Fidelity: {fidelity:.1f}%
         """
         )
 
