@@ -9,6 +9,9 @@ The QUA language tools package includes various tools useful while writing QUA p
 
 It includes:
 
+* [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tool for analyzing data from experiments. 
+It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
+
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
 
