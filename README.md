@@ -9,7 +9,12 @@ The QUA language tools package includes various tools useful while writing QUA p
 
 It includes:
 
-* [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tool for analyzing data from experiments. 
+
+* [QUA Loops Tools](qualang_tools/loops/README.md) - This library includes tools for parametrizing QUA for_ loops using the numpy (linspace, arange, logspace) syntaxes or by directly inputting a numpy array.
+* [Plotting Tools](qualang_tools/plot/README.md) - This library includes tools to help handling plots from QUA programs.
+* [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs.
+* [Units Tools](qualang_tools/units/README.md) - This library includes tools for using units (MHz, us, mV...) and converting data to other units (demodulated data to volts for instance).
+* [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tools for analyzing data from experiments. 
 It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
 
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
@@ -28,6 +33,7 @@ fitting the data and saving the figures.
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
   * [ManualOutputControl](README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
   * [VNA](README_vna.md) - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and operation (readout pulse for instance) already defined in the configuration. Once created, it has an API for defining which measurements are to be run depending on the down-conversion solution used (ED: envelope detector, IR: image rejection mixer, IQ: IQ mixer).
+
 
 ## Installation
 
