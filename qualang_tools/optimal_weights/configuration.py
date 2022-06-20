@@ -151,8 +151,9 @@ config = {
                 'Q': 'zero_wf'
             },
             'integration_weights': {
-                'integW_cos': 'integW_cos',
-                'integW_sin': 'integW_sin'
+                'cos': 'cos_weights',
+                'sin': 'sin_weights',
+                'minus_sin': 'minus_sin_weights',
             },
             'digital_marker': 'ON'
         },
@@ -165,8 +166,9 @@ config = {
                 'Q': 'Qg_wf'
             },
             'integration_weights': {
-                'integW_cos': 'integW_cos',
-                'integW_sin': 'integW_sin'
+                'cos': 'cos_weights',
+                'sin': 'sin_weights',
+                'minus_sin': 'minus_sin_weights',
             },
             'digital_marker': 'ON'
         },
@@ -179,8 +181,9 @@ config = {
                 'Q': 'Qe_wf'
             },
             'integration_weights': {
-                'integW_cos': 'integW_cos',
-                'integW_sin': 'integW_sin'
+                'cos': 'cos_weights',
+                'sin': 'sin_weights',
+                'minus_sin': 'minus_sin_weights',
             },
             'digital_marker': 'ON'
         },
@@ -193,8 +196,9 @@ config = {
                 'Q': 'Qf_wf'
             },
             'integration_weights': {
-                'integW_cos': 'integW_cos',
-                'integW_sin': 'integW_sin'
+                'cos': 'cos_weights',
+                'sin': 'sin_weights',
+                'minus_sin': 'minus_sin_weights',
             },
             'digital_marker': 'ON'
         },
@@ -254,14 +258,19 @@ config = {
 
     'integration_weights': {
 
-        'integW_cos': {
-            'cosine': [1.0] * 120,
-            'sine': [0.0] * 120,
+        'cos_weights': {
+            "cosine": [(1.0, readout_len)],  # Previous format for versions before 1.20: [1.0] * readout_len
+            "sine": [(0.0, readout_len)],
         },
 
-        'integW_sin': {
-            'cosine': [0.0] * 120,
-            'sine': [1.0] * 120,
+        'sin_weights': {
+            "cosine": [(0.0, readout_len)],
+            "sine": [(1.0, readout_len)],
+        },
+
+        'minus_sin_weights': {
+            "cosine": [(0.0, readout_len)],
+            "sine": [(-1.0, readout_len)],
         },
 
     },

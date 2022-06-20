@@ -35,19 +35,14 @@ def training_measurement(readout_pulse, use_opt_weights):
     if use_opt_weights:
         discriminator.measure_state(readout_pulse, "out1", "out2", res, I=I, adc=adc_st)
     else:
-        measure(readout_pulse, rr_qe, adc_st,
-                demod.full("integW_cos", I1, "out1"),
-                demod.full("integW_sin", Q1, "out1"),
-                demod.full("integW_cos", I2, "out2"),
-                demod.full("integW_sin", Q2, "out2")
-                )
-
         if not lsb:
-            assign(I, I1 + Q2)
-            assign(Q, -Q1 + I2)
+            measure(readout_pulse, rr_qe, adc_st,
+                    dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                    dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q))
         else:
-            assign(I, I1 - Q2)
-            assign(Q, Q1 + I2)
+            measure(readout_pulse, rr_qe, adc_st,
+                    dual_demod.full('cos', 'out1', 'minus_sin', 'out2', I),
+                    dual_demod.full('sin', 'out1', 'cos', 'out2', Q))
 
     return I, Q
 
