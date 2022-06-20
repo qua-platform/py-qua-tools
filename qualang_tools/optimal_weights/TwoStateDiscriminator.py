@@ -18,25 +18,27 @@ class TwoStateDiscriminator(StateDiscriminator):
             self.mu = self.saved_data['mu'].tolist()
             self.sigma = self.saved_data['sigma'].tolist()
         b_vec = weights[0, :] - weights[1, :]
-        self.config['integration_weights'][f'demod1_iw_{self.rr_qe}'] = {
+        self.config['integration_weights'][f'opt_cos_{self.rr_qe}'] = {
             'cosine': np.real(b_vec).tolist(),
             'sine': (-np.imag(b_vec)).tolist()
         }
-        self._add_iw_to_all_pulses(f'demod1_iw_{self.rr_qe}')
-        self.config['integration_weights'][f'demod2_iw_{self.rr_qe}'] = {
+        self._add_iw_to_all_pulses(f'opt_cos_{self.rr_qe}')
+        self.config['integration_weights'][f'opt_sin_{self.rr_qe}'] = {
             'cosine': np.imag(b_vec).tolist(),
             'sine': np.real(b_vec).tolist()
         }
-        self._add_iw_to_all_pulses(f'demod2_iw_{self.rr_qe}')
-        self.config['integration_weights'][f'demod2_minus_iw_{self.rr_qe}'] = {
+        self._add_iw_to_all_pulses(f'opt_sin_{self.rr_qe}')
+        self.config['integration_weights'][f'opt_minus_sin_{self.rr_qe}'] = {
             'cosine': np.imag(-b_vec).tolist(),
             'sine': np.real(-b_vec).tolist()
         }
-        self._add_iw_to_all_pulses(f'demod2_minus_iw_{self.rr_qe}')
+        self._add_iw_to_all_pulses(f'opt_minus_sin_{self.rr_qe}')
         if self.update_tof or self.finish_train == 1:
             self.config['elements'][self.rr_qe]['time_of_flight'] = self.config['elements'][self.rr_qe][
                                                                         'time_of_flight'] - \
                                                                     self.config['elements'][self.rr_qe]['smearing']
+            self.config['elements'][self.rr_qe]['smearing'] = 0
+
         if self.finish_train == 1:
             self._IQ_mu_sigma(b_vec)
 
@@ -106,19 +108,19 @@ class TwoStateDiscriminator(StateDiscriminator):
         QQ = declare(fixed)
 
         if not self.lsb:
-            Q1_weight, Q2_weight = f'demod2_minus_iw_{self.rr_qe}', f'demod2_iw_{self.rr_qe}'
+            Q1_weight, Q2_weight = f'opt_minus_sin_{self.rr_qe}', f'opt_sin_{self.rr_qe}'
         else:
-            Q1_weight, Q2_weight = f'demod2_iw_{self.rr_qe}', f'demod2_minus_iw_{self.rr_qe}'
+            Q1_weight, Q2_weight = f'opt_sin_{self.rr_qe}', f'opt_minus_sin_{self.rr_qe}'
 
         if Q is not None:
             measure(pulse, self.rr_qe, adc,
-                    dual_demod.full(f'demod1_iw_{self.rr_qe}', out1, Q2_weight, out2, II),
-                    dual_demod.full(f'demod1_iw_{self.rr_qe}', out2, Q1_weight, out1, QQ)
+                    dual_demod.full(f'opt_cos_{self.rr_qe}', out1, Q2_weight, out2, II),
+                    dual_demod.full(Q1_weight, out1, f'opt_cos_{self.rr_qe}', out2, QQ)
                     )
 
         else:
             measure(pulse, self.rr_qe, adc,
-                    dual_demod.full(f'demod1_iw_{self.rr_qe}', out1, Q2_weight, out2, II)
+                    dual_demod.full(f'opt_cos_{self.rr_qe}', out1, Q2_weight, out2, II)
                     )
 
         assign(res, II < self.get_threshold())
