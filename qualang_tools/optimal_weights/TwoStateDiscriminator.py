@@ -27,7 +27,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         w_minus_cos = []
 
         # assigning integration weights to list of tuples
-        for i in range((readout_len+2*smearing)//4):
+        for i in range((readout_len+(2*smearing))//4):
             w_plus_cos.append((np.real(b_vec)[i], 4))
             w_minus_sin.append((np.imag(-b_vec)[i], 4))
             w_plus_sin.append((np.imag(b_vec)[i], 4))

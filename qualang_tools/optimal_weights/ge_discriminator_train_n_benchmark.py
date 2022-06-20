@@ -12,7 +12,7 @@ import numpy as np
 import seaborn as sns
 
 simulation_config = SimulationConfig(
-    duration=60000,
+    duration=120000,
     simulation_interface=LoopbackInterface(
         [("con1", 1, "con1", 2), ("con1", 2, "con1", 1)], latency=230, noisePower=0.07 ** 2
     )
