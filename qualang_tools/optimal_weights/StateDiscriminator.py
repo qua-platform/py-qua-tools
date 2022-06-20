@@ -131,15 +131,6 @@ class StateDiscriminator:
         streaming of the raw data (the tag must be called "adc") and the final complex demodulation results (which is
         constructed from 2 dual demodulations) must be saved under the tags "I" and "Q". E.g:
 
-            measure("readout", "rr", "adc", demod.full("integW_cos", I1, "out1"),
-                                            demod.full("integW_sin", Q1, "out1"),
-                                            demod.full("integW_cos", I2, "out2"),
-                                            demod.full("integW_sin", Q2, "out2"))
-            assign(I, I1 + Q2)
-            assign(Q, -Q1 + I2)
-            save(I, 'I')
-            save(Q, 'Q')
-
             measure("readout", "rr", "adc", dual_demod.full('cos', 'out1', 'sin', 'out2', I),
                                             dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q))
 

@@ -4,6 +4,7 @@ from qm.qua import *
 
 from pandas import DataFrame
 from sklearn import mixture
+from configuration import readout_len, smearing
 
 
 class TwoStateDiscriminator(StateDiscriminator):
@@ -18,26 +19,39 @@ class TwoStateDiscriminator(StateDiscriminator):
             self.mu = self.saved_data['mu'].tolist()
             self.sigma = self.saved_data['sigma'].tolist()
         b_vec = weights[0, :] - weights[1, :]
+        # create empty list where the opt_weights will be put in the current
+        # format of int_weights
+        w_plus_cos = []
+        w_minus_sin = []
+        w_plus_sin = []
+        w_minus_cos = []
+
+        # assigning integration weights to list of tuples
+        for i in range((readout_len+2*smearing)//4):
+            w_plus_cos.append((np.real(b_vec)[i], 4))
+            w_minus_sin.append((np.imag(-b_vec)[i], 4))
+            w_plus_sin.append((np.imag(b_vec)[i], 4))
+            w_minus_cos.append((np.real(-b_vec)[i], 4))
+
         self.config['integration_weights'][f'opt_cos_{self.rr_qe}'] = {
-            'cosine': np.real(b_vec).tolist(),
-            'sine': (-np.imag(b_vec)).tolist()
+            'cosine': w_plus_cos,
+            'sine': w_minus_sin
         }
         self._add_iw_to_all_pulses(f'opt_cos_{self.rr_qe}')
         self.config['integration_weights'][f'opt_sin_{self.rr_qe}'] = {
-            'cosine': np.imag(b_vec).tolist(),
-            'sine': np.real(b_vec).tolist()
+            'cosine': w_plus_sin,
+            'sine': w_plus_cos
         }
         self._add_iw_to_all_pulses(f'opt_sin_{self.rr_qe}')
         self.config['integration_weights'][f'opt_minus_sin_{self.rr_qe}'] = {
-            'cosine': np.imag(-b_vec).tolist(),
-            'sine': np.real(-b_vec).tolist()
+            'cosine': w_minus_sin,
+            'sine': w_minus_cos
         }
         self._add_iw_to_all_pulses(f'opt_minus_sin_{self.rr_qe}')
         if self.update_tof or self.finish_train == 1:
             self.config['elements'][self.rr_qe]['time_of_flight'] = self.config['elements'][self.rr_qe][
                                                                         'time_of_flight'] - \
                                                                     self.config['elements'][self.rr_qe]['smearing']
-            self.config['elements'][self.rr_qe]['smearing'] = 0
 
         if self.finish_train == 1:
             self._IQ_mu_sigma(b_vec)
