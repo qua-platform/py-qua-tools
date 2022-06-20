@@ -7,7 +7,7 @@ state of the qubit.
 The steps to capture the state of the qubit are: (i) capture the analog signal coming out of the resonator,
 (ii) demodulation of the analog signal, and (iii) the integration of the demodulated signal. 
 
-The integration step can be done with a constant weights to all data points of the captured signal,
+The integration step can be done with constant weights to all data points of the captured signal,
 nevertheless, the signal coming out of the resonator is not constant and has time dynamics. Thus, non-constant
 integration weights could be exploited to maximize the amount of information extracted from a readout operation.
 
@@ -19,23 +19,25 @@ and in the IQ-plane,
 
 ![traject](Fig1_trajectory.png)
 
-The optimal integration weights can be obtained by capturing the time traces shown above. The optimal integration
-weights are the difference between the I and Q traces of the ground and excited state dynamics.
+The optimal integration weights can be obtained by capturing the time traces shown above and taking the 
+difference between the I and Q traces for the ground and excited state dynamics.
 
-This folder contains five different python files `StateDiscriminator.py`, `TimeDiffCalibrator.py`,
-`TwoStateDiscriminator.py`, `configuration.py`, and `ge_discriminator_train_n_benchmark.py`
+This folder contains three different python files `StateDiscriminator.py`, `TimeDiffCalibrator.py`,
+`TwoStateDiscriminator.py`. These three files working together allow to obtain the optimal weight and
+introduce in your current configuration file. For a concrete example click here to go to qua-libs.
+
+--- below here this part will go to qualibs --
 
 The `configuration.py` and `ge_discriminator_train_n_benchmark.py` are for pedagogic purposes only. In the
 case that you were going to use the `StateDiscriminator.py`, `TimeDiffCalibrator.py`, and `TwoStateDiscriminator.py`
-in you experiments you would need your relevant **configuration** file that creates the correct **quantum machine**. Also,
-`ge_discriminator_train_n_benchmark.py` need to be small modifications.
+in you experiments you would need to use your own configuration file that creates the quantum machine describing your experiment.
 
 ## Usage of the optimal weights scripts
 
 First, one needs to define the `discriminator`,
 
 ```python
-lsb = True
+lsb = True  # lsb = lower side band, i.e., LO - IF
 rr_qe = 'rr1a'
 qmm = QuantumMachinesManager()
 discriminator = TwoStateDiscriminator(qmm=qmm,
@@ -71,12 +73,12 @@ with program() as training_program:
     
     with for_(n, 0, n < N, n + 1):
         wait(wait_time, rr_qe)
-        training_measurement("readout_pulse_g", use_opt_weights=use_opt_weights)
+        I, Q = training_measurement("readout_pulse_g", use_opt_weights=use_opt_weights)
         save(I, I_st)
         save(Q, Q_st)
 
         wait(wait_time, rr_qe)
-        training_measurement("readout_pulse_e", use_opt_weights=use_opt_weights)
+        I, Q = training_measurement("readout_pulse_e", use_opt_weights=use_opt_weights)
         save(I, I_st)
         save(Q, Q_st)
 
@@ -95,7 +97,7 @@ The `TwoStateDiscriminator.py` inherits many properties from the `StateDiscrimin
 discriminator will perform demodulation of the collected time traces, it has the ability to
 apply a digital filter to the measured data, and also there is the possibility post-analyzing the
 measured `I` and `Q` values with three different methods `gmm`, `robust`, and `none` (these can be found
-inside of `def _get_traces`).
+inside of `def _get_traces`)*.
 
 The discriminator will save the optimal weights in an `.npz` file for later usages.
 
@@ -135,3 +137,5 @@ with program() as benchmark_readout:
 
 The function `discriminator.measure_state` is directly used to perform a measurement having
 previously trained the discriminator.
+
+* `gmm` stands for and does this... `robust` stands for and does this... `none` stands for and does this...

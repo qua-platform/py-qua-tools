@@ -126,3 +126,5 @@ class TwoStateDiscriminator(StateDiscriminator):
             assign(I, II)
         if Q is not None:
             assign(Q, QQ)
+
+        return res, I, Q

@@ -21,12 +21,13 @@ class StateDiscriminator:
     def __init__(self, qmm, config, update_tof, rr_qe, path, lsb=False):
         """
         Constructor for the state discriminator class.
-        :param qmm: A QuantumMachineManager object
+        :param qmm: QuantumMachinesManager object
         :param config: A quantum machine configuration dictionary with the readout resonator element (must be mixInputs
-        and has 2 outputs).
+        and have 2 outputs).
         :param rr_qe: A string with the name of the readout resonator element (as specified in the config)
         :param path: A path to save optimized parameters, namely, integration weights and bias for each state. This file
         is generated during training, and it is used during the subsequent measure_state procedure.
+        :param lsb: defines if the downconversion mixers does a conversion to LO - IF, i.e., lower side band
         """
 
         self.qmm = qmm
@@ -128,7 +129,7 @@ class StateDiscriminator:
         number of training sets for each one of the states. Collection of training sets is achieved by first preparing
         the qubit in one of the states, and then measure the readout resonator element. The measure command must include
         streaming of the raw data (the tag must be called "adc") and the final complex demodulation results (which is
-        constructed from 4 real demodulations) must be saved under the tags "I" and "Q". E.g:
+        constructed from 2 dual demodulations) must be saved under the tags "I" and "Q". E.g:
 
             measure("readout", "rr", "adc", demod.full("integW_cos", I1, "out1"),
                                             demod.full("integW_sin", Q1, "out1"),
@@ -139,10 +140,14 @@ class StateDiscriminator:
             save(I, 'I')
             save(Q, 'Q')
 
+            measure("readout", "rr", "adc", dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                                            dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q))
+
         :param use_hann_filter: Whether or not to use a LPF on the averaged sampled baseband waveforms.
         :type bool.
         :param plot: Whether or not to plot some figures for debug purposes.
         :type bool
+        :param correction_method: it is possible to use 'gmm', 'robust', or 'none'
         """
 
         I_res, Q_res, self.ts, self.x = self._execute_and_fetch(program, **execute_args)

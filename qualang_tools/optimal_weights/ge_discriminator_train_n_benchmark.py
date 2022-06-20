@@ -49,6 +49,8 @@ def training_measurement(readout_pulse, use_opt_weights):
             assign(I, I1 - Q2)
             assign(Q, Q1 + I2)
 
+    return I, Q
+
 
 use_opt_weights = False
 
@@ -66,12 +68,12 @@ with program() as training_program:
     adc_st = declare_stream(adc_trace=True)
     with for_(n, 0, n < N, n + 1):
         wait(wait_time, rr_qe)
-        training_measurement("readout_pulse_g", use_opt_weights=use_opt_weights)
+        I, Q = training_measurement("readout_pulse_g", use_opt_weights=use_opt_weights)
         save(I, I_st)
         save(Q, Q_st)
 
         wait(wait_time, rr_qe)
-        training_measurement("readout_pulse_e", use_opt_weights=use_opt_weights)
+        I, Q = training_measurement("readout_pulse_e", use_opt_weights=use_opt_weights)
         save(I, I_st)
         save(Q, Q_st)
 
@@ -96,13 +98,13 @@ with program() as benchmark_readout:
 
     with for_(n, 0, n < N, n + 1):
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_g", "out1", "out2", res, I=I, Q=Q)
+        res, I, Q = discriminator.measure_state("readout_pulse_g", "out1", "out2", res=res, I=I, Q=Q)
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)
 
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_e", "out1", "out2", res, I=I, Q=Q)
+        res, I, Q = discriminator.measure_state("readout_pulse_e", "out1", "out2", res=res, I=I, Q=Q)
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)

@@ -45,18 +45,25 @@ chi = 0.023
 [te_, Ie_, Qe_, Se_] = simulate_pulse(IF_freq, 3 * chi, k, Ts, Td, power)
 [tf_, If_, Qf_, Sf_] = simulate_pulse(IF_freq, 5 * chi, k, Ts, Td, power)
 
-# plt.figure()
-# plt.plot(Ig_, Qg_)
-# plt.plot(Ie_, Qe_)
-# plt.plot(If_, Qf_)
-#
-# plt.figure()
-# plt.plot(Ig_)
-# plt.plot(Qg_)
-# plt.plot(Ie_)
-# plt.plot(Qe_)
-# plt.plot(If_)
-# plt.plot(Qf_)
+simulate_traces = False
+
+if simulate_traces:
+    plt.figure()
+    plt.title('Simulated trajectories of |g>, |e>, and |f>')
+    plt.plot(Ig_, Qg_, label='|g>')
+    plt.plot(Ie_, Qe_, label='|e>')
+    plt.plot(If_, Qf_, label='|f>')
+    plt.legend()
+
+    plt.figure()
+    plt.title('Trajectories as a function of time of I,Q of |g>, |e>, |f>')
+    plt.plot(Ig_, label='I_|g>')
+    plt.plot(Qg_, label='Q_|g>')
+    plt.plot(Ie_, label='I_|e>')
+    plt.plot(Qe_, label='Q_|e>')
+    plt.plot(If_, label='I_|f>')
+    plt.plot(Qf_, label='Q_|f>')
+    plt.legend()
 
 divide_signal_factor = 100
 smearing = 60
