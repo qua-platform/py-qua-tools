@@ -27,7 +27,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         w_minus_cos = []
 
         # assigning integration weights to list of tuples
-        for i in range((readout_len+(2*smearing))//4):
+        for i in range(smearing//4, (readout_len+smearing)//4):
             w_plus_cos.append((np.real(b_vec)[i], 4))
             w_minus_sin.append((np.imag(-b_vec)[i], 4))
             w_plus_sin.append((np.imag(b_vec)[i], 4))
@@ -52,6 +52,7 @@ class TwoStateDiscriminator(StateDiscriminator):
             self.config['elements'][self.rr_qe]['time_of_flight'] = self.config['elements'][self.rr_qe][
                                                                         'time_of_flight'] - \
                                                                     self.config['elements'][self.rr_qe]['smearing']
+            self.config['elements'][self.rr_qe]['smearing'] = 0
 
         if self.finish_train == 1:
             self._IQ_mu_sigma(b_vec)
