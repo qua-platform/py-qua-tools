@@ -61,8 +61,9 @@ class TimeDiffCalibrator:
 
                     },
                     'integration_weights': {
-                        'integW1': 'integW1',
-                        'integW2': 'integW2',
+                        'cos': 'cos_weights',
+                        'sin': 'sin_weights',
+                        'minus_sin': 'minus_sin_weights',
                     },
                     'digital_marker': 'ON'
                 },
@@ -89,16 +90,21 @@ class TimeDiffCalibrator:
             },
 
             'integration_weights': {
-
-                'integW1': {
-                    'cosine': [1.0] * int(1000 / 4),
-                    'sine': [0.0] * int(1000 / 4)
+                'cos_weights': {
+                    "cosine": [(1.0, 1000)],  # Previous format for versions before 1.20: [1.0] * readout_len
+                    "sine": [(0.0, 1000)],
                 },
 
-                'integW2': {
-                    'cosine': [0.0] * int(1000 / 4),
-                    'sine': [1.0] * int(1000 / 4)
+                'sin_weights': {
+                    "cosine": [(0.0, 1000)],
+                    "sine": [(1.0, 1000)],
                 },
+
+                'minus_sin_weights': {
+                    "cosine": [(0.0, 1000)],
+                    "sine": [(-1.0, 1000)],
+                },
+
             },
 
             'mixers': {
@@ -119,12 +125,8 @@ class TimeDiffCalibrator:
             I = declare(fixed)
             Q = declare(fixed)
 
-            measure('readout', 'rr', 'adc', demod.full('integW1', I1, 'out1'),
-                    demod.full('integW2', Q1, 'out1'),
-                    demod.full('integW1', I2, 'out2'),
-                    demod.full('integW2', Q2, 'out2'))
-            assign(I, I1 + Q2)
-            assign(Q, -Q1 + I2)
+            measure('readout', 'rr', 'adc', dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                    dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q))
             save(I, 'I')
             save(Q, 'Q')
 
@@ -150,4 +152,4 @@ class TimeDiffCalibrator:
 
         time_diff_ns = np.angle((I + 1j * Q) / (I_ + 1j * Q_)) / 1e-9 / 2 / np.pi / freq
         time_diff = np.round(time_diff_ns / 4) * 4
-        return time_diff
+        return time_diff + 6.25
