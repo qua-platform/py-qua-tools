@@ -132,9 +132,10 @@ class TimeDiffCalibrator:
 
         freq = 1.4567e6
         qm = qmm.open_qm(TimeDiffCalibrator._default_config(freq, con_name))
-        job = qm.simulate(cal_phase,
-                          SimulationConfig(500, simulation_interface=LoopbackInterface([('con1', 1, 'con1', 1),
-                                                                                        ('con1', 2, 'con1', 2)])))
+        # job = qm.simulate(cal_phase,
+        #                   SimulationConfig(500, simulation_interface=LoopbackInterface([('con1', 1, 'con1', 1),
+        #                                                                                 ('con1', 2, 'con1', 2)])))
+        job = qm.execute(cal_phase)
 
         job.result_handles.wait_for_all_values()
         adc1 = job.result_handles.adc_input1.fetch_all()['value']
@@ -152,4 +153,4 @@ class TimeDiffCalibrator:
 
         time_diff_ns = np.angle((I + 1j * Q) / (I_ + 1j * Q_)) / 1e-9 / 2 / np.pi / freq
         time_diff = np.round(time_diff_ns / 4) * 4
-        return time_diff + 6.25
+        return time_diff
