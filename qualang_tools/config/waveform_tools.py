@@ -22,7 +22,8 @@ def drag_gaussian_pulse_waveforms(
     :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in Hz.
     :param bool subtracted: If true, returns a subtracted Gaussian, such that the first and last points will be at 0
         volts. This reduces high-frequency components due to the initial and final points offset. Default is true.
-
+    :return: Returns a tuple of two lists. The first list is the I waveform (real part) and the second is the
+        Q waveform (imaginary part)
     """
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
     center = (length - 1) / 2
@@ -63,6 +64,8 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, delta, detuning=0):
     :param float alpha: The DRAG coefficient.
     :param float detuning: The frequency shift to correct for AC stark shift, in Hz.
     :param float delta: f_21 - f_10 - The differences in energy between the 2-1 and the 1-0 energy levels, in Hz.
+    :return: Returns a tuple of two lists. The first list is the I waveform (real part) and the second is the
+        Q waveform (imaginary part)
     """
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
     end_point = length - 1
@@ -86,42 +89,98 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, delta, detuning=0):
     return I_wf, Q_wf
 
 
-def flat_top_gaussian(
+def flattop_gaussian_waveform(
     amplitude,
-    total_length,
     flat_length,
     rise_fall_sigma,
-    subtracted=True,
     return_part="all",
 ):
     """
-    Returns a flat top Gaussian. This is a square pulse with a rise and fall of a Gaussian with the given sigma.
-    It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
+    Returns a flat top Gaussian waveform. This is a square pulse with a rise and fall of a Gaussian with the given
+    sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
+    The length of the pulse will be the flat length + 6 times the sigma.
 
     :param float amplitude: The amplitude in volts.
-    :param int total_length: The total pulse length in ns.
     :param int flat_length: The flat part length in ns.
     :param float rise_fall_sigma: The rise and fall times in ns, taken as a Gaussian standard deviation.
-    :param bool subtracted: If true, returns a subtracted Gaussian, such that the first and last points will be at 0
-        volts. This reduces high-frequency components due to the initial and final points offset. Default is true.
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
     the three parts which allows scanning the duration of the  flat part is to scanned from QUA
+    :return: Returns the waveform as a list
     """
-    gauss_length = total_length - flat_length
-    gauss_wave = amplitude * gaussian(gauss_length, rise_fall_sigma)
-    if subtracted:
-        gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
-    gauss_wave = gauss_wave.tolist()
+    gauss_wave = amplitude * gaussian(6 * rise_fall_sigma, rise_fall_sigma)
+
+    rise_part = gauss_wave[: 3 * rise_fall_sigma]
+    rise_part = rise_part.tolist()
     if return_part == "all":
-        return (
-            gauss_wave[: gauss_length // 2]
-            + [amplitude] * flat_length
-            + gauss_wave[gauss_length // 2 :]
-        )
+        return rise_part + [amplitude] * flat_length + rise_part[::-1]
     elif return_part == "rise":
-        return gauss_wave[: gauss_length // 2]
+        return rise_part
     elif return_part == "fall":
-        return gauss_wave[gauss_length // 2 :]
+        return rise_part[::-1]
+    else:
+        raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
+
+
+def flattop_cosine_waveform(
+    amplitude,
+    flat_length,
+    rise_fall_sigma,
+    return_part="all",
+):
+    """
+    Returns a flat top cosine waveform. This is a square pulse with a rise and fall with cosine shape with the given
+    sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
+    The length of the pulse will be the flat length + 2 times the sigma.
+
+    :param float amplitude: The amplitude in volts.
+    :param int flat_length: The flat part length in ns.
+    :param float rise_fall_sigma: The rise and fall times in ns, taken as a number of points of a cosine between 0
+        and pi.
+    :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
+    returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
+    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
+    :return: Returns the waveform as a list
+    """
+    rise_part = 0.5 * (1 - np.cos(np.linspace(0, np.pi, rise_fall_sigma)))
+    rise_part = rise_part.tolist()
+    if return_part == "all":
+        return rise_part + [amplitude] * flat_length + rise_part[::-1]
+    elif return_part == "rise":
+        return rise_part
+    elif return_part == "fall":
+        return rise_part[::-1]
+    else:
+        raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
+
+
+def flattop_tanh_waveform(
+    amplitude,
+    flat_length,
+    rise_fall_sigma,
+    return_part="all",
+):
+    """
+    Returns a flat top tanh waveform. This is a square pulse with a rise and fall with tanh shape with the given
+    sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
+    The length of the pulse will be the flat length + 2 times the sigma.
+
+    :param float amplitude: The amplitude in volts.
+    :param int flat_length: The flat part length in ns.
+    :param float rise_fall_sigma: The rise and fall times in ns, taken as a number of points of a tanh between -4
+        and 4.
+    :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
+    returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
+    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
+    :return: Returns the waveform as a list
+    """
+    rise_part = 0.5 * (1 + np.tanh(np.linspace(-4, 4, rise_fall_sigma)))
+    rise_part = rise_part.tolist()
+    if return_part == "all":
+        return rise_part + [amplitude] * flat_length + rise_part[::-1]
+    elif return_part == "rise":
+        return rise_part
+    elif return_part == "fall":
+        return rise_part[::-1]
     else:
         raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
