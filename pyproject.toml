@@ -36,6 +36,7 @@ waitress = "^2.0.0"
 dill = { version = "^0.3.4", optional = true }
 pypiwin32 = { version = "^223", optional = true }
 ipython = { version = "^7.31.1", optional = true }
+scikit-learn = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
