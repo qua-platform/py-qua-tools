@@ -411,12 +411,14 @@ class ManualOutputControl:
         """
         Halts all jobs sent to the OPX and then closes the quantum machine.
         """
-        for job in self.digital_jobs:
-            if job is not None:
-                job.halt()
-        for qm in self.digital_qms:
-            if qm is not None:
-                qm.close()
+        for con_jobs in self.digital_jobs:
+            for job in con_jobs:
+                if job is not None:
+                    job.halt()
+        for con_qms in self.digital_qms:
+            for qm in con_qms:
+                if qm is not None:
+                    qm.close()
         self.analog_job.halt()
         self.analog_qm.close()
         self.qmm.close()
