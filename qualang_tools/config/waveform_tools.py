@@ -173,4 +173,35 @@ def flattop_tanh_waveform(amplitude, flat_length, rise_fall_length, return_part=
     elif return_part == "fall":
         return rise_part[::-1]
     else:
+        raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")    
+
+
+def flattop_blackman(amplitude, flat_length, rise_fall_length, return_part="all"):
+    """
+    Returns a flat top Blackman waveform. This is a square pulse with a rise and fall with Blackman shape with the given
+    length. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
+    The length of the pulse will be the `flat_length + 2 * rise_fall_length`.
+    Amplitude waveform that minimizes the amount of side lobes in the Fourier domain.
+    :param float amplitude: The amplitude in volts.
+    :param int flat_length: The flat part length in ns.
+    :param float rise_fall_length: The rise and fall times in ns, taken as the time to go from 0 to 'amplitude'.
+    :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
+    returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
+    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
+    :return: Returns the waveform as a list
+    """
+    time_vector = np.asarray([x * 1.0 for x in range(int(rise_fall_length))])
+    rise_part = (
+        time_vector / rise_fall_length
+        - (25 / (42 * np.pi)) * np.sin(2 * np.pi * time_vector / rise_fall_length)
+        + (1 / (21 * np.pi)) * np.sin(4 * np.pi * time_vector / rise_fall_length)
+        ) * amplitude
+    rise_part = rise_part.tolist()
+    if return_part == "all":
+        return rise_part + [amplitude] * flat_length + rise_part[::-1]
+    elif return_part == "rise":
+        return rise_part
+    elif return_part == "fall":
+        return rise_part[::-1]
+    else:
         raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
