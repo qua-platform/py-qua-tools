@@ -167,7 +167,6 @@ class RBSequence:
         """
         Creates a baking object generating a random Clifford sequence of length d_max
         """
-
         with baking(self.config) as b:
             for d in range(self.d_max):
                 i = np.random.randint(0, len(c1_ops))
