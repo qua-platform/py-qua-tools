@@ -100,13 +100,13 @@ def flattop_gaussian_waveform(
     :param float amplitude: The amplitude in volts.
     :param int flat_length: The flat part length in ns.
     :param float rise_fall_length: The rise and fall times in ns. The Gaussian sigma is given by the
-        `rise_fall_length / 4`.
+        `rise_fall_length / 5`.
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
-    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
-    :return: Returns the waveform as a list
+    the three parts which allows scanning the duration of the flat part is to scanned from QUA
+    :return: Returns the waveform as a list of values with 1ns spacing
     """
-    gauss_wave = amplitude * gaussian(2 * rise_fall_length, rise_fall_length / 4)
+    gauss_wave = amplitude * gaussian(2 * rise_fall_length, rise_fall_length / 5)
 
     rise_part = gauss_wave[:rise_fall_length]
     rise_part = rise_part.tolist()
@@ -130,12 +130,12 @@ def flattop_cosine_waveform(
 
     :param float amplitude: The amplitude in volts.
     :param int flat_length: The flat part length in ns.
-    :param float rise_fall_length: The rise and fall times in ns, taken as a number of points of a cosine between 0
-        and pi.
+    :param float rise_fall_length: The rise and fall times in ns, taken as the time for a cosine to go from 0 to 1
+    (pi phase-shift) and conversely.
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
-    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
-    :return: Returns the waveform as a list
+    the three parts which allows scanning the duration of the flat part is to scanned from QUA
+    :return: Returns the waveform as a list of values with 1ns spacing
     """
     rise_part = 0.5 * (1 - np.cos(np.linspace(0, np.pi, rise_fall_length)))
     rise_part = rise_part.tolist()
@@ -161,8 +161,8 @@ def flattop_tanh_waveform(amplitude, flat_length, rise_fall_length, return_part=
         and 4.
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
-    the three parts which allows scanning the duration of the  flat part is to scanned from QUA
-    :return: Returns the waveform as a list
+    the three parts which allows scanning the duration of the flat part is to scanned from QUA
+    :return: Returns the waveform as a list of values with 1ns spacing
     """
     rise_part = 0.5 * (1 + np.tanh(np.linspace(-4, 4, rise_fall_length)))
     rise_part = rise_part.tolist()
