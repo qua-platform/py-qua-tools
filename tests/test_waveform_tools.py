@@ -147,8 +147,9 @@ def test_flattop_flat_length(flat_length, rise_fall_length):
 
 
 @pytest.mark.parametrize("pulse_length, v_start, v_end", list(zip(
-    np.linspace(1, 30, 30).astype(int).tolist() + [10], np.linspace(0, 0.5, 30).tolist() + [-0.2], np.linspace(0.5, 0, 30).tolist() + [-0.2])))
+    np.linspace(2, 31, 30).astype(int).tolist() + [10], np.linspace(0, 0.5, 30).tolist() + [-0.2], np.linspace(0.5, 0, 30).tolist() + [-0.2])))
 def test_blackman_integral_waveform(pulse_length, v_start, v_end):
     waveform = blackman_integral_waveform(pulse_length, v_start, v_end)
     assert len(waveform) == pulse_length
     assert np.isclose(waveform[0], v_start, rtol=1e-10)
+    assert np.isclose(waveform[-1], v_end, rtol=1e-10)

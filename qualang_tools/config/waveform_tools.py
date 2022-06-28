@@ -216,8 +216,8 @@ def blackman_integral_waveform(pulse_length, v_start, v_end):
     """
     time = np.asarray([x * 1.0 for x in range(int(pulse_length))])
     black_wave = v_start + (
-        time / pulse_length
-        - (25 / (42 * np.pi)) * np.sin(2 * np.pi * time / pulse_length)
-        + (1 / (21 * np.pi)) * np.sin(4 * np.pi * time / pulse_length)
+        time / (pulse_length - 1)
+        - (25 / (42 * np.pi)) * np.sin(2 * np.pi * time / (pulse_length - 1))
+        + (1 / (21 * np.pi)) * np.sin(4 * np.pi * time / (pulse_length - 1))
     ) * (v_end - v_start)
     return black_wave.tolist()
