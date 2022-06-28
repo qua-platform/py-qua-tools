@@ -91,7 +91,7 @@ def test_pulses(config_resonator):
     except:
         assert False
     assert [*config["pulses"]] == ["ro_pulse"]
-    assert config["pulses"]["ro_pulse"]["operation"] == "measure"
+    assert config["pulses"]["ro_pulse"]["operation"] == "measurement"
     assert config["pulses"]["ro_pulse"]["length"] == 16
     assert config["pulses"]["ro_pulse"]["waveforms"]["I"] == "wf1"
     assert config["pulses"]["ro_pulse"]["waveforms"]["Q"] == "wf2"
