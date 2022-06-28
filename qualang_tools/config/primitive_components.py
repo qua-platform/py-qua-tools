@@ -14,10 +14,11 @@ class ConfigBuilderElement(ConfigBuilderClass):
 
 
 class Port(ConfigBuilderClass):
-    def __init__(self, controller: str, port_id: int) -> None:
+    def __init__(self, controller: str, port_id: int, shareable: bool = False) -> None:
         super(Port, self).__init__()
         self.controller = controller
         self.port_id = port_id
+        self.shareable = shareable
 
     @property
     def info(self):
