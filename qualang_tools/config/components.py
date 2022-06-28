@@ -276,7 +276,7 @@ class MeasurePulse(Pulse):
 
         integration_weights: List[Weights] = kwargs.get("integration_weights", None)
         digital_marker: Optional[DigitalWaveform] = kwargs.get("digital_marker", None)
-        super().__init__(name, wfs, "measure", length, digital_marker)
+        super().__init__(name, wfs, "measurement", length, digital_marker)
         if integration_weights is None:
             integration_weights = []
         self.integration_weights = integration_weights
