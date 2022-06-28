@@ -6,13 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - ManualOutputControl - Fixed the `close` function
-
-## [0.10.0] - 2022-06-09
 ### Added
-- results folder with fetching tools and progress bar.
-- plot folder with plotting tool for interrupting live plotting.
-- loops folder with the qua_arange, qua_linspace, qua_logspace, from_array and get_equivalent_log_array tools for parametrizing QUA for_ loops.
-- units folder with an API to use units (MHz, us, mV...) and functions to convert data to other units (demodulated data to volts for instance).
+- Results - a new package with fetching tools and progress bar.
+- Plot - a new package with plotting tool for interrupting live plotting.
+- Loops - a new package with the qua_arange, qua_linspace, qua_logspace, from_array and get_equivalent_log_array tools for parametrizing QUA for_ loops.
+- Units - a new package with an API to use units (MHz, us, mV...) and functions to convert data to other units (demodulated data to volts for instance).
+- Waveform tools - Added various flattop waveforms and Blackman integral waveform
 
 
 ## [0.9.0] - 2022-05-24
