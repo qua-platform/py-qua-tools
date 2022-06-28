@@ -220,4 +220,4 @@ def blackman_integral_waveform(pulse_length, v_start, v_end):
         - (25 / (42 * np.pi)) * np.sin(2 * np.pi * time / pulse_length)
         + (1 / (21 * np.pi)) * np.sin(4 * np.pi * time / pulse_length)
     ) * (v_end - v_start)
-    return list(black_wave)
+    return black_wave.tolist()
