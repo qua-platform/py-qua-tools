@@ -1,16 +1,18 @@
 import numpy as np
 import pytest
 from matplotlib import pyplot as plt
-from scipy.signal.windows import gaussian
+from scipy.signal.windows import gaussian, blackman
 
 from qualang_tools.config import (
     drag_gaussian_pulse_waveforms,
     drag_cosine_pulse_waveforms,
 )
+from qualang_tools.config.waveform_tools import flattop_gaussian_waveform, flattop_cosine_waveform, \
+    flattop_tanh_waveform, flattop_blackman_waveform, blackman_integral_waveform
 
 
 @pytest.mark.parametrize("length", [16, 21, 60])
-def test_no_drag_gaussian_to_scipy(length):
+def test_drag_no_drag_gaussian_to_scipy(length):
     amp = 0.1
     sigma = length // 5
     I_wf, Q_wf = drag_gaussian_pulse_waveforms(
@@ -38,7 +40,7 @@ def test_no_drag_gaussian_to_scipy(length):
 
 
 @pytest.mark.parametrize("length", [16, 21, 60])
-def test_no_detune_symmetric(length):
+def test_drag_no_detune_symmetric(length):
     amp = 0.1
     sigma = length // 5
     I_gauss_wf, Q_gauss_wf = drag_gaussian_pulse_waveforms(
@@ -82,7 +84,7 @@ def test_no_detune_symmetric(length):
     )
 
 
-def test_detune():
+def test_drag_detune():
     amp = 0.1
     length = 60
     sigma = length // 5
@@ -112,3 +114,42 @@ def test_detune():
     np.testing.assert_allclose(Q_gauss_wf, Q_gauss_wf_saved)
     np.testing.assert_allclose(I_cos_wf, I_cos_wf_saved)
     np.testing.assert_allclose(Q_cos_wf, Q_cos_wf_saved)
+
+
+@pytest.mark.parametrize("flat_length, rise_fall_length", list(zip([0, 16, 16, 21, 21, 60, 60], [8, 5, 10, 5, 10, 0, 10])))
+def test_flattop_flat_length(flat_length, rise_fall_length):
+    amp = 0.1
+
+    flattop_gaussian = flattop_gaussian_waveform(amp, flat_length, rise_fall_length)
+    flattop_cosine = flattop_cosine_waveform(amp, flat_length, rise_fall_length)
+    flattop_tanh = flattop_tanh_waveform(amp, flat_length, rise_fall_length)
+    flattop_blackman = flattop_blackman_waveform(amp, flat_length, rise_fall_length)
+    flattop_gaussian_rise = flattop_gaussian_waveform(amp, flat_length, rise_fall_length, return_part="rise")
+    flattop_cosine_rise = flattop_cosine_waveform(amp, flat_length, rise_fall_length, return_part="rise")
+    flattop_tanh_rise = flattop_tanh_waveform(amp, flat_length, rise_fall_length, return_part="rise")
+    flattop_blackman_rise = flattop_blackman_waveform(amp, flat_length, rise_fall_length, return_part="rise")
+    flattop_gaussian_fall = flattop_gaussian_waveform(amp, flat_length, rise_fall_length, return_part="fall")
+    flattop_cosine_fall = flattop_cosine_waveform(amp, flat_length, rise_fall_length, return_part="fall")
+    flattop_tanh_fall = flattop_tanh_waveform(amp, flat_length, rise_fall_length, return_part="fall")
+    flattop_blackman_fall = flattop_blackman_waveform(amp, flat_length, rise_fall_length, return_part="fall")
+
+    assert np.allclose(flattop_gaussian, flattop_gaussian_rise + [amp] * flat_length + flattop_gaussian_fall, rtol=1e-10)
+    assert np.allclose(flattop_cosine, flattop_cosine_rise + [amp] * flat_length + flattop_cosine_fall, rtol=1e-10)
+    assert np.allclose(flattop_tanh, flattop_tanh_rise + [amp] * flat_length + flattop_tanh_fall, rtol=1e-10)
+    assert np.allclose(flattop_blackman, flattop_blackman_rise + [amp] * flat_length + flattop_blackman_fall, rtol=1e-10)
+
+    assert np.allclose(flattop_gaussian_rise + flattop_gaussian_fall, (amp * gaussian(2 * rise_fall_length, rise_fall_length / 5)).tolist(), rtol=1e-10)
+    cosine_rise_part = (amp * 0.5 * (1 - np.cos(np.linspace(0, np.pi, rise_fall_length)))).tolist()
+    assert np.allclose(flattop_cosine_rise + flattop_cosine_fall, cosine_rise_part + cosine_rise_part[::-1], rtol=1e-10)
+    tanh_rise_part = (amp * 0.5 * (1 + np.tanh(np.linspace(-4, 4, rise_fall_length)))).tolist()
+    assert np.allclose(flattop_tanh_rise + flattop_tanh_fall, tanh_rise_part + tanh_rise_part[::-1], rtol=1e-10)
+    assert np.allclose(flattop_blackman_rise + flattop_blackman_fall, (amp * blackman(2*rise_fall_length)).tolist(), rtol=1e-10)
+
+
+@pytest.mark.parametrize("pulse_length, v_start, v_end", list(zip(
+    np.linspace(2, 31, 30).astype(int).tolist() + [10], np.linspace(0, 0.5, 30).tolist() + [-0.2], np.linspace(0.5, 0, 30).tolist() + [-0.2])))
+def test_blackman_integral_waveform(pulse_length, v_start, v_end):
+    waveform = blackman_integral_waveform(pulse_length, v_start, v_end)
+    assert len(waveform) == pulse_length
+    assert np.isclose(waveform[0], v_start, rtol=1e-10)
+    assert np.isclose(waveform[-1], v_end, rtol=1e-10)
