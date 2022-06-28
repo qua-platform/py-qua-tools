@@ -40,7 +40,7 @@ class QMConfiguration:
         self.config["digital_waveforms"] = dict()
         self.config["integration_weights"] = dict()
         self.config["mixers"] = dict()
-        # self.config["oscillators"] = dict()
+        self.config["oscillators"] = dict()
 
     def add_waveform(self, wf: Waveform):
         """Add a single waveform to this configuration
@@ -145,6 +145,8 @@ class QMConfiguration:
         if elm.type == "mixInputs":
             if elm.mixer is not None:
                 self.add_mixer(elm.mixer)
+            if elm.oscillator is not None:
+                self.add_oscillator(elm.oscillator)
         self.add_pulses(elm.pulses)
 
     def update_pulse(self, elm_name: str, pulse: Pulse):

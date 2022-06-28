@@ -351,6 +351,41 @@ class Mixer(ConfigBuilderElement):
         return self
 
 
+class Oscillator(ConfigBuilderElement):
+    def __init__(
+        self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
+    ):
+        super(Oscillator, self).__init__(name)
+        self.dict = dict()
+        self.dict["intermediate_frequency"] = intermediate_frequency
+        self.dict["lo_frequency"] = lo_frequency
+        self.dict["mixer"] = mixer
+
+    @property
+    def lo_frequency(self):
+        return self.dict["lo_frequency"]
+
+    @lo_frequency.setter
+    def lo_frequency(self, lo_frequency: int):
+        self.dict["lo_frequency"] = lo_frequency
+
+    @property
+    def intermediate_frequency(self):
+        return self.dict["intermediate_frequency"]
+
+    @intermediate_frequency.setter
+    def intermediate_frequency(self, intermediate_frequency: int):
+        self.dict["intermediate_frequency"] = intermediate_frequency
+
+    @property
+    def mixer(self):
+        return self.dict["mixer"]
+
+    @mixer.setter
+    def mixer(self, mixer: str):
+        self.dict["mixer"] = mixer
+
+
 class Element(ConfigBuilderElement):
     def __init__(
         self,
@@ -449,6 +484,7 @@ class Element(ConfigBuilderElement):
                     "delay": 0,
                     "buffer": 0,
                 }
+        self.oscillator = None
 
     def set_digital_input_delay(self, port_id: int, val: int):
         if "in" + str(port_id) in self.dict["digitalInputs"].keys():
@@ -466,6 +502,10 @@ class Element(ConfigBuilderElement):
         assert "mixInputs" in self.dict.keys()
         self.dict["mixInputs"]["mixer"] = mix.name
         self.mixer = mix
+
+    def _set_oscillator(self, osc:Oscillator):
+        self.dict["oscillator"] = osc.name
+        self.oscillator = osc
 
     @property
     def has_lo_frequency(self):
@@ -503,7 +543,7 @@ class Element(ConfigBuilderElement):
         self.dict["operations"][op.name] = op.pulse.name
         self.pulses.append(op.pulse)
 
-    def _add(self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse]):
+    def _add(self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse, Oscillator]):
         """A method to add components to an element
 
         :param obj: The component to be added
@@ -517,6 +557,8 @@ class Element(ConfigBuilderElement):
         elif isinstance(obj, ControlPulse) or isinstance(obj, MeasurePulse):
             self.dict["operations"][obj.name] = obj.name
             self.pulses.append(obj)
+        elif isinstance(obj, Oscillator):
+            self._set_oscillator(obj)
         else:
             raise ConfigurationError("Adding unsupported object")
 
@@ -1237,38 +1279,3 @@ class Coupler(ElementCollection):
     @port.setter
     def port(self, p: AnalogOutputPort):
         self._port = p
-
-
-class Oscillator(ConfigBuilderElement):
-    def __init__(
-        self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
-    ):
-        super(Oscillator, self).__init__(name)
-        self.dict = dict()
-        self.dict["intermediate_frequency"] = intermediate_frequency
-        self.dict["lo_frequency"] = lo_frequency
-        self.dict["mixer"] = mixer
-
-    @property
-    def lo_frequency(self):
-        return self.dict["lo_frequency"]
-
-    @lo_frequency.setter
-    def lo_frequency(self, lo_frequency: int):
-        self.dict["lo_frequency"] = lo_frequency
-
-    @property
-    def intermediate_frequency(self):
-        return self.dict["intermediate_frequency"]
-
-    @intermediate_frequency.setter
-    def intermediate_frequency(self, intermediate_frequency: int):
-        self.dict["intermediate_frequency"] = intermediate_frequency
-
-    @property
-    def mixer(self):
-        return self.dict["mixer"]
-
-    @mixer.setter
-    def mixer(self, mixer: str):
-        self.dict["mixer"] = mixer
