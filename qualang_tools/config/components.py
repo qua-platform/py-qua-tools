@@ -674,6 +674,13 @@ class Element(ConfigBuilderElement):
             self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["derivativePolarity"] = val
 
+    @property
+    def thread(self):
+        return self.dict["thread"]
+
+    @thread.setter
+    def thread(self, thread: str):
+        self.dict["thread"] = thread
 
 class MeasureElement(Element):
     def __init__(
