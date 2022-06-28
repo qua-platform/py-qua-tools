@@ -28,12 +28,12 @@ def drag_gaussian_pulse_waveforms(
     t = np.arange(length, dtype=int)  # An array of size pulse length in ns
     center = (length - 1) / 2
     gauss_wave = amplitude * np.exp(
-        -((t - center) ** 2) / (2 * sigma**2)
+        -((t - center) ** 2) / (2 * sigma ** 2)
     )  # The gaussian function
     gauss_der_wave = (
         amplitude
-        * (-2 * 1e9 * (t - center) / (2 * sigma**2))
-        * np.exp(-((t - center) ** 2) / (2 * sigma**2))
+        * (-2 * 1e9 * (t - center) / (2 * sigma ** 2))
+        * np.exp(-((t - center) ** 2) / (2 * sigma ** 2))
     )  # The derivative of the gaussian
     if subtracted:
         gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
@@ -206,7 +206,7 @@ def flattop_blackman_waveform(
 
 def blackman_integral_waveform(pulse_length, v_start, v_end):
     """
-    Returns a Blackman intregral waveform. This is the integral of a Blackman waveform, adiabatically going from
+    Returns a Blackman integral waveform. This is the integral of a Blackman waveform, adiabatically going from
     'v_start' to 'v_end' in 'pulse_length' ns.
 
     :param int pulse_length: The pulse length in ns.
