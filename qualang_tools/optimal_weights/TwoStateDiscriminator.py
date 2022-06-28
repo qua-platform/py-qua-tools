@@ -4,15 +4,18 @@ from qm.qua import *
 
 from pandas import DataFrame
 from sklearn import mixture
+import matplotlib.pyplot as plt
 
 
 class TwoStateDiscriminator(StateDiscriminator):
-    def __init__(self, qmm, config, update_tof, rr_qe, path, lsb, meas_len, smearing):
-        super().__init__(qmm, config, update_tof, rr_qe, path, lsb, meas_len, smearing)
+    def __init__(self, qmm, config, update_tof, rr_qe, path, meas_len, smearing, lsb):
+        super().__init__(qmm, config, update_tof, rr_qe, path, meas_len, smearing, lsb)
         self.num_of_states = 2
 
     def _update_config(self):
         weights = self.saved_data["weights"]
+        smearing = self.saved_data["smearing"]
+        meas_len = self.saved_data["meas_len"]
         if self.finish_train == 0:
             self.mu = self.saved_data["mu"].tolist()
             self.sigma = self.saved_data["sigma"].tolist()
@@ -25,7 +28,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         w_minus_cos = []
 
         # assigning integration weights to list of tuples
-        for i in range(self.smearing // 4, (self.meas_len + self.smearing) // 4):
+        for i in range(smearing // 4, (meas_len + smearing) // 4):
             w_plus_cos.append((np.real(b_vec)[i], 4))
             w_minus_sin.append((np.imag(-b_vec)[i], 4))
             w_plus_sin.append((np.imag(b_vec)[i], 4))
@@ -104,6 +107,14 @@ class TwoStateDiscriminator(StateDiscriminator):
         data["mu"] = self.mu
         data["sigma"] = self.sigma
         np.savez(self.path, **data)
+
+    def plot_sigma_mu(self):
+        theta = np.linspace(0, 2 * np.pi, 100)
+        for i in range(self.num_of_states):
+            a = self.sigma[i] * np.cos(theta) + self.mu[i][0]
+            b = self.sigma[i] * np.sin(theta) + self.mu[i][1]
+            plt.plot([self.mu[i][0]], [self.mu[i][1]], "o")
+            plt.plot(a, b)
 
     def get_threshold(self):
         bias = self.saved_data["bias"]
