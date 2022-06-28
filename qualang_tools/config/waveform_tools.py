@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal.windows import gaussian
+from scipy.signal.windows import gaussian, blackman
 
 
 def drag_gaussian_pulse_waveforms(

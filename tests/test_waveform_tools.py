@@ -8,7 +8,7 @@ from qualang_tools.config import (
     drag_cosine_pulse_waveforms,
 )
 from qualang_tools.config.waveform_tools import flattop_gaussian_waveform, flattop_cosine_waveform, \
-    flattop_tanh_waveform
+    flattop_tanh_waveform, flattop_blackman_waveform
 
 
 @pytest.mark.parametrize("length", [16, 21, 60])
@@ -122,24 +122,24 @@ def test_flattop_flat_length(flat_length, rise_fall_length):
     flattop_gaussian = flattop_gaussian_waveform(amp, flat_length, rise_fall_length)
     flattop_cosine = flattop_cosine_waveform(amp, flat_length, rise_fall_length)
     flattop_tanh = flattop_tanh_waveform(amp, flat_length, rise_fall_length)
-    flattop_blackmann = flattop_blackmann_waveform(amp, flat_length, rise_fall_length)
+    flattop_blackmann = flattop_blackman_waveform(amp, flat_length, rise_fall_length)
     flattop_gaussian_rise = flattop_gaussian_waveform(amp, flat_length, rise_fall_length, return_part="rise")
     flattop_cosine_rise = flattop_cosine_waveform(amp, flat_length, rise_fall_length, return_part="rise")
     flattop_tanh_rise = flattop_tanh_waveform(amp, flat_length, rise_fall_length, return_part="rise")
-    flattop_blackmann_rise = flattop_blackmann_waveform(amp, flat_length, rise_fall_length, return_part="rise")
+    flattop_blackmann_rise = flattop_blackman_waveform(amp, flat_length, rise_fall_length, return_part="rise")
     flattop_gaussian_fall = flattop_gaussian_waveform(amp, flat_length, rise_fall_length, return_part="fall")
     flattop_cosine_fall = flattop_cosine_waveform(amp, flat_length, rise_fall_length, return_part="fall")
     flattop_tanh_fall = flattop_tanh_waveform(amp, flat_length, rise_fall_length, return_part="fall")
-    flattop_blackmann_fall = flattop_blackmann_waveform(amp, flat_length, rise_fall_length, return_part="fall")
+    flattop_blackmann_fall = flattop_blackman_waveform(amp, flat_length, rise_fall_length, return_part="fall")
 
-    assert (flattop_gaussian == flattop_gaussian_rise + [amp] * flat_length + flattop_gaussian_fall)
-    assert (flattop_cosine == flattop_cosine_rise + [amp] * flat_length + flattop_cosine_fall)
-    assert (flattop_tanh == flattop_tanh_rise + [amp] * flat_length + flattop_tanh_fall)
-    assert (flattop_blackmann == flattop_blackmann_rise + [amp] * flat_length + flattop_blackmann_fall)
+    assert np.allclose(flattop_gaussian, flattop_gaussian_rise + [amp] * flat_length + flattop_gaussian_fall, rtol=1e-10)
+    assert np.allclose(flattop_cosine, flattop_cosine_rise + [amp] * flat_length + flattop_cosine_fall, rtol=1e-10)
+    assert np.allclose(flattop_tanh, flattop_tanh_rise + [amp] * flat_length + flattop_tanh_fall, rtol=1e-10)
+    assert np.allclose(flattop_blackmann, flattop_blackmann_rise + [amp] * flat_length + flattop_blackmann_fall, rtol=1e-10)
 
-    assert flattop_gaussian_rise + flattop_gaussian_fall == (amp * gaussian(2 * rise_fall_length, rise_fall_length / 5)).tolist()
+    assert np.allclose(flattop_gaussian_rise + flattop_gaussian_fall, (amp * gaussian(2 * rise_fall_length, rise_fall_length / 5)).tolist(), rtol=1e-10)
     cosine_rise_part = (amp * 0.5 * (1 - np.cos(np.linspace(0, np.pi, rise_fall_length)))).tolist()
-    assert flattop_cosine_rise + flattop_cosine_fall == cosine_rise_part + cosine_rise_part[::-1]
+    assert np.allclose(flattop_cosine_rise + flattop_cosine_fall, cosine_rise_part + cosine_rise_part[::-1], rtol=1e-10)
     tanh_rise_part = (amp * 0.5 * (1 + np.tanh(np.linspace(-4, 4, rise_fall_length)))).tolist()
-    assert flattop_tanh_rise + flattop_tanh_fall == tanh_rise_part + tanh_rise_part[::-1]
-    assert flattop_blackmann_rise + flattop_blackmann_fall == amp * blackman(2*rise_fall_length).tolist()
+    assert np.allclose(flattop_tanh_rise + flattop_tanh_fall, tanh_rise_part + tanh_rise_part[::-1], rtol=1e-10)
+    assert np.allclose(flattop_blackmann_rise + flattop_blackmann_fall, (amp * blackman(2*rise_fall_length)).tolist(), rtol=1e-10)
