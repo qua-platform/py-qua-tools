@@ -127,7 +127,7 @@ def test_simple_bake(config):
     cfg = deepcopy(config)
     with baking(config=cfg) as b:
         for x in range(10):
-            b.add_op(f"new_op_{x}", "qe1", samples=[1, 0, 1, 0])
+            b.add_op(f"new_op_{x}", "qe1", samples=[0.5, 0, 0.5, 0])
             b.play(f"new_op_{x}", "qe1")
 
     with program() as prog:

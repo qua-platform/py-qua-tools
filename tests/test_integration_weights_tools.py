@@ -18,7 +18,7 @@ def test_validity_arbitrary_integration_weights():
     ii = 0
     for i in range(len(weights_after) // 4):
         for j in range(weights_after[i][1] // 4):
-            assert np.abs(weights_after[i][0] - weights_before[ii]) < 2 ** -15
+            assert np.abs(weights_after[i][0] - weights_before[ii]) < 2**-15
             ii += 1
     assert sum([i[1] for i in weights_after]) == 4 * len(weights_before)
 

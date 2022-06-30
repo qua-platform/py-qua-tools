@@ -380,5 +380,5 @@ def test_parameter_algebra():
     assert (2 * c)() == 2 * c()
     assert (c / d)() == c() / d()
     assert (c / 10)() == c() / 10
-    assert (d ** c)() == 10000
-    assert (c ** 2)() == 16
+    assert (d**c)() == 10000
+    assert (c**2)() == 16
