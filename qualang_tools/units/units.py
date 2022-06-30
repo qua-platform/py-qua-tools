@@ -40,7 +40,7 @@ class unit:
             print(
                 f"Warning: the specified duration ({t}) to be converted to clock cycles in not an integer. It has been converted to int ({int(t)}) to avoid subsequent errors."
             )
-            t = int(t)
+            t = int(t * self.ns)
         return t // 4
 
     def demod2volts(self, data, duration):
@@ -50,7 +50,7 @@ class unit:
         :param duration: demodulation duration in ns.
         :return: the demodulated data in volts.
         """
-        return 4096 * data / duration
+        return 4096 * data * self.V / duration
 
     def raw2volts(self, data):
         """Converts the raw data to volts.
@@ -58,4 +58,4 @@ class unit:
         :param data: raw data. Must be a python variable or array.
         :return: the raw data in volts.
         """
-        return data / 4096
+        return data * self.V / 4096
