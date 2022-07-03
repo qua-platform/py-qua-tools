@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - ManualOutputControl - Fixed the `close` function
-- Waveform tools - DRAG now handles alpha=0 correctly (Was not fixed in 0.9.0)
+- Waveform tools - DRAG now handles alpha=0 correctly (Was not fixed in 0.9.02)
 ### Added
 - Results - a new package with fetching tools and progress bar.
 - Plot - a new package with plotting tool for interrupting live plotting.
