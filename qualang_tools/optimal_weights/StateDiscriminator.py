@@ -14,7 +14,7 @@ class StateDiscriminator:
     The state discriminator is a class that generates optimized measure procedure for state discrimination
     of a multi-level qubit.
     .. note:
-        Currently only 3-states discrimination is supported. The setup assumed here includes IQ mixer both in the up-
+        Currently only 2-state discrimination is supported. The setup assumed here includes IQ mixer both in the up-
         and down-conversion of the readout pulse.
     """
 
@@ -142,7 +142,7 @@ class StateDiscriminator:
         Q_res = np.concatenate([Q_res[0::2], Q_res[1::2]])
 
         if I_res.shape != Q_res.shape:
-            raise RuntimeError("")
+            raise RuntimeError("Size of I and Q coming from stream processing are no the same")
 
         ts = res_handles.get("adc1").fetch_all()["value"]["timestamp"]
         ts = np.concatenate([ts[0::2], ts[1::2]])
@@ -244,72 +244,3 @@ class StateDiscriminator:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}
             pulse["integration_weights"][iw] = iw
-
-    def _update_config(self):
-        weights = self.saved_data["weights"]
-        for i in range(self.num_of_states):
-            self.config["integration_weights"][f"state_{i}_in1_{self.rr_qe}"] = {
-                "cosine": np.real(weights[i, :]).tolist(),
-                "sine": (-np.imag(weights[i, :])).tolist(),
-            }
-            self._add_iw_to_all_pulses(f"state_{i}_in1_{self.rr_qe}")
-            self.config["integration_weights"][f"state_{i}_in2_{self.rr_qe}"] = {
-                "cosine": np.imag(weights[i, :]).tolist(),
-                "sine": np.real(weights[i, :]).tolist(),
-            }
-            self._add_iw_to_all_pulses(f"state_{i}_in2_{self.rr_qe}")
-            if self.update_tof or self.finish_train == 1:
-                self.config["elements"][self.rr_qe]["time_of_flight"] = (
-                    self.config["elements"][self.rr_qe]["time_of_flight"]
-                    - self.config["elements"][self.rr_qe]["smearing"]
-                )
-
-    def measure_state(self, pulse, out1, out2, res, adc=None):
-        """
-        This procedure generates a macro of QUA commands for measuring the readout resonator and discriminating between
-        the states of the qubit its states.
-        :param pulse: A string with the readout pulse name.
-        :param out1: A string with the name first output of the readout resonator (corresponding to the real part of the
-         complex IN(t_int) signal).
-        :param out2: A string with the name second output of the readout resonator (corresponding to the imaginary part
-        of the complex IN(t_int) signal).
-        :param res: An integer QUA variable that will receive the discrimination result (0,1 or 2)
-        :param adc: (optional) the stream variable which the raw ADC data will be saved and will appear in result
-        analysis scope.
-        """
-        bias = self.saved_data["bias"]
-        # currently it allows only 3 states
-
-        d1_st0 = declare(fixed)
-        d2_st0 = declare(fixed)
-        d1_st1 = declare(fixed)
-        d2_st1 = declare(fixed)
-        d1_st2 = declare(fixed)
-        d2_st2 = declare(fixed)
-
-        st0 = declare(fixed)
-        st1 = declare(fixed)
-        st2 = declare(fixed)
-
-        measure(
-            pulse,
-            self.rr_qe,
-            adc,
-            demod.full(f"state_0_in1_{self.rr_qe}", d1_st0, out1),
-            demod.full(f"state_0_in2_{self.rr_qe}", d2_st0, out2),
-            demod.full(f"state_1_in1_{self.rr_qe}", d1_st1, out1),
-            demod.full(f"state_1_in2_{self.rr_qe}", d2_st1, out2),
-            demod.full(f"state_2_in1_{self.rr_qe}", d1_st2, out1),
-            demod.full(f"state_2_in2_{self.rr_qe}", d2_st2, out2),
-        )
-
-        assign(st0, d1_st0 + d2_st0 - bias[0])
-        assign(st1, d1_st1 + d2_st1 - bias[1])
-        assign(st2, d1_st2 + d2_st2 - bias[2])
-
-        with if_((st0 >= st1) & (st0 >= st2)):
-            assign(res, 0)
-        with if_((st1 >= st0) & (st1 >= st2)):
-            assign(res, 1)
-        with if_((st2 >= st0) & (st2 >= st1)):
-            assign(res, 2)
