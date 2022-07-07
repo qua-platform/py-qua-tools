@@ -19,7 +19,7 @@ class StateDiscriminator:
     """
 
     def __init__(
-        self, qmm, config, update_tof, rr_qe, path, meas_len, smearing, lsb=False
+        self, qmm, config, update_tof, rr_qe, rr_pulse, path, meas_len, smearing, lsb=False
     ):
         """
         Constructor for the state discriminator class.
@@ -35,6 +35,7 @@ class StateDiscriminator:
         self.qmm = qmm
         self.config = config
         self.rr_qe = rr_qe
+        self.rr_pulse = rr_pulse
         self.num_of_states = 3
         self.path = path
         self.saved_data = None
@@ -240,7 +241,7 @@ class StateDiscriminator:
                 plt.axis("equal")
 
     def _add_iw_to_all_pulses(self, iw):
-        for pulse in self.config["pulses"].values():
+        for pulse in self.config["pulses"][self.rr_pulse]:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}
             pulse["integration_weights"][iw] = iw
