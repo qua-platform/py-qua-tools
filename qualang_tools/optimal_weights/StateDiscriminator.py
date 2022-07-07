@@ -110,7 +110,7 @@ class StateDiscriminator:
                     ]
                 )
         else:
-            raise Exception("unknown correction_method")
+            raise Exception("unknown correction_method. Available correction methods are 'gmm', 'robust', and 'none'.")
 
         if use_hann_filter:
             rr_freq = self._get_qe_freq(qe)
