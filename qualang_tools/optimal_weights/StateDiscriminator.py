@@ -240,7 +240,7 @@ class StateDiscriminator:
                 plt.plot(np.real(weights[i, :]), np.imag(weights[i, :]))
                 plt.axis("equal")
 
-    def _add_iw_to_all_pulses(self, iw):
+    def _add_iw_to_pulses(self, iw):
         for pulse in self.config["pulses"][self.rr_pulse]:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}

@@ -38,17 +38,17 @@ class TwoStateDiscriminator(StateDiscriminator):
             "cosine": w_plus_cos,
             "sine": w_minus_sin,
         }
-        self._add_iw_to_all_pulses(f"opt_cos_{self.rr_qe}")
+        self._add_iw_to_pulses(f"opt_cos_{self.rr_qe}")
         self.config["integration_weights"][f"opt_sin_{self.rr_qe}"] = {
             "cosine": w_plus_sin,
             "sine": w_plus_cos,
         }
-        self._add_iw_to_all_pulses(f"opt_sin_{self.rr_qe}")
+        self._add_iw_to_pulses(f"opt_sin_{self.rr_qe}")
         self.config["integration_weights"][f"opt_minus_sin_{self.rr_qe}"] = {
             "cosine": w_minus_sin,
             "sine": w_minus_cos,
         }
-        self._add_iw_to_all_pulses(f"opt_minus_sin_{self.rr_qe}")
+        self._add_iw_to_pulses(f"opt_minus_sin_{self.rr_qe}")
         if self.update_tof or self.finish_train == 1:
             self.config["elements"][self.rr_qe]["time_of_flight"] = (
                 self.config["elements"][self.rr_qe]["time_of_flight"]
