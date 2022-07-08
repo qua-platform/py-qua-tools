@@ -8,6 +8,7 @@ from scipy import signal
 
 from qualang_tools.optimal_weights.TimeDiffCalibrator import TimeDiffCalibrator
 
+
 class StateDiscriminator:
     """
     The state discriminator is a class that generates optimized measure procedure for state discrimination
