@@ -2,9 +2,12 @@ from qm import SimulationConfig, LoopbackInterface
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 import numpy as np
-import qualang_tools.optimal_weights.TwoStateDiscriminator as TwoStateDiscriminator
+from qualang_tools.optimal_weights.TwoStateDiscriminator import TwoStateDiscriminator
+import pytest
+from copy import deepcopy
 
 
+@pytest.fixture
 def config():
 
     def simulate_pulse(IF_freq, chi, k, Ts, Td, power):
@@ -43,19 +46,6 @@ def config():
     [tg_, Ig_, Qg_, Sg_] = simulate_pulse(IF_freq, 1 * chi, k, Ts, Td, power)
     [te_, Ie_, Qe_, Se_] = simulate_pulse(IF_freq, 3 * chi, k, Ts, Td, power)
     [tf_, If_, Qf_, Sf_] = simulate_pulse(IF_freq, 5 * chi, k, Ts, Td, power)
-
-    # plt.figure()
-    # plt.plot(Ig_, Qg_)
-    # plt.plot(Ie_, Qe_)
-    # plt.plot(If_, Qf_)
-    #
-    # plt.figure()
-    # plt.plot(Ig_)
-    # plt.plot(Qg_)
-    # plt.plot(Ie_)
-    # plt.plot(Qe_)
-    # plt.plot(If_)
-    # plt.plot(Qf_)
 
     divide_signal_factor = 100
     smearing = 60
@@ -275,3 +265,61 @@ def config():
             ],
         }
     }
+
+
+def test_opt_weight_training(config):
+    cfg = deepcopy(config)
+
+    N = 100
+    wait_time = 10
+    readout_len = 480
+    smearing = 60
+    lsb = True
+    resonator_el = 'rr1a'
+    resonator_pulse = 'readout_pulse_g'
+    qmm = QuantumMachinesManager()
+    discriminator = TwoStateDiscriminator(qmm=qmm,
+                                          config=cfg,
+                                          update_tof=False,
+                                          resonator_el=resonator_el,
+                                          resonator_pulse=resonator_pulse,
+                                          path=f'ge_disc_params_{resonator_el}.npz',
+                                          meas_len=readout_len,
+                                          smearing=smearing,
+                                          lsb=lsb)
+
+    def training_measurement(readout_pulse):
+        if not lsb:
+            measure(readout_pulse, resonator_el, adc_st,
+                    dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                    dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q))
+        else:
+            measure(readout_pulse, resonator_el, adc_st,
+                    dual_demod.full('cos', 'out1', 'minus_sin', 'out2', I),
+                    dual_demod.full('sin', 'out1', 'cos', 'out2', Q))
+
+    with program() as training_program:
+        n = declare(int)
+        I = declare(fixed)
+        Q = declare(fixed, value=0)
+
+        I_st = declare_stream()
+        Q_st = declare_stream()
+        adc_st = declare_stream(adc_trace=True)
+
+        with for_(n, 0, n < N, n + 1):
+            wait(wait_time, resonator_el)
+            training_measurement("readout_pulse_g")
+            save(I, I_st)
+            save(Q, Q_st)
+
+            wait(wait_time, resonator_el)
+            training_measurement("readout_pulse_e")
+            save(I, I_st)
+            save(Q, Q_st)
+
+        with stream_processing():
+            I_st.save_all('I')
+            Q_st.save_all('Q')
+            adc_st.input1().with_timestamps().save_all("adc1")
+            adc_st.input2().save_all("adc2")
