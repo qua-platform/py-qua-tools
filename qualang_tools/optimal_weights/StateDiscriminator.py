@@ -29,6 +29,7 @@ class StateDiscriminator:
         meas_len,
         smearing,
         lsb=False,
+        resonator_pulse_aux=None,
     ):
         """
         Constructor for the state discriminator class.
@@ -61,6 +62,7 @@ class StateDiscriminator:
         self.lsb = lsb
         self.meas_len = meas_len
         self.smearing = smearing
+        self.resonator_pulse_aux = resonator_pulse_aux
 
     def _load_file(self, path):
         if os.path.isfile(path):
@@ -266,3 +268,9 @@ class StateDiscriminator:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}
             pulse["integration_weights"][iw] = iw
+
+        if self.resonator_pulse_aux is not None:
+            for pulse in self.config["pulses"][self.resonator_pulse_aux]:
+                if "integration_weights" not in pulse:
+                    pulse["integration_weights"] = {}
+                pulse["integration_weights"][iw] = iw
