@@ -19,14 +19,15 @@ class StateDiscriminator:
     """
 
     def __init__(
-        self, qmm, config, update_tof, rr_qe, rr_pulse, path, meas_len, smearing, lsb=False
+        self, qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb=False
     ):
         """
         Constructor for the state discriminator class.
         :param qmm: QuantumMachinesManager object
         :param config: A quantum machine configuration dictionary with the readout resonator element (must be mixInputs
         and have 2 outputs).
-        :param rr_qe: A string with the name of the readout resonator element (as specified in the config)
+        :param resonator_el: A string with the name of the readout resonator element (as specified in the config)
+        :param resonator_pulse: A string with the name of the readout pulse used to obtain the optimal weights
         :param path: A path to save optimized parameters, namely, integration weights and bias for each state. This file
         is generated during training, and it is used during the subsequent measure_state procedure.
         :param lsb: defines if the downconversion mixers does a conversion to LO - IF, i.e., lower side band
@@ -34,8 +35,8 @@ class StateDiscriminator:
 
         self.qmm = qmm
         self.config = config
-        self.rr_qe = rr_qe
-        self.rr_pulse = rr_pulse
+        self.resonator_el = resonator_el
+        self.resonator_pulse = resonator_pulse
         self.num_of_states = 3
         self.path = path
         self.saved_data = None
@@ -192,9 +193,9 @@ class StateDiscriminator:
             [[i] * measures_per_state for i in range(self.num_of_states)]
         ).flatten()
 
-        sig = self._downconvert(self.rr_qe, self.x, self.ts)
+        sig = self._downconvert(self.resonator_el, self.x, self.ts)
         traces = self._get_traces(
-            self.rr_qe, correction_method, I_res, Q_res, self.seq0, sig, use_hann_filter
+            self.resonator_el, correction_method, I_res, Q_res, self.seq0, sig, use_hann_filter
         )
         weights = self._quantize_traces(traces)
 
@@ -241,7 +242,7 @@ class StateDiscriminator:
                 plt.axis("equal")
 
     def _add_iw_to_pulses(self, iw):
-        for pulse in self.config["pulses"][self.rr_pulse]:
+        for pulse in self.config["pulses"][self.resonator_pulse]:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}
             pulse["integration_weights"][iw] = iw

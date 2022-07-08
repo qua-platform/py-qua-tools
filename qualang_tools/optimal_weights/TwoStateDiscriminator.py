@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 
 class TwoStateDiscriminator(StateDiscriminator):
-    def __init__(self, qmm, config, update_tof, rr_qe, rr_pulse, path, meas_len, smearing, lsb):
-        super().__init__(qmm, config, update_tof, rr_qe, rr_pulse, path, meas_len, smearing, lsb)
+    def __init__(self, qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb):
+        super().__init__(qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb)
         self.num_of_states = 2
 
     def _update_config(self):
@@ -34,27 +34,27 @@ class TwoStateDiscriminator(StateDiscriminator):
             w_plus_sin.append((np.imag(b_vec)[i], 4))
             w_minus_cos.append((np.real(-b_vec)[i], 4))
 
-        self.config["integration_weights"][f"opt_cos_{self.rr_qe}"] = {
+        self.config["integration_weights"][f"opt_cos_{self.resonator_el}"] = {
             "cosine": w_plus_cos,
             "sine": w_minus_sin,
         }
-        self._add_iw_to_pulses(f"opt_cos_{self.rr_qe}")
-        self.config["integration_weights"][f"opt_sin_{self.rr_qe}"] = {
+        self._add_iw_to_pulses(f"opt_cos_{self.resonator_el}")
+        self.config["integration_weights"][f"opt_sin_{self.resonator_el}"] = {
             "cosine": w_plus_sin,
             "sine": w_plus_cos,
         }
-        self._add_iw_to_pulses(f"opt_sin_{self.rr_qe}")
-        self.config["integration_weights"][f"opt_minus_sin_{self.rr_qe}"] = {
+        self._add_iw_to_pulses(f"opt_sin_{self.resonator_el}")
+        self.config["integration_weights"][f"opt_minus_sin_{self.resonator_el}"] = {
             "cosine": w_minus_sin,
             "sine": w_minus_cos,
         }
-        self._add_iw_to_pulses(f"opt_minus_sin_{self.rr_qe}")
+        self._add_iw_to_pulses(f"opt_minus_sin_{self.resonator_el}")
         if self.update_tof or self.finish_train == 1:
-            self.config["elements"][self.rr_qe]["time_of_flight"] = (
-                self.config["elements"][self.rr_qe]["time_of_flight"]
-                - self.config["elements"][self.rr_qe]["smearing"]
+            self.config["elements"][self.resonator_el]["time_of_flight"] = (
+                self.config["elements"][self.resonator_el]["time_of_flight"]
+                - self.config["elements"][self.resonator_el]["smearing"]
             )
-            self.config["elements"][self.rr_qe]["smearing"] = 0
+            self.config["elements"][self.resonator_el]["smearing"] = 0
 
         if self.finish_train == 1:
             self._IQ_mu_sigma(b_vec)
@@ -67,7 +67,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         else:
             out2 = -np.imag(self.x) * 2**-12
             sign = -1
-        rr_freq = self._get_qe_freq(self.rr_qe)
+        rr_freq = self._get_qe_freq(self.resonator_el)
         cos = np.cos(2 * np.pi * rr_freq * 1e-9 * (self.ts - self.time_diff))
         sin = np.sin(2 * np.pi * rr_freq * 1e-9 * (self.ts - self.time_diff))
         b_vec = np.repeat(b_vec, 4)
@@ -138,30 +138,30 @@ class TwoStateDiscriminator(StateDiscriminator):
 
         if not self.lsb:
             Q1_weight, Q2_weight = (
-                f"opt_minus_sin_{self.rr_qe}",
-                f"opt_sin_{self.rr_qe}",
+                f"opt_minus_sin_{self.resonator_el}",
+                f"opt_sin_{self.resonator_el}",
             )
         else:
             Q1_weight, Q2_weight = (
-                f"opt_sin_{self.rr_qe}",
-                f"opt_minus_sin_{self.rr_qe}",
+                f"opt_sin_{self.resonator_el}",
+                f"opt_minus_sin_{self.resonator_el}",
             )
 
         if Q is not None:
             measure(
                 pulse,
-                self.rr_qe,
+                self.resonator_el,
                 adc,
-                dual_demod.full(f"opt_cos_{self.rr_qe}", out1, Q2_weight, out2, II),
-                dual_demod.full(Q1_weight, out1, f"opt_cos_{self.rr_qe}", out2, QQ),
+                dual_demod.full(f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II),
+                dual_demod.full(Q1_weight, out1, f"opt_cos_{self.resonator_el}", out2, QQ),
             )
 
         else:
             measure(
                 pulse,
-                self.rr_qe,
+                self.resonator_el,
                 adc,
-                dual_demod.full(f"opt_cos_{self.rr_qe}", out1, Q2_weight, out2, II),
+                dual_demod.full(f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II),
             )
 
         assign(res, II < self.get_threshold())
