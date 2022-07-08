@@ -1,4 +1,4 @@
-from StateDiscriminator import StateDiscriminator
+from qualang_tools.optimal_weights.StateDiscriminator import StateDiscriminator
 import numpy as np
 from qm.qua import *
 

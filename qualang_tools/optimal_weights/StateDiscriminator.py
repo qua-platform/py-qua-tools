@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn import mixture
 from scipy import signal
 
-from TimeDiffCalibrator import TimeDiffCalibrator
-
+from qualang_tools.optimal_weights.TimeDiffCalibrator import TimeDiffCalibrator
 
 class StateDiscriminator:
     """
