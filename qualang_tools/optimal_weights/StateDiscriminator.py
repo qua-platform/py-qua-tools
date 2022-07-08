@@ -26,10 +26,13 @@ class StateDiscriminator:
         :param qmm: QuantumMachinesManager object
         :param config: A quantum machine configuration dictionary with the readout resonator element (must be mixInputs
         and have 2 outputs).
+        :param update_tof: A boolean variable to proceed or not to remove the smearing from the time_of_fligth value
         :param resonator_el: A string with the name of the readout resonator element (as specified in the config)
         :param resonator_pulse: A string with the name of the readout pulse used to obtain the optimal weights
         :param path: A path to save optimized parameters, namely, integration weights and bias for each state. This file
         is generated during training, and it is used during the subsequent measure_state procedure.
+        :param meas_len: Duration of the readout pulse extracted from the configuration.
+        :param smearing: Smearing duration extracted from the configuration.
         :param lsb: defines if the downconversion mixers does a conversion to LO - IF, i.e., lower side band
         """
 
@@ -111,7 +114,7 @@ class StateDiscriminator:
                     ]
                 )
         else:
-            raise Exception("unknown correction_method. Available correction methods are 'gmm', 'robust', and 'none'.")
+            raise Exception("Unknown correction_method.")
 
         if use_hann_filter:
             rr_freq = self._get_qe_freq(qe)
@@ -183,7 +186,7 @@ class StateDiscriminator:
         :type bool.
         :param plot: Whether or not to plot some figures for debug purposes.
         :type bool
-        :param correction_method: it is possible to use 'gmm', 'robust', or 'none'
+        :param correction_method: it is possible to use 'gmm', 'robust', or 'none'. The default mode is 'robust'.
         """
 
         I_res, Q_res, self.ts, self.x = self._execute_and_fetch(program, **execute_args)

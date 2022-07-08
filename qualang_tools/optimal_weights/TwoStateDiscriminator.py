@@ -8,7 +8,29 @@ import matplotlib.pyplot as plt
 
 
 class TwoStateDiscriminator(StateDiscriminator):
+    """
+    TwoStateDiscriminator is a class that contains procedures that are used after the `training` for
+    the optimal weights has been completed. The procedures related to the `training` are located in
+    the StateDiscriminator class.
+
+    TwoStateDiscriminator as the names refers to it is specifically between the discrimination between
+    two states, namely, |g> and |e> of a qubit.
+    """
     def __init__(self, qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb):
+        """
+        Constructor for the TwoStateDiscriminator class.
+        :param qmm: QuantumMachinesManager object
+        :param config: A quantum machine configuration dictionary with the readout resonator element (must be mixInputs
+        and have 2 outputs).
+        :param update_tof: A boolean variable to proceed or not to remove the smearing from the time_of_fligth value
+        :param resonator_el: A string with the name of the readout resonator element (as specified in the config)
+        :param resonator_pulse: A string with the name of the readout pulse used to obtain the optimal weights
+        :param path: A path to save optimized parameters, namely, integration weights and bias for each state. This file
+        is generated during training, and it is used during the subsequent measure_state procedure.
+        :param meas_len: Duration of the readout pulse extracted from the configuration.
+        :param smearing: Smearing duration extracted from the configuration.
+        :param lsb: defines if the downconversion mixers does a conversion to LO - IF, i.e., lower side band
+        """
         super().__init__(qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb)
         self.num_of_states = 2
 
