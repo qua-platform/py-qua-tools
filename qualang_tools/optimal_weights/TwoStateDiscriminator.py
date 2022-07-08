@@ -16,7 +16,19 @@ class TwoStateDiscriminator(StateDiscriminator):
     TwoStateDiscriminator as the names refers to it is specifically between the discrimination between
     two states, namely, |g> and |e> of a qubit.
     """
-    def __init__(self, qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb):
+
+    def __init__(
+        self,
+        qmm,
+        config,
+        update_tof,
+        resonator_el,
+        resonator_pulse,
+        path,
+        meas_len,
+        smearing,
+        lsb,
+    ):
         """
         Constructor for the TwoStateDiscriminator class.
         :param qmm: QuantumMachinesManager object
@@ -31,7 +43,17 @@ class TwoStateDiscriminator(StateDiscriminator):
         :param smearing: Smearing duration extracted from the configuration.
         :param lsb: defines if the downconversion mixers does a conversion to LO - IF, i.e., lower side band
         """
-        super().__init__(qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb)
+        super().__init__(
+            qmm,
+            config,
+            update_tof,
+            resonator_el,
+            resonator_pulse,
+            path,
+            meas_len,
+            smearing,
+            lsb,
+        )
         self.num_of_states = 2
 
     def _update_config(self):
@@ -174,8 +196,12 @@ class TwoStateDiscriminator(StateDiscriminator):
                 pulse,
                 self.resonator_el,
                 adc,
-                dual_demod.full(f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II),
-                dual_demod.full(Q1_weight, out1, f"opt_cos_{self.resonator_el}", out2, QQ),
+                dual_demod.full(
+                    f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II
+                ),
+                dual_demod.full(
+                    Q1_weight, out1, f"opt_cos_{self.resonator_el}", out2, QQ
+                ),
             )
 
         else:
@@ -183,7 +209,9 @@ class TwoStateDiscriminator(StateDiscriminator):
                 pulse,
                 self.resonator_el,
                 adc,
-                dual_demod.full(f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II),
+                dual_demod.full(
+                    f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II
+                ),
             )
 
         assign(res, II < self.get_threshold())

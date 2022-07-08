@@ -19,7 +19,16 @@ class StateDiscriminator:
     """
 
     def __init__(
-        self, qmm, config, update_tof, resonator_el, resonator_pulse, path, meas_len, smearing, lsb=False
+        self,
+        qmm,
+        config,
+        update_tof,
+        resonator_el,
+        resonator_pulse,
+        path,
+        meas_len,
+        smearing,
+        lsb=False,
     ):
         """
         Constructor for the state discriminator class.
@@ -147,7 +156,9 @@ class StateDiscriminator:
         Q_res = np.concatenate([Q_res[0::2], Q_res[1::2]])
 
         if I_res.shape != Q_res.shape:
-            raise RuntimeError("Size of I and Q coming from stream processing are no the same")
+            raise RuntimeError(
+                "Size of I and Q coming from stream processing are no the same"
+            )
 
         ts = res_handles.get("adc1").fetch_all()["value"]["timestamp"]
         ts = np.concatenate([ts[0::2], ts[1::2]])
@@ -198,7 +209,13 @@ class StateDiscriminator:
 
         sig = self._downconvert(self.resonator_el, self.x, self.ts)
         traces = self._get_traces(
-            self.resonator_el, correction_method, I_res, Q_res, self.seq0, sig, use_hann_filter
+            self.resonator_el,
+            correction_method,
+            I_res,
+            Q_res,
+            self.seq0,
+            sig,
+            use_hann_filter,
         )
         weights = self._quantize_traces(traces)
 
