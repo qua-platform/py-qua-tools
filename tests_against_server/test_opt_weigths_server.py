@@ -277,6 +277,7 @@ def test_opt_weight_training(config):
     lsb = True
     resonator_el = 'rr1a'
     resonator_pulse = 'readout_pulse_g'
+    resonator_pulse_aux = 'readout_pulse_e'
     qmm = QuantumMachinesManager()
     discriminator = TwoStateDiscriminator(qmm=qmm,
                                           config=cfg,
@@ -286,7 +287,8 @@ def test_opt_weight_training(config):
                                           path=f'ge_disc_params_{resonator_el}.npz',
                                           meas_len=readout_len,
                                           smearing=smearing,
-                                          lsb=lsb)
+                                          lsb=lsb,
+                                          resonator_pulse_aux=resonator_pulse_aux)
 
     def training_measurement(readout_pulse):
         if not lsb:

@@ -28,6 +28,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         meas_len,
         smearing,
         lsb,
+        resonator_pulse_aux
     ):
         """
         Constructor for the TwoStateDiscriminator class.
@@ -53,6 +54,7 @@ class TwoStateDiscriminator(StateDiscriminator):
             meas_len,
             smearing,
             lsb,
+            resonator_pulse_aux
         )
         self.num_of_states = 2
 
