@@ -263,13 +263,13 @@ class StateDiscriminator:
                 plt.axis("equal")
 
     def _add_iw_to_pulses(self, iw):
-        for pulse in self.config["pulses"][self.resonator_pulse]:
+        for pulse in [self.config["pulses"][self.resonator_pulse]]:
             if "integration_weights" not in pulse:
                 pulse["integration_weights"] = {}
             pulse["integration_weights"][iw] = iw
 
         if self.resonator_pulse_aux is not None:
-            for pulse in self.config["pulses"][self.resonator_pulse_aux]:
+            for pulse in [self.config["pulses"][self.resonator_pulse_aux]]:
                 if "integration_weights" not in pulse:
                     pulse["integration_weights"] = {}
                 pulse["integration_weights"][iw] = iw
