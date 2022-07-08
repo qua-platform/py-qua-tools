@@ -290,6 +290,21 @@ def test_opt_weight_training(config):
                                           lsb=lsb,
                                           resonator_pulse_aux=resonator_pulse_aux)
 
+    if not lsb:
+        simulation_config = SimulationConfig(
+            duration=60000,
+            simulation_interface=LoopbackInterface(
+                [("con1", 1, "con1", 1), ("con1", 2, "con1", 2)], latency=230, noisePower=0.07 ** 2
+            )
+        )
+    else:
+        simulation_config = SimulationConfig(
+            duration=60000,
+            simulation_interface=LoopbackInterface(
+                [("con1", 1, "con1", 2), ("con1", 2, "con1", 1)], latency=230, noisePower=0.07 ** 2
+            )
+        )
+
     def training_measurement(readout_pulse):
         if not lsb:
             measure(readout_pulse, resonator_el, adc_st,
@@ -325,3 +340,5 @@ def test_opt_weight_training(config):
             Q_st.save_all('Q')
             adc_st.input1().with_timestamps().save_all("adc1")
             adc_st.input2().save_all("adc2")
+
+    discriminator.train(program=training_program, plot=True, dry_run=True, simulate=simulation_config)
