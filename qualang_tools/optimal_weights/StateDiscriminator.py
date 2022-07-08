@@ -71,12 +71,13 @@ class StateDiscriminator:
     def _get_qe_freq(self, qe):
         return self.config["elements"][qe]["intermediate_frequency"]
 
-    def _downconvert(self, qe, x, ts):
+    def _downconvert(self, qe, x, ts, **execute_args):
         if self.time_diff is None:
             self.time_diff = TimeDiffCalibrator.calibrate(
                 self.qmm,
                 list(self.config["controllers"].keys())[0],
                 self._get_qe_freq(qe),
+                **execute_args,
             )
         rr_freq = self._get_qe_freq(qe)
         sig = x * np.exp(-1j * 2 * np.pi * rr_freq * 1e-9 * (ts - self.time_diff))
@@ -208,7 +209,7 @@ class StateDiscriminator:
             [[i] * measures_per_state for i in range(self.num_of_states)]
         ).flatten()
 
-        sig = self._downconvert(self.resonator_el, self.x, self.ts)
+        sig = self._downconvert(self.resonator_el, self.x, self.ts, **execute_args)
         traces = self._get_traces(
             self.resonator_el,
             correction_method,
