@@ -25,14 +25,14 @@ enables easily editing various parts of the figure, copy-pasting data between fi
 fitting the data and saving the figures.
 
 * [Config Tools](qualang_tools/config/README.md) - This package includes tools related to the QOP configuration file, including:
-  * [Integration Weights Tools](README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
-  * [Waveform Tools](README_waveform_tools.md) - This package includes tools for creating waveforms useful for experiments with the QOP.
-  * [Config GUI](README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file.
-  * [Config Builder](README_config_builder.md) - This package contains an API for creating and manipulation configuration files.
+  * [Integration Weights Tools](qualang_tools/config/README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
+  * [Waveform Tools](qualang_tools/config/README_waveform_tools.md) - This package includes tools for creating waveforms useful for experiments with the QOP.
+  * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file.
+  * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files.
 
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
-  * [ManualOutputControl](README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
-  * [VNA](README_vna.md) - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and operation (readout pulse for instance) already defined in the configuration. Once created, it has an API for defining which measurements are to be run depending on the down-conversion solution used (ED: envelope detector, IR: image rejection mixer, IQ: IQ mixer).
+  * [ManualOutputControl](qualang_tools/control_panel/README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
+  * [VNA](qualang_tools/control_panel/README_vna.md) - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and operation (readout pulse for instance) already defined in the configuration. Once created, it has an API for defining which measurements are to be run depending on the down-conversion solution used (ED: envelope detector, IR: image rejection mixer, IQ: IQ mixer).
 
 
 ## Installation
