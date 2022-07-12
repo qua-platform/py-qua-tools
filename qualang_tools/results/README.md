@@ -6,20 +6,20 @@ The fetching tool has an API to easily fetch data from the stream processing.
 
 First the results handle needs to be initiated by specifying the QM job and the list of data to be fetched. 
 These values must correspond to results saved in the stream processing. A flag is also avalable with two options:
-- `flag="wait_for_all"` will wait until all values were processed for all named results before fetching.
-- `flag="live"` will fetch data one by one for all named results for live plotting purposes.
+- `mode="wait_for_all"` will wait until all values were processed for all named results before fetching.
+- `mode="live"` will fetch data one by one for all named results for live plotting purposes.
 
 ### Usage example
 
  
 ```python
-from qualang_tools.results import result_tool
+from qualang_tools.results import fetching_tool
 
-qmm = QuantumMachinesManager()
+qmm = QuantumMachinesManager(host="127.0.0.1", port="80")
 qm = qmm.open_qm(config)
-job = qm.execute(cryoscope)
+job = qm.execute(qua_program)
 
-my_results = result_tool(job, data_list=["I", "Q", "Ie", "Qe", "Ig", "Qg"], flag="live")
+my_results = fetching_tool(job, data_list=["I", "Q", "Ie", "Qe", "Ig", "Qg"], mode="live")
 
 fig = plt.figure(figsize=(15, 15))
 

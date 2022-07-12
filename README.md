@@ -20,9 +20,11 @@ It currently has a two-states discriminator for analyzing the ground and excited
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
 
-* [Interactive Plot Library](qualang_tools/addons/README.md) - This package drastically extends the capabilities of matplotlib,
-enables easily editing various parts of the figure, copy-pasting data between figures and into spreadsheets, 
-fitting the data and saving the figures.
+* Addons:
+  * [Calibrations](qualang_tools/addons/calibration/README.md) - This module allows to easily perform most of the standard single qubit calibrations from a single python file.
+  * [Interactive Plot Library](qualang_tools/addons/README.md) - This package drastically extends the capabilities of matplotlib,
+  enables easily editing various parts of the figure, copy-pasting data between figures and into spreadsheets, 
+  fitting the data and saving the figures.
 
 * [Config Tools](qualang_tools/config/README.md) - This package includes tools related to the QOP configuration file, including:
   * [Integration Weights Tools](README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
