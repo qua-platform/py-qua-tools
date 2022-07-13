@@ -33,7 +33,7 @@ def from_array(var, array):
     # Check array increment
     if np.isclose(np.std(np.diff(array)), 0):
         increment = "lin"
-    elif np.isclose(np.std(array[1:] / array[:-1]), 0):
+    elif np.isclose(np.std(array[1:] / array[:-1]), 0, atol=1e-3):
         increment = "log"
     else:
         raise Exception(
@@ -95,24 +95,20 @@ def from_array(var, array):
         if var_type == "int":
 
             warnings.warn(
-                "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable."
+                "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
             )
-            if not float(start).is_integer() or not float(stop).is_integer():
-                raise Exception(
-                    "When looping over a QUA int variable, the array elements must be integers."
-                )
             if step > 1:
                 return (
                     var,
-                    float(start),
-                    var < float(stop) * np.sqrt(float(step)),
+                    round(start),
+                    var < round(stop) * np.sqrt(float(step)),
                     Cast.mul_int_by_fixed(var, float(step)),
                 )
             else:
                 return (
                     var,
-                    float(start),
-                    var > float(stop) * np.sqrt(float(step)),
+                    round(start),
+                    var > round(stop) / np.sqrt(float(step)),
                     Cast.mul_int_by_fixed(var, float(step)),
                 )
 
@@ -261,24 +257,20 @@ def qua_logspace(var, start, stop, num):
     var_type = _get_qua_variable_type(var)
     if var_type == "int":
         warnings.warn(
-            "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable."
+            "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
         )
-        if not float(start).is_integer() or not float(stop).is_integer():
-            raise Exception(
-                "When looping over a QUA int variable, the array elements must be integers."
-            )
         if step > 1:
             return (
                 var,
-                10**start,
-                var < 10**stop * np.sqrt(step),
+                round(10**start),
+                var < round(10**stop * np.sqrt(step)),
                 Cast.mul_int_by_fixed(var, float(step)),
             )
         else:
             return (
                 var,
-                10**start,
-                var > 10**stop * np.sqrt(step),
+                round(10**start),
+                var > round(10**stop / np.sqrt(step)),
                 Cast.mul_int_by_fixed(var, float(step)),
             )
     elif var_type == "fixed":
@@ -305,16 +297,22 @@ def qua_logspace(var, start, stop, num):
 def get_equivalent_log_array(log_array):
     """Function returning the values taken by the QUA int variable within the logarithmic QUA `for_` loop.
     Because of rounding errors occuring with QUA integers, these values are not exactly the ones given by `numpy.logspace()`.
+    Note that the number of points may also change.
 
     :param log_array: a Python list or numpy array containing the values parametrizing the QUA `for_` loop. The spacing must be even in logarithmic scale and it cannot be a QUA array.
     :return: numpy array containing the values taken by the QUA int variable within the logarithmic QUA `for_` loop.
     """
     a_log = []
-    aprev = int(log_array[0])
+    aprev = round(log_array[0])
     step = np.mean(np.array(log_array[1:]) / np.array(log_array[:-1]))
-    for k in range(len(log_array)):
-        a_log.append(aprev)
-        aprev = int(aprev * step)
+    if step > 1:
+        while aprev < log_array[-1]:
+            a_log.append(aprev)
+            aprev = int(aprev * step)
+    else:
+        while aprev > log_array[-1]:
+            a_log.append(aprev)
+            aprev = int(aprev * step)
     return np.array(a_log)
 
 

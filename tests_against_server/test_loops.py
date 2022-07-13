@@ -95,11 +95,11 @@ def config():
     }
 
 
-def simulate_program_and_return(config, prog, duration=2000):
+def simulate_program_and_return(config, prog, duration=50000):
 
 
     qmm = QuantumMachinesManager(host="172.16.2.103", port=80)
-    qmm.close_all_quantum_machines()
+    # qmm.close_all_quantum_machines()
     # job = qmm.simulate(
     #     config,
     #     prog,
@@ -198,6 +198,8 @@ def test_from_array(config):
 
     cfg = deepcopy(config)
     arange_param_list = [
+        [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
+        [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
         [np.logspace(6, 4, 19), "int"],
         [np.logspace(3, 6, 199), "int"],
         [np.logspace(-3, 0, 99), "fixed"],
@@ -227,10 +229,10 @@ def test_from_array(config):
         a_qua = job.result_handles.get("a").fetch_all()["value"]
         a_list = param[0]
 
-        assert len(a_list) == len(a_qua)
         if (param[1] == "int") and (np.isclose(a_list[1]/a_list[0], a_list[-1]/a_list[-2])):
             a_list = get_equivalent_log_array(a_list)
 
+        assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
     print("PASSED !")
 
@@ -276,7 +278,7 @@ def test_qua_linspace(config):
         assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-def test_qua_logspace(config):
+def test_qua_logspace_fixed(config):
     def prog_maker(logspace_param):
         with program() as prog:
             a = declare(fixed)
@@ -307,5 +309,38 @@ def test_qua_logspace(config):
         job.result_handles.wait_for_all_values()
         a_qua = job.result_handles.get("a").fetch_all()["value"]
         a_list = np.logspace(param[0], param[1], param[2])
+        assert len(a_list) == len(a_qua)
+        assert np.allclose(a_list, a_qua, atol=1e-4)
+
+
+def test_qua_logspace_int(config):
+    def prog_maker(logspace_param):
+        with program() as prog:
+            t = declare(int)
+            t_st = declare_stream()
+            with for_(
+                *qua_logspace(
+                    t, logspace_param[0], logspace_param[1], logspace_param[2]
+                )
+            ):
+                play("readout", "resonator", duration=t)
+                save(t, t_st)
+            with stream_processing():
+                t_st.save_all("a")
+        return prog
+
+    cfg = deepcopy(config)
+
+    arange_param_list = [
+        [np.log10(500), np.log10(12500), 11],
+        [np.log10(5000), np.log10(125), 30],
+        [np.log10(40), np.log10(1001), 51],
+    ]
+    for param in arange_param_list:
+        print(f"Test qua_logspace with {param}:")
+        job = simulate_program_and_return(cfg, prog_maker(param))
+        job.result_handles.wait_for_all_values()
+        a_qua = job.result_handles.get("a").fetch_all()["value"]
+        a_list = get_equivalent_log_array(np.round(np.logspace(param[0], param[1], param[2])))
         assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
