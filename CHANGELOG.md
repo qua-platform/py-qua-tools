@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.11.0] - 2022-07-18
 ### Added
 - Calibrations - a new package with an API to perform basic single qubit calibration protocols.
 - Results.fetching_tool - Add the `.is_processing()` method.
@@ -186,7 +188,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.7.2...v0.8.0
