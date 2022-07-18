@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - Calibrations - a new package with an API to perform basic single qubit calibration protocols.
+- Results.fetching_tool - Add the `.is_processing()` method.
 ### Fixed
 - Loops - Fixed qua_logspace() and from_array() for logarithmic increments with integers.
 

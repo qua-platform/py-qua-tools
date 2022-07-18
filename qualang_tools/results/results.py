@@ -37,6 +37,15 @@ class fetching_tool:
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
 
+    def is_processing(self):
+        """
+        Returns True while the program is processing. Used for live plotting.
+        **Example**: while my_results.is_processing():
+
+        :return: boolean flag which is True while the program is processing.
+        """
+        return self.res_handles.is_processing()
+
     def _format(self, data):
         if type(data) == np.ndarray:
             if type(data[0]) == np.void:
