@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ## [0.11.1] - 2022-07-19
-### Added
+### fixed
 - config/server/ - add empty init file in config/server.
 ### Changed
 - bakery/randomized_benchmark_c1 - wrap Cayley table in a function _get_c1_table(). 
