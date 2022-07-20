@@ -42,7 +42,7 @@ def drag_gaussian_pulse_waveforms(
     z = gauss_wave + 1j * 0
     if alpha != 0:
         # The complex DRAG envelope:
-        z += 1j * gauss_der_wave * (alpha / (delta - detuning))
+        z += 1j * gauss_der_wave * (alpha / (delta - 2 * np.pi * detuning))
         # The complex detuned DRAG envelope:
         z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
@@ -84,7 +84,7 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, delta, detuning=0):
     z = cos_wave + 1j * 0
     if alpha != 0:
         # The complex DRAG envelope:
-        z += 1j * sin_wave * (alpha / (delta - detuning))
+        z += 1j * sin_wave * (alpha / (delta - 2 * np.pi * detuning))
         # The complex detuned DRAG envelope:
         z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
