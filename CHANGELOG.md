@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- **Breaking change!** - Waveform tools - Added a missing 2pi factor into `detuning` parameter in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
+  This will produce different results compared to previous versions, to get the same results, divide the `detuning` parameter by 2pi.
+### Changed
+- Waveform tools - Renamed argument `delta` to `anharmonicity` in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
+  `delta` is still accepted but will be deprecated in future versions.
 
 ## [0.11.1] - 2022-07-19
 ### fixed
