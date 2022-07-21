@@ -276,7 +276,7 @@ class MeasurePulse(Pulse):
 
         integration_weights: List[Weights] = kwargs.get("integration_weights", None)
         digital_marker: Optional[DigitalWaveform] = kwargs.get("digital_marker", None)
-        super().__init__(name, wfs, "measure", length, digital_marker)
+        super().__init__(name, wfs, "measurement", length, digital_marker)
         if integration_weights is None:
             integration_weights = []
         self.integration_weights = integration_weights
@@ -349,6 +349,41 @@ class Mixer(ConfigBuilderElement):
             }
         )
         return self
+
+
+class Oscillator(ConfigBuilderElement):
+    def __init__(
+        self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
+    ):
+        super(Oscillator, self).__init__(name)
+        self.dict = dict()
+        self.dict["intermediate_frequency"] = intermediate_frequency
+        self.dict["lo_frequency"] = lo_frequency
+        self.dict["mixer"] = mixer
+
+    @property
+    def lo_frequency(self):
+        return self.dict["lo_frequency"]
+
+    @lo_frequency.setter
+    def lo_frequency(self, lo_frequency: int):
+        self.dict["lo_frequency"] = lo_frequency
+
+    @property
+    def intermediate_frequency(self):
+        return self.dict["intermediate_frequency"]
+
+    @intermediate_frequency.setter
+    def intermediate_frequency(self, intermediate_frequency: int):
+        self.dict["intermediate_frequency"] = intermediate_frequency
+
+    @property
+    def mixer(self):
+        return self.dict["mixer"]
+
+    @mixer.setter
+    def mixer(self, mixer: str):
+        self.dict["mixer"] = mixer
 
 
 class Element(ConfigBuilderElement):
@@ -433,6 +468,7 @@ class Element(ConfigBuilderElement):
                     "delay": 0,
                     "buffer": 0,
                 }
+        self.oscillator = None
 
     def set_digital_input_delay(self, port_id: int, val: int):
         if "in" + str(port_id) in self.dict["digitalInputs"].keys():
@@ -450,6 +486,10 @@ class Element(ConfigBuilderElement):
         assert "mixInputs" in self.dict.keys()
         self.dict["mixInputs"]["mixer"] = mix.name
         self.mixer = mix
+
+    def _set_oscillator(self, osc: Oscillator):
+        self.dict["oscillator"] = osc.name
+        self.oscillator = osc
 
     @property
     def has_lo_frequency(self):
@@ -487,7 +527,9 @@ class Element(ConfigBuilderElement):
         self.dict["operations"][op.name] = op.pulse.name
         self.pulses.append(op.pulse)
 
-    def _add(self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse]):
+    def _add(
+        self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse, Oscillator]
+    ):
         """A method to add components to an element
 
         :param obj: The component to be added
@@ -501,6 +543,8 @@ class Element(ConfigBuilderElement):
         elif isinstance(obj, ControlPulse) or isinstance(obj, MeasurePulse):
             self.dict["operations"][obj.name] = obj.name
             self.pulses.append(obj)
+        elif isinstance(obj, Oscillator):
+            self._set_oscillator(obj)
         else:
             raise ConfigurationError("Adding unsupported object")
 
@@ -616,6 +660,14 @@ class Element(ConfigBuilderElement):
             self.dict["outputPulseParameters"] = dict()
         self.dict["outputPulseParameters"]["derivativePolarity"] = val
 
+    @property
+    def thread(self):
+        return self.dict["thread"]
+
+    @thread.setter
+    def thread(self, thread: str):
+        self.dict["thread"] = thread
+
 
 class MeasureElement(Element):
     def __init__(
@@ -684,6 +736,28 @@ class MeasureElement(Element):
         self.dict["smearing"] = smearing
 
 
+class PiecewiseConstantIntegrationWeights(IntegrationWeights):
+    def __init__(self, name: str, cosines: List, sines: List, durations: List):
+        """Piece-wise constant integration weights used in integration and demodulation
+        :param name: name for the weights vector
+        :type name: str
+        :param cosines: values of the cosine vector
+        :type cosines: List[float]
+        :param sines: values of the sine vector
+        :type sines: List[float]
+        :param durations: duration of the each segment
+        :type durations: List[int]
+        """
+        self._durations = durations
+        self._cosines = cosines
+        self._sines = sines
+        super(PiecewiseConstantIntegrationWeights, self).__init__(
+            name,
+            [(cosine, duration) for (cosine, duration) in zip(cosines, durations)],
+            [(sine, duration) for (sine, duration) in zip(sines, durations)],
+        )
+
+
 class ConstantIntegrationWeights(IntegrationWeights):
     def __init__(self, name: str, cosine: float, sine: float, duration: int):
         """A constant integration weight used in integration and demodulation
@@ -691,7 +765,7 @@ class ConstantIntegrationWeights(IntegrationWeights):
         :type name: str
         :param cosine: value of the cosine vector
         :type cosine: float
-        :param sine: value of the cosine vector
+        :param sine: value of the sine vector
         :type sine: float
         :param duration: duration of the read out pulse
         :type duration: int
@@ -1206,38 +1280,3 @@ class Coupler(ElementCollection):
     @port.setter
     def port(self, p: AnalogOutputPort):
         self._port = p
-
-
-class Oscillator(ConfigBuilderElement):
-    def __init__(
-        self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
-    ):
-        super(Oscillator, self).__init__(name)
-        self.dict = dict()
-        self.dict["intermediate_frequency"] = intermediate_frequency
-        self.dict["lo_frequency"] = lo_frequency
-        self.dict["mixer"] = mixer
-
-    @property
-    def lo_frequency(self):
-        return self.dict["lo_frequency"]
-
-    @lo_frequency.setter
-    def lo_frequency(self, lo_frequency: int):
-        self.dict["lo_frequency"] = lo_frequency
-
-    @property
-    def intermediate_frequency(self):
-        return self.dict["intermediate_frequency"]
-
-    @intermediate_frequency.setter
-    def intermediate_frequency(self, intermediate_frequency: int):
-        self.dict["intermediate_frequency"] = intermediate_frequency
-
-    @property
-    def mixer(self):
-        return self.dict["mixer"]
-
-    @mixer.setter
-    def mixer(self, mixer: str):
-        self.dict["mixer"] = mixer
