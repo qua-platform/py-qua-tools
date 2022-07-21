@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- ConfigBuilder - PiecewiseConstantIntegrationWeights class.
+- ConfigBuilder - added thread and Oscillator to Element class.
+- ConfigBuilder - added shareable field to all ports.
+### Fixed
+- ConfigBuilder - measure pulse type in the configuration
+
 
 ## [0.11.1] - 2022-07-19
 ### Fixed
