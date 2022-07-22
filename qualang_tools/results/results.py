@@ -36,6 +36,10 @@ class fetching_tool:
                     self.data_handles[-1].wait_for_values(1)
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
+            # Live plotting parameters
+            self.__bcont = False
+            self.__blast = True
+            self.start_time = 0
 
     def is_processing(self):
         """
@@ -44,7 +48,14 @@ class fetching_tool:
 
         :return: boolean flag which is True while the program is processing.
         """
-        return self.res_handles.is_processing()
+        if self.start_time == 0:
+            self.__bcont = self.res_handles.is_processing()
+            self.__blast = not self.__bcont
+            self.start_time = time.time()
+        else:
+            self.__bcont = self.res_handles.is_processing()
+            self.__blast = not (self.__bcont or self.__blast)
+        return self.__bcont or self.__blast
 
     def _format(self, data):
         if type(data) == np.ndarray:
@@ -98,7 +109,7 @@ def progress_counter(
     if percent:
         progress += f"{current_percent:.1f}%"
     if start_time is not None:
-        progress += f"--> elapsed time: {time.time()-start_time:.2f}s"
+        progress += f" --> elapsed time: {time.time()-start_time:.2f}s"
 
     print(progress, end="\r")
     if current_percent == 100:
