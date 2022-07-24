@@ -286,7 +286,7 @@ class QUA_calibrations:
                         start_time=results.get_start_time(),
                     )
 
-                    self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
+                    self.results[calib]["amplitude"] = np.sqrt(I ** 2 + Q ** 2)
                     self.results[calib]["phase"] = signal.detrend(
                         np.unwrap(np.angle(I + 1j * Q))
                     )
@@ -311,7 +311,7 @@ class QUA_calibrations:
                     self.config["pulses"][pulse]["length"],
                 )
 
-                self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
+                self.results[calib]["amplitude"] = np.sqrt(I ** 2 + Q ** 2)
                 self.results[calib]["phase"] = signal.detrend(
                     np.unwrap(np.angle(I + 1j * Q))
                 )
@@ -348,7 +348,7 @@ class QUA_calibrations:
                         start_time=results.get_start_time(),
                     )
 
-                    self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
+                    self.results[calib]["amplitude"] = np.sqrt(I ** 2 + Q ** 2)
                     self.results[calib]["phase"] = signal.detrend(
                         np.unwrap(np.angle(I + 1j * Q))
                     )
@@ -374,7 +374,7 @@ class QUA_calibrations:
                     self.config["pulses"][pulse]["length"],
                 )
 
-                self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
+                self.results[calib]["amplitude"] = np.sqrt(I ** 2 + Q ** 2)
                 self.results[calib]["phase"] = signal.detrend(
                     np.unwrap(np.angle(I + 1j * Q))
                 )

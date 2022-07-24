@@ -390,7 +390,7 @@ class VNA:
             )
             self.results[sequence["measurement"]]["phase"] = 0 * np.abs(I)
         else:
-            self.results[sequence["measurement"]]["S"] = np.sqrt(I**2 + Q**2)
+            self.results[sequence["measurement"]]["S"] = np.sqrt(I ** 2 + Q ** 2)
             self.results[sequence["measurement"]]["phase"] = np.unwrap(np.arctan2(I, Q))
 
     def _define_dual_measurement(self, freq_sweep: dict, n_avg: int):
@@ -574,7 +574,7 @@ class VNA:
                 )
             else:
                 self.results[self.measurements[i]["measurement"]]["S"] = np.sqrt(
-                    I**2 + Q**2
+                    I ** 2 + Q ** 2
                 )
                 self.results[self.measurements[i]["measurement"]]["phase"] = np.unwrap(
                     np.arctan2(I, Q)

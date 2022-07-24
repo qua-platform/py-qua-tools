@@ -9,7 +9,7 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm.qua import *
 
 
-def _round_to_fixed_point_accuracy(x, accuracy=2**-16):
+def _round_to_fixed_point_accuracy(x, accuracy=2 ** -16):
     return np.round(x / accuracy) * accuracy
 
 
@@ -54,7 +54,7 @@ class ManualOutputControl:
         self.digital_data = {}
         self.analog_job = None
         self.digital_jobs = None
-        self.ANALOG_WAVEFORM_AMPLITUDE = 0.5 - 2**-16
+        self.ANALOG_WAVEFORM_AMPLITUDE = 0.5 - 2 ** -16
         self._process_config(configuration, elements_to_control)
         self.analog_qm = self.qmm.open_qm(self.analog_config, False)
         self._start_digital_qms()
@@ -254,9 +254,9 @@ class ManualOutputControl:
                 )
         if abs(value) > self.ANALOG_WAVEFORM_AMPLITUDE:
             if value == 0.5:
-                value = 0.5 - 2**-16
+                value = 0.5 - 2 ** -16
             elif value == -0.5:
-                value = -0.5 + 2**-16
+                value = -0.5 + 2 ** -16
             else:
                 raise Exception(
                     f"The absolute value of the amplitude must smaller than 0.5, {value} was given"
