@@ -12,18 +12,20 @@ def fit_ramsey(x, y):
         * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
         )
 
-    for unknown parameters `f`, `phase`, `tau`, `amp`, `uncertainty_population` and `initial_offset`.
+    for unknown parameters:
+        - `f` - The detuning frequency
+        - `phase` - The phase
+        - `tau` - The decay constant
+        - `amp` - The amplitude
+        - `uncertainty_population` -  The uncertainty in population
+        - `initial_offset` - The initial offset
+
+    Note that is the case where the dephasing time, between the two pi-half pulses, is scanned.
 
     :param x:  The data on the x axis
     :param y: The data on the y axis
     :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
-        fit_func - The fitted function
-        f -  The detuning frequency
-        phase - The phase
-        tau - The decay constant
-        amp - The amplitude
-        uncertainty_population -  The uncertainty in population
-        initial_offset - The initial offset
+
     """
     w = np.fft.fft(y)
     freqs = np.fft.fftfreq(len(x))
@@ -115,14 +117,14 @@ def fit_linear(x, y):
     .. math::
     f(x) = a * x + b
 
-    for unknown parameters `a` and `b`.
+    for unknown parameters:
+        - `a` - The slope of the function
+        - `b` - The free parameter of the function
 
     :param x: The data on the x axis
     :param y: The data on the y axis
-    :return: A dictionary of (fit_func, a, b)
-        fit_func - The fitted function
-        a - The slope of the function
-        b - The free parameter of the function
+    :return: A dictionary of (fit_func, a, b):
+
 
     """
 
@@ -153,56 +155,25 @@ def fit_linear(x, y):
     return out
 
 
-def fit_phase_resonator_spectroscopy(x, y):
-    # find guess of offset
-    v0 = y[0]
-
-    # fit_type = lambda x, a: (((a[0] / 2) * (x - a[3])) / ((a[1] ** 2 / 4) + ((x-a[3]) ** 2))) * (4/a[1] ** 2) + v0 * a[2]
-    fit_type = (
-        lambda x, a: (((a[0] / 2) * (x - a[3])) / ((a[1] ** 2 / 4) + ((x - a[3]) ** 2)))
-        + v0 * a[2]
-    )
-
-    def curve_fit(f, x, y, a0):
-        def opt(x, y, a):
-            return np.sum(np.abs(f(x, a) - y) ** 2)
-
-        out = optimize.minimize(lambda a: opt(x, y, a), a0)
-        return out["x"]
-
-    popt = curve_fit(fit_type, x, y, [1, 1, 1, 1])
-
-    print(f"amp*kc = {popt[0]}, k = {popt[1]}, offset = {v0 * popt[2]}")
-    out = {
-        "fit_func": lambda x: fit_type(x, popt),
-        "amp*kc": popt[0],
-        "k": popt[1],
-        "w": popt[3],
-        "offset": v0 * popt[2],
-    }
-
-    return out
-
-
 def fit_reflection_resonator_spectroscopy(x, y):
     """
     Create a fit to reflection resonator spectroscopy of the form
 
     .. math::
-    (a)-(b / (
-        1 + (4 * ((x - f) ** 2) / (c ** 2)))) + d * x
-    for unknown parameters `a`, `b`, `c`, `d`, `f`.
+    f(x) = (offset)-(a*kc / (
+        1 + (4 * ((x - f) ** 2) / (k ** 2)))) + slope * x
+    for unknown parameters:
+        - f - The frequency at the peak
+        - kc - The strength with which the field of the resonator couples to the transmission line
+        - a - A normalization factor
+        - k - The FWHM of the fitted function. Note that k = ki + kc
+        - offset - The offset
+        - slope - The slope of the function. This is added after experimental considerations.
+    Note that k kc + ki while ki is a parameter that indicates the internal coherence properties of the resonator
 
     :param x:  The data on the x axis
     :param y: The data on the y axis
-    :return: A dictionary of (fit_func, f, kc, k, ki, offset
-        fit_func - The fitted function
-        f - The frequency at the peak
-        kc - The strength with which the field of the resonator couples to the transmission line
-        ki - A parameter that indicates the internal coherence properties of the resonator
-        k - The FWHM of the fitted function.  k = ki + kc
-        offset - The offset
-        slope - The slope of the function. This is added after experimental considerations.
+    :return: A dictionary of (fit_func, f, kc, k, ki, offset, slope)
 
     """
 
@@ -278,20 +249,20 @@ def fit_transmission_resonator_spectroscopy(x, y):
     Create a fit to transmission resonator spectroscopy of the form
 
     .. math::
-    (a / (
-        1 + (4 * ((x - f) ** 2) / (b ** 2)))) + c
+    f(x) = (a*kc / (
+        1 + (4 * ((x - f) ** 2) / (k ** 2)))) + offset
 
-    for unknown parameters `a`, `b`, `c`, `f`.
+    for unknown parameters:
+        - f - The frequency at the peak
+        - kc - The strength with which the field of the resonator couples to the transmission line
+        - a - A normalization factor
+        - k - The FWHM of the fitted function.  k = ki + kc
+        - offset - The offset
+    Note that k = kc + ki while ki is a parameter that indicates the internal coherence properties of the resonator.
 
     :param x:  The data on the x axis
     :param y: The data on the y axis
-    :return: A dictionary of (fit_func, f, kc, k, ki, offset
-        fit_func - The fitted function
-        f - The frequency at the peak
-        kc - The strength with which the field of the resonator couples to the transmission line
-        ki - A parameter that indicates the internal coherence properties of the resonator
-        k - The FWHM of the fitted function.  k = ki + kc
-        offset - The offset
+    :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
     """
 
