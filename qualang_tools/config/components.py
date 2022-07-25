@@ -1,7 +1,7 @@
 import abc
 from typing import Union, List, Tuple, Optional, Dict
 
-from qualang_tools.config.exceptions import ConfigurationError
+from qualang_tools.config.exceptions import ConfigurationError, _warn_if_not_none
 from qualang_tools.config.primitive_components import (
     ConfigBuilderElement,
     AnalogInputPort,
@@ -355,10 +355,9 @@ class Element(ConfigBuilderElement):
     def __init__(
         self,
         name: str,
-        analog_input_ports: Optional[List[AnalogOutputPort]] = None,
-        analog_output_ports: Optional[List[AnalogInputPort]] = None,
-        digital_input_ports: Optional[List[DigitalOutputPort]] = None,
-        digital_output_ports: Optional[List[DigitalInputPort]] = None,
+        element_analog_inputs: Optional[List[AnalogOutputPort]] = None,
+        element_analog_outputs: Optional[List[AnalogInputPort]] = None,
+        element_digital_inputs: Optional[List[DigitalOutputPort]] = None,
         intermediate_frequency: Optional[int] = None,
         lo_frequency: Optional[int] = None,
         **kwargs
@@ -367,12 +366,12 @@ class Element(ConfigBuilderElement):
 
         :param name: element name
         :type name: int
-        :param analog_input_ports: AnalogOutputPort(s) associated with this element, defaults to []
-        :type analog_input_ports: List[AnalogOutputPort], optional
-        :param analog_output_ports: AnalogInputPort(s) associated with this element, defaults to []
-        :type analog_output_ports: List[AnalogInputPort], optional
-        :param digital_input_ports: DigitalOutputPort(s) associated with this element, defaults to []
-        :type digital_input_ports: List[DigitalOutputPort], optional
+        :param element_analog_inputs: AnalogOutputPort(s) associated with this element, defaults to []
+        :type element_analog_inputs: List[AnalogOutputPort], optional
+        :param element_analog_outputs: AnalogInputPort(s) associated with this element, defaults to []
+        :type element_analog_outputs: List[AnalogInputPort], optional
+        :param element_digital_inputs: DigitalOutputPort(s) associated with this element, defaults to []
+        :type element_digital_inputs: List[DigitalOutputPort], optional
         :param intermediate_frequency: intermediate frequency associated wit this element, defaults to None
         :type intermediate_frequency: int, optional
         :param lo_frequency: LO frequency associated wit this element, defaults to None
@@ -384,50 +383,67 @@ class Element(ConfigBuilderElement):
         pulses: Optional[List[Pulse]] = kwargs.get("pulses", None)
         operations: Optional[Dict[str, str]] = kwargs.get("digital_marker", None)
 
+        analog_input_ports = _warn_if_not_none(kwargs, "analog_input_ports")
+        if analog_input_ports is not None:
+            element_analog_inputs = analog_input_ports
+
+        analog_output_ports = _warn_if_not_none(kwargs, "analog_output_ports")
+        if analog_output_ports is not None:
+            element_analog_outputs = analog_output_ports
+
+        digital_input_ports = _warn_if_not_none(kwargs, "digital_input_ports")
+        if digital_input_ports is not None:
+            element_digital_inputs = digital_input_ports
+
+        element_digital_outputs = []
+        digital_output_ports = _warn_if_not_none(kwargs, "digital_output_ports")
+        if digital_output_ports is not None:
+            element_digital_outputs = digital_output_ports
+
         self.dict = dict()
-        assert len(analog_input_ports) <= 2
-        self.type = "singleInput" if len(analog_input_ports) == 1 else "mixInputs"
+        assert len(element_analog_inputs) <= 2
+        self.type = "singleInput" if len(element_analog_inputs) == 1 else "mixInputs"
         self.pulses = []
         if pulses is not None:
             self.pulses = pulses
-        self.analog_input_ports = (
-            [] if analog_input_ports is None else analog_input_ports
+        self.element_analog_inputs = (
+            [] if element_analog_inputs is None else element_analog_inputs
         )
-        self.analog_output_ports = (
-            [] if analog_output_ports is None else analog_output_ports
+        self.element_analog_outputs = (
+            [] if element_analog_outputs is None else element_analog_outputs
         )
-        self.digital_output_ports = (
-            [] if digital_output_ports is None else digital_output_ports
+        self.element_digital_outputs = (
+            [] if element_digital_outputs is None else element_digital_outputs
         )
-        self.digital_input_ports = (
-            [] if digital_input_ports is None else digital_input_ports
+        self.element_digital_inputs = (
+            [] if element_digital_inputs is None else element_digital_inputs
         )
         self.mixer: Mixer = mixer
 
-        if len(self.analog_input_ports) > 0:
+        if len(self.element_analog_inputs) > 0:
             if self.type == "singleInput":
-                port = self.analog_input_ports[0]
+                port = self.element_analog_inputs[0]
                 self.dict["singleInput"] = dict()
                 self.dict["singleInput"]["port"] = port.info
             elif self.type == "mixInputs":
-                I = self.analog_input_ports[0]
-                Q = self.analog_input_ports[1]
+                I = self.element_analog_inputs[0]
+                Q = self.element_analog_inputs[1]
                 self.dict["mixInputs"] = dict()
                 self.dict["mixInputs"]["I"] = I.info
                 self.dict["mixInputs"]["Q"] = Q.info
                 self.dict["mixInputs"]["lo_frequency"] = lo_frequency
-        if len(self.analog_output_ports) > 0:
+        if len(self.element_analog_outputs) > 0:
             self.dict["outputs"] = dict()
-            for i, port in enumerate(self.analog_output_ports):
+            for i, port in enumerate(self.element_analog_outputs):
                 self.dict["outputs"]["out" + str(i + 1)] = port.info
         self.dict["operations"] = dict()
         if operations is not None:
             self.dict["operations"] = operations
         self.dict["intermediate_frequency"] = intermediate_frequency
         # self.dict["outputPulseParameters"] = dict()
-        if len(self.digital_input_ports) > 0:
+        if len(self.element_digital_inputs) > 0:
             self.dict["digitalInputs"] = dict()
-            for i, port in enumerate(self.digital_input_ports):
+            for i, port in enumerate(self.element_digital_inputs):
                 self.dict["digitalInputs"]["in" + str(i + 1)] = {
                     "port": port.info,
                     "delay": 0,
@@ -621,9 +637,9 @@ class MeasureElement(Element):
     def __init__(
         self,
         name: str,
-        analog_input_ports: List[AnalogOutputPort],
-        analog_output_ports: List[AnalogInputPort],
-        digital_input_ports: Optional[List[DigitalOutputPort]] = None,
+        element_analog_inputs: List[AnalogOutputPort],
+        element_analog_outputs: List[AnalogInputPort],
+        element_digital_inputs: Optional[List[DigitalOutputPort]] = None,
         intermediate_frequency: Optional[int] = None,
         lo_frequency: Optional[int] = None,
         **kwargs
@@ -632,12 +648,12 @@ class MeasureElement(Element):
 
         :param name: [description]
         :type name: int
-        :param analog_input_ports: [description]
-        :type analog_input_ports: List[AnalogOutputPort]
-        :param analog_output_ports: [description]
-        :type analog_output_ports: List[AnalogInputPort]
-        :param digital_input_ports: [description], defaults to []
-        :type digital_input_ports: List[DigitalOutputPort], optional
+        :param element_analog_inputs: [description]
+        :type element_analog_inputs: List[AnalogOutputPort]
+        :param element_analog_outputs: [description]
+        :type element_analog_outputs: List[AnalogInputPort]
+        :param element_digital_inputs: [description], defaults to []
+        :type element_digital_inputs: List[DigitalOutputPort], optional
         :param intermediate_frequency: intermediate frequency associated wit this element, defaults to None
         :type intermediate_frequency: int, optional
         :param lo_frequency: [description], defaults to None
@@ -646,20 +662,35 @@ class MeasureElement(Element):
 
         time_of_flight: Optional[int] = kwargs.get("time_of_flight", 0)
         smearing: Optional[int] = kwargs.get("smearing", 0)
-        digital_output_ports: Optional[List[DigitalInputPort]] = kwargs.get(
-            "digital_output_ports", None
-        )
         mixer: Optional[Mixer] = kwargs.get("mixer", None)
         pulses: Optional[List[Pulse]] = kwargs.get("pulses", None)
         operations: Optional[Dict[str, str]] = kwargs.get("operations", None)
+
+        analog_input_ports = _warn_if_not_none(kwargs, "analog_input_ports")
+        if analog_input_ports is not None:
+            element_analog_inputs = analog_input_ports
+
+        analog_output_ports = _warn_if_not_none(kwargs, "analog_output_ports")
+        if analog_output_ports is not None:
+            element_analog_outputs = analog_output_ports
+
+        digital_input_ports = _warn_if_not_none(kwargs, "digital_input_ports")
+        if digital_input_ports is not None:
+            element_digital_inputs = digital_input_ports
+
+        element_digital_outputs = []
+        digital_output_ports = _warn_if_not_none(kwargs, "digital_output_ports")
+        if digital_output_ports is not None:
+            element_digital_outputs = digital_output_ports
+
         super().__init__(
             name,
-            analog_input_ports,
-            analog_output_ports,
-            digital_input_ports,
-            digital_output_ports,
+            element_analog_inputs,
+            element_analog_outputs,
+            element_digital_inputs,
             intermediate_frequency,
             lo_frequency,
+            element_digital_outputs=element_digital_outputs,
             mixer=mixer,
             pulses=pulses,
             operations=operations,

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- ConfigBuilder - renamed arguments (backward compatible) in Element and MeasureElement classes.
 
 ## [0.11.2] - 2022-07-25
 ### Changed
