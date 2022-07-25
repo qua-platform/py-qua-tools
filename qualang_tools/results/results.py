@@ -44,7 +44,6 @@ class fetching_tool:
     def is_processing(self):
         """
         Returns True while the program is processing, and also once after the processing is done. Can be used for live plotting.
-        The time at which the processing starts can be access with `self.get_start_time()` to feed `progress_counter()`.
         **Example**: while my_results.is_processing():
 
         :return: boolean flag which is True while the program is processing, and also once after the processing is done.
@@ -67,7 +66,7 @@ class fetching_tool:
 
     def get_start_time(self):
         """
-        Gets the time at which the processing started.
+        Gets the time at which the processing started. To be used in progress_counter().
 
         :return: float for the time at which the processing started.
         """
