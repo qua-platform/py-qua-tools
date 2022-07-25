@@ -46,7 +46,7 @@ class fetching_tool:
         Returns True while the program is processing. Used for live plotting.
         **Example**: while my_results.is_processing():
 
-        :return: boolean flag which is True while the program is processing.
+        :return: boolean flag which is True while the program is processing and once after to plot the last iteration.
         """
         if self.start_time == 0:
             self.__bcont = self.res_handles.is_processing()
