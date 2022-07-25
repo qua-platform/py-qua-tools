@@ -275,12 +275,12 @@ class QUA_calibrations:
                 interrupt_on_close(
                     fig, job
                 )  # Interrupts the job when closing the figure
-                while res_handles.is_processing():
+                while results.is_processing():
                     I, Q, iteration = results.fetch_all()
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
                     Q = u.demod2volts(Q, self.config["pulses"][pulse]["length"])
 
-                    progress_counter(iteration, self.scan_var[calib]["averaging"])
+                    progress_counter(iteration, self.scan_var[calib]["averaging"], start_time=results.get_start_time())
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
                     self.results[calib]["phase"] = signal.detrend(
@@ -295,8 +295,7 @@ class QUA_calibrations:
                         title=calib,
                     )
                     plt.pause(0.01)
-                if len(self.results[calib]["amplitude"]) == 0:
-                    print("Warning: the execution id too short for live plotting.")
+
             else:
                 res_handles.wait_for_all_values()
                 I = u.demod2volts(
@@ -334,12 +333,12 @@ class QUA_calibrations:
                 interrupt_on_close(
                     fig, job
                 )  # Interrupts the job when closing the figure
-                while res_handles.is_processing():
+                while results.is_processing():
                     I, Q, iteration = results.fetch_all()
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
                     Q = u.demod2volts(Q, self.config["pulses"][pulse]["length"])
 
-                    progress_counter(iteration, self.scan_var[calib]["averaging"])
+                    progress_counter(iteration, self.scan_var[calib]["averaging"], start_time=results.get_start_time())
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
                     self.results[calib]["phase"] = signal.detrend(
