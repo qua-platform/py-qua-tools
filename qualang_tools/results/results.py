@@ -66,9 +66,9 @@ class fetching_tool:
 
     def get_start_time(self):
         """
-        Gets the time at which the processing started. To be used in progress_counter().
+        Gets time at which is_processing() was first called. To be used in progress_counter().
 
-        :return: float for the time at which the processing started.
+        :return: float for the time at which is_processing() was first called.
         """
         return self.start_time
 
