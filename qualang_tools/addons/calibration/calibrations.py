@@ -280,7 +280,11 @@ class QUA_calibrations:
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
                     Q = u.demod2volts(Q, self.config["pulses"][pulse]["length"])
 
-                    progress_counter(iteration, self.scan_var[calib]["averaging"], start_time=results.get_start_time())
+                    progress_counter(
+                        iteration,
+                        self.scan_var[calib]["averaging"],
+                        start_time=results.get_start_time(),
+                    )
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
                     self.results[calib]["phase"] = signal.detrend(
@@ -338,7 +342,11 @@ class QUA_calibrations:
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
                     Q = u.demod2volts(Q, self.config["pulses"][pulse]["length"])
 
-                    progress_counter(iteration, self.scan_var[calib]["averaging"], start_time=results.get_start_time())
+                    progress_counter(
+                        iteration,
+                        self.scan_var[calib]["averaging"],
+                        start_time=results.get_start_time(),
+                    )
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
                     self.results[calib]["phase"] = signal.detrend(
