@@ -47,7 +47,7 @@ class fetching_tool:
         The time at which the processing starts can be access with `self.get_start_time()` to feed `progress_counter()`.
         **Example**: while my_results.is_processing():
 
-        :return: boolean flag which is True while the program is processing and once after to plot the last iteration.
+        :return: boolean flag which is True while the program is processing, and also once after the processing is done.
         """
         if self.start_time == 0:
             self._b_cont = self.res_handles.is_processing()
