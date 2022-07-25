@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Changed
-- results - Improved is_processing() and add self.start_time to fetching_tool.
+- results - Improved is_processing() and add self.get_start_time() to fetching_tool.
 
 ## [0.11.1] - 2022-07-19
 ### Fixed
