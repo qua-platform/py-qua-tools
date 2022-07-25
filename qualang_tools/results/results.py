@@ -36,15 +36,26 @@ class fetching_tool:
                     self.data_handles[-1].wait_for_values(1)
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
+            # Live plotting parameters
+            self._b_cont = False
+            self._b_last = True
+            self.start_time = 0
 
     def is_processing(self):
         """
-        Returns True while the program is processing. Used for live plotting.
+        Returns True while the program is processing, and also once after the processing is done. Can be used for live plotting.
         **Example**: while my_results.is_processing():
 
-        :return: boolean flag which is True while the program is processing.
+        :return: boolean flag which is True while the program is processing, and also once after the processing is done.
         """
-        return self.res_handles.is_processing()
+        if self.start_time == 0:
+            self._b_cont = self.res_handles.is_processing()
+            self._b_last = not self._b_cont
+            self.start_time = time.time()
+        else:
+            self._b_cont = self.res_handles.is_processing()
+            self._b_last = not (self._b_cont or self._b_last)
+        return self._b_cont or self._b_last
 
     def _format(self, data):
         if type(data) == np.ndarray:
@@ -52,6 +63,14 @@ class fetching_tool:
                 if len(data.dtype) == 1:
                     data = data["value"]
         return data
+
+    def get_start_time(self):
+        """
+        Gets time at which is_processing() was first called. To be used in progress_counter().
+
+        :return: float for the time at which is_processing() was first called.
+        """
+        return self.start_time
 
     def fetch_all(self):
         """
@@ -98,7 +117,7 @@ def progress_counter(
     if percent:
         progress += f"{current_percent:.1f}%"
     if start_time is not None:
-        progress += f"--> elapsed time: {time.time()-start_time:.2f}s"
+        progress += f" --> elapsed time: {time.time()-start_time:.2f}s"
 
     print(progress, end="\r")
     if current_percent == 100:
