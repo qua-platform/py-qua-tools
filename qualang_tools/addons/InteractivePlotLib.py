@@ -417,8 +417,8 @@ class InteractivePlotLibFigure:
         xlim = scale_convert.convert[0](base_xlim)
         ylim = scale_convert.convert[1](base_ylim)
 
-        xdiff = np.sqrt((xlim[1] - xlim[0]) ** 2 / width ** 2)
-        ydiff = np.sqrt((ylim[1] - ylim[0]) ** 2 / height ** 2)
+        xdiff = np.sqrt((xlim[1] - xlim[0]) ** 2 / width**2)
+        ydiff = np.sqrt((ylim[1] - ylim[0]) ** 2 / height**2)
 
         for j, line in enumerate(line_list):
             x = scale_convert.bound[0](line.get_xdata())
@@ -471,7 +471,7 @@ class InteractivePlotLibFigure:
                         )
 
         self.line_selected = None  # deselect line if selected
-        if candidate["distance_2"] < self.th ** 2:
+        if candidate["distance_2"] < self.th**2:
             self.line_selected = InteractivePlotLibFigure.LineSelected(
                 self,
                 line_list[candidate["line_index"]],
@@ -521,11 +521,11 @@ class InteractivePlotLibFigure:
         if req.isnumeric():
             Fit(int(req), self.ax)
         elif req == "g":
-            Fit(lambda x: np.exp(-(x ** 2) / 2), self.ax)
+            Fit(lambda x: np.exp(-(x**2) / 2), self.ax)
         elif req == "e":
             Fit(lambda x: np.exp(x), self.ax)
         elif req == "l":
-            Fit(lambda x: 1 / (1 + x ** 2), self.ax)
+            Fit(lambda x: 1 / (1 + x**2), self.ax)
         elif req == "r":
             Fit(lambda x: erf(x), self.ax)
         elif req == "s":
@@ -995,7 +995,7 @@ class InteractivePlotLibFigure:
                 if t == "log":
                     self_loglin.convert.append(lambda x: np.log10(np.maximum(x, 1e-16)))
                     self_loglin.bound.append(lambda x: np.maximum(x, 1e-16))
-                    self_loglin.un_convert.append(lambda x: 10 ** x)
+                    self_loglin.un_convert.append(lambda x: 10**x)
                 elif t == "linear":
                     self_loglin.convert.append(lambda x: x)
                     self_loglin.bound.append(lambda x: x)

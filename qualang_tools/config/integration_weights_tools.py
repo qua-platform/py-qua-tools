@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def _round_to_fixed_point_accuracy(x, accuracy=2 ** -15):
+def _round_to_fixed_point_accuracy(x, accuracy=2**-15):
     return np.round(x / accuracy) * accuracy
 
 
 def convert_integration_weights(
-    integration_weights, N=100, accuracy=2 ** -15, plot=False
+    integration_weights, N=100, accuracy=2**-15, plot=False
 ):
     """
     Converts a list of integration weights, in which each sample corresponds to a clock cycle (4ns), to a list

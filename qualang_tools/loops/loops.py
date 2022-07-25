@@ -169,7 +169,7 @@ def qua_arange(var, start, stop, step):
         else:
             stop_condition = stop
 
-        if np.abs((stop - start) / step * 2 ** -28) >= np.abs(step):
+        if np.abs((stop - start) / step * 2**-28) >= np.abs(step):
             raise Exception(
                 "The required accuracy is to large:N * (2 ** -28) > step/2, please contact a QM member."
             )
@@ -247,9 +247,9 @@ def qua_logspace(var, start, stop, num):
         raise Exception("The number of samples must be a python integer.")
 
     if num > 1:
-        step = (10 ** stop / 10 ** start) ** (1 / (num - 1))
+        step = (10**stop / 10**start) ** (1 / (num - 1))
     elif num == 1:
-        step = (10 ** stop / 10 ** start) ** 1
+        step = (10**stop / 10**start) ** 1
     else:
         raise Exception("`num` must be greater than 0.")
 
@@ -262,34 +262,34 @@ def qua_logspace(var, start, stop, num):
         if step > 1:
             return (
                 var,
-                round(10 ** start),
-                var < round(10 ** stop * np.sqrt(step)),
+                round(10**start),
+                var < round(10**stop * np.sqrt(step)),
                 Cast.mul_int_by_fixed(var, float(step)),
             )
         else:
             return (
                 var,
-                round(10 ** start),
-                var > round(10 ** stop / np.sqrt(step)),
+                round(10**start),
+                var > round(10**stop / np.sqrt(step)),
                 Cast.mul_int_by_fixed(var, float(step)),
             )
     elif var_type == "fixed":
         # Check for fixed number overflows
-        if not (-8 <= 10 ** start < 8) and not (-8 <= 10 ** stop < 8):
+        if not (-8 <= 10**start < 8) and not (-8 <= 10**stop < 8):
             raise Exception("fixed numbers are bounded to [-8, 8).")
 
         if step > 1:
             return (
                 var,
-                10 ** start,
-                (var < 10 ** stop * np.sqrt(step)) & (10 ** start <= var),
+                10**start,
+                (var < 10**stop * np.sqrt(step)) & (10**start <= var),
                 var * step,
             )
         else:
             return (
                 var,
-                10 ** start,
-                (var > 10 ** stop * np.sqrt(step)) & (10 ** start >= var),
+                10**start,
+                (var > 10**stop * np.sqrt(step)) & (10**start >= var),
                 var * step,
             )
 
