@@ -37,8 +37,8 @@ class fetching_tool:
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
             # Live plotting parameters
-            self.__bcont = False
-            self.__blast = True
+            self._b_cont = False
+            self._b_last = True
             self.start_time = 0
 
     def is_processing(self):
@@ -50,13 +50,13 @@ class fetching_tool:
         :return: boolean flag which is True while the program is processing and once after to plot the last iteration.
         """
         if self.start_time == 0:
-            self.__bcont = self.res_handles.is_processing()
-            self.__blast = not self.__bcont
+            self._b_cont = self.res_handles.is_processing()
+            self._b_last = not self._b_cont
             self.start_time = time.time()
         else:
-            self.__bcont = self.res_handles.is_processing()
-            self.__blast = not (self.__bcont or self.__blast)
-        return self.__bcont or self.__blast
+            self._b_cont = self.res_handles.is_processing()
+            self._b_last = not (self._b_cont or self._b_last)
+        return self._b_cont or self._b_last
 
     def _format(self, data):
         if type(data) == np.ndarray:
