@@ -382,3 +382,26 @@ def test_parameter_algebra():
     assert (c / 10)() == c() / 10
     assert (d**c)() == 10000
     assert (c**2)() == 16
+
+
+def test_deprecated_warning():
+    with pytest.warns(None) as record:
+        cb = ConfigBuilder()
+        cont = Controller("con1")
+        cb.add(cont)
+        elm = Element("elm", analog_input_ports=[cont.analog_output(1)]
+        )
+
+        cb.add(elm)
+        cb.build()
+    assert len(record.list) == 1
+
+    with pytest.warns(None) as record:
+        cb = ConfigBuilder()
+        cont = Controller("con1")
+        cb.add(cont)
+        elm = Element("elm", element_analog_inputs=[cont.analog_output(1)]
+        )
+        cb.add(elm)
+        cb.build()
+    assert len(record.list) == 0
