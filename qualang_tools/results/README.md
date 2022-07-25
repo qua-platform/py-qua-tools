@@ -48,7 +48,6 @@ Several flags are available to customize the progress bar:
 
 ```python
 from qualang_tools.results import fetching_tool, progress_counter
-import time
 
 n_avg = 1000
 
@@ -63,10 +62,9 @@ my_results = fetching_tool(job, data_list=["iteration", "I", "Q", "Ie", "Qe", "I
 
 fig = plt.figure()
 
-t0 = time.time()
 while my_results.is_processing():
     # Live plotting
     iteration, I, Q, Ie, Qe, Ig, Qg = my_results.fetch_all()
-    progress_counter(iteration, n_avg, start_time=t0)
+    progress_counter(iteration, n_avg, start_time=my_results.get_start_time())
     ...
 ```
