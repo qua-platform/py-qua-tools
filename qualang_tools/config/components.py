@@ -776,7 +776,7 @@ class PiecewiseConstantIntegrationWeights(IntegrationWeights):
         :type cosines: List[float]
         :param sines: values of the sine vector
         :type sines: List[float]
-        :param durations: duration of the each segment
+        :param durations: duration of each segment
         :type durations: List[int]
         """
         self._durations = durations
