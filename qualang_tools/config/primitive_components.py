@@ -67,13 +67,13 @@ class AnalogOutputPort(Port):
         offset: float = 0,
         delay: Optional[float] = None,
         filter: Optional[AnalogOutputFilter] = None,
-        channel_weights: Optional[float] = None,
+        crosstalk: Optional[dict] = None,
     ):
         super(AnalogOutputPort, self).__init__(controller, port_id)
         self.offset = offset
         self.delay = delay
         self.filter = filter
-        self.channel_weights = channel_weights
+        self.crosstalk = crosstalk
 
 
 class DigitalInputPort(Port):

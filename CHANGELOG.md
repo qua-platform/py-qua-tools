@@ -28,6 +28,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.11.2] - 2022-07-25
 ### Changed
 - results - Improved `is_processing()` and add `get_start_time()` to fetching_tool.
+=======
+### Changed
+- ConfigBuilder - renamed AnalogOutputPort attribute channel_weights to crosstalk
 
 ## [0.11.1] - 2022-07-19
 ### Fixed

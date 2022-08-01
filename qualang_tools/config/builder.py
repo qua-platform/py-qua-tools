@@ -72,8 +72,8 @@ class ConfigBuilder:
                         "feedback": port.filter.feedback,
                         "feedforward": port.filter.feedforward,
                     }
-                if port.channel_weights is not None:
-                    port_dict["channel_weights"] = port.channel_weights
+                if port.crosstalk is not None:
+                    port_dict["crosstalk"] = port.crosstalk
                 port_dict["offset"] = port.offset
                 port_dict["shareable"] = port.shareable
             elif isinstance(port, AnalogInputPort):
