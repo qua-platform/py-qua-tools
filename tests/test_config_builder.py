@@ -2,10 +2,7 @@ from tracemalloc import stop
 import pytest
 import numpy as np
 
-from qualang_tools.config import Matrix2x2
-from qualang_tools.config.components import *
-from qualang_tools.config.builder import ConfigBuilder
-from qualang_tools.config.parameters import Parameter, ConfigVars
+from qualang_tools.config import *
 
 from qm.program._qua_config_schema import load_config
 

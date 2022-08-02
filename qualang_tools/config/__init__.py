@@ -10,6 +10,7 @@ from qualang_tools.config.waveform_tools import (
 from qualang_tools.config.builder import ConfigBuilder
 from qualang_tools.config.components import *
 from qualang_tools.config.primitive_components import *
+from qualang_tools.config.parameters import Parameter, ConfigVars
 
 __all__ = [
     "drag_gaussian_pulse_waveforms",
@@ -28,6 +29,7 @@ __all__ = [
     "MeasureElement",
     "ConstantIntegrationWeights",
     "ArbitraryIntegrationWeights",
+    "PiecewiseConstantIntegrationWeights",
     "ElementCollection",
     "ReadoutResonator",
     "Transmon",
@@ -49,4 +51,6 @@ __all__ = [
     "MixerData",
     "AnalogOutputFilter",
     "ConfigBuilder",
+    "Parameter",
+    "ConfigVars",
 ]
