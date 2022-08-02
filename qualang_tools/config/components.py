@@ -297,13 +297,6 @@ class MeasurePulse(Pulse):
             w = Weights(w)
 
         if isinstance(w, Weights):
-            if callable(self.dict):
-                if isinstance(w.weights, ConstantIntegrationWeights):
-                    if w.weights.dict["cosine"][0][1] == self.dict["length"]:
-                        assert w.weights.dict["cosine"][0][1]() == self.dict["length"]()
-
-                else:
-                    assert len(w.weights.dict["sine"]) == self.dict["length"] // 4
             self.integration_weights.append(w)
         elif isinstance(w, DigitalWaveform):
             self.digital_marker = w
