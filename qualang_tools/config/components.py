@@ -317,7 +317,7 @@ class ControlPulse(Pulse):
 
 
 class Mixer(ConfigBuilderElement):
-    def __init__(self, name: str, data: Optional[List[MixerData]] = None):
+    def __init__(self, name: str, data: List[MixerData] = None):
         """A microwave mixer
 
         :param name: name for this mixer
