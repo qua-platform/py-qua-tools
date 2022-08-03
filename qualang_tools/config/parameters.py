@@ -221,7 +221,7 @@ class ConfigVars(object):
             )
         if name not in self.params.keys():
             self.params[name] = Parameter(name)
-            if setter is not None:
+        if setter is not None:
                 self.params[name].value = setter
         return self.params[name]
 
