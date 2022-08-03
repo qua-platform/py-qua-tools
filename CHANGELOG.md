@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Changed
 - ConfigBuilder - renamed arguments (backward compatible) in Element and MeasureElement classes.
+### Fixed
+- Fixed dependency to be compatible with qm-qua 0.4.0
 
 ## [0.11.2] - 2022-07-25
 ### Changed
