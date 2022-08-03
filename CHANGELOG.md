@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Waveform tools - Renamed argument `delta` to `anharmonicity` in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
   `delta` is still accepted but will be deprecated in future versions.
 - ConfigBuilder - renamed arguments (backward compatible) in Element and MeasureElement classes.
+- ConfigBuilder - renamed AnalogOutputPort attribute channel_weights to crosstalk
 
 ### Added
 - ConfigBuilder - PiecewiseConstantIntegrationWeights class.
@@ -28,9 +29,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.11.2] - 2022-07-25
 ### Changed
 - results - Improved `is_processing()` and add `get_start_time()` to fetching_tool.
-=======
-### Changed
-- ConfigBuilder - renamed AnalogOutputPort attribute channel_weights to crosstalk
 
 ## [0.11.1] - 2022-07-19
 ### Fixed

@@ -37,7 +37,10 @@ class Parameter(object):
 
         def func():
             if self.is_set:
-                return len(self._value)
+                if callable(self._value):
+                    return len(self._value())
+                else:
+                    return len(self._value)
             else:
                 raise AssertionError("Parameter {} is not set".format(self.name))
 

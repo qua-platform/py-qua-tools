@@ -380,6 +380,9 @@ def test_parameter_algebra():
     assert (d**c)() == 10000
     assert (c**2)() == 16
 
+    e = c_vars.parameter("e", setter=lambda:[1, 2, 3])
+    assert type(e) == Parameter
+    assert e.len() == 3
 
 def test_deprecated_warning():
     with pytest.warns(None) as record:
