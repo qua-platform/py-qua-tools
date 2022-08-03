@@ -58,6 +58,8 @@ class QMConfiguration:
                     if _is_callable(v):
                         if isinstance(v, dict):
                             _dic[k] = self._call_dict_parameters(v)
+                        elif isinstance(v, list):
+                            _dic[k] = [e() if _is_callable(e) else e for e in v]
                         else:
                             _dic[k] = v()
                 return _dic
