@@ -1,4 +1,5 @@
 from tracemalloc import stop
+from flask import Config
 import pytest
 import numpy as np
 
@@ -405,3 +406,12 @@ def test_deprecated_warning():
         cb.add(elm)
         cb.build()
     assert len(record.list) == 0
+
+def test_digital_input():
+    cont = Controller("con1")
+    elm = Element("elm",
+             analog_input_ports=[cont.analog_output(1)],
+             digital_input_ports=[cont.digital_output(2)])
+    elm.set_digital_input_delay(2, 20)
+    assert "in2" in elm.dict["digitalInputs"].keys()
+    assert elm.dict["digitalInputs"]["in2"]["delay"] == 20
