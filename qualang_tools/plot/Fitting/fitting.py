@@ -86,8 +86,8 @@ class Fit:
 
           for unknown parameters `f`, `phase`, `tau`, `amp`, `uncertainty_population` and `initial_offset`.
 
-          :param x:  The data on the x axis
-          :param y: The data on the y axis
+          :param x:  The dephasing time in ns
+          :param y: The transition probability
           :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
               fit_func - The fitted function
               f -  The detuning frequency
@@ -188,8 +188,8 @@ class Fit:
 
              for unknown parameters `a`, `b`, `c`, `f`.
 
-             :param x:  The data on the x axis
-             :param y: The data on the y axis
+             :param x:  The frequency in Hz
+             :param y: The transition probability (I^2+Q^2)
              :return: A dictionary of (fit_func, f, kc, k, ki, offset
                  fit_func - The fitted function
                  f - The frequency at the peak
@@ -265,8 +265,8 @@ class Fit:
                1 + (4 * ((x - f) ** 2) / (c ** 2)))) + d * x
            for unknown parameters `a`, `b`, `c`, `d`, `f`.
 
-           :param x:  The data on the x axis
-           :param y: The data on the y axis
+           :param x:  The frequency in Hz
+           :param y: The transition probability (I^2+Q^2)
            :return: A dictionary of (fit_func, f, kc, k, ki, offset
                fit_func - The fitted function
                f - The frequency at the peak
