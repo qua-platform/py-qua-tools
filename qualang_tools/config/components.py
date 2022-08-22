@@ -348,6 +348,16 @@ class Oscillator(ConfigBuilderElement):
     def __init__(
         self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
     ):
+        """ An internal oscillator.
+        :param name: name of the oscillator
+        :type name: str
+        :param intermediate_frequency: intermediate frequency of the oscillator
+        :type intermediate_frequency: int
+        :param lo_frequency: local oscillator frequency
+        :type lo_frequency: int
+        :param mixer: mixer name
+        :type mixer: str
+        """
         super(Oscillator, self).__init__(name)
         self.dict = dict()
         self.dict["intermediate_frequency"] = intermediate_frequency
@@ -1269,6 +1279,12 @@ class FluxTunableTransmon(Transmon):
 
 class Coupler(ElementCollection):
     def __init__(self, name: str, port: AnalogOutputPort, **kwargs):
+        """Element driving a coupler between two transmons
+        :param name: name of the coupler
+        :type name: str
+        :param port: analog output port driving the coupler
+        :type port: AnalogOutputPort
+        """
         operations: Optional[List[Operation]] = kwargs.get("operations", None)
         super(Coupler, self).__init__(name=name)
         self._port = port
