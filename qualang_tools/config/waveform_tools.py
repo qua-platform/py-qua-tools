@@ -8,7 +8,7 @@ def drag_gaussian_pulse_waveforms(
     sigma,
     alpha,
     anharmonicity,
-    detuning=0,
+    detuning=0.0,
     subtracted=True,
     **kwargs
 ):
@@ -94,7 +94,7 @@ def drag_gaussian_pulse_waveforms(
 
 
 def drag_cosine_pulse_waveforms(
-    amplitude, length, alpha, anharmonicity, detuning=0, **kwargs
+    amplitude, length, alpha, anharmonicity, detuning=0.0, **kwargs
 ):
     """
     Creates Cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
