@@ -475,7 +475,7 @@ class Element(ConfigBuilderElement):
         if len(self.element_digital_inputs) > 0:
             self.dict["digitalInputs"] = dict()
 
-            for port in self.digital_input_ports:
+            for port in self.element_digital_inputs:
                 self.dict["digitalInputs"]["in" + str(port.port_id)] = {
                     "port": port.info,
                     "delay": 0,
