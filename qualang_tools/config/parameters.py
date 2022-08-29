@@ -37,7 +37,10 @@ class Parameter(object):
 
         def func():
             if self.is_set:
-                return len(self._value)
+                if callable(self._value):
+                    return len(self._value())
+                else:
+                    return len(self._value)
             else:
                 raise AssertionError("Parameter {} is not set".format(self.name))
 
@@ -221,8 +224,8 @@ class ConfigVars(object):
             )
         if name not in self.params.keys():
             self.params[name] = Parameter(name)
-            if setter is not None:
-                self.params[name].value = setter
+        if setter is not None:
+            self.params[name].value = setter
         return self.params[name]
 
     def set(self, **kwargs):

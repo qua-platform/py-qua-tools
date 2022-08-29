@@ -1,11 +1,9 @@
 from tracemalloc import stop
+from flask import Config
 import pytest
 import numpy as np
 
-from qualang_tools.config import Matrix2x2
-from qualang_tools.config.components import *
-from qualang_tools.config.builder import ConfigBuilder
-from qualang_tools.config.parameters import Parameter, ConfigVars
+from qualang_tools.config import *
 
 from qm.program._qua_config_schema import load_config
 
@@ -91,7 +89,7 @@ def test_pulses(config_resonator):
     except:
         assert False
     assert [*config["pulses"]] == ["ro_pulse"]
-    assert config["pulses"]["ro_pulse"]["operation"] == "measure"
+    assert config["pulses"]["ro_pulse"]["operation"] == "measurement"
     assert config["pulses"]["ro_pulse"]["length"] == 16
     assert config["pulses"]["ro_pulse"]["waveforms"]["I"] == "wf1"
     assert config["pulses"]["ro_pulse"]["waveforms"]["Q"] == "wf2"
@@ -383,6 +381,9 @@ def test_parameter_algebra():
     assert (d**c)() == 10000
     assert (c**2)() == 16
 
+    e = c_vars.parameter("e", setter=lambda:[1, 2, 3])
+    assert type(e) == Parameter
+    assert e.len() == 3
 
 def test_deprecated_warning():
     with pytest.warns(None) as record:
@@ -405,3 +406,12 @@ def test_deprecated_warning():
         cb.add(elm)
         cb.build()
     assert len(record.list) == 0
+
+def test_digital_input():
+    cont = Controller("con1")
+    elm = Element("elm",
+             analog_input_ports=[cont.analog_output(1)],
+             digital_input_ports=[cont.digital_output(2)])
+    elm.set_digital_input_delay(2, 20)
+    assert "in2" in elm.dict["digitalInputs"].keys()
+    assert elm.dict["digitalInputs"]["in2"]["delay"] == 20

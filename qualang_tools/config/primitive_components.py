@@ -14,10 +14,14 @@ class ConfigBuilderElement(ConfigBuilderClass):
 
 
 class Port(ConfigBuilderClass):
-    def __init__(self, controller: str, port_id: int) -> None:
+    def __init__(self, controller: str, port_id: int, shareable: bool = False) -> None:
+        """
+        Base class for controller ports.
+        """
         super(Port, self).__init__()
         self.controller = controller
         self.port_id = port_id
+        self.shareable = shareable
 
     @property
     def info(self):
@@ -39,6 +43,16 @@ class AnalogInputPort(Port):
         offset: float = 0,
         gain_db: Optional[float] = None,
     ):
+        """Analog input port of the controller
+        :param controller: name of the controller
+        :type controller: str
+        :param port_id: port id
+        :type port_id: int
+        :param offset: offset voltage
+        :type offset: float
+        :param gain_db: voltage gain in db  (-12dB to 20dB in steps of 1dB)
+        :type gain_db: float
+        """
         super(AnalogInputPort, self).__init__(controller, port_id)
         self.offset = offset
         self.gain_db = gain_db
@@ -66,13 +80,25 @@ class AnalogOutputPort(Port):
         offset: float = 0,
         delay: Optional[float] = None,
         filter: Optional[AnalogOutputFilter] = None,
-        channel_weights: Optional[float] = None,
+        crosstalk: Optional[dict] = None,
     ):
+        """Analog output port of the controller.
+        :param controller: name of the controller
+        :type controller: str
+        :param port_id: port id
+        :type port_id: int
+        :param offset: offset voltage
+        :type offset: float
+        :param filter: analog output filter
+        :type filter: AnalogOutputPort
+        :param crosstalk: crosstalk terms between any ports in the same controller
+        :type crosstalk: dict
+        """
         super(AnalogOutputPort, self).__init__(controller, port_id)
         self.offset = offset
         self.delay = delay
         self.filter = filter
-        self.channel_weights = channel_weights
+        self.crosstalk = crosstalk
 
 
 class DigitalInputPort(Port):
@@ -84,6 +110,18 @@ class DigitalInputPort(Port):
         window: Optional[float] = None,
         threshold: Optional[float] = None,
     ):
+        """Digital input port of the controller.
+        :param controller: name of the controller
+        :type controller: str
+        :param port_id: port id
+        :type port_id: int
+        :param polarity: whether it is triggered when 'HIGH'(rising edge) or 'LOW' (falling edge)
+        :type polarity: str
+        :param window: minimal time between pulses in ns
+        :type window: float
+        :param threshold: voltage threshold
+        :type threshold: float
+        """
         super(DigitalInputPort, self).__init__(controller, port_id)
         self.polarity = polarity
         self.window = window
@@ -91,9 +129,14 @@ class DigitalInputPort(Port):
 
 
 class DigitalOutputPort(Port):
-    def __init__(self, controller: str, port_id: int, offset: float = 0):
+    def __init__(self, controller: str, port_id: int):
+        """A digital output port of the controller.
+        :param controller: name of the controller
+        :type controller: str
+        :param port_id: port id
+        :type port_id: int
+        """
         super(DigitalOutputPort, self).__init__(controller, port_id)
-        self.offset = offset
 
 
 class Waveform(ConfigBuilderElement):
@@ -152,7 +195,13 @@ class Pulse(ConfigBuilderElement):
 
 
 class Operation(ConfigBuilderClass):
-    def __init__(self, pulse: Pulse, name: str = ""):
+    def __init__(self, pulse: Pulse, name: Optional[str] = ""):
+        """An operation used in the QUA program (a pulse with a given name).
+        :param Pulse: a pulse
+        :type Pulse: Pulse
+        :param name: operation name (defaults to the pulse name)
+        :type name: str
+        """
         super(Operation, self).__init__()
         self.pulse = pulse
         self.name = pulse.name if name == "" else name
@@ -192,7 +241,13 @@ class IntegrationWeights(ConfigBuilderElement):
 
 
 class Weights(ConfigBuilderClass):
-    def __init__(self, weights: IntegrationWeights, name: str = ""):
+    def __init__(self, weights: IntegrationWeights, name: Optional[str] = ""):
+        """Integration weights with a given name.
+        :param weights: Integation weights used in demodulation or integration.
+        :type weights: IntegrationWeights
+        :param name: name of the integration weights (this name is used in the measure statement)
+        :type name: str
+        """
         super(Weights, self).__init__()
         self.name = weights.name if name == "" else name
         self.weights = weights

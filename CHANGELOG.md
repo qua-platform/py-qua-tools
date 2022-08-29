@@ -4,13 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
 ### Changed
 - **Breaking change!** - Waveform tools - Added a missing 2$\pi$ factor into `detuning` parameter in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
   This will produce different results compared to previous versions, to get the same results, divide the `detuning` parameter by 2pi. Both `detuning`, `delta`, and `anharmonicity` are now expected in`Hz` rather than `rad`; a 2$\pi$ multiplication occurs in the built-in function.
 - Waveform tools - Renamed argument `delta` to `anharmonicity` in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
   `delta` is still accepted but will be deprecated in future versions.
 - ConfigBuilder - renamed arguments (backward compatible) in Element and MeasureElement classes.
+- ConfigBuilder - renamed AnalogOutputPort attribute channel_weights to crosstalk
+
+### Added
+- ConfigBuilder - PiecewiseConstantIntegrationWeights class.
+- ConfigBuilder - added thread and Oscillator to Element class.
+- ConfigBuilder - added shareable field to all ports.
+- ConfigBuilder - added doc strings
+
 ### Fixed
+- ConfigBuilder - measure pulse type in the configuration
+- ConfigBuilder - removed offset field in DigitalOutputPort
+- ConfigBuilder - DigitalInputPort's port id
+- ConfigBuilder - fixed len method of Parameter when a setter is used
 - Fixed dependency to be compatible with qm-qua 0.4.0
 
 ## [0.11.2] - 2022-07-25

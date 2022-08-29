@@ -62,37 +62,38 @@ class ConfigBuilder:
     def _add_controller(self, cont: Controller):
         self.controllers.append(cont)
         for port in cont.ports:
+            port_info = port.info[1]
             if isinstance(port, AnalogOutputPort):
+                port_dict = cont.dict["analog_outputs"][port_info]
                 if port.delay is not None:
-                    cont.dict["analog_outputs"][port.info[1]]["delay"] = port.delay
+                    port_dict["delay"] = port.delay
                 if port.filter is not None:
-                    cont.dict["analog_outputs"][port.info[1]]["filter"] = {
+                    port_dict["filter"] = {
                         "feedback": port.filter.feedback,
                         "feedforward": port.filter.feedforward,
                     }
-                if port.channel_weights is not None:
-                    cont.dict["analog_outputs"][port.info[1]][
-                        "channel_weights"
-                    ] = port.channel_weights
-                cont.dict["analog_outputs"][port.info[1]]["offset"] = port.offset
+                if port.crosstalk is not None:
+                    port_dict["crosstalk"] = port.crosstalk
+                port_dict["offset"] = port.offset
+                port_dict["shareable"] = port.shareable
             elif isinstance(port, AnalogInputPort):
+                port_dict = cont.dict["analog_inputs"][port_info]
                 if port.gain_db is not None:
-                    cont.dict["analog_inputs"][port.info[1]]["gain_db"] = port.gain_db
-                cont.dict["analog_inputs"][port.info[1]]["offset"] = port.offset
+                    port_dict["gain_db"] = port.gain_db
+                port_dict["offset"] = port.offset
+                port_dict["shareable"] = port.shareable
             elif isinstance(port, DigitalOutputPort):
-                cont.dict["digital_outputs"][port.info[1]]["offset"] = port.offset
+                port_dict = cont.dict["digital_outputs"][port_info]
+                port_dict["shareable"] = port.shareable
             elif isinstance(port, DigitalInputPort):
+                port_dict = cont.dict["digital_inputs"][port_info]
                 if port.polarity is not None:
-                    cont.dict["digital_inputs"][port.info[1]][
-                        "polarity"
-                    ] = port.polarity
+                    port_dict["polarity"] = port.polarity
                 if port.threshold is not None:
-                    cont.dict["digital_inputs"][port.info[1]][
-                        "threshold"
-                    ] = port.threshold
+                    port_dict["threshold"] = port.threshold
                 if port.window is not None:
-                    cont.dict["digital_inputs"][port.info[1]]["window"] = port.window
-
+                    port_dict["window"] = port.window
+                port_dict["shareable"] = port.shareable
         self.configuration.config["controllers"][cont.name] = cont.dict
 
     def build(self, config=None):
