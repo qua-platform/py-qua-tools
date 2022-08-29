@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+
+## [0.12.0] - 2022-08-29
 ### Changed
 - **Breaking change!** - Waveform tools - Added a missing 2$\pi$ factor into `detuning` parameter in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
   This will produce different results compared to previous versions, to get the same results, divide the `detuning` parameter by 2pi. Both `detuning`, `delta`, and `anharmonicity` are now expected in`Hz` rather than `rad`; a 2$\pi$ multiplication occurs in the built-in function.
@@ -217,8 +219,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.2...HEAD
-[0.11.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.1...v0.11.2
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.2...v0.12.0
+[0.11.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.9.0...v0.10.0
