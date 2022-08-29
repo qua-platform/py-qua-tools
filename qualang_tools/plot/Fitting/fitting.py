@@ -26,14 +26,14 @@ class Fit:
            .. math::
            f(x) = a * x + b
 
-           for unknown parameters `a` and `b`.
+           for unknown parameters :
+                a - The slope of the function
+                b - The free parameter of the function
+
 
            :param x: The data on the x axis
            :param y: The data on the y axis
            :return: A dictionary of (fit_func, a, b)
-               fit_func - The fitted function
-               a - The slope of the function
-               b - The free parameter of the function
 
            """
 
@@ -79,23 +79,23 @@ class Fit:
           Create a fit to Ramsey experiment of the form
 
           .. math::
-          f(x) = uncertainty_population * (1 - np.exp(-x * (1/tau))) + amp / 2 * (
+          f(x) = uncertainty_population * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
               np.exp(-x * (1/tau))
               * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
               )
 
-          for unknown parameters `f`, `phase`, `tau`, `amp`, `uncertainty_population` and `initial_offset`.
+          for unknown parameters :
+              f - The detuning frequency
+              phase - The phase
+              T2 - The decay constant
+              amp - The amplitude
+              uncertainty_population -  The uncertainty in population
+              initial_offset - The initial offset
 
           :param x:  The dephasing time in ns
           :param y: The transition probability
           :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
-              fit_func - The fitted function
-              f -  The detuning frequency
-              phase - The phase
-              tau - The decay constant
-              amp - The amplitude
-              uncertainty_population -  The uncertainty in population
-              initial_offset - The initial offset
+
            """
 
         # Normalizing the vectors
@@ -183,20 +183,19 @@ class Fit:
              Create a fit to transmission resonator spectroscopy of the form
 
              .. math::
-             (a / (
-                 1 + (4 * ((x - f) ** 2) / (b ** 2)))) + c
+             ((kc/k) / (
+                 1 + (4 * ((x - f) ** 2) / (k ** 2)))) + offset
 
-             for unknown parameters `a`, `b`, `c`, `f`.
-
-             :param x:  The frequency in Hz
-             :param y: The transition probability (I^2+Q^2)
-             :return: A dictionary of (fit_func, f, kc, k, ki, offset
-                 fit_func - The fitted function
+             for unknown parameters:
                  f - The frequency at the peak
                  kc - The strength with which the field of the resonator couples to the transmission line
                  ki - A parameter that indicates the internal coherence properties of the resonator
                  k - The FWHM of the fitted function.  k = ki + kc
                  offset - The offset
+
+             :param x:  The frequency in Hz
+             :param y: The transition probability (I^2+Q^2)
+             :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
           """
 
@@ -261,20 +260,19 @@ class Fit:
            Create a fit to reflection resonator spectroscopy of the form
 
            .. math::
-           (a)-(b / (
-               1 + (4 * ((x - f) ** 2) / (c ** 2)))) + d * x
-           for unknown parameters `a`, `b`, `c`, `d`, `f`.
-
-           :param x:  The frequency in Hz
-           :param y: The transition probability (I^2+Q^2)
-           :return: A dictionary of (fit_func, f, kc, k, ki, offset
-               fit_func - The fitted function
+           (offset)-((kc/k) / (
+               1 + (4 * ((x - f) ** 2) / (k ** 2)))) + slope * x
+           for unknown parameters:
                f - The frequency at the peak
                kc - The strength with which the field of the resonator couples to the transmission line
                ki - A parameter that indicates the internal coherence properties of the resonator
                k - The FWHM of the fitted function.  k = ki + kc
                offset - The offset
                slope - The slope of the function. This is added after experimental considerations.
+
+           :param x:  The frequency in Hz
+           :param y: The transition probability (I^2+Q^2)
+           :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
 
