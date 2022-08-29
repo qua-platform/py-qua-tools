@@ -129,17 +129,14 @@ class DigitalInputPort(Port):
 
 
 class DigitalOutputPort(Port):
-    def __init__(self, controller: str, port_id: int, offset: float = 0):
-        """ A digital output port of the controller.
+    def __init__(self, controller: str, port_id: int):
+        """A digital output port of the controller.
         :param controller: name of the controller
         :type controller: str
         :param port_id: port id
         :type port_id: int
-        :param offset: offset voltage
-        :type offset: float
         """
         super(DigitalOutputPort, self).__init__(controller, port_id)
-        self.offset = offset
 
 
 class Waveform(ConfigBuilderElement):
@@ -199,7 +196,7 @@ class Pulse(ConfigBuilderElement):
 
 class Operation(ConfigBuilderClass):
     def __init__(self, pulse: Pulse, name: Optional[str] = ""):
-        """ An operation used in the QUA program (a pulse with a given name).
+        """An operation used in the QUA program (a pulse with a given name).
         :param Pulse: a pulse
         :type Pulse: Pulse
         :param name: operation name (defaults to the pulse name)

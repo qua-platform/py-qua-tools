@@ -84,7 +84,6 @@ class ConfigBuilder:
                 port_dict["shareable"] = port.shareable
             elif isinstance(port, DigitalOutputPort):
                 port_dict = cont.dict["digital_outputs"][port_info]
-                port_dict["offset"] = port.offset
                 port_dict["shareable"] = port.shareable
             elif isinstance(port, DigitalInputPort):
                 port_dict = cont.dict["digital_inputs"][port_info]

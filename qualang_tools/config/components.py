@@ -80,22 +80,19 @@ class Controller(ConfigBuilderElement):
         self._use_analog_input_port(port, offset)
         return self.analog_input_ports[-1]
 
-    def digital_output(self, port: int, offset: float = 0):
+    def digital_output(self, port: int):
         """Returns an instance of DigitalOutputPort with a specific port number and offset if already in the configuration.
         otherwise, opens a new instance with the given port number and offset.
 
         :param port: port number in the range 1-10
         :type port: int
-        :param offset: defaults to 0
-        :type offset: float, optional
         :return:
         :rtype: DigitalOutputPort
         """
         for (i, p) in enumerate(self.digital_output_ports):
             if port == p.info[1]:
-                p.offset = offset
                 return p
-        self._use_digital_output_port(port, offset)
+        self._use_digital_output_port(port)
         return self.digital_output_ports[-1]
 
     def digital_input(self, port: int):
@@ -148,19 +145,15 @@ class Controller(ConfigBuilderElement):
                 AnalogOutputPort(self.name, port_num, offset=offset)
             ]
 
-    def _use_digital_output_port(self, port_num: int, offset: float = 0.0):
+    def _use_digital_output_port(self, port_num: int):
         """Adds an instance of  DigitalOutputPort to configuration if it is not used
 
         :param port_num: port number
         :type port_num: int
-        :param offset: defaults to 0.0
-        :type offset: float, optional
         """
         if port_num not in self.dict["digital_outputs"]:
-            self.dict["digital_outputs"][port_num] = {"offset": offset}
-            self.digital_output_ports += [
-                DigitalOutputPort(self.name, port_num, offset=offset)
-            ]
+            self.dict["digital_outputs"][port_num] = {}
+            self.digital_output_ports += [DigitalOutputPort(self.name, port_num)]
 
     def _use_digital_input_port(self, port_num: int):
         """Adds an instance of  DigitalInputPort to configuration if it is not used
@@ -348,7 +341,7 @@ class Oscillator(ConfigBuilderElement):
     def __init__(
         self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
     ):
-        """ An internal oscillator.
+        """An internal oscillator.
         :param name: name of the oscillator
         :type name: str
         :param intermediate_frequency: intermediate frequency of the oscillator
