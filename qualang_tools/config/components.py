@@ -765,24 +765,36 @@ class MeasureElement(Element):
 
 
 class PiecewiseConstantIntegrationWeights(IntegrationWeights):
-    def __init__(self, name: str, cosines: List, sines: List, durations: List):
+    def __init__(
+        self,
+        name: str,
+        cosines: List[Tuple[float, int]],
+        sines: List[Tuple[float, int]],
+    ):
         """Piece-wise constant integration weights used in integration and demodulation
         :param name: name for the weights vector
         :type name: str
-        :param cosines: values of the cosine vector
-        :type cosines: List[float]
-        :param sines: values of the sine vector
-        :type sines: List[float]
-        :param durations: duration of each segment
-        :type durations: List[int]
+        :param cosines: values of the cosine weight and the respective durations
+        :type cosines: List[Tuple[float, int]]
+        :param sines: values of the sine weight and the respective durations
+        :type sines: List[Tuple[float, int]]
         """
-        self._durations = durations
         self._cosines = cosines
         self._sines = sines
+        tot_duration_cos = 0
+        for e in cosines:
+            tot_duration_cos += e[1]
+        tot_duration_sin = 0
+        for e in sines:
+            tot_duration_sin += e[1]
+        assert (
+            tot_duration_sin == tot_duration_cos
+        ), "Total duration of the sine and cosine weights must be same"
+
         super(PiecewiseConstantIntegrationWeights, self).__init__(
             name,
-            [(cosine, duration) for (cosine, duration) in zip(cosines, durations)],
-            [(sine, duration) for (sine, duration) in zip(sines, durations)],
+            cosines,
+            sines,
         )
 
 
