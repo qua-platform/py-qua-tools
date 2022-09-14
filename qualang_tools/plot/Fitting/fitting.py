@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import itertools
 import json
 import numpy as np
+import scipy
 
 
 class Fit:
@@ -19,7 +20,7 @@ class Fit:
     """
 
     @staticmethod
-    def linear(x, y):
+    def linear(x_data, y_data, verbose=False, plot=False, save=False):
         """
            Create a linear fit of the form
 
@@ -31,154 +32,321 @@ class Fit:
                 b - The free parameter of the function
 
 
-           :param x: The data on the x axis
-           :param y: The data on the y axis
-           :return: A dictionary of (fit_func, a, b)
+            :param x: The data on the x axis
+            :param y: The data on the y axis
+            :param verbose: if True prints data into the terminal
+            :param plot: if True prints data into the terminal
+            :param save: if not False saves the data into a json file
+                         The id of the file is save='id'
+            :return: A dictionary of (fit_func, a, b)
 
            """
 
+        x_data = np.linspace(0, 100, 500)
+        m = 5
+        n = 5
+        y_data = m * x_data + n
+
         # Normalizing the vectors
-        xn = preprocessing.normalize([x], return_norm=True)
-        yn = preprocessing.normalize([y], return_norm=True)
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
         x = xn[0][0]
         y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
 
         # Finding an initial guess to the slope
-        m0 = (y[-1] - y[0]) / (x[-1] - x[0])
+        a0 = (y[-1] - y[0]) / (x[-1] - x[0])
 
         # Finding an initial guess to the free parameter
-        n0 = y[0]
+        b0 = y[0]
 
-        fit_type = lambda x, a: m0 * a[0] * x + n0 * a[1]
+        fit_type = lambda x, a: a0 * a[0] * x + b0 * a[1]
 
-        def curve_fit(f, x, y, a0):
-            def opt(x, y, a):
-                return np.sum(np.abs(f(x, a) - y) ** 2)
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" a = {a0 *y_normal / x_normal}, \n"
+                f" b = {b0 * y_normal}"
 
-            out = optimize.minimize(lambda a: opt(x, y, a), a0)
-            if not out.success: raise Exception(
-                "The fitting failed, please check the quality of the data or the fitting function that you are using")
-            return out["x"]
+            )
 
-        popt = curve_fit(fit_type, x, y, [m0, n0])
+        def func(x, c0, c1):
+            return a0 * c0 * x + b0 * c1
 
-        print(
-            f"a = {popt[0] * yn[1] / xn[1]}, b = {popt[1] * yn[1]}"
-        )
+        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1])
+
         out = {
-            "fit_func": lambda x: fit_type(x, popt) * yn[1],
-            "a": popt[0] * yn[1] / xn[1],
-            "b": popt[1] * yn[1],
+            "fit_func": lambda x: fit_type(x / x_normal, popt) * y_normal,
+            "a": popt[0] * y_normal / x_normal,
+            "b": popt[1] * y_normal,
         }
+        if verbose:
+            print(
+                f"a = {out['a'] * y_normal / x_normal:.3f} +/- {out['a'][1]:.3f}, \n"
+                f"b = {out['b'] * y_normal} +/- {out['b'][1]:.3f}"
+            )
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, y_data, ".", label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f}")
+            plt.legend(loc="upper right")
+
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            for key in fit_params:
+                fit_params[key] = fit_params[key]
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
 
         return out
 
     @staticmethod
-    def ramsey(x, y):
+    def T1(x_data, y_data, verbose=False, plot=False, save=False):
+        """
+          Create a fit to T1 experiment of the form
+
+          .. math::
+          f(x) = amp * np.exp(-x * (1/T1)) + final_offset
+
+          for unknown parameters :
+              T1 - The decay constant [ns]
+              amp - The amplitude [a.u.]
+              final_offset -  The offset visible for long dephasing times [a.u.]
+
+          :param x: The dephasing time [ns]
+          :param y: Data containing the Ramsey signal
+          :param verbose: if 1 prints data into the terminal
+          :param plot: if True prints data into the terminal
+          :param save: if not False saves the data into a json file
+                       The id of the file is save='id'
+          :return: A dictionary of (fit_func, T1, amp, final_offset)
+
+           """
+
+        # Normalizing the vectors
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
+        x = xn[0][0]
+        y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
+
+        # Finding a guess for the decay (slope of log(peaks))
+        derivative = np.abs(np.diff(y))
+        if np.std(np.log(derivative)) < np.abs(np.mean(np.log(derivative)[-10:]) - np.mean(np.log(derivative)[:10])):
+            guess_T1 = -1 / ((np.mean(np.log(derivative)[-10:]) - np.mean(np.log(derivative)[:10])) / (len(y) - 1)) * (
+                        x[1] - x[0])
+        # Initial guess if the data is too noisy
+        else:
+            guess_T1 = 100 / x_normal
+        # Finding a guess for the offsets
+        final_offset = np.mean(y[int(len(y) * 0.9):])
+
+        # Fitting function
+        fit_type = lambda x, a: y[0] * a[1] * np.exp(-x / (guess_T1 * a[0])) + final_offset * a[2]
+
+        if verbose:
+            print(
+                f"Initial guess:\n "
+                f"T1 = {guess_T1 * x_normal}, \n"
+                f"amp = {y[0] * y_normal}, \n"
+                f"final offset = {final_offset * y_normal}"
+            )
+
+        def func(x, a0, a1, a2):
+            return a1 * y[0] * np.exp(-x / (guess_T1 * a0)) + final_offset * a2
+
+        popt, pcov = scipy.optimize.curve_fit(
+            func,
+            x,
+            y,
+            p0=[1, 1, 1],
+        )
+
+        perr = np.sqrt(np.diag(pcov))
+
+        out = {
+            "fit_func": lambda x: fit_type(x / x_normal, popt) * y_normal,
+            "T1": [(guess_T1 * popt[0]) * x_normal, perr[0] * guess_T1 * x_normal],
+            "amp": [popt[1] * y[0] * y_normal, perr[1] * y[0] * y_normal],
+            "final_offset": [popt[2] * final_offset * y_normal, perr[2] * final_offset * y_normal],
+        }
+        if verbose:
+            print(
+                f"Fit results:\n"
+                f"T1 = {out['T1'][0]:.2f} +/- {out['T1'][1]:.3f} ns, \n"
+                f"amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
+                f"final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f}"
+            )
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, y_data, ".", label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f}ns")
+            plt.xlabel("Waiting time [ns]")
+            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.legend(loc="upper right")
+
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            for key in fit_params:
+                fit_params[key] = fit_params[key]
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
+
+        return out
+
+    @staticmethod
+    def ramsey(x_data, y_data, verbose=False, plot=False, save=False):
         """
           Create a fit to Ramsey experiment of the form
 
           .. math::
-          f(x) = uncertainty_population * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
+          f(x) = final_offset * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
               np.exp(-x * (1/tau))
               * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
               )
 
           for unknown parameters :
-              f - The detuning frequency
-              phase - The phase
-              T2 - The decay constant
-              amp - The amplitude
-              uncertainty_population -  The uncertainty in population
-              initial_offset - The initial offset
+              f - The detuning frequency [GHz]
+              phase - The phase [rad]
+              T2 - The decay constant [ns]
+              amp - The amplitude [a.u.]
+              final_offset -  The offset visible for long dephasing times [a.u.]
+              initial_offset - The offset visible for short dephasing times
 
-          :param x:  The dephasing time in ns
-          :param y: The transition probability
+          :param x: The dephasing time [ns]
+          :param y: Data containing the Ramsey signal
+          :param verbose: if True prints data into the terminal
+          :param plot: if True prints data into the terminal
+          :param save: if not False saves the data into a json file
+                       The id of the file is save='id'
           :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
 
            """
 
         # Normalizing the vectors
-        xn = preprocessing.normalize([x], return_norm=True)
-        yn = preprocessing.normalize([y], return_norm=True)
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
         x = xn[0][0]
         y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
 
-
-        w = np.fft.fft(y)
-        freqs = np.fft.fftfreq(len(x))
-        new_w = w[1: len(freqs // 2)]
-        new_f = freqs[1: len(freqs // 2)]
-
-        ind = new_f > 0
-        new_f = new_f[ind]
-        new_w = new_w[ind]
-
-        yy = np.abs(new_w)
-        first_read_data_ind = np.where(yy[1:] - yy[:-1] > 0)[0][0]  # away from the DC peak
-
-        new_f = new_f[first_read_data_ind:]
-        new_w = new_w[first_read_data_ind:]
-
-        out_freq = new_f[np.argmax(np.abs(new_w))]
-        new_w_arg = new_w[np.argmax(np.abs(new_w))]
+        # Compute the FFT for guessing the frequency
+        fft = np.fft.fft(y)
+        f = np.fft.fftfreq(len(x))
+        # Take the positive part only
+        fft = fft[1: len(f) // 2]
+        f = f[1: len(f) // 2]
+        # Remove the DC peak if there is one
+        if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
+            first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][0]  # away from the DC peak
+            fft = fft[first_read_data_ind:]
+            f = f[first_read_data_ind:]
 
         # Finding a guess for the frequency
-        omega = out_freq * 2 * np.pi / (x[1] - x[0])
+        out_freq = f[np.argmax(np.abs(fft))]
+        guess_freq = out_freq / (x[1] - x[0])
 
-        cycle = int(np.ceil(1 / out_freq))
-        peaks = np.array([np.std(y[i * cycle: (i + 1) * cycle]) for i in range(int(len(y) / cycle))]) * np.sqrt(2) * 2
+        # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T2
+        period = int(np.ceil(1 / out_freq))
+        peaks = np.array([np.std(y[i * period: (i + 1) * period]) for i in range(round(len(y) / period))]) * np.sqrt(
+            2) * 2
 
-        # Finding a guess for the offset
-        initial_offset = np.mean(y[:cycle])
-        cycles_wait = np.where(peaks > peaks[0] * 0.37)[0][-1]
+        # Finding a guess for the decay (slope of log(peaks))
+        if len(peaks) > 1:
+            guess_T2 = -1 / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1))) * (x[1] - x[0])
+        else:
+            guess_T2 = 100 / x_normal
+            print(Warning(
+                "WARNING: The initial guess for the decay failed, increasing the number of oscillations should solve the issue."))
 
-        post_decay_mean = np.mean(y[-cycle:])
+        # Finding a guess for the offsets
+        initial_offset = np.mean(y[:period])
+        post_decay_mean = np.mean(y[-period:])
 
-        # Finding a guess for the decay
-        decay_guess = (np.log(peaks[0] / peaks[cycles_wait]) / (cycles_wait * cycle) / (
-                x[1] - x[0]))  # get guess for decay #here
+        # Finding a guess for the phase
+        guess_phase = np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
 
-        fit_type = lambda x, a: post_decay_mean * a[4] * (1 - np.exp(-x * decay_guess * a[1])) + peaks[0] / 2 * a[2] * (
-                np.exp(-x * decay_guess * a[1])
-                * (a[5] * initial_offset / peaks[0] * 2 + np.cos(2 * np.pi * a[0] * omega / (2 * np.pi) * x + a[3]))
+        # Fitting function
+        fit_type = lambda x, a: post_decay_mean * a[4] * (1 - np.exp(-x / (guess_T2 * a[1]))) + peaks[0] / 2 * a[2] * (
+                np.exp(-x / (guess_T2 * a[1]))
+                * (a[5] * initial_offset / peaks[0] * 2 + np.cos(2 * np.pi * a[0] * guess_freq * x + a[3]))
         )
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" f = {guess_freq / x_normal}, \n"
+                f" phase = {guess_phase}, \n"
+                f" T2 = {guess_T2 * x_normal}, \n"
+                f" amp = {peaks[0] * y_normal}, \n"
+                f" initial offset = {initial_offset * y_normal}, \n"
+                f" final_offset = {post_decay_mean * y_normal}"
+            )
 
-        def curve_fit(f, x, y, a0):
-            def opt(x, y, a):
-                return np.sum(np.abs(f(x, a) - y) ** 2)
+        def func(x, a0, a1, a2, a3, a4, a5):
+            return post_decay_mean * a4 * (1 - np.exp(-x / (guess_T2 * a1))) + peaks[0] / 2 * a2 * (
+                    np.exp(-x / (guess_T2 * a1))
+                    * (a5 * initial_offset / peaks[0] * 2 + np.cos(2 * np.pi * a0 * guess_freq * x + a3))
+            )
 
-            out = optimize.minimize(lambda a: opt(x, y, a), a0)
-            if not out.success: raise Exception(
-                "The fitting failed, please check the quality of the data or the fitting function that you are using")
-            return out["x"]
-
-        angle0 = np.angle(new_w_arg) - omega * x[0]
-
-        popt = curve_fit(
-            fit_type,
+        popt, pcov = scipy.optimize.curve_fit(
+            func,
             x,
             y,
-            [1, 1, 1, angle0, 1, 1, 1],
+            p0=[1, 1, 1, guess_phase, 1, 1],
         )
 
-        print(
-            f"f = {popt[0] * omega / (2 * np.pi) * xn[1]}, phase = {popt[3] % (2 * np.pi) * xn[1]}, T2 = {(1 / (decay_guess * popt[1])) * xn[1]}, amp = {peaks[0] * popt[2] * yn[1]}, uncertainty population = {post_decay_mean * popt[4] * yn[1]}, initial offset = {popt[5] * initial_offset * yn[1]}"
-        )
+        perr = np.sqrt(np.diag(pcov))
+
         out = {
-            "fit_func": lambda x: fit_type(x, popt) * yn[1],
-            "f": popt[0] * omega / (2 * np.pi) * xn[1],
-            "phase": popt[3] % (2 * np.pi) * xn[1],
-            "T2": (1 / (decay_guess * popt[1])) * xn[1],
-            "amp": peaks[0] * popt[2] * yn[1],
-            "uncertainty_population": post_decay_mean * popt[4] * yn[1],
-            "initial_offset": popt[5] * initial_offset * yn[1],
+            "fit_func": lambda x: fit_type(x / x_normal, popt) * y_normal,
+            "f": [popt[0] * guess_freq / x_normal, perr[0] * guess_freq / x_normal],
+            "phase": [popt[3] % (2 * np.pi), perr[3] % (2 * np.pi)],
+            "T2": [(guess_T2 * popt[1]) * x_normal, perr[1] * guess_T2 * x_normal],
+            "amp": [peaks[0] * popt[2] * y_normal, perr[2] * peaks[0] * y_normal],
+            "initial_offset": [popt[5] * initial_offset * y_normal, perr[5] * initial_offset * y_normal],
+            "final_offset": [post_decay_mean * popt[4] * y_normal, perr[4] * post_decay_mean * y_normal]
         }
+        if verbose:
+            print(
+                f"Fit results:\n"
+                f"f = {out['f'][0] * 1000:.3f} +/- {out['f'][1]:.3f} MHz, \n"
+                f"phase = {out['phase'][0]:.3f} +/- {out['phase'][1]:.3f} rad, \n"
+                f"T2 = {out['T2'][0]:.2f} +/- {out['T2'][1]:.3f} ns, \n"
+                f"amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
+                f"initial offset = {out['initial_offset'][0]:.2f} +/- {out['initial_offset'][1]:.3f}, \n"
+                f"final_offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
 
+            )
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, y_data, ".", label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns")
+            plt.xlabel("Waiting time [ns]")
+            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.legend(loc="upper right")
+
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            for key in fit_params:
+                fit_params[key] = fit_params[key]
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
         return out
 
     @staticmethod
-    def transmission_resonator_spectroscopy(x, y):
+    def transmission_resonator_spectroscopy(x_data, y_data, verbose=False, plot=False, save=False):
         """
              Create a fit to transmission resonator spectroscopy of the form
 
@@ -195,15 +363,20 @@ class Fit:
 
              :param x:  The frequency in Hz
              :param y: The transition probability (I^2+Q^2)
+             :param verbose: if True prints data into the terminal
+             :param plot: if True prints data into the terminal
+                        :param save: if not False saves the data into a json file
+                        The id of the file is save='id'
              :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
           """
 
-        # Normalizing the vectors
-        xn = preprocessing.normalize([x], return_norm=True)
-        yn = preprocessing.normalize([y], return_norm=True)
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
         x = xn[0][0]
         y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
 
         # Finding a guess for the max
         peak = max(y)
@@ -229,33 +402,61 @@ class Fit:
         fit_type = lambda x, a: (((peak - v0) * a[0]) / (
                 1 + (4 * ((x - (f0 * a[2])) ** 2) / ((width0 * a[1]) ** 2)))) + (v0 * a[3])
 
-        def curve_fit(f, x, y, a0):
-            def opt(x, y, a):
-                return np.sum(np.abs(f(x, a) - y) ** 2)
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" f = {f0 * x_normal}, \n"
+                f" kc = {(peak - v0)/width0 * y_normal / x_normal}, \n"
+                f" k = {width0 * x_normal}, \n"
+                f" offset = {v0 * y_normal}"
+            )
 
-            out = optimize.minimize(lambda a: opt(x, y, a), a0)
-            if not out.success: raise Exception(
-                "The fitting failed, please check the quality of the data or the fitting function that you are using")
-            return out["x"]
+        def func(x, a0, a1, a2, a3):
+            return (((peak - v0) * a0) / (
+                    1 + (4 * ((x - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))) + (v0 * a3)
 
-        popt = curve_fit(fit_type, x, y, [1, 1, 1, 1, 1, 0.1])
+        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1])
 
-        print(
-            f"f = {f0 * popt[2] * xn[1]}, kc = {(peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt))) * xn[1]}, ki = {width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt))) * xn[1]}, k = {width0 * popt[1] * xn[1]}, offset =  {v0 * popt[3] * yn[1]}"
-        )
         out = {
-            "fit_func": lambda x: fit_type(x, popt) * yn[1],
-            "f": f0 * popt[2] * xn[1],
-            "kc": (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt))) * xn[1],
-            "ki": (width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))) * xn[1],
-            "k": popt[1] * width0 * xn[1],
-            "offset": v0 * popt[3] * yn[1],
+            "fit_func": lambda x: fit_type(x / x_normal, popt) * y_normal,
+            "f": f0 * popt[2] * x_normal,
+            "kc": (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt))) * x_normal,
+            "ki": (width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))) * x_normal,
+            "k": popt[1] * width0 * x_normal,
+            "offset": v0 * popt[3] * y_normal,
         }
+
+        if verbose:
+            print(
+                f"Fit results:\n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz \n"
+            )
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, y_data, ".", label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz")
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.legend(loc="upper right")
+
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            for key in fit_params:
+                fit_params[key] = fit_params[key]
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
 
         return out
 
     @staticmethod
-    def reflection_resonator_spectroscopy(x, y):
+    def reflection_resonator_spectroscopy(x_data, y_data, verbose=False, plot=False, save=False):
         """
            Create a fit to reflection resonator spectroscopy of the form
 
@@ -272,15 +473,21 @@ class Fit:
 
            :param x:  The frequency in Hz
            :param y: The transition probability (I^2+Q^2)
+           :param verbose: if True prints data into the terminal
+           :param plot: if True prints data into the terminal
+           :param save: if not False saves the data into a json file
+                        The id of the file is save='id'
            :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
 
         # Normalizing the vectors
-        xn = preprocessing.normalize([x], return_norm=True)
-        yn = preprocessing.normalize([y], return_norm=True)
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
         x = xn[0][0]
         y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
 
         # Finding a guess for the min
         peak = min(y)
@@ -305,95 +512,68 @@ class Fit:
 
         # Finding a guess to the slope
         m = (np.mean(y[int(width0_arg_right + width0):-1]) - np.mean(y[0:int(width0_arg_left - width0)])) / (
-                    np.mean(x[int(width0_arg_right + width0):-1]) - np.mean(x[0:int(width0_arg_left - width0)]))
+                np.mean(x[int(width0_arg_right + width0):-1]) - np.mean(x[0:int(width0_arg_left - width0)]))
 
         fit_type = lambda x, a: ((v0 - peak) * a[3]) - (((v0 - peak) * a[0]) / (
                 1 + (4 * ((x - (f0 * a[2])) ** 2) / ((width0 * a[1]) ** 2)))) + m * a[4] * x
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" f = {f0 * x_normal}, \n"
+                f" kc = {(peak - v0) / width0 * y_normal / x_normal}, \n"
+                f" k = {width0 * x_normal}, \n"
+                f" offset = {v0 * y_normal}, \n"
+                f" slope = {m * y_normal / x_normal}"
+            )
+        def func(x, a0, a1, a2, a3, a4):
+            return ((v0 - peak) * a3) - (((v0 - peak) * a0) / (
+                    1 + (4 * ((x - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))) + m * a4 * x
 
-        def curve_fit(f, x, y, a0):
-            def opt(x, y, a):
-                return np.sum(np.abs(f(x, a) - y) ** 2)
+        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1, 1])
 
-            out = optimize.minimize(lambda a: opt(x, y, a), a0)
-            if not out.success: raise Exception(
-                "The fitting failed, please check the quality of the data or the fitting function that you are using")
-            return out["x"]
+        if plot:
+            plt.plot(x_data, fit_type(x_data / x_normal, popt) * y_normal)
 
-        popt = curve_fit(fit_type, x, y, [1, 1, 1, 1, 1])
-
-        print(
-            f"f = {f0 * popt[2] * xn[1]}, kc = {((v0 - peak) * popt[0] * (width0 * popt[1] / min(fit_type(x, popt)))) * xn[1]}, ki = {(width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))) * xn[1]}, k = {width0 * popt[1] * xn[1]},offset =  {(v0 - peak) * popt[3] * yn[1]}, slope = {m * popt[4] * yn[1] / xn[1]}"
-        )
         out = {
             "fit_func": lambda x: fit_type(x, popt),
-            "f": f0 * popt[2] * xn[1],
-            "kc": (((peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))))  * xn[1],
-            "ki": ((width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))))  * xn[1],
-            "k": popt[1] * width0 * xn[1],
-            "offset": (v0 - peak) * popt[3] * yn[1],
-            "slope": m * popt[4] * yn[1] / xn[1],
+            "f": f0 * popt[2] * x_normal,
+            "kc": ((peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))) * x_normal,
+            "ki": (width0 * popt[1] - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))) * x_normal,
+            "k": popt[1] * width0 * x_normal,
+            "offset": (v0 - peak) * popt[3] * y_normal,
+            "slope": m * popt[4] * y_normal / x_normal,
         }
+
+        if verbose:
+            print(
+                f"Fit results:\n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz, \n"
+                f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} Hz\n"
+            )
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, y_data, ".", label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz")
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.legend(loc="upper right")
+
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            for key in fit_params:
+                fit_params[key] = fit_params[key]
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
 
         return out
 
-
-class Plot:
-    """
-    This class takes care of plotting the data and the fitted function.
-    It opens a figure and plots the data with blue dots and the fitted function with green line.
-    """
-
-    @staticmethod
-    def plot(x, y, fit_function, xlabel=None, ylabel=None, title=None):
-        """
-        Plot the measured data with blue dots and the fitted function with green line.
-
-        :param x: The data on the x axis
-        :param ydata: The data on the y axis
-        :param fit_function: The output of the fit function
-        :param xlabel: The description of the x axis
-        :param ylabel: The description of the y axis
-        :param title: The title of the plot
-        :return: A plot with the measured data (blue dots) and the fitted function (green line).
-        """
-
-        xn = preprocessing.normalize([x], return_norm=True)
-
-        plt.plot(x, y, 'b.')
-        plt.plot(x, fit_function["fit_func"](xn[0][0]), 'g')
-        plt.legend(["measurement", "fit"])
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-
-
-class Save:
-    """
-    This class takes care of saving the data.
-    """
-
-    @staticmethod
-    def save_params(x, y, fit_function, id):
-        """
-        Save the data as a json file
-
-        :param x: The data on the x axis
-        :param y: The data on the y axis
-        :param fit_function: The output of the fit function
-        :param id: The name of the saved data
-        :return: A json file with the given name, which includes all the data.
-        """
-
-        fit_func = fit_function
-        fit_params = dict(itertools.islice(fit_function.items(), 1, len(fit_function)))
-        for key in fit_params:
-            fit_params[key] = fit_params[key].tolist()
-        fit_params["x"] = x.tolist()
-        fit_params["y_data"] = y.tolist()
-        fit_params["y_fit"] = fit_func["fit_func"](x).tolist()
-        json_object = json.dumps(fit_params)
-        with open(f"data_fit_{id}.json", "w") as outfile:
-            outfile.write(json_object)
 
 
 class Read:
