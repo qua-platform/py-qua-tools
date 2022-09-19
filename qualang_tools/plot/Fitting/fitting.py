@@ -32,8 +32,8 @@ class Fit:
                 b - The free parameter of the function
 
 
-            :param x: The data on the x axis
-            :param y: The data on the y axis
+            :param x_data: The data on the x-axis
+            :param y_data: The data on the y-axis
             :param verbose: if True prints data into the terminal
             :param plot: if True prints data into the terminal
             :param save: if not False saves the data into a json file
@@ -41,11 +41,6 @@ class Fit:
             :return: A dictionary of (fit_func, a, b)
 
            """
-
-        x_data = np.linspace(0, 100, 500)
-        m = 5
-        n = 5
-        y_data = m * x_data + n
 
         # Normalizing the vectors
         xn = preprocessing.normalize([x_data], return_norm=True)
@@ -61,33 +56,33 @@ class Fit:
         # Finding an initial guess to the free parameter
         b0 = y[0]
 
-        fit_type = lambda x, a: a0 * a[0] * x + b0 * a[1]
-
         if verbose:
             print(
                 f"Initial guess:\n"
-                f" a = {a0 *y_normal / x_normal}, \n"
+                f" a = {a0 * y_normal / x_normal}, \n"
                 f" b = {b0 * y_normal}"
 
             )
 
-        def func(x, c0, c1):
-            return a0 * c0 * x + b0 * c1
+        def func(x_var, c0, c1):
+            return a0 * c0 * x_var + b0 * c1
+
 
         popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1])
+        perr = np.sqrt(np.diag(pcov))
 
         out = {
-            "fit_func": lambda x: fit_type(x / x_normal, popt) * y_normal,
-            "a": popt[0] * y_normal / x_normal,
-            "b": popt[1] * y_normal,
+            "fit_func": lambda x_var: func(x_var / x_normal, popt[0], popt[1]) * y_normal,
+            "a": [popt[0] * a0 * y_normal / x_normal, perr[0] * a0 * y_normal / x_normal],
+            "b": [popt[1] * b0 * y_normal, perr[1] * b0 * y_normal],
         }
         if verbose:
             print(
-                f"a = {out['a'] * y_normal / x_normal:.3f} +/- {out['a'][1]:.3f}, \n"
-                f"b = {out['b'] * y_normal} +/- {out['b'][1]:.3f}"
+                f"a = {out['a'][0]:.3f} +/- {out['a'][1]:.3f}, \n"
+                f"b = {out['b'][0]} +/- {out['b'][1]:.3f}"
             )
         if plot:
-            plt.plot(x_data, fit_type(x, popt) * y_normal)
+            plt.plot(x_data, func(x, popt[0], popt[1]) * y_normal)
             plt.plot(x_data, y_data, ".", label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f}")
             plt.legend(loc="upper right")
 
@@ -97,7 +92,7 @@ class Fit:
                 fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
-            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            fit_params["y_fit"] = (func(x, popt[0], popt[1]) * y_normal).tolist()
             json_object = json.dumps(fit_params)
             with open(f"data_fit_{save}.json", "w") as outfile:
                 outfile.write(json_object)
