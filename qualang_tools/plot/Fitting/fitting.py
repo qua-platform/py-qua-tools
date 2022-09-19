@@ -59,30 +59,32 @@ class Fit:
         if verbose:
             print(
                 f"Initial guess:\n"
-                f" a = {a0 * y_normal / x_normal}, \n"
-                f" b = {b0 * y_normal}"
-
+                f" a = {a0 * y_normal / x_normal:.3f}, \n"
+                f" b = {b0 * y_normal:.3f}"
             )
 
         def func(x_var, c0, c1):
             return a0 * c0 * x_var + b0 * c1
 
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1])
 
         popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1])
         perr = np.sqrt(np.diag(pcov))
 
         out = {
-            "fit_func": lambda x_var: func(x_var / x_normal, popt[0], popt[1]) * y_normal,
+            "fit_func": lambda x_var: fit_type(x / x_normal, popt) * y_normal,
             "a": [popt[0] * a0 * y_normal / x_normal, perr[0] * a0 * y_normal / x_normal],
             "b": [popt[1] * b0 * y_normal, perr[1] * b0 * y_normal],
         }
         if verbose:
             print(
-                f"a = {out['a'][0]:.3f} +/- {out['a'][1]:.3f}, \n"
-                f"b = {out['b'][0]} +/- {out['b'][1]:.3f}"
+                f"Fitting results:\n"
+                f" a = {out['a'][0]:.3f} +/- {out['a'][1]:.3f}, \n"
+                f" b = {out['b'][0]:.3f} +/- {out['b'][1]:.3f}"
             )
         if plot:
-            plt.plot(x_data, func(x, popt[0], popt[1]) * y_normal)
+            plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(x_data, y_data, ".", label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f}")
             plt.legend(loc="upper right")
 
@@ -112,8 +114,8 @@ class Fit:
               amp - The amplitude [a.u.]
               final_offset -  The offset visible for long dephasing times [a.u.]
 
-          :param x: The dephasing time [ns]
-          :param y: Data containing the Ramsey signal
+          :param x_data: The dephasing time [ns]
+          :param y_data: Data containing the Ramsey signal
           :param verbose: if 1 prints data into the terminal
           :param plot: if True prints data into the terminal
           :param save: if not False saves the data into a json file
@@ -141,19 +143,20 @@ class Fit:
         # Finding a guess for the offsets
         final_offset = np.mean(y[int(len(y) * 0.9):])
 
-        # Fitting function
-        fit_type = lambda x, a: y[0] * a[1] * np.exp(-x / (guess_T1 * a[0])) + final_offset * a[2]
-
         if verbose:
             print(
                 f"Initial guess:\n "
-                f"T1 = {guess_T1 * x_normal}, \n"
-                f"amp = {y[0] * y_normal}, \n"
-                f"final offset = {final_offset * y_normal}"
+                f"T1 = {guess_T1 * x_normal:.3f}, \n "
+                f"amp = {y[0] * y_normal:.3f}, \n "
+                f"final offset = {final_offset * y_normal:.3f}"
             )
 
-        def func(x, a0, a1, a2):
-            return a1 * y[0] * np.exp(-x / (guess_T1 * a0)) + final_offset * a2
+        # Fitting function
+        def func(x_var, a0, a1, a2):
+            return a1 * y[0] * np.exp(-x_var / (guess_T1 * a0)) + final_offset * a2
+
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2])
 
         popt, pcov = scipy.optimize.curve_fit(
             func,
@@ -172,10 +175,10 @@ class Fit:
         }
         if verbose:
             print(
-                f"Fit results:\n"
-                f"T1 = {out['T1'][0]:.2f} +/- {out['T1'][1]:.3f} ns, \n"
-                f"amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
-                f"final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f}"
+                f"Fitting results:\n"
+                f" T1 = {out['T1'][0]:.2f} +/- {out['T1'][1]:.3f} ns, \n"
+                f" amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
+                f" final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
             )
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
