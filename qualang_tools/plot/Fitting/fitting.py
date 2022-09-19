@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import itertools
 import json
 import numpy as np
-import scipy
 
 
 class Fit:
@@ -75,12 +74,14 @@ class Fit:
                 f" b = {b0 * y_normal:.3f}"
             )
 
+        # Fitting function
         def func(x_var, c0, c1):
             return a0 * c0 * x_var + b0 * c1
 
-        fit_type = lambda x_var, a: func(x_var, a[0], a[1])
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1])
 
-        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1])
+        popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1])
         perr = np.sqrt(np.diag(pcov))
 
         out = {
@@ -199,9 +200,10 @@ class Fit:
         def func(x_var, a0, a1, a2):
             return a1 * y[0] * np.exp(-x_var / (guess_T1 * a0)) + final_offset * a2
 
-        fit_type = lambda x_var, a: func(x_var, a[0], a[1], a[2])
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2])
 
-        popt, pcov = scipy.optimize.curve_fit(
+        popt, pcov = optimize.curve_fit(
             func,
             x,
             y,
@@ -387,9 +389,10 @@ class Fit:
                 )
             )
 
-        fit_type = lambda x_var, a: func(x_var, a[0], a[1], a[2], a[3], a[4], a[5])
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2], a[3], a[4], a[5])
 
-        popt, pcov = scipy.optimize.curve_fit(
+        popt, pcov = optimize.curve_fit(
             func,
             x,
             y,
@@ -534,9 +537,10 @@ class Fit:
                 / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
             ) + (v0 * a3)
 
-        fit_type = lambda x_var, a: func(x_var, a[0], a[1], a[2], a[3])
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2], a[3])
 
-        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1])
+        popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1])
 
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
@@ -691,9 +695,10 @@ class Fit:
                 + m * a4 * x_var
             )
 
-        fit_type = lambda x_var, a: func(x_var, a[0], a[1], a[2], a[3], a[4])
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2], a[3], a[4])
 
-        popt, pcov = scipy.optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1, 1])
+        popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1, 1])
 
         if plot:
             plt.plot(x_data, fit_type(x_data / x_normal, popt) * y_normal)
