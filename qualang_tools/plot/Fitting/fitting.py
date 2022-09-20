@@ -9,13 +9,15 @@ import numpy as np
 class Fit:
     """
     This class takes care of the fitting to the measured data.
-    All the fitting functions are taken from the `Fitting_functions` file.
     It includes:
-        - Fitting to a linear line
-        - Fitting to Ramsey experiment
-        - Fitting to transmission resonator spectroscopy
-        - Fitting to reflection resonator spectroscopy
-
+        - Fitting to: linear line
+                      T1 experiment
+                      Ramsey experiment
+                      transmission resonator spectroscopy
+                      reflection resonator spectroscopy
+        - Printing the initial guess and fitting results
+        - Plotting the data and the fitting function
+        - Saving the data
     """
 
     @staticmethod
@@ -33,10 +35,10 @@ class Fit:
          :param x_data: The data on the x-axis
          :param y_data: The data on the y-axis
          :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(a=20))
-         :param verbose: if True prints data into the terminal
-         :param plot: if True prints data into the terminal
+         :param verbose: if True prints the initial guess and fitting results
+         :param plot: if True plots the data and the fitting function
          :param save: if not False saves the data into a json file
-                      The id of the file is save='id'
+                      The id of the file is save=id. The name of the json file is `data_fit_id.json`
          :return: A dictionary of (fit_func, a, b)
 
         """
@@ -59,14 +61,14 @@ class Fit:
         if guess is not None:
             for key in guess.keys():
                 if key == "a":
-                    a0 = guess[key] * x_normal / y_normal
+                    a0 = float(guess[key]) * x_normal / y_normal
                 elif key == "b":
-                    b0 = guess[key] / y_normal
+                    b0 = float(guess[key]) / y_normal
                 else:
                     raise Exception(
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
-
+        # Print the initial guess if verbose=True
         if verbose:
             print(
                 f"Initial guess:\n"
@@ -84,20 +86,23 @@ class Fit:
         popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1])
         perr = np.sqrt(np.diag(pcov))
 
+        # Output the fitting function and its parameters
         out = {
-            "fit_func": lambda x_var: fit_type(x / x_normal, popt) * y_normal,
+            "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
             "a": [
                 popt[0] * a0 * y_normal / x_normal,
                 perr[0] * a0 * y_normal / x_normal,
             ],
             "b": [popt[1] * b0 * y_normal, perr[1] * b0 * y_normal],
         }
+        # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fitting results:\n"
                 f" a = {out['a'][0]:.3f} +/- {out['a'][1]:.3f}, \n"
                 f" b = {out['b'][0]:.3f} +/- {out['b'][1]:.3f}"
             )
+        # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(
@@ -107,7 +112,7 @@ class Fit:
                 label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f}",
             )
             plt.legend(loc="upper right")
-
+        # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             for key in fit_params:
@@ -137,10 +142,10 @@ class Fit:
         :param x_data: The dephasing time [ns]
         :param y_data: Data containing the Ramsey signal
         :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(T1=20))
-        :param verbose: if 1 prints data into the terminal
-        :param plot: if True prints data into the terminal
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'
+                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
         :return: A dictionary of (fit_func, T1, amp, final_offset)
 
         """
@@ -178,16 +183,16 @@ class Fit:
         if guess is not None:
             for key in guess.keys():
                 if key == "T1":
-                    guess_T1 = guess[key] / x_normal
+                    guess_T1 = float(guess[key]) / x_normal
                 elif key == "amp":
                     pass
                 elif key == "final_offset":
-                    final_offset = guess[key] / y_normal
+                    final_offset = float(guess[key]) / y_normal
                 else:
                     raise Exception(
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
-
+        # Print the initial guess if verbose=True
         if verbose:
             print(
                 f"Initial guess:\n "
@@ -212,6 +217,7 @@ class Fit:
 
         perr = np.sqrt(np.diag(pcov))
 
+        # Output the fitting function and its parameters
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
             "T1": [(guess_T1 * popt[0]) * x_normal, perr[0] * guess_T1 * x_normal],
@@ -221,6 +227,7 @@ class Fit:
                 perr[2] * final_offset * y_normal,
             ],
         }
+        # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fitting results:\n"
@@ -228,6 +235,7 @@ class Fit:
                 f" amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
                 f" final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
             )
+        # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(
@@ -239,7 +247,7 @@ class Fit:
             plt.xlabel("Waiting time [ns]")
             plt.ylabel("I & Q amplitude [a.u.]")
             plt.legend(loc="upper right")
-
+        # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             for key in fit_params:
@@ -254,7 +262,7 @@ class Fit:
         return out
 
     @staticmethod
-    def ramsey(x_data, y_data, guess, verbose=False, plot=False, save=False):
+    def ramsey(x_data, y_data, guess=None, verbose=False, plot=False, save=False):
         """
         Create a fit to Ramsey experiment of the form
 
@@ -275,11 +283,11 @@ class Fit:
         :param x_data: The dephasing time [ns]
         :param y_data: Data containing the Ramsey signal
         :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(T2=20))
-        :param verbose: if True prints data into the terminal
-        :param plot: if True prints data into the terminal
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'
-        :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
+                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+          :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
 
         """
 
@@ -350,22 +358,23 @@ class Fit:
         if guess is not None:
             for key in guess.keys():
                 if key == "f":
-                    guess_freq = guess[key] * x_normal
+                    guess_freq = float(guess[key]) * x_normal
                 elif key == "phase":
-                    guess_phase = guess[key]
+                    guess_phase = float(guess[key])
                 elif key == "T2":
-                    guess_T2 = guess[key] * x_normal
+                    guess_T2 = float(guess[key]) * x_normal
                 elif key == "amp":
-                    peaks[0] = guess[key] / y_normal
+                    peaks[0] = float(guess[key]) / y_normal
                 elif key == "initial_offset":
-                    initial_offset = guess[key] / y_normal
+                    initial_offset = float(guess[key]) / y_normal
                 elif key == "final_offset":
-                    final_offset = guess[key] / y_normal
+                    final_offset = float(guess[key]) / y_normal
                 else:
                     raise Exception(
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
 
+        # Print the initial guess if verbose=True
         if verbose:
             print(
                 f"Initial guess:\n"
@@ -401,6 +410,7 @@ class Fit:
 
         perr = np.sqrt(np.diag(pcov))
 
+        # Output the fitting function and its parameters
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
             "f": [popt[0] * guess_freq / x_normal, perr[0] * guess_freq / x_normal],
@@ -416,6 +426,7 @@ class Fit:
                 perr[4] * final_offset * y_normal,
             ],
         }
+        # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fitting results:\n"
@@ -426,6 +437,7 @@ class Fit:
                 f" initial offset = {out['initial_offset'][0]:.2f} +/- {out['initial_offset'][1]:.3f}, \n"
                 f" final_offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
             )
+        # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(
@@ -437,7 +449,7 @@ class Fit:
             plt.xlabel("Waiting time [ns]")
             plt.ylabel("I & Q amplitude [a.u.]")
             plt.legend(loc="upper right")
-
+        # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             for key in fit_params:
@@ -471,11 +483,11 @@ class Fit:
         :param x_data:  The frequency in Hz
         :param y_data: The transition probability (I^2+Q^2)
         :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(f=20e6))
-        :param verbose: if True prints data into the terminal
-        :param plot: if True prints data into the terminal
-                   :param save: if not False saves the data into a json file
-                   The id of the file is save='id'
-        :return: A dictionary of (fit_func, f, kc, k, ki, offset)
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
+        :param save: if not False saves the data into a json file
+                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+             :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
 
@@ -511,22 +523,22 @@ class Fit:
         if guess is not None:
             for key in guess.keys():
                 if key == "f":
-                    f0 = guess[key] / x_normal
+                    f0 = float(guess[key]) / x_normal
                 elif key == "k":
-                    width0 = guess[key] / x_normal
+                    width0 = float(guess[key]) / x_normal
                 elif key == "offset":
-                    v0 = guess[key] / y_normal
+                    v0 = float(guess[key]) / y_normal
                 else:
                     raise Exception(
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
-
+        # Print the initial guess if verbose=True
         if verbose:
             print(
-                f"Initial guess:\n"
-                f" f = {f0 * x_normal}, \n"
-                f" kc = {(peak - v0)/width0 * y_normal / x_normal}, \n"
-                f" k = {width0 * x_normal}, \n"
+                f"Initial guess:\n "
+                f" f = {f0 * x_normal}, \n "
+                f" kc = {(peak - v0) * (width0 * x_normal) * y_normal}, \n "
+                f" k = {width0 * x_normal}, \n "
                 f" offset = {v0 * y_normal}"
             )
 
@@ -541,23 +553,18 @@ class Fit:
             return func(x_var, a[0], a[1], a[2], a[3])
 
         popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1])
+        perr = np.sqrt(np.diag(pcov))
 
+        # Output the fitting function and its parameters
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
-            "f": f0 * popt[2] * x_normal,
-            "kc": (peak - v0)
-            * popt[0]
-            * (width0 * popt[1] / max(fit_type(x, popt)))
-            * x_normal,
-            "ki": (
-                width0 * popt[1]
-                - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))
-            )
-            * x_normal,
-            "k": popt[1] * width0 * x_normal,
-            "offset": v0 * popt[3] * y_normal,
+            "f": [f0 * popt[2] * x_normal,f0 * perr[2] * x_normal],
+            "kc": [(peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal, (peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal],
+            "ki": [(popt[1] * width0 * x_normal)-((peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal), (perr[1] * width0 * x_normal)-((peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal)],
+            "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
+            "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal]
         }
-
+        # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
@@ -567,6 +574,7 @@ class Fit:
                 f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
                 f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz \n"
             )
+        # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(
@@ -578,7 +586,7 @@ class Fit:
             plt.xlabel("Frequency [Hz]")
             plt.ylabel("I & Q amplitude [a.u.]")
             plt.legend(loc="upper right")
-
+        # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             for key in fit_params:
@@ -613,11 +621,11 @@ class Fit:
         :param x_data:  The frequency in Hz
         :param y_data: The transition probability (I^2+Q^2)
         :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(f=20e6))
-        :param verbose: if True prints data into the terminal
-        :param plot: if True prints data into the terminal
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'
-        :return: A dictionary of (fit_func, f, kc, k, ki, offset)
+                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+          :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
 
@@ -663,26 +671,27 @@ class Fit:
         if guess is not None:
             for key in guess.keys():
                 if key == "f":
-                    f0 = guess[key] / x_normal
+                    f0 = float(guess[key]) / x_normal
                 elif key == "k":
-                    width0 = guess[key] / x_normal
+                    width0 = float(guess[key]) / x_normal
                 elif key == "offset":
-                    v0 = guess[key] / y_normal
+                    v0 = float(guess[key]) / y_normal
                 elif key == "slope":
-                    m = guess[key] / y_normal * x_normal
+                    m = float(guess[key]) / y_normal * x_normal
                 else:
                     raise Exception(
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
 
+        # Print the initial guess if verbose=True
         if verbose:
             print(
-                f"Initial guess:\n"
-                f" f = {f0 * x_normal}, \n"
-                f" kc = {(peak - v0) / width0 * y_normal / x_normal}, \n"
-                f" k = {width0 * x_normal}, \n"
-                f" offset = {v0 * y_normal}, \n"
-                f" slope = {m * y_normal / x_normal}"
+                f"Initial guess:\n "
+                f" f = {f0 * x_normal}, \n "
+                f" kc = {(v0 - peak) * (width0 * x_normal) * y_normal}, \n "
+                f" k = {width0 * x_normal}, \n "
+                f" offset = {v0 * y_normal}, \n "
+                f" slope = {m * y_normal / x_normal} "
             )
 
         def func(x_var, a0, a1, a2, a3, a4):
@@ -699,25 +708,21 @@ class Fit:
             return func(x_var, a[0], a[1], a[2], a[3], a[4])
 
         popt, pcov = optimize.curve_fit(func, x, y, p0=[1, 1, 1, 1, 1])
+        perr = np.sqrt(np.diag(pcov))
 
-        if plot:
-            plt.plot(x_data, fit_type(x_data / x_normal, popt) * y_normal)
-
+        # Output the fitting function and its parameters
         out = {
-            "fit_func": lambda x_var: fit_type(x_var, popt),
-            "f": f0 * popt[2] * x_normal,
-            "kc": ((peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt))))
-            * x_normal,
-            "ki": (
-                width0 * popt[1]
-                - (peak - v0) * popt[0] * (width0 * popt[1] / max(fit_type(x, popt)))
-            )
-            * x_normal,
-            "k": popt[1] * width0 * x_normal,
-            "offset": (v0 - peak) * popt[3] * y_normal,
-            "slope": m * popt[4] * y_normal / x_normal,
+            "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
+            "f": [f0 * popt[2] * x_normal, f0 * perr[2] * x_normal],
+            "kc": [(v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal,
+                   (v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal],
+            "ki": [(popt[1] * width0 * x_normal) - ((v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
+                   (perr[1] * width0 * x_normal) - ((v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal)],
+            "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
+            "offset": [(v0 - peak) * popt[3] * y_normal, (v0 - peak) * perr[3] * y_normal],
+            "slope": [m * popt[4] * y_normal / x_normal, m * perr[4] * y_normal / x_normal]
         }
-
+        # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
@@ -728,6 +733,7 @@ class Fit:
                 f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz, \n"
                 f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} Hz\n"
             )
+        # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
             plt.plot(
@@ -739,7 +745,7 @@ class Fit:
             plt.xlabel("Frequency [Hz]")
             plt.ylabel("I & Q amplitude [a.u.]")
             plt.legend(loc="upper right")
-
+        # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             for key in fit_params:
