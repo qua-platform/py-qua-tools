@@ -109,7 +109,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f}",
+                label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f} \n b  = {out['b'][0]:.1f} +/- {out['b'][1]:.1f}",
             )
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
@@ -243,7 +243,7 @@ class Fit:
                 label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f}ns",
             )
             plt.xlabel("Waiting time [ns]")
-            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
@@ -264,7 +264,7 @@ class Fit:
 
         .. math::
         f(x) = final_offset * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
-            np.exp(-x * (1/tau))
+            np.exp(-x * (1/T2))
             * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
             )
 
@@ -426,7 +426,7 @@ class Fit:
         if verbose:
             print(
                 f"Fitting results:\n"
-                f" f = {out['f'][0] * 1000:.3f} +/- {out['f'][1]:.3f} MHz, \n"
+                f" f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz, \n"
                 f" phase = {out['phase'][0]:.3f} +/- {out['phase'][1]:.3f} rad, \n"
                 f" T2 = {out['T2'][0]:.2f} +/- {out['T2'][1]:.3f} ns, \n"
                 f" amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
@@ -440,10 +440,10 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns",
+                label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns \n f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz",
             )
             plt.xlabel("Waiting time [ns]")
-            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
@@ -578,7 +578,7 @@ class Fit:
                 label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
             )
             plt.xlabel("Frequency [Hz]")
-            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
@@ -735,7 +735,7 @@ class Fit:
                 label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
             )
             plt.xlabel("Frequency [Hz]")
-            plt.ylabel("I & Q amplitude [a.u.]")
+            plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
