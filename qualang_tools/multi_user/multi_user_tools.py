@@ -5,17 +5,21 @@ from time import sleep
 from qm import QuantumMachine
 from qm.QuantumMachinesManager import QuantumMachinesManager
 
-msg = 'A quantum machine cannot be opened because an existing quantum machine, using the same ports, is currently ' \
-      'running an program. Please close the currently open quantum machine. '
+msg = (
+    "A quantum machine cannot be opened because an existing quantum machine, using the same ports, is currently "
+    "running an program. Please close the currently open quantum machine. "
+)
 
 
 class BusyFilter(logging.Filter):
     def filter(self, record):
-        return not ('already uses' in record.getMessage() or msg in record.getMessage())
+        return not ("already uses" in record.getMessage() or msg in record.getMessage())
 
 
 @contextmanager
-def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) -> QuantumMachine:
+def qm_session(
+    qmm: QuantumMachinesManager, config: dict, timeout: int = 100
+) -> QuantumMachine:
     """
     This context manager allows a user to _try_ to
     open a quantum machine, and if it is not possible since its resources are currently in use,
@@ -31,8 +35,8 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
 
     """
     if not timeout > 0:
-        raise ValueError(f'timeout={timeout} but must be positive')
-    qm_log = logging.getLogger('qm')
+        raise ValueError(f"timeout={timeout} but must be positive")
+    qm_log = logging.getLogger("qm")
     filt = BusyFilter()
     is_busy = True
     printed = False
@@ -42,12 +46,16 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
             qm_log.addFilter(filt)
             qm = qmm.open_qm(config, close_other_machines=False)
         except Exception as e:
-            if hasattr(e, 'errors') and \
-                    isinstance(e.errors, list) and \
-                    len(e.errors) > 1 and isinstance(e.errors[1], tuple) and \
-                    len(e.errors[1]) > 2 and msg in e.errors[1][2]:
+            if (
+                hasattr(e, "errors")
+                and isinstance(e.errors, list)
+                and len(e.errors) > 1
+                and isinstance(e.errors[1], tuple)
+                and len(e.errors[1]) > 2
+                and msg in e.errors[1][2]
+            ):
                 if not printed:
-                    qm_log.warning('QOP is busy. Waiting for it to free up...')
+                    qm_log.warning("QOP is busy. Waiting for it to free up...")
                     printed = True
                 sleep(0.2)
                 time += 0.2
@@ -55,14 +63,15 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
                 raise Exception from e
         else:
             is_busy = False
-            qm_log.info('opening QM')
+            qm_log.info("opening QM")
         finally:
             qm_log.removeFilter(filt)
     if is_busy and time >= timeout:
         raise TimeoutError(
-            f'while waiting for QOP to free, reached timeout: {timeout}s')
+            f"while waiting for QOP to free, reached timeout: {timeout}s"
+        )
     try:
         yield qm
     finally:
-        qm_log.info('closing QM')
+        qm_log.info("closing QM")
         qm.close()
