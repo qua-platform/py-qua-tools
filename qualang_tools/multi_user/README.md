@@ -1,10 +1,10 @@
-# Multi user tools
+# Multi-user tools
 
 This subpackage contains tools to be used when multiple users need to work
 on the same QOP, and the queue functionality is insufficient since these
 users need to work with different QMs or configs that share resources.
 
-Currently it contains a single method, `qm_session`, that allows a user to _try_ to
+Currently, it contains a single method, `qm_session`, that allows a user to _try_ to
 open a quantum machine, and if it is not possible since its resources are currently in use,
 wait for them to free up. This is done by repeatedly polling the QM manager.
 

@@ -5,8 +5,10 @@ from time import sleep
 from qm import QuantumMachine
 from qm.QuantumMachinesManager import QuantumMachinesManager
 
-msg = 'A quantum machine cannot be opened because an existing quantum machine, using the same ports, is currently ' \
-      'running a program. Please close the currently open quantum machine.'
+msg = (
+    "A quantum machine cannot be opened because an existing quantum machine, using the same ports, is currently "
+    "running a program. Please close the currently open quantum machine."
+)
 
 
 class BusyFilter(logging.Filter):
