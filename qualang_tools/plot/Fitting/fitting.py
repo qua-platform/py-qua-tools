@@ -38,7 +38,7 @@ class Fit:
          :param verbose: if True prints the initial guess and fitting results
          :param plot: if True plots the data and the fitting function
          :param save: if not False saves the data into a json file
-                      The id of the file is save=id. The name of the json file is `data_fit_id.json`
+                      The id of the file is save='id'. The name of the json file is `data_fit_id.json`
          :return: A dictionary of (fit_func, a, b)
 
         """
@@ -115,8 +115,6 @@ class Fit:
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
-            for key in fit_params:
-                fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (func(x, popt[0], popt[1]) * y_normal).tolist()
@@ -145,7 +143,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
         :return: A dictionary of (fit_func, T1, amp, final_offset)
 
         """
@@ -250,8 +248,6 @@ class Fit:
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
-            for key in fit_params:
-                fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
@@ -286,7 +282,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
           :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
 
         """
@@ -452,8 +448,6 @@ class Fit:
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
-            for key in fit_params:
-                fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
@@ -486,7 +480,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
              :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
@@ -589,8 +583,6 @@ class Fit:
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
-            for key in fit_params:
-                fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
@@ -624,7 +616,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save=id. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
           :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
@@ -748,8 +740,6 @@ class Fit:
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
-            for key in fit_params:
-                fit_params[key] = fit_params[key]
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
@@ -766,17 +756,17 @@ class Read:
     """
 
     @staticmethod
-    def read_saved_params(id, print_params=False):
+    def read_saved_params(id, verbose=False):
         """
         Read the saved json file and print the saved params if print_params=True
-        :param id: The name of the json file
-        :param print_params: The parameters that were saved
+        :param id: The is of the json file as been given in the Fit class
+        :param verbose: The parameters that were saved
         :return: Dictionary with the saved data print the saved params if print_params=True
         """
 
         f = open(f"data_fit_{id}.json")
         data = json.load(f)
-        if print_params:
+        if verbose:
             for key, value in data.items():
                 print("{} = {}".format(key, value))
         return data
