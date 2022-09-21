@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+
+- multi user tools subpackage, with a qm_session method that allows several users to work simultaneously.
 
 ## [0.12.0] - 2022-08-29
 ### Changed
