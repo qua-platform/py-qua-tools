@@ -212,7 +212,7 @@ def config2():
 
 def test_multi_user_timeout(config1, config2):
     # Open QMM
-    qmm = QuantumMachinesManager(host="172.16.2.103", port=80)
+    qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
     # A dummy QUA program
     with program() as prog_1:
@@ -236,7 +236,7 @@ def test_multi_user_timeout(config1, config2):
 
 def test_multi_user_wait(config1, config2):
     # Open QMM
-    qmm = QuantumMachinesManager(host="172.16.2.103", port=85)
+    qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
     # A dummy QUA program
     with program() as prog_1:
@@ -260,7 +260,7 @@ def test_multi_user_wait(config1, config2):
 
 def test_multi_user_no_open_qm(config1, config2):
     # Open QMM
-    qmm = QuantumMachinesManager(host="172.16.2.103", port=85)
+    qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
     # A dummy QUA program
     with program() as prog_2:
