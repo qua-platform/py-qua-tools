@@ -45,6 +45,7 @@ def qm_session(
         try:
             qm_log.addFilter(filt)
             qm = qmm.open_qm(config, close_other_machines=False)
+            # qm_log.warning(f"QOP is busy. Waiting for it to free up for {timeout}s...")
         except Exception as e:
             if (
                 hasattr(e, "errors")
@@ -55,23 +56,34 @@ def qm_session(
                 and msg in e.errors[1][2]
             ):
                 if not printed:
-                    qm_log.warning("QOP is busy. Waiting for it to free up...")
+                    qm_log.warning(
+                        f"QOP is busy. Waiting for it to free up for {timeout}s..."
+                    )
                     printed = True
-                sleep(0.2)
-                time += 0.2
+                if (
+                    qmm.get_qm(qmm.list_open_quantum_machines()[0]).get_running_job()
+                    is not None
+                ):
+                    sleep(0.2)
+                    time += 0.2
+                else:
+                    qm_log.info(f"The running job ended after {time:.1f}s")
+                    qm_log.info("Closing QM")
+                    qmm.get_qm(qmm.list_open_quantum_machines()[0]).close()
             else:
                 raise Exception from e
         else:
             is_busy = False
-            qm_log.info("opening QM")
+            qm_log.info("Opening QM")
         finally:
             qm_log.removeFilter(filt)
     if is_busy and time >= timeout:
+        qm_log.warning(f"While waiting for QOP to free, reached timeout: {timeout}s")
         raise TimeoutError(
-            f"while waiting for QOP to free, reached timeout: {timeout}s"
+            f"While waiting for QOP to free, reached timeout: {timeout}s"
         )
     try:
         yield qm
     finally:
-        qm_log.info("closing QM")
+        qm_log.info("Closing QM")
         qm.close()
