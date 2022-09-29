@@ -269,6 +269,7 @@ def test_multi_user_close_qm(config1, config2):
     if len(qmm.list_open_quantum_machines()) != 0:
         raise Exception("The QM was not closed at the end of the program!")
 
+
 def test_multi_user_parallel(config1, config2):
     # Open QMM
     qmm = QuantumMachinesManager()
@@ -299,4 +300,4 @@ def test_multi_user_parallel(config1, config2):
         while job.result_handles.is_processing():
             i = res.fetch_all()
         i = res.fetch_all()
-        assert i==999
+        assert i == 999

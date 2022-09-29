@@ -97,7 +97,6 @@ def config():
 
 def simulate_program_and_return(config, prog, duration=50000):
 
-
     qmm = QuantumMachinesManager(host="172.16.2.103", port=80)
     # qmm.close_all_quantum_machines()
     # job = qmm.simulate(
@@ -159,7 +158,7 @@ def test_qua_arange(config):
         [-1, 1, 0.2],
         [0.00015, 1, 0.0001],
         [0, -2, -0.001],
-        #[-1, 2, 0.00006],
+        # [-1, 2, 0.00006],
     ]
 
     for param in arange_param_list:
@@ -219,7 +218,7 @@ def test_from_array(config):
         [np.arange(0, 1, 0.1), "fixed"],
         [np.arange(0, 1, 0.2), "fixed"],
         [np.arange(0.1, 1, 0.2), "fixed"],
-        #[np.arange(0.00015, 1, 0.0001), "fixed"],
+        # [np.arange(0.00015, 1, 0.0001), "fixed"],
     ]
 
     for param in arange_param_list:
@@ -229,7 +228,9 @@ def test_from_array(config):
         a_qua = job.result_handles.get("a").fetch_all()["value"]
         a_list = param[0]
 
-        if (param[1] == "int") and (np.isclose(a_list[1]/a_list[0], a_list[-1]/a_list[-2])):
+        if (param[1] == "int") and (
+            np.isclose(a_list[1] / a_list[0], a_list[-1] / a_list[-2])
+        ):
             a_list = get_equivalent_log_array(a_list)
 
         assert len(a_list) == len(a_qua)
@@ -341,6 +342,8 @@ def test_qua_logspace_int(config):
         job = simulate_program_and_return(cfg, prog_maker(param))
         job.result_handles.wait_for_all_values()
         a_qua = job.result_handles.get("a").fetch_all()["value"]
-        a_list = get_equivalent_log_array(np.round(np.logspace(param[0], param[1], param[2])))
+        a_list = get_equivalent_log_array(
+            np.round(np.logspace(param[0], param[1], param[2]))
+        )
         assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
