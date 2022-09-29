@@ -215,17 +215,14 @@ def test_multi_user_timeout(config1, config2):
     qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
     # A dummy QUA program
-    with program() as prog_1:
-        pause()
-        play("readout", "resonator")
-    with program() as prog_2:
+    with program() as prog:
         play("cw", "qubit")
     # Try to open two qms successively
     try:
-        qm = qmm.open_qm(config1)
-        qm.execute(prog_1)
+        qmm.open_qm(config1)
+
         with qm_session(qmm, config2, timeout=3) as qm:
-            job: QmJob = qm.execute(prog_2)
+            job: QmJob = qm.execute(prog)
         raise Exception("Didn't reach timeout!")
     except Exception as e:
         if e.__class__.__name__ == "TimeoutError":
@@ -249,16 +246,16 @@ def test_multi_user_wait(config1, config2):
         play("cw", "qubit")
     # Try to open two qms successively
     try:
-        qm = qmm.open_qm(config1)
-        qm.execute(prog_1)
-        with qm_session(qmm, config2, timeout=10) as qm:
-            job: QmJob = qm.execute(prog_2)
+        with qm_session(qmm, config1, timeout=10) as qm1:
+            job1: QmJob = qm1.execute(prog_1)
+        with qm_session(qmm, config2, timeout=10) as qm2:
+            job2: QmJob = qm2.execute(prog_2)
         return True
     except Exception as e:
         raise Exception from e
 
 
-def test_multi_user_no_open_qm(config1, config2):
+def test_multi_user_close_qm(config1, config2):
     # Open QMM
     qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
@@ -266,9 +263,40 @@ def test_multi_user_no_open_qm(config1, config2):
     with program() as prog_2:
         play("cw", "qubit")
     # Try to open two qms successively
-    try:
-        with qm_session(qmm, config2, timeout=10) as qm:
-            job: QmJob = qm.execute(prog_2)
-        return True
-    except Exception as e:
-        raise Exception from e
+    with qm_session(qmm, config2, timeout=10) as qm:
+        job: QmJob = qm.execute(prog_2)
+
+    if len(qmm.list_open_quantum_machines()) != 0:
+        raise Exception("The QM was not closed at the end of the program!")
+
+def test_multi_user_parallel(config1, config2):
+    # Open QMM
+    qmm = QuantumMachinesManager()
+    # A dummy QUA program
+    with program() as prog_1:
+        i = declare(int)
+        i_st = declare_stream()
+        with for_(i, 0, i < 1000, i + 1):
+            play("readout", "resonator", duration=1000000)
+
+            save(i, i_st)
+        with stream_processing():
+            i_st.save("i")
+    with program() as prog_2:
+        i = declare(int)
+        i_st = declare_stream()
+        with for_(i, 0, i < 1000, i + 1):
+            play("cw", "qubit", duration=1000000)
+            save(i, i_st)
+        with stream_processing():
+            i_st.save("i")
+
+    # Try to open two qms successively
+    with qm_session(qmm, config1, timeout=10) as qm:
+        job: QmJob = qm.execute(prog_1)
+        res = job.result_handles.get("i")
+        res.wait_for_values(1)
+        while job.result_handles.is_processing():
+            i = res.fetch_all()
+        i = res.fetch_all()
+        assert i==999

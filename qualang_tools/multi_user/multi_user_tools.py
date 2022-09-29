@@ -60,16 +60,8 @@ def qm_session(
                         f"QOP is busy. Waiting for it to free up for {timeout}s..."
                     )
                     printed = True
-                if (
-                    qmm.get_qm(qmm.list_open_quantum_machines()[0]).get_running_job()
-                    is not None
-                ):
-                    sleep(0.2)
-                    time += 0.2
-                else:
-                    qm_log.info(f"The running job ended after {time:.1f}s")
-                    qm_log.info("Closing QM")
-                    qmm.get_qm(qmm.list_open_quantum_machines()[0]).close()
+                sleep(0.2)
+                time += 0.2
             else:
                 raise Exception from e
         else:
@@ -84,6 +76,10 @@ def qm_session(
         )
     try:
         yield qm
+        while qm.get_running_job() is not None:
+            sleep(0.2)
+    except KeyboardInterrupt:
+        pass
     finally:
         qm_log.info("Closing QM")
         qm.close()
