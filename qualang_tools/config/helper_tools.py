@@ -40,14 +40,14 @@ class QuaConfig(_UserDict):
         }
         self.data["elements"][element]["operations"][operation_name] = pulse_name
 
-    def copy_measurement_operation(self, element, operation_name, new_name):
+    def copy_measurement_operation(self, element, operation_name, new_name): # TODO: what is the purpose? (_in?) Actually it is not only measurement op right?
         pulse_name = self.data["elements"][element]["operations"][operation_name]
         self.data["pulses"][new_name + "in"] = _deepcopy(
             self.data["pulses"][pulse_name]
         )
         self.data["elements"][element]["operations"][new_name] = new_name + "in"
 
-    def update_measurement_waveforms(self, element, operation_name, wf_i, wf_q):
+    def update_measurement_waveforms(self, element, operation_name, wf_i, wf_q): # TODO: This assume arbitrary wf? Actually it is not only measurement wf right?
         pulse_name = self.data["elements"][element]["operations"][operation_name]
         self.data["waveforms"][pulse_name + "_i"] = {
             "type": "arbitrary",
@@ -105,7 +105,7 @@ class QuaConfig(_UserDict):
             self.data["elements"][element]["operations"][operation]
         ]
 
-    def update_op_amp(self, element, operation, amp):
+    def update_op_amp(self, element, operation, amp): # TODO: do we want to generalize to mixed elements?
         pulse = self.get_pulse_from_op(element, operation)
         try:
             self.data["waveforms"][pulse["waveforms"]["single"]]["sample"] = amp
@@ -114,7 +114,7 @@ class QuaConfig(_UserDict):
                 "Can only access amplitude for a constant pulse of a single element"
             )
 
-    def get_op_amp(self, element, operation):
+    def get_op_amp(self, element, operation): # TODO: do we want to generalize to mixed elements?
         pulse = self.get_pulse_from_op(element, operation)
         try:
             return self.data["waveforms"][pulse["waveforms"]["single"]]["sample"]
@@ -137,9 +137,9 @@ def resolve(qubit: int, channel: str):
 
 
 def add_90_degree_rotation_pulses(config: dict, qubits: List[int], params) -> dict:
-    config = QuaConfig(config)
+    config = QuaConfig(config) # TODO: params is from entropy right?
     for q in qubits:
-        xy = resolve(q, "xy")
+        xy = resolve(q, "xy") # TODO: do we really need this? can't we just input the list of elements?
         x_i, x_q = config.get_waveforms_from_op(xy, "x")
 
         base_pulse_180 = x_i, x_q
@@ -147,7 +147,7 @@ def add_90_degree_rotation_pulses(config: dict, qubits: List[int], params) -> di
         pi_amp = params.pi_amp[q]
         base_pulse_90 = half_pi_amp / pi_amp * np.array([x_i, x_q])
         config.add_control_operation_iq(xy, "y", base_pulse_180[1], base_pulse_180[0])
-        config.add_control_operation_iq(xy, "sy", base_pulse_90[1], base_pulse_90[0])
+        config.add_control_operation_iq(xy, "sy", base_pulse_90[1], base_pulse_90[0]) # TODO: is sy an official name for y90?
         config.add_control_operation_iq(xy, "-sy", -base_pulse_90[1], -base_pulse_90[0])
         config.add_control_operation_iq(xy, "sx", base_pulse_90[0], base_pulse_90[1])
         config.add_control_operation_iq(xy, "-sx", -base_pulse_90[0], -base_pulse_90[1])
