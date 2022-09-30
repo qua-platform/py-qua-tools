@@ -95,7 +95,7 @@ def plot_demodulated_data_1d(
     x_label: str = None,
     title: str = None,
     amp_and_phase: bool = True,
-    fig = None,
+    fig=None,
     plot_options: dict = None,
 ):
     """
