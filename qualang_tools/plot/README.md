@@ -1,5 +1,5 @@
 # Plot tools
-This library includes tools to help handling plots from QUA programs.
+This library includes tools to help to handle plots from QUA programs.
 
 ## interrupt_on_close
 This function allows to interrupt the execution and free the console when closing the live-plotting figure.

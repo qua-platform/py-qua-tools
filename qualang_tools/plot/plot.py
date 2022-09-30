@@ -289,7 +289,7 @@ def interrupt_on_close(figure, current_job):
     """
     Allows to interrupt the execution and free the console when closing the live-plotting figure.
 
-    :param figure: the python figure instance correponding to the live-plotting figure.
+    :param figure: the python figure instance corresponding to the live-plotting figure.
     :param current_job: a ``QmJob`` object (see QM Job API) corresponding to the running job.
     """
 
