@@ -13,15 +13,16 @@ from matplotlib import pyplot as plt
 from qm.QmJob import QmJob
 
 
-def plot_amplitude_and_phase_2d(
+def plot_demodulated_data_2d(
     x,
     y,
     I,
     Q,
-    amp_and_phase: bool = True,
     x_label: str = None,
     y_label: str = None,
     title: str = None,
+    amp_and_phase: bool = True,
+    fig=None,
     plot_options: dict = None,
 ):
     """
@@ -31,10 +32,11 @@ def plot_amplitude_and_phase_2d(
     :param y: 1D numpy array representing the y-axis.
     :param I: 2D numpy array representing the 'I' quadrature.
     :param Q: 2D numpy array representing the 'Q' quadrature.
-    :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
     :param x_label: name for the x-axis label.
     :param y_label: name for the y-axis label.
     :param title: title of the plot.
+    :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
+    :param fig: the matplotlib figure if defined prior to calling the function.
     :param plot_options: dictionary containing various plotting options ['fontsize', 'cmap', 'figsize'].
     :return: the matplotlib figure object.
     """
@@ -62,11 +64,12 @@ def plot_amplitude_and_phase_2d(
         z1_label = "I [a.u.]"
         z2_label = "Q [a.u.]"
 
-    fig = plt.figure(figsize=_plot_options["figsize"])
+    if fig is None:
+        fig = plt.figure(figsize=_plot_options["figsize"])
     plt.suptitle(title, fontsize=_plot_options["fontsize"] + 2)
     ax1 = plt.subplot(211)
     plt.cla()
-    plt.title(z1_label)
+    plt.title(z1_label, fontsize=_plot_options["fontsize"])
     plt.pcolor(x, y, z1, cmap=_plot_options["cmap"])
     plt.ylabel(y_label, fontsize=_plot_options["fontsize"])
     plt.xticks(fontsize=_plot_options["fontsize"])
@@ -74,7 +77,7 @@ def plot_amplitude_and_phase_2d(
     plt.colorbar()
     plt.subplot(212, sharex=ax1)
     plt.cla()
-    plt.title(z2_label)
+    plt.title(z2_label, fontsize=_plot_options["fontsize"])
     plt.pcolor(x, y, z2, cmap=_plot_options["cmap"])
     plt.xlabel(x_label, fontsize=_plot_options["fontsize"])
     plt.ylabel(y_label, fontsize=_plot_options["fontsize"])
@@ -85,13 +88,14 @@ def plot_amplitude_and_phase_2d(
     return fig
 
 
-def plot_amplitude_and_phase_1d(
+def plot_demodulated_data_1d(
     x: np.ndarray,
     I: np.ndarray,
     Q: np.ndarray,
-    amp_and_phase: bool = True,
     x_label: str = None,
     title: str = None,
+    amp_and_phase: bool = True,
+    fig = None,
     plot_options: dict = None,
 ):
     """
@@ -100,9 +104,10 @@ def plot_amplitude_and_phase_1d(
     :param x: 1D numpy array representing the x-axis.
     :param I: 1D numpy array representing the 'I' quadrature.
     :param Q: 1D numpy array representing the 'Q' quadrature.
-    :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
     :param x_label: name for the x-axis label.
     :param title: title of the plot.
+    :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
+    :param fig: the matplotlib figure if defined prior to calling the function.
     :param plot_options: dictionary containing various plotting options ['fontsize', 'color', 'marker', 'linewidth', 'figsize'].
     :return: the matplotlib figure object.
     """
@@ -133,7 +138,8 @@ def plot_amplitude_and_phase_1d(
         y1_label = "I [a.u.]"
         y2_label = "Q [a.u.]"
 
-    fig = plt.figure(figsize=_plot_options["figsize"])
+    if fig is None:
+        fig = plt.figure(figsize=_plot_options["figsize"])
     plt.suptitle(title, fontsize=_plot_options["fontsize"] + 2)
     ax1 = plt.subplot(211)
     plt.cla()
@@ -211,13 +217,14 @@ def plot_simulator_output(
     plot_axes: List[List[str]], job: QmJob, config: dict, duration_ns: int
 ):
     """
-    generate a plot of simulator output by elements
+    generate a 'plotly' plot of simulator output by elements
 
-    :param plot_axes: a list of lists of elements. Will open
+    :param plot_axes: a list of lists of elements (ex: [["qubit0"], ["qubit1"]]). Will open
     multiple axes, one for each list.
     :param job: The simulated QmJob to plot.
     :param config: The config file used to create the job.
     :param duration_ns: the duration to plot in nanosecond.
+    :return: the generated 'plotly' figure.
     """
     time_vec = np.linspace(0, duration_ns - 1, duration_ns)
     samples_struct = []
