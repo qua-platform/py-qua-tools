@@ -10,9 +10,6 @@ def _false_detections(threshold, Ig, Ie):
         false_detections_var = np.sum(Ig < threshold) + np.sum(Ie > threshold)
     return false_detections_var
 
-def print_hello():
-    print("hello")
-
 
 def two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True):
     """
