@@ -93,12 +93,3 @@ job = qmm.simulate(config, test_prog, simulation_config)
 fig = plot_simulator_output([["RF"],["qubit"]], job, config, duration_ns=8000)
 fig.show()
 ```
-
-## plot_ar_attempts
-This function plots the histogram of the number of attempts necessary to perform active reset.
-
-### Usage example
-
-```python
-
-```

@@ -26,7 +26,7 @@ def plot_demodulated_data_2d(
     plot_options: dict = None,
 ):
     """
-    Plot 2D maps of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
+    Plots 2D maps of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
 
     :param x: 1D numpy array representing the x-axis.
     :param y: 1D numpy array representing the y-axis.
@@ -36,8 +36,8 @@ def plot_demodulated_data_2d(
     :param y_label: name for the y-axis label.
     :param title: title of the plot.
     :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
-    :param fig: the matplotlib figure if defined prior to calling the function.
-    :param plot_options: dictionary containing various plotting options ['fontsize', 'cmap', 'figsize'].
+    :param fig: a matplotlib figure. If `none` (default), will create a new one.
+    :param plot_options: dictionary containing various plotting options. Defaults are ['fontsize': 14, 'cmap': `magma`, 'figsize': None].
     :return: the matplotlib figure object.
     """
     _plot_options = {
@@ -99,16 +99,16 @@ def plot_demodulated_data_1d(
     plot_options: dict = None,
 ):
     """
-    Plot 1D graphs of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
+    Plots 1D graphs of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
 
     :param x: 1D numpy array representing the x-axis.
     :param I: 1D numpy array representing the 'I' quadrature.
     :param Q: 1D numpy array representing the 'Q' quadrature.
     :param x_label: name for the x-axis label.
     :param title: title of the plot.
-    :param amp_and_phase: if True, plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
-    :param fig: the matplotlib figure if defined prior to calling the function.
-    :param plot_options: dictionary containing various plotting options ['fontsize', 'color', 'marker', 'linewidth', 'figsize'].
+    :param amp_and_phase: if `True` (default value), plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
+    :param fig: a matplotlib figure. If `none` (default), will create a new one.
+    :param plot_options: dictionary containing various plotting options. Defaults are ['fontsize': 14, 'color': 'b', 'marker': 'o', 'linewidth': 0, 'figsize': None].
     :return: the matplotlib figure object.
     """
     _plot_options = {
@@ -170,25 +170,6 @@ def plot_demodulated_data_1d(
     return fig
 
 
-def plot_channel(ax, data: np.ndarray, title: str):
-    """
-    Plot data from one channel to a given axis.
-
-    :param ax: valid matplotlib.pyplot axis .
-    :param data: 1D array containing the data to be plotted, can be real or complex.
-    :param title: title of the plot.
-
-    """
-    if data.dtype == np.complex:
-        ax.plot(data.real, label="Real part")
-        ax.plot(data.imag, label="Imaginary part")
-        ax.legend(loc="upper right")
-    else:
-        ax.plot(data)
-    ax.set_title(title)
-    ax.set_ylim((-0.6, 0.6))
-
-
 def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict):
     """
     Extract the simulated samples corresponding to a given element.
@@ -217,7 +198,7 @@ def plot_simulator_output(
     plot_axes: List[List[str]], job: QmJob, config: dict, duration_ns: int
 ):
     """
-    generate a 'plotly' plot of simulator output by elements
+    Generate a 'plotly' plot of simulator output by elements
 
     :param plot_axes: a list of lists of elements (ex: [["qubit0"], ["qubit1"]]). Will open
     multiple axes, one for each list.
@@ -261,28 +242,6 @@ def plot_simulator_output(
                 )
     fig.update_xaxes(title="time [ns]")
     return fig
-
-
-def plot_ar_attempts(res_handles, qubits: List[int], attempts_data: str, **hist_kwargs):
-    """
-    Plot the histogram of the number of attempts necessary to perform active reset.
-
-    :param res_handles: results handle containing the number of attempts.
-    :param attempts_data: base name for the data containing the number of attempts for each qubit (ex: 'AR_attempts_qb').
-    :param qubits: list of the qubit numbers involved in the experiment as defined in the config (ex: [0, 2, 4]).
-    :param hist_kwargs: arguments to be passed to the 'hist' plot.
-    """
-    ar_data = {
-        q: res_handles.get(attempts_data + str(q)).fetch_all()["value"] for q in qubits
-    }
-    fig, axes = plt.subplots(1, len(qubits), sharex="all", figsize=(14, 4))
-    for i, q in enumerate(qubits):
-        ax = axes[i]
-        ax.hist(ar_data[q], **hist_kwargs)
-        ax.set_title(f"q = {q}")
-        ax.set_ylabel("prob.")
-        ax.set_xlabel("no. of attempts")
-    fig.tight_layout()
 
 
 def interrupt_on_close(figure, current_job):
