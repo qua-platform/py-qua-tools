@@ -180,6 +180,7 @@ def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict
     :return: 1D complex array containing the simulated samples for the specified element.
     """
     element = config["elements"][element_name]
+    job.result_handles.wait_for_all_values()
     sample_struct = job.get_simulated_samples()
     if "mixInputs" in element:
         port_i = element["mixInputs"]["I"]
@@ -218,13 +219,12 @@ def plot_simulator_output(
 
     for i, plot_axis in enumerate(plot_axes):
         for j, plot_item in enumerate(plot_axis):
-            if samples_struct[i][j].dtype == np.float:
+            if isinstance(samples_struct[i][j][0], float):
                 fig.add_trace(
                     go.Scatter(x=time_vec, y=samples_struct[i][j], name=plot_item),
                     row=i + 1,
                     col=1,
                 )
-                print(samples_struct[i][j])
             else:
                 fig.add_trace(
                     go.Scatter(
