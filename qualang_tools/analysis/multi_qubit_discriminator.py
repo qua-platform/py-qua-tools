@@ -56,8 +56,8 @@ def generate_labels(length):
 
 if __name__ == '__main__':
 
-    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 2)).T
-    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 2)).T
+    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 4)).T
+    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 4)).T
 
     igs, qgs = iq_state_g
     ies, qes = iq_state_e
@@ -65,8 +65,16 @@ if __name__ == '__main__':
     ggs, ges, egs, ees, confusion_matrices = multi_qubit_discriminator(igs, qgs, ies, qes)
 
     # need to fix this so it's [ab], c etc [[ab] c][d]
-    outcome = np.kron(*confusion_matrices)
 
+    A = confusion_matrices[0]
+
+    for i in range(0, len(confusion_matrices) - 1):
+
+        B = confusion_matrices[i + 1]
+
+        A = np.kron(A, B)
+
+    outcome = A
     fig, ax = plt.subplots()
     ax.imshow(outcome)
 
@@ -84,13 +92,16 @@ if __name__ == '__main__':
     ax.set_ylabel("Prepared")
     ax.set_xlabel("Measured")
 
-    ids = list(itertools.product(np.arange(0, outcome.__len__()), repeat=num_qubits))
-
+    ids = list(itertools.product(np.arange(0, outcome.__len__()), repeat=2))
+    print(ids)
     for id in ids:
 
         # if on the diagonal id[0] == id[1] and the imshow pixel will be light so make text dark.
         # otherwise pixel will be dark so make text light
-        color = 'k' if np.diff(id) == 0 else 'w'
+        color = 'k' if np.all(np.diff(id) == 0) else 'w'
+
+        print(id)
+
         ax.text(*id, f"{100 * outcome[id]:.1f}%", ha="center", va="center", color=color)
 
     #
