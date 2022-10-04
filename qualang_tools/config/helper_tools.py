@@ -41,25 +41,34 @@ class QuaConfig(_UserDict):
 
         # Add operation
         pulse_name = element + "_" + operation_name + self.pulse_suffix
+        wf_name = element + "_" + operation_name + self.wf_suffix
         self.data["elements"][element]["operations"][operation_name] = pulse_name
         # Add pulse
         self.data["pulses"][pulse_name] = {
             "operation": "control",
             "length": len(wf_i),
-            "waveforms": {"I": pulse_name + "_i", "Q": pulse_name + "_q"},
+            "waveforms": {"I": wf_name + "_i", "Q": wf_name + "_q"},
         }
         # Add waveform
-        wf_name = element + "_" + operation_name + self.wf_suffix
         if len(wf_i) > 0:
-            if
-            self.data["waveforms"][wf_name + "_i"] = {
-                "type": "arbitrary",
-                "samples": list(wf_i),
-            }
-            self.data["waveforms"][wf_name + "_q"] = {
-                "type": "arbitrary",
-                "samples": list(wf_q),
-            }
+            if wf_i[:-1] == wf_i[1:]:
+                self.data["waveforms"][wf_name + "_i"] = {
+                    "type": "constant",
+                    "sample": wf_i[0],
+                }
+                self.data["waveforms"][wf_name + "_q"] = {
+                    "type": "constant",
+                    "sample": wf_q[0],
+                }
+            else:
+                self.data["waveforms"][wf_name + "_i"] = {
+                    "type": "arbitrary",
+                    "samples": list(wf_i),
+                }
+                self.data["waveforms"][wf_name + "_q"] = {
+                    "type": "arbitrary",
+                    "samples": list(wf_q),
+                }
         elif len(wf_i) == 1:
             self.data["waveforms"][wf_name + "_i"] = {
                 "type": "constant",
@@ -91,22 +100,28 @@ class QuaConfig(_UserDict):
 
         # Add operation
         pulse_name = element + "_" + operation_name + self.pulse_suffix
+        wf_name = element + "_" + operation_name + "_single" + self.wf_suffix
         self.data["elements"][element]["operations"][operation_name] = pulse_name
         # Add pulse
         self.data["pulses"][pulse_name] = {
             "operation": "control",
             "length": len(wf),
-            "waveforms": {"single": pulse_name + "_single"},
+            "waveforms": {"single": wf_name},
         }
         # Add waveform
-        wf_name = element + "_" + operation_name + self.wf_suffix
         if len(wf) > 1:
-            self.data["waveforms"][wf_name + "_single"] = {
+            if wf[:-1] == wf[1:]:
+                self.data["waveforms"][wf_name] = {
+                    "type": "constant",
+                    "sample": wf[0],
+                }
+            else:
+                self.data["waveforms"][wf_name] = {
                 "type": "arbitrary",
                 "samples": list(wf),
             }
         elif len(wf) == 1:
-            self.data["waveforms"][wf_name + "_single"] = {
+            self.data["waveforms"][wf_name] = {
                 "type": "constant",
                 "sample": wf[0],
             }
@@ -229,6 +244,32 @@ class QuaConfig(_UserDict):
                 "Can only access amplitude for a constant pulse of a single element"
             )
 
+    def update_integration_weight(
+        self, element, operation, iw_op_name, iw_cos, iw_sin
+    ):
+        """
+        Update the cosine and sine parts of an integration weight for a given element and operation.
+
+        :param element: name of the element to get the waveforms from. Must be defined in the config.
+        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param iw_op_name: name of the integration weight to be updated. Must be defined in the config.
+        :param iw_cos: values for the cosine part of integration weights defined as a list of tuples [(value, duration in ns)].
+        :param iw_sin: values for the sine part of integration weights defined as a list of tuples [(value, duration in ns)].
+        """
+        # Check inputs
+        if element not in self.data["elements"].keys():
+            raise KeyError(f"The element '{element}' in not defined in the config.")
+        if operation not in self.data["elements"][element]["operations"].keys():
+            raise KeyError(
+                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+            )
+        if iw_op_name not in self.data["pulses"][self.data["elements"][element]["operations"][operation]]["integration_weights"].keys():
+            raise KeyError(f"The integration weight '{iw_op_name}' in not associated to the pulse corresponding to the operation '{operation}'.")
+        # Update iw
+        pulse_name = self.data["elements"][element]["operations"][operation]
+        iw_name = self.data["pulses"][pulse_name]["integration_weights"][iw_op_name]
+        self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
+
     def copy_measurement_operation(
         self, element, operation_name, new_name
     ):  # TODO: what is the purpose? (_in?) Actually it is not only measurement op right?
@@ -256,12 +297,7 @@ class QuaConfig(_UserDict):
         }
         self.data["pulses"][pulse_name]["length"] = len(wf_i)
 
-    def update_measurement_iws(
-        self, element, operation_name, iw_op_name, iw_cos, iw_sin
-    ):
-        pulse_name = self.data["elements"][element]["operations"][operation_name]
-        iw_name = self.data["pulses"][pulse_name]["integration_weights"][iw_op_name]
-        self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
+
 
     def reset(self):
         self.data = _deepcopy(self._data_orig)
