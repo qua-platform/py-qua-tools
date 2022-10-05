@@ -23,13 +23,7 @@ class Ui_Form(object):
         self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        self.loadBtn = QtWidgets.QPushButton(self.layoutWidget)
-        self.loadBtn.setObjectName("loadBtn")
-        self.gridLayout.addWidget(self.loadBtn, 6, 0, 2, 2)
-        # self.exampleTree = QtWidgets.QTreeWidget(self.layoutWidget)
-        # self.exampleTree.setObjectName("exampleTree")
-        # self.exampleTree.headerItem().setText(0, "1")
-        # self.exampleTree.header().setVisible(False)
+
 
         self.qubitsList = QtWidgets.QListWidget()
 
@@ -60,4 +54,3 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "PyQtGraph"))
-        self.loadBtn.setText(_translate("Form", "Show data"))

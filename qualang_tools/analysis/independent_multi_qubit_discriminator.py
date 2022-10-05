@@ -8,7 +8,7 @@ from tkinter import *
 from tkinter import ttk
 
 from discriminator import two_state_discriminator
-
+from viewer import App
 
 @dataclass
 class DiscriminatorDataclass:
@@ -32,6 +32,9 @@ class DiscriminatorDataclass:
     ie: np.ndarray
     qe: np.ndarray
 
+    def __post_init__(self):
+        self.generate_rotation_data()
+
     def confusion_matrix(self):
         return np.array([
             [self.gg, self.ge],
@@ -43,6 +46,24 @@ class DiscriminatorDataclass:
 
     def get_data(self):
         return self.ig, self.qg, self.ie, self.qe
+
+    def get_rotated_data(self):
+        return self.ig_rotated, self.qg_rotated, self.ie_rotated, self.qe_rotated
+
+    def generate_rotation_data(self):
+        # this should happen in the results dataclass not here
+        C = np.cos(self.angle)
+        S = np.sin(self.angle)
+        # Condition for having e > Ig
+        if np.mean((self.ig - self.ie) * C - (self.qg - self.qe) * S) > 0:
+            self.angle += np.pi
+            C = np.cos(self.angle)
+            S = np.sin(self.angle)
+
+        self.ig_rotated = self.ig * C - self.qg * S
+        self.qg_rotated = self.ig * S + self.qg * C
+        self.ie_rotated = self.ie * C - self.qe * S
+        self.qe_rotated = self.ie * S + self.qe * C
 
 
 def independent_multi_qubit_discriminator(Igs, Qgs, Ies, Qes, b_print=True, b_plot=True, text=False):
@@ -159,10 +180,10 @@ if __name__ == '__main__':
 
     results = independent_multi_qubit_discriminator(igs, qgs, ies, qes, b_plot=False, b_print=False)
 
-
     def main():
         app = pg.mkQApp()
-        loader = multiQubitReadoutPresenter(results)
+        # loader = multiQubitReadoutPresenter(results)
+        loader = App(results)
         pg.exec()
 
     main()

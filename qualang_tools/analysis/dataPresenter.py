@@ -10,6 +10,12 @@ class multiQubitReadoutPresenter(QtWidgets.QMainWindow):
 
     def __init__(self, results_dataclasses):
         QtWidgets.QMainWindow.__init__(self)
+
+
+        self.tabs = QtWidgets.QTabWidget()
+        self.tab1 = QtWidgets.QWidget()
+        self.tab2 = QtWidgets.QWidget()
+
         self.ui = ui_template.Ui_Form()
         self.cw = QtWidgets.QWidget()
         self.setCentralWidget(self.cw)
@@ -43,6 +49,10 @@ class multiQubitReadoutPresenter(QtWidgets.QMainWindow):
         # self.codeBtn.clicked.connect(self.runEditedCode)
         # self.updateCodeViewTabWidth(self.ui.codeView.font())
 
+        self.tabs.addTab(self.tab1, 'Readout viewer')
+        self.tabs.addTab(self.tab2, 'All viewer')
+        self.ui.gridLayout.addWidget(self.tabs, 0, 0)
+
     def printer(self):
         qubit_idx = self.ui.qubitsList.currentRow()
 
@@ -51,20 +61,7 @@ class multiQubitReadoutPresenter(QtWidgets.QMainWindow):
         angle, threshold, fidelity, gg, ge, eg, ee = results.get_params()
         ig, qg, ie, qe = results.get_data()
 
-        # this should happen in the results dataclass not here
-        C = np.cos(angle)
-        S = np.sin(angle)
-        # Condition for having e > Ig
-        if np.mean((ig - ie) * C - (qg - qe) * S) > 0:
-            angle += np.pi
-            C = np.cos(angle)
-            S = np.sin(angle)
-
-        ig_rotated = ig * C - qg * S
-        qg_rotated = ig * S + qg * C
-
-        ie_rotated = ie * C - qe * S
-        qe_rotated = ie * S + qe * C
+        ig_rotated, qg_rotated, ie_rotated, qe_rotated = results.get_rotated_data()
 
 
         mw = MatplotlibWidget(parent=self.ui.readoutViewer)
@@ -122,25 +119,6 @@ class multiQubitReadoutPresenter(QtWidgets.QMainWindow):
             mw, 0, 0
         )
 
-        #
-        # plot = self.ui.readoutViewer.addPlot(0, 0)
-        # plot.plot(np.random.normal(size=100), np.random.normal(size=100))
-        # plot = self.ui.readoutViewer.addPlot(0, 1)
-        # plot.plot(np.random.normal(size=100), np.random.normal(size=100))
-        # plot = self.ui.readoutViewer.addPlot(1, 0)
-        # plot.plot(np.random.normal(size=100), np.random.normal(size=100))
-        # plot = self.ui.readoutViewer.addPlot(1, 1)
-        # plot.plot(np.random.normal(size=100), np.random.normal(size=100))
-
-
-
-
-    # def showFile(self):
-    #     fn = self.currentFile()
-    #     text = self.getExampleContent(fn)
-    #     self.ui.codeView.setPlainText(text)
-    #     self.ui.loadedFileLabel.setText(fn)
-    #     self.codeBtn.hide()
 
     def populateTree(self, root, examples):
         bold_font = None
