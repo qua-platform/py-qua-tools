@@ -327,11 +327,11 @@ class QuaConfig(_UserDict):
         wf: Tuple[List[float], List[float]] or Tuple[List[float]],
     ):
         """
+        Update the waveforms of a specific operation and element.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
         :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
-        :param wf:
-        :return:
+        :param wf: Tuple containing the updated waveforms. (wf_single,) for a singleInput element and (wf_i, wf_q) for a mixInputs element.
         """
         # Check inputs
         if element not in self.data["elements"].keys():
