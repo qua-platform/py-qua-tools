@@ -1,6 +1,6 @@
 from collections import UserDict as _UserDict
 from copy import deepcopy as _deepcopy
-from typing import List
+from typing import List, Tuple
 import numpy as np
 import json as _json
 from pprint import pprint
@@ -18,6 +18,16 @@ class QuaConfig(_UserDict):
         Print the config using pprint.
         """
         return pprint(self)
+
+    def reset(self):
+        """
+        Reset to config to its initial state.
+        """
+        self.data = _deepcopy(self._data_orig)
+
+    def dump(self, filename):
+        with open(filename, "w") as fp:
+            _json.dump(self.data, fp)
 
     def add_control_operation_iq(
         self, element: str, operation_name: str, wf_i: List[float], wf_q: List[float]
@@ -117,9 +127,9 @@ class QuaConfig(_UserDict):
                 }
             else:
                 self.data["waveforms"][wf_name] = {
-                "type": "arbitrary",
-                "samples": list(wf),
-            }
+                    "type": "arbitrary",
+                    "samples": list(wf),
+                }
         elif len(wf) == 1:
             self.data["waveforms"][wf_name] = {
                 "type": "constant",
@@ -128,25 +138,27 @@ class QuaConfig(_UserDict):
         else:
             raise ValueError("The waveform must have at least one point.")
 
-    def get_waveforms_from_op(self, element: str, operation: str) -> List or List[List]:
+    def get_waveforms_from_op(
+        self, element: str, operation_name: str
+    ) -> List or List[List]:
         """
         Get the waveforms corresponding to the given element and operation.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
-        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :return: list of the corresponding waveforms.
         """
 
         # Check inputs
         if element not in self.data["elements"].keys():
             raise KeyError(f"The element '{element}' in not defined in the config.")
-        if operation not in self.data["elements"][element]["operations"].keys():
+        if operation_name not in self.data["elements"][element]["operations"].keys():
             raise KeyError(
-                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
 
         # Get the waveforms
-        pulse = self.get_pulse_from_op(element, operation)
+        pulse = self.get_pulse_from_op(element, operation_name)
         if "mixInputs" in self.data["elements"][element]:
             waveform_i = self.data["waveforms"][pulse["waveforms"]["I"]]
             if waveform_i["type"] == "arbitrary":
@@ -168,50 +180,50 @@ class QuaConfig(_UserDict):
                 waveform = [waveform["sample"]] * pulse["length"]
             return waveform
 
-    def get_pulse_from_op(self, element: str, operation: str) -> dict:
+    def get_pulse_from_op(self, element: str, operation_name: str) -> dict:
         """
         Get the pulse corresponding to the given element and operation.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
-        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :return: the corresponding pulse as a dictionary.
         """
 
         # Check inputs
         if element not in self.data["elements"].keys():
             raise KeyError(f"The element '{element}' in not defined in the config.")
-        if operation not in self.data["elements"][element]["operations"].keys():
+        if operation_name not in self.data["elements"][element]["operations"].keys():
             raise KeyError(
-                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
 
         return self.data["pulses"][
-            self.data["elements"][element]["operations"][operation]
+            self.data["elements"][element]["operations"][operation_name]
         ]
 
-    def update_op_amp(self, element: str, operation: str, amp: float):
+    def update_op_amp(self, element: str, operation_name: str, amp: float):
         """
         Update the operation amplitude.
         Can only access amplitude for a constant pulse of a single element.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
-        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :param amp: float for the updated amplitude. Must be within the range [-0.5, 0.5) V.
         """
 
         # Check inputs
         if element not in self.data["elements"].keys():
             raise KeyError(f"The element '{element}' in not defined in the config.")
-        if operation not in self.data["elements"][element]["operations"].keys():
+        if operation_name not in self.data["elements"][element]["operations"].keys():
             raise KeyError(
-                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
         if not -0.5 <= amp < 0.5:
             raise ValueError(
                 "The amplitude must be within the range [-0.5, 0.5) Volts."
             )
 
-        pulse = self.get_pulse_from_op(element, operation)
+        pulse = self.get_pulse_from_op(element, operation_name)
         try:
             self.data["waveforms"][pulse["waveforms"]["single"]]["sample"] = amp
         except KeyError:
@@ -219,24 +231,24 @@ class QuaConfig(_UserDict):
                 "Can only access amplitude for a constant pulse of a single element"
             )
 
-    def get_op_amp(self, element: str, operation: str) -> float:
+    def get_op_amp(self, element: str, operation_name: str) -> float:
         """
         Get the amplitude corresponding to the given element and constant operation.
         Can only access amplitude for a constant pulse of a single element.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
-        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :return: the corresponding amplitude.
         """
         # Check inputs
         if element not in self.data["elements"].keys():
             raise KeyError(f"The element '{element}' in not defined in the config.")
-        if operation not in self.data["elements"][element]["operations"].keys():
+        if operation_name not in self.data["elements"][element]["operations"].keys():
             raise KeyError(
-                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
 
-        pulse = self.get_pulse_from_op(element, operation)
+        pulse = self.get_pulse_from_op(element, operation_name)
         try:
             return self.data["waveforms"][pulse["waveforms"]["single"]]["sample"]
         except KeyError:
@@ -245,13 +257,18 @@ class QuaConfig(_UserDict):
             )
 
     def update_integration_weight(
-        self, element, operation, iw_op_name, iw_cos, iw_sin
+        self,
+        element: str,
+        operation_name: str,
+        iw_op_name: str,
+        iw_cos: List,
+        iw_sin: List,
     ):
         """
         Update the cosine and sine parts of an integration weight for a given element and operation.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
-        :param operation: name of the operation to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :param iw_op_name: name of the integration weight to be updated. Must be defined in the config.
         :param iw_cos: values for the cosine part of integration weights defined as a list of tuples [(value, duration in ns)].
         :param iw_sin: values for the sine part of integration weights defined as a list of tuples [(value, duration in ns)].
@@ -259,52 +276,107 @@ class QuaConfig(_UserDict):
         # Check inputs
         if element not in self.data["elements"].keys():
             raise KeyError(f"The element '{element}' in not defined in the config.")
-        if operation not in self.data["elements"][element]["operations"].keys():
+        if operation_name not in self.data["elements"][element]["operations"].keys():
             raise KeyError(
-                f"The operation '{operation}' in not defined in the config for the element '{element}'."
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
-        if iw_op_name not in self.data["pulses"][self.data["elements"][element]["operations"][operation]]["integration_weights"].keys():
-            raise KeyError(f"The integration weight '{iw_op_name}' in not associated to the pulse corresponding to the operation '{operation}'.")
+        if (
+            iw_op_name
+            not in self.data["pulses"][
+                self.data["elements"][element]["operations"][operation_name]
+            ]["integration_weights"].keys()
+        ):
+            raise KeyError(
+                f"The integration weight '{iw_op_name}' in not associated to the pulse corresponding to the operation '{operation_name}'."
+            )
         # Update iw
-        pulse_name = self.data["elements"][element]["operations"][operation]
+        pulse_name = self.data["elements"][element]["operations"][operation_name]
         iw_name = self.data["pulses"][pulse_name]["integration_weights"][iw_op_name]
         self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
 
-    def copy_measurement_operation(
-        self, element, operation_name, new_name
-    ):  # TODO: what is the purpose? (_in?) Actually it is not only measurement op right?
+    def copy_operation(self, element: str, operation_name: str, new_name: str):
+        """
+        Copy an existing operation and rename it. This function is used to add similar operations that differ
+        only from their waveforms than can be updated using the corresponding function `update_waveforms()`.
+
+        :param element: name of the element to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
+        :param new_name: name of the new operation.
+        """
+        # Check inputs
+        if element not in self.data["elements"].keys():
+            raise KeyError(f"The element '{element}' in not defined in the config.")
+        if operation_name not in self.data["elements"][element]["operations"].keys():
+            raise KeyError(
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
+            )
+        # Copy operation
         pulse_name = self.data["elements"][element]["operations"][operation_name]
-        self.data["pulses"][new_name + "in"] = _deepcopy(
+        self.data["pulses"][element + "_" + new_name + self.pulse_suffix] = _deepcopy(
             self.data["pulses"][pulse_name]
         )
-        self.data["elements"][element]["operations"][new_name] = new_name + "in"
+        # Rename the copied operation
+        self.data["elements"][element]["operations"][new_name] = (
+            element + "_" + new_name + self.pulse_suffix
+        )
 
-    def update_measurement_waveforms(
-        self, element, operation_name, wf_i, wf_q
-    ):  # TODO: This assume arbitrary wf? Actually it is not only measurement wf right?
+    def update_waveforms(
+        self,
+        element: str,
+        operation_name: str,
+        wf: Tuple[List[float], List[float]] or Tuple[List[float]],
+    ):
+        """
+
+        :param element: name of the element to get the waveforms from. Must be defined in the config.
+        :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
+        :param wf:
+        :return:
+        """
+        # Check inputs
+        if element not in self.data["elements"].keys():
+            raise KeyError(f"The element '{element}' in not defined in the config.")
+        if operation_name not in self.data["elements"][element]["operations"].keys():
+            raise KeyError(
+                f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
+            )
+        if "mixInputs" not in self.data["elements"][element].keys() and len(wf) == 2:
+            raise KeyError(f"Element '{element}' is not a mixInputs element.")
+        if "singleInput" not in self.data["elements"][element].keys() and len(wf) == 1:
+            raise KeyError(f"Element '{element}' is not a singleInput element.")
+        if len(wf) == 2:
+            if len(wf[0]) != len(wf[1]):
+                raise ValueError("The 'I' and 'Q' waveforms must have the same length.")
+
         pulse_name = self.data["elements"][element]["operations"][operation_name]
-        self.data["waveforms"][pulse_name + "_i"] = {
-            "type": "arbitrary",
-            "samples": list(wf_i),
-        }
-        self.data["waveforms"][pulse_name + "_q"] = {
-            "type": "arbitrary",
-            "samples": list(wf_q),
-        }
-        self.data["pulses"][pulse_name]["waveforms"] = {
-            "I": pulse_name + "_i",
-            "Q": pulse_name + "_q",
-        }
-        self.data["pulses"][pulse_name]["length"] = len(wf_i)
-
-
-
-    def reset(self):
-        self.data = _deepcopy(self._data_orig)
-
-    def dump(self, filename):
-        with open(filename, "w") as fp:
-            _json.dump(self.data, fp)
+        self.data["pulses"][pulse_name]["length"] = len(wf[0])
+        # mixInputs element
+        if len(wf) == 2:
+            wf_name = element + "_" + operation_name + self.wf_suffix
+            wf_i = wf[0]
+            wf_q = wf[1]
+            self.data["waveforms"][wf_name + "_i"] = {
+                "type": "arbitrary",
+                "samples": list(wf_i),
+            }
+            self.data["waveforms"][wf_name + "_q"] = {
+                "type": "arbitrary",
+                "samples": list(wf_q),
+            }
+            self.data["pulses"][pulse_name]["waveforms"] = {
+                "I": wf_name + "_i",
+                "Q": wf_name + "_q",
+            }
+        elif len(wf) == 1:
+            wf_name = element + "_" + operation_name + "_single" + self.wf_suffix
+            wf_s = wf[0]
+            self.data["waveforms"][wf_name] = {
+                "type": "arbitrary",
+                "samples": list(wf_s),
+            }
+            self.data["pulses"][pulse_name]["waveforms"] = {
+                "single": wf_name,
+            }
 
 
 def resolve(qubit: int, channel: str):

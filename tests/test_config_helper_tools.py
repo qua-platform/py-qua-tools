@@ -59,6 +59,15 @@ def config0():
                 "time_of_flight": 24,
                 "smearing": 0,
             },
+            "flux_line": {
+                "singleInput": {
+                    "single": ("con1", 6),
+                },
+                "intermediate_frequency": 0e6,
+                "operations": {
+                    "readout": "readout_pulse"
+                },
+            },
         },
         "pulses": {
             "readout_pulse": {
@@ -118,7 +127,10 @@ config.update_integration_weight("resonator", "readout", "cos", [(1, 80)], [(0, 
 config.update_integration_weight("resonator", "readout", "sin", [(0, 80)], [(1, 80)])
 config.update_integration_weight("resonator", "readout", "minus_sin", [(0, 80)], [(-1, 80)])
 # config.update_op_amp("resonator", "long_readout", 0.25)
-config.reset()
+config.copy_operation("resonator", "readout", "short_readout")
+config.add_control_operation_single("flux_line", "bias", [0.1 for _ in range(112)])
+config.update_waveforms("flux_line", "bias", ([1.1]*175, ))
+# config.reset()
 
 n_avg = 100
 
@@ -160,68 +172,68 @@ with program() as resonator_spec:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host="172.16.2.103", port=85)
-
-#######################
-# Simulate or execute #
-#######################
-
-simulate = True
-
-if simulate:
-    simulation_config = SimulationConfig(duration=1000)
-    job = qmm.simulate(config, resonator_spec, simulation_config)
-    job.get_simulated_samples().con1.plot()
-
-else:
-    qm = qmm.open_qm(config)
-    job = qm.execute(resonator_spec)
-
-    # Get results from QUA program
-    res_handles = job.result_handles
-    I_handles = res_handles.get("I")
-    Q_handles = res_handles.get("Q")
-    I_handles.wait_for_values(1)
-    Q_handles.wait_for_values(1)
-    # Live plotting
-    fig = plt.figure()
-    while job.result_handles.is_processing():
-        # Fetch results
-        I = res_handles.get("I").fetch_all()
-        Q = res_handles.get("Q").fetch_all()
-        # Plot results
-        plt.subplot(211)
-        plt.cla()
-        plt.title("resonator spectroscopy amplitude")
-        plt.plot(freqs, np.sqrt(I**2 + Q**2), ".")
-        plt.xlabel("frequency [MHz]")
-        plt.ylabel(r"$\sqrt{I^2 + Q^2}$ [a.u.]")
-        plt.subplot(212)
-        plt.cla()
-        # detrend removes the linear increase of phase
-        phase = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
-        plt.title("resonator spectroscopy phase")
-        plt.plot(freqs, phase, ".")
-        plt.xlabel("frequency [MHz]")
-        plt.ylabel("Phase [rad]")
-        plt.pause(0.1)
-        plt.tight_layout()
-
-    # Fetch results
-    I = res_handles.get("I").fetch_all()
-    Q = res_handles.get("Q").fetch_all()
-    # 1D spectroscopy plot
-    plt.clf()
-    plt.subplot(211)
-    plt.title("resonator spectroscopy amplitude [V]")
-    plt.plot(freqs, np.sqrt(I**2 + Q**2), ".")
-    plt.xlabel("frequency [MHz]")
-    plt.ylabel(r"$\sqrt{I^2 + Q^2}$ [a.u.]")
-    plt.subplot(212)
-    # detrend removes the linear increase of phase
-    phase = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
-    plt.title("resonator spectroscopy phase [rad]")
-    plt.plot(freqs, phase, ".")
-    plt.xlabel("frequency [MHz]")
-    plt.ylabel("Phase [rad]")
-    plt.tight_layout()
+# qmm = QuantumMachinesManager(host="172.16.2.103", port=85)
+#
+# #######################
+# # Simulate or execute #
+# #######################
+#
+# simulate = True
+#
+# if simulate:
+#     simulation_config = SimulationConfig(duration=1000)
+#     job = qmm.simulate(config, resonator_spec, simulation_config)
+#     job.get_simulated_samples().con1.plot()
+#
+# else:
+#     qm = qmm.open_qm(config)
+#     job = qm.execute(resonator_spec)
+#
+#     # Get results from QUA program
+#     res_handles = job.result_handles
+#     I_handles = res_handles.get("I")
+#     Q_handles = res_handles.get("Q")
+#     I_handles.wait_for_values(1)
+#     Q_handles.wait_for_values(1)
+#     # Live plotting
+#     fig = plt.figure()
+#     while job.result_handles.is_processing():
+#         # Fetch results
+#         I = res_handles.get("I").fetch_all()
+#         Q = res_handles.get("Q").fetch_all()
+#         # Plot results
+#         plt.subplot(211)
+#         plt.cla()
+#         plt.title("resonator spectroscopy amplitude")
+#         plt.plot(freqs, np.sqrt(I**2 + Q**2), ".")
+#         plt.xlabel("frequency [MHz]")
+#         plt.ylabel(r"$\sqrt{I^2 + Q^2}$ [a.u.]")
+#         plt.subplot(212)
+#         plt.cla()
+#         # detrend removes the linear increase of phase
+#         phase = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
+#         plt.title("resonator spectroscopy phase")
+#         plt.plot(freqs, phase, ".")
+#         plt.xlabel("frequency [MHz]")
+#         plt.ylabel("Phase [rad]")
+#         plt.pause(0.1)
+#         plt.tight_layout()
+#
+#     # Fetch results
+#     I = res_handles.get("I").fetch_all()
+#     Q = res_handles.get("Q").fetch_all()
+#     # 1D spectroscopy plot
+#     plt.clf()
+#     plt.subplot(211)
+#     plt.title("resonator spectroscopy amplitude [V]")
+#     plt.plot(freqs, np.sqrt(I**2 + Q**2), ".")
+#     plt.xlabel("frequency [MHz]")
+#     plt.ylabel(r"$\sqrt{I^2 + Q^2}$ [a.u.]")
+#     plt.subplot(212)
+#     # detrend removes the linear increase of phase
+#     phase = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
+#     plt.title("resonator spectroscopy phase [rad]")
+#     plt.plot(freqs, phase, ".")
+#     plt.xlabel("frequency [MHz]")
+#     plt.ylabel("Phase [rad]")
+#     plt.tight_layout()
