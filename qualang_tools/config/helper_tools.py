@@ -1,7 +1,6 @@
 from collections import UserDict as _UserDict
 from copy import deepcopy as _deepcopy
 from typing import List, Tuple
-import numpy as np
 import json as _json
 from pprint import pprint
 
@@ -60,36 +59,28 @@ class QuaConfig(_UserDict):
             "waveforms": {"I": wf_name + "_i", "Q": wf_name + "_q"},
         }
         # Add waveform
-        if len(wf_i) > 0:
-            if wf_i[:-1] == wf_i[1:]:
-                self.data["waveforms"][wf_name + "_i"] = {
-                    "type": "constant",
-                    "sample": wf_i[0],
-                }
-                self.data["waveforms"][wf_name + "_q"] = {
-                    "type": "constant",
-                    "sample": wf_q[0],
-                }
-            else:
-                self.data["waveforms"][wf_name + "_i"] = {
-                    "type": "arbitrary",
-                    "samples": list(wf_i),
-                }
-                self.data["waveforms"][wf_name + "_q"] = {
-                    "type": "arbitrary",
-                    "samples": list(wf_q),
-                }
-        elif len(wf_i) == 1:
-            self.data["waveforms"][wf_name + "_i"] = {
-                "type": "constant",
-                "sample": wf_i[0],
-            }
-            self.data["waveforms"][wf_name + "_q"] = {
-                "type": "constant",
-                "sample": wf_q[0],
-            }
-        else:
-            raise ValueError("The waveforms must have at least one point.")
+        self.update_waveforms(element, operation_name, (wf_i, wf_q))
+        # if len(wf_i) > 0:
+        #     if wf_i[:-1] == wf_i[1:]:
+        #         self.data["waveforms"][wf_name + "_i"] = {
+        #             "type": "constant",
+        #             "sample": wf_i[0],
+        #         }
+        #         self.data["waveforms"][wf_name + "_q"] = {
+        #             "type": "constant",
+        #             "sample": wf_q[0],
+        #         }
+        #     else:
+        #         self.data["waveforms"][wf_name + "_i"] = {
+        #             "type": "arbitrary",
+        #             "samples": list(wf_i),
+        #         }
+        #         self.data["waveforms"][wf_name + "_q"] = {
+        #             "type": "arbitrary",
+        #             "samples": list(wf_q),
+        #         }
+        # else:
+        #     raise ValueError("The waveforms must have at least one point.")
 
     def add_control_operation_single(
         self, element: str, operation_name: str, wf: List[float]
@@ -119,24 +110,20 @@ class QuaConfig(_UserDict):
             "waveforms": {"single": wf_name},
         }
         # Add waveform
-        if len(wf) > 1:
-            if wf[:-1] == wf[1:]:
-                self.data["waveforms"][wf_name] = {
-                    "type": "constant",
-                    "sample": wf[0],
-                }
-            else:
-                self.data["waveforms"][wf_name] = {
-                    "type": "arbitrary",
-                    "samples": list(wf),
-                }
-        elif len(wf) == 1:
-            self.data["waveforms"][wf_name] = {
-                "type": "constant",
-                "sample": wf[0],
-            }
-        else:
-            raise ValueError("The waveform must have at least one point.")
+        self.update_waveforms(element, operation_name, (wf,))
+        # if len(wf) > 0:
+        #     if wf[:-1] == wf[1:]:
+        #         self.data["waveforms"][wf_name] = {
+        #             "type": "constant",
+        #             "sample": wf[0],
+        #         }
+        #     else:
+        #         self.data["waveforms"][wf_name] = {
+        #             "type": "arbitrary",
+        #             "samples": list(wf),
+        #         }
+        # else:
+        #     raise ValueError("The waveform must have at least one point.")
 
     def get_waveforms_from_op(
         self, element: str, operation_name: str
@@ -327,7 +314,7 @@ class QuaConfig(_UserDict):
         wf: Tuple[List[float], List[float]] or Tuple[List[float]],
     ):
         """
-        Update the waveforms of a specific operation and element.
+        Update the waveforms from a specific operation and element.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
         :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
@@ -355,59 +342,49 @@ class QuaConfig(_UserDict):
             wf_name = element + "_" + operation_name + self.wf_suffix
             wf_i = wf[0]
             wf_q = wf[1]
-            self.data["waveforms"][wf_name + "_i"] = {
-                "type": "arbitrary",
-                "samples": list(wf_i),
-            }
-            self.data["waveforms"][wf_name + "_q"] = {
-                "type": "arbitrary",
-                "samples": list(wf_q),
-            }
+            if len(wf_i) > 0:
+                if wf_i[:-1] == wf_i[1:]:
+                    self.data["waveforms"][wf_name + "_i"] = {
+                        "type": "constant",
+                        "sample": wf_i[0],
+                    }
+                    self.data["waveforms"][wf_name + "_q"] = {
+                        "type": "constant",
+                        "sample": wf_q[0],
+                    }
+                else:
+                    self.data["waveforms"][wf_name + "_i"] = {
+                        "type": "arbitrary",
+                        "samples": list(wf_i),
+                    }
+                    self.data["waveforms"][wf_name + "_q"] = {
+                        "type": "arbitrary",
+                        "samples": list(wf_q),
+                    }
+            else:
+                raise ValueError("The waveforms must have at least one point.")
             self.data["pulses"][pulse_name]["waveforms"] = {
                 "I": wf_name + "_i",
                 "Q": wf_name + "_q",
             }
+
         elif len(wf) == 1:
             wf_name = element + "_" + operation_name + "_single" + self.wf_suffix
             wf_s = wf[0]
-            self.data["waveforms"][wf_name] = {
-                "type": "arbitrary",
-                "samples": list(wf_s),
-            }
+            if len(wf_s) > 0:
+                if wf_s[:-1] == wf_s[1:]:
+                    self.data["waveforms"][wf_name] = {
+                        "type": "constant",
+                        "sample": wf_s[0],
+                    }
+                else:
+                    self.data["waveforms"][wf_name] = {
+                        "type": "arbitrary",
+                        "samples": list(wf_s),
+                    }
+            else:
+                raise ValueError("The waveform must have at least one point.")
+
             self.data["pulses"][pulse_name]["waveforms"] = {
                 "single": wf_name,
             }
-
-
-def resolve(qubit: int, channel: str):
-    if channel == "xy":
-        element = f"qb{qubit}"
-    elif channel == "z":
-        element = f"qb{qubit}_flux_line"
-    elif channel == "rr":
-        element = f"qb{qubit}_rr"
-    else:
-        raise ValueError(f"unknown channel {channel} for qubit {qubit}")
-    return element
-
-
-def add_90_degree_rotation_pulses(config: dict, qubits: List[int], params) -> dict:
-    config = QuaConfig(config)  # TODO: params is from entropy right?
-    for q in qubits:
-        xy = resolve(
-            q, "xy"
-        )  # TODO: do we really need this? can't we just input the list of elements?
-        x_i, x_q = config.get_waveforms_from_op(xy, "x")
-
-        base_pulse_180 = x_i, x_q
-        half_pi_amp = params.half_pi_amp[q]
-        pi_amp = params.pi_amp[q]
-        base_pulse_90 = half_pi_amp / pi_amp * np.array([x_i, x_q])
-        config.add_control_operation_iq(xy, "y", base_pulse_180[1], base_pulse_180[0])
-        config.add_control_operation_iq(
-            xy, "sy", base_pulse_90[1], base_pulse_90[0]
-        )  # TODO: is sy an official name for y90?
-        config.add_control_operation_iq(xy, "-sy", -base_pulse_90[1], -base_pulse_90[0])
-        config.add_control_operation_iq(xy, "sx", base_pulse_90[0], base_pulse_90[1])
-        config.add_control_operation_iq(xy, "-sx", -base_pulse_90[0], -base_pulse_90[1])
-    return config.data

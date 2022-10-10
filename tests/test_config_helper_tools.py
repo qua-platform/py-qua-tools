@@ -129,6 +129,7 @@ config.update_integration_weight("resonator", "readout", "minus_sin", [(0, 80)],
 # config.update_op_amp("resonator", "long_readout", 0.25)
 config.copy_operation("resonator", "readout", "short_readout")
 config.add_control_operation_single("flux_line", "bias", [0.1 for _ in range(112)])
+config.update_waveforms("resonator", "short_readout", ([1.1]*175, [0.0]*175))
 config.update_waveforms("flux_line", "bias", ([1.1]*175, ))
 # config.reset()
 
