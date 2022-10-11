@@ -1,9 +1,14 @@
 import sys
 from PyQt5.QtCore import *
+from PyQt5 import QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 import numpy as np
+
+# TODO: create brushes to use throughout for ground/excited states
+# TODO: sort out the axes so plot 4 has the axes around the image rather than the plot area
+# TODO: add tab with additional info from Niv
 
 class DiscriminatorGui(QWidget):
     def __init__(self, results_dataclasses):
@@ -11,13 +16,13 @@ class DiscriminatorGui(QWidget):
         self.num_qubits = len(results_dataclasses)
         self.results_dataclasses = results_dataclasses
         super(DiscriminatorGui, self).__init__()
-        self.initUI()
+        self.initialise_ui()
         self._populate_list()
 
 
-    def initUI(self):
+    def initialise_ui(self):
 
-        hbox = QHBoxLayout(self)
+        box_layout = QHBoxLayout(self)
 
         # create some widgets
 
@@ -44,14 +49,14 @@ class DiscriminatorGui(QWidget):
         splitter.addWidget(self.right)
 
 
-        hbox.addWidget(splitter)
+        box_layout.addWidget(splitter)
 
-        self.setLayout(hbox)
+        self.setLayout(box_layout)
 
         QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
 
-        self.setGeometry(100, 100, 1200, 500)
-        self.setWindowTitle('Qubit reset comparison')
+        self.setGeometry(100, 100, 1100, 700)
+        self.setWindowTitle('Readout viewer')
 
         # self.qubit_list.itemDoubleClicked.connect(self.func)
         self.qubit_list.currentIndexChanged.connect(self.func)
@@ -59,20 +64,100 @@ class DiscriminatorGui(QWidget):
 
         self.show()
 
-    def generate_fake_histograms(self, a, b):
-        ## make interesting distribution of values
-        vals1 = np.random.normal(size=500)
-        vals2 = np.random.normal(size=260, loc=4)
-        ## compute standard histogram
-        y, x = np.histogram(vals1, bins=np.linspace(-3, 8, 80))
-        y2, x2 = np.histogram(vals2, bins=np.linspace(-3, 8, 80))
-        return a * y, x, b * y2, x2
 
     def clear_plots(self):
         self.plt1.clear()
         self.plt2.clear()
         self.plt3.clear()
         self.plt4.clear()
+
+    def _generate_plot_1(self, result):
+
+        ig, qg, ie, qe = result.get_data()
+
+        original_data_g = pg.ScatterPlotItem(ig, qg, brush=(100, 149, 237, 100), fillOutline=False)
+        original_data_e = pg.ScatterPlotItem(ie, qe, brush=(255, 185, 15, 100))
+        self.plt1.addItem(original_data_g)
+        self.plt1.addItem(original_data_e)
+        self.plt1.setAspectLocked()
+
+    def _generate_plot_2(self, result):
+
+        ig_rotated, qg_rotated, ie_rotated, qe_rotated = result.get_rotated_data()
+        rotated_data_g = pg.ScatterPlotItem(ig_rotated, qg_rotated, brush=(100, 149, 237, 100))
+        rotated_data_e = pg.ScatterPlotItem(ie_rotated, qe_rotated, brush=(255, 185, 15, 100))
+        self.plt2.addItem(rotated_data_g)
+        self.plt2.addItem(rotated_data_e)
+        self.plt2.setAspectLocked()
+
+    def _generate_plot_3(self, result):
+
+        ig_hist_y, ig_hist_x = np.histogram(result.ig_rotated, bins=80)
+        ie_hist_y, ie_hist_x = np.histogram(result.ie_rotated, bins=80)
+
+
+
+        self.plt3.plot(ig_hist_x, ig_hist_y, stepMode="center", fillLevel=0, fillOutline=False, brush=(0, 0, 0, 255))
+        self.plt3.plot(ie_hist_x, ie_hist_y, stepMode="center", fillLevel=0, fillOutline=False, brush=(255, 255, 255, 150))
+        self.threshold_line = self.plt3.addLine(x=result.threshold,
+                                                label=f'{result.threshold:.2f}',
+                                                labelOpts={'position': 0.95},
+                                                pen={'color': 'white', 'dash': [20, 20]})
+
+
+    def _generate_plot_4(self, result):
+
+        img = pg.ImageItem(image=result.confusion_matrix(), rect=[1, 1, 1, 1])
+        img.setColorMap('viridis')
+        self.plt4.addItem(img)
+        self.plt4.invertY(True)
+        self.plt4.setAspectLocked()
+        self.plt4.showAxes(True)
+
+
+        # all of this needs relabelling to prep_g, meas_g ... etc
+
+        gg_label = pg.TextItem('|g>', anchor=(1, 0.5))
+        ge_label = pg.TextItem('|g>', anchor=(0.5, 0))
+        eg_label = pg.TextItem('|e>', anchor=(1, 0.5))
+        ee_label = pg.TextItem('|e>', anchor=(0.5, 0))
+
+        # anchor so we set the centre position of the text rather than the top left
+        gg_fid_label = pg.TextItem(f'{100 * result.gg:.2f}%', color=(0, 0, 0), anchor=(0.5, 0.5))
+        ge_fid_label = pg.TextItem(f'{100 * result.ge:.2f}%', color=(255, 255, 255), anchor=(0.5, 0.5))
+        eg_fid_label = pg.TextItem(f'{100 * result.eg:.2f}%', color=(255, 255, 255), anchor=(0.5, 0.5))
+        ee_fid_label = pg.TextItem(f'{100 * result.ee:.2f}%', color=(0, 0, 0), anchor=(0.5, 0.5))
+
+        gg_label.setPos(1, 1.25)
+        ge_label.setPos(1.25, 2)
+        eg_label.setPos(1, 1.75)
+        ee_label.setPos(1.75, 2)
+
+        gg_fid_label.setPos(1.25, 1.25)
+        ge_fid_label.setPos(1.75, 1.25)
+        eg_fid_label.setPos(1.25, 1.75)
+        ee_fid_label.setPos(1.75, 1.75)
+
+        x_axis = self.plt4.getAxis('bottom')
+        y_axis = self.plt4.getAxis('left')
+
+        x_axis.setRange(1, 2)
+        y_axis.setRange(1, 2)
+
+        self.plt4.setXRange(1, 2)
+        self.plt4.setYRange(1, 2)
+
+        x_axis.setLabel('Measured')
+        y_axis.setLabel('Prepared')
+
+        x_axis.setTicks([[(1.25, '|g>'), (1.75, '|e>')]])
+        y_axis.setTicks([[(1.25, '|g>'), (1.75, '|e>')]])
+
+        self.plt4.addItem(gg_fid_label)
+        self.plt4.addItem(ge_fid_label)
+        self.plt4.addItem(eg_fid_label)
+        self.plt4.addItem(ee_fid_label)
+
 
     def func(self):
 
@@ -81,35 +166,10 @@ class DiscriminatorGui(QWidget):
         index = self.qubit_list.currentIndex()
         result = self.results_dataclasses[index]
 
-        angle, threshold, fidelity, gg, ge, eg, ee = result.get_params()
-        ig, qg, ie, qe = result.get_data()
-        ig_rotated, qg_rotated, ie_rotated, qe_rotated = result.get_rotated_data()
-
-        ## Using stepMode="center" causes the plot to draw two lines for each sample.
-        ## notice that len(x) == len(y)+1
-
-        original_data_g = pg.ScatterPlotItem(ig, qg, brush=(50, 50, 50, 199))
-        original_data_e = pg.ScatterPlotItem(ie, qe, brush=(0, 0, 100, 100))
-        self.plt1.addItem(original_data_g)
-        self.plt1.addItem(original_data_e)
-
-
-        rotated_data_g = pg.ScatterPlotItem(ig_rotated, qg_rotated, brush=(50, 50, 50, 199))
-        rotated_data_e = pg.ScatterPlotItem(ie_rotated, qe_rotated, brush=(0, 0, 100, 100))
-        self.plt2.addItem(rotated_data_g)
-        self.plt2.addItem(rotated_data_e)
-
-        ig_hist_y, ig_hist_x = np.histogram(ig_rotated, bins=50)
-        ie_hist_y, ie_hist_x = np.histogram(ie_rotated, bins=50)
-
-        self.plt3.plot(ig_hist_x, ig_hist_y, stepMode="center", fillLevel=0, fillOutline=False, brush=(0, 0, 0, 255))
-        self.plt3.plot(ie_hist_x, ie_hist_y, stepMode="center", fillLevel=0, fillOutline=False, brush=(255, 255, 255, 150))
-
-        img = pg.ImageItem(image=result.confusion_matrix())
-        self.plt4.addItem(img)
-        self.plt4.showAxes(False)
-
-
+        self._generate_plot_1(result)
+        self._generate_plot_2(result)
+        self._generate_plot_3(result)
+        self._generate_plot_4(result)
 
     def _populate_list(self):
 
