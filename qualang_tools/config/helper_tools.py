@@ -275,6 +275,7 @@ class QuaConfig(_UserDict):
         iw_op_name: str,
         iw_cos: List,
         iw_sin: List,
+        force_update: bool = False,
     ):
         """
         Update the cosine and sine parts of an integration weight for a given element and operation.
@@ -284,6 +285,7 @@ class QuaConfig(_UserDict):
         :param iw_op_name: name of the integration weight to be updated. Must be defined in the config.
         :param iw_cos: values for the cosine part of integration weights defined as a list of tuples [(value, duration in ns)].
         :param iw_sin: values for the sine part of integration weights defined as a list of tuples [(value, duration in ns)].
+        :param force_update: If True, the waveform will be updated even if it used in other operations.
         """
         # Check inputs
         if element not in self.data["elements"].keys():
@@ -304,6 +306,20 @@ class QuaConfig(_UserDict):
         # Update iw
         pulse_name = self.data["elements"][element]["operations"][operation_name]
         iw_name = self.data["pulses"][pulse_name]["integration_weights"][iw_op_name]
+        count = 0
+        for key in self.data["pulses"]:
+            if "integration_weights" in self.data["pulses"][key]:
+                if iw_name in self.data["pulses"][key]["integration_weights"].values():
+                    count += 1
+        if count > 1 and not force_update:
+            raise Exception(
+                "The updated integration weights are used in other operations. To force the update, please set the force_update flag to True."
+            )
+        elif count == 0:
+            raise Exception(
+                f"The integration weights {iw_op_name} are not listed in the config integration weights."
+            )
+
         self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
 
     def copy_operation(self, element: str, operation_name: str, new_name: str):
