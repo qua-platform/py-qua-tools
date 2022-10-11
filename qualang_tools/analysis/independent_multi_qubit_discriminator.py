@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from tkinter import *
 from tkinter import ttk
 
-from discriminator import two_state_discriminator
-from viewer import App
+from .discriminator import two_state_discriminator
+# from .viewer import App
 
 @dataclass
 class DiscriminatorDataclass:
@@ -168,10 +168,11 @@ def build_widget(num):
     root.geometry("600x500")
     root.mainloop()
 
-from dataPresenter import multiQubitReadoutPresenter
-import pyqtgraph as pg
 
 if __name__ == '__main__':
+    from dataPresenter import multiQubitReadoutPresenter
+    import pyqtgraph as pg
+
     iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 32)).T
     iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 32)).T
 
