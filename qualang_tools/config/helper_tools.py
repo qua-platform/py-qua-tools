@@ -188,14 +188,19 @@ class QuaConfig(_UserDict):
             self.data["elements"][element]["operations"][operation_name]
         ]
 
-    def update_op_amp(self, element: str, operation_name: str, amp: float):
+    def update_op_amp(
+        self, element: str, operation_name: str, amp: float, force_update: bool = False
+    ):
         """
         Update the operation amplitude.
         Can only access amplitude for a constant pulse of a single element.
+        Updating the waveform may affect other elements if it is used in other operations.
+        Set the force_update flag to True to update the waveform anyway.
 
         :param element: name of the element to get the waveforms from. Must be defined in the config.
         :param operation_name: name of the operation to get the waveforms from. Must be defined in the config.
         :param amp: float for the updated amplitude. Must be within the range [-0.5, 0.5) V.
+        :param force_update: If True, the waveform will be updated even if it used in other operations.
         """
 
         # Check inputs
@@ -209,14 +214,34 @@ class QuaConfig(_UserDict):
             raise ValueError(
                 "The amplitude must be within the range [-0.5, 0.5) Volts."
             )
-
         pulse = self.get_pulse_from_op(element, operation_name)
-        try:
-            self.data["waveforms"][pulse["waveforms"]["single"]]["sample"] = amp
-        except KeyError:
+        if "single" not in pulse["waveforms"].keys():
             raise KeyError(
                 "Can only access amplitude for a constant pulse of a single element"
             )
+        wf = pulse["waveforms"]["single"]
+        # Check if the waveform is used in another pulse
+        count = 0
+        for key in self.data["pulses"].keys():
+            if "single" in self.data["pulses"][key]["waveforms"]:
+                if wf == self.data["pulses"][key]["waveforms"]["single"]:
+                    count += 1
+            elif "I" in self.data["pulses"][key]["waveforms"]:
+                if wf == self.data["pulses"][key]["waveforms"]["I"]:
+                    count += 1
+            elif "Q" in self.data["pulses"][key]["waveforms"]:
+                if wf == self.data["pulses"][key]["waveforms"]["Q"]:
+                    count += 1
+        if count > 1 and not force_update:
+            raise Exception(
+                "The updated waveform is used in other operations. To force the update, please set the force_update flag to True."
+            )
+        elif count == 0:
+            raise Exception(
+                f"The operation {operation_name} doesn't have a valid waveform."
+            )
+        # Update the waveform
+        self.data["waveforms"][wf]["sample"] = amp
 
     def get_op_amp(self, element: str, operation_name: str) -> float:
         """
