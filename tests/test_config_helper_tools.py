@@ -6,6 +6,7 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 import matplotlib.pyplot as plt
 from scipy import signal
 from qm import SimulationConfig
+from scipy.signal.windows import gaussian
 
 def config0():
     def IQ_imbalance(g, phi):
@@ -121,7 +122,7 @@ def config0():
 conf = config0()
 config = QuaConfig(conf)
 
-config.add_control_operation_iq("qubit", "gate", [0.1 for _ in range(112)], [0.1 for _ in range(112)])
+config.add_control_operation_iq("qubit", "gate", list(gaussian(112, 20)), [0.0 for _ in range(112)])
 config.add_control_operation_iq("resonator", "long_readout", [0.1 for _ in range(112)], [0.0 for _ in range(112)])
 config.update_integration_weight("resonator", "readout", "cos", [(1, 80)], [(0, 80)])
 config.update_integration_weight("resonator", "readout", "sin", [(0, 80)], [(1, 80)])

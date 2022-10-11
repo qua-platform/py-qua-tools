@@ -373,19 +373,23 @@ class QuaConfig(_UserDict):
                         "type": "constant",
                         "sample": wf_i[0],
                     }
-                    self.data["waveforms"][wf_name + "_q"] = {
-                        "type": "constant",
-                        "sample": wf_q[0],
-                    }
                 else:
                     self.data["waveforms"][wf_name + "_i"] = {
                         "type": "arbitrary",
                         "samples": list(wf_i),
                     }
+
+                if wf_q[:-1] == wf_q[1:]:
+                    self.data["waveforms"][wf_name + "_q"] = {
+                        "type": "constant",
+                        "sample": wf_q[0],
+                    }
+                else:
                     self.data["waveforms"][wf_name + "_q"] = {
                         "type": "arbitrary",
                         "samples": list(wf_q),
                     }
+
             else:
                 raise ValueError("The waveforms must have at least one point.")
             self.data["pulses"][pulse_name]["waveforms"] = {
