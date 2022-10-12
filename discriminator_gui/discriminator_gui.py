@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 import numpy as np
 
+
 # TODO: create brushes to use throughout for ground/excited states
 # TODO: sort out the axes so plot 4 has the axes around the image rather than the plot area
 # TODO: add tab with additional info from Niv
@@ -23,21 +24,60 @@ class DiscriminatorGui(QWidget):
         self.show()
 
 
+
     def setup_dashboard_tab(self):
 
+
+        self.dashboard_widget_colour = (130, 170, 170)
         self.dashboard_tab_layout = QGridLayout()
 
         self.dashboard_tab.setLayout(self.dashboard_tab_layout)
 
         # widets
 
-        self.dashboard_list = QListWidget()
-        fidelity_average = QLabel(f'Average fidelity is {98}%')
+        # make read only
+        self.dashboard_list = QTableWidget()
+        self.dashboard_list.setRowCount(self.num_qubits)
+        self.dashboard_list.setColumnCount(2)
+
+        # make table read-only
+        self.dashboard_list.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.dashboard_list.setMinimumWidth(self.dashboard_list.sizeHint().width())
+        self.dashboard_list.setShowGrid(False)
+
+        self.dashboard_list.setHorizontalHeaderItem(0, QTableWidgetItem('Qubits by fidelity'))
+        self.dashboard_list.setHorizontalHeaderItem(1, QTableWidgetItem('Fidelity'))
+
+        # self.dashboard_list.setGeometry()
+        self.average_fidelity = np.mean([result.fidelity for result in self.results_dataclasses])
+
+        fidelity_average = QLabel(f'Average fidelity is {self.average_fidelity:.2f}%')
         average_overlap = QLabel(f'Average overlap is {0.1}')
 
-        self.dashboard_tab_layout.addWidget(self.dashboard_list, 0, 0, 2, 1)
-        self.dashboard_tab_layout.addWidget(fidelity_average, 0, 1, 1, 5)
-        self.dashboard_tab_layout.addWidget(average_overlap, 0, 6, 1, 5)
+        fidelity_average.setStyleSheet(f"background-color:rgb{self.dashboard_widget_colour}; border-radius:5px")
+        average_overlap.setStyleSheet(f"background-color:rgb{self.dashboard_widget_colour}; border-radius:5px")
+
+        fidelity_average.setAlignment(Qt.AlignCenter)
+        average_overlap.setAlignment(Qt.AlignCenter)
+
+        metadata = QLabel(f'Some other statistics')
+        error_correlations = QLabel('Error correlations')
+
+        metadata.setStyleSheet(f"background-color:rgb{self.dashboard_widget_colour}; border-radius:5px")
+        error_correlations.setStyleSheet(f"background-color:rgb{self.dashboard_widget_colour}; border-radius:5px")
+
+        metadata.setAlignment(Qt.AlignCenter)
+        error_correlations.setAlignment(Qt.AlignCenter)
+
+
+
+        self.dashboard_tab_layout.addWidget(self.dashboard_list, 0, 0, 5, 1)
+        self.dashboard_tab_layout.addWidget(fidelity_average, 0, 1, 1, 2)
+        self.dashboard_tab_layout.addWidget(average_overlap, 0, 3, 1, 2)
+        self.dashboard_tab_layout.addWidget(metadata, 1, 1, 1, 2)
+        self.dashboard_tab_layout.addWidget(error_correlations, 1, 3, 1, 2)
+
+
         self.dashboard_list.itemDoubleClicked.connect(self.switch_to_qubit_tab)
 
         self.dashboard_list.setMaximumWidth(200)
@@ -204,7 +244,7 @@ class DiscriminatorGui(QWidget):
             stepMode="center",
             fillLevel=0,
             fillOutline=False,
-            brush=(*self.ground_state_colour, 255),
+            brush=(*self.ground_state_colour, 200),
             pen=pg.mkPen(None)
         )
 
@@ -213,7 +253,7 @@ class DiscriminatorGui(QWidget):
             stepMode="center",
             fillLevel=0,
             fillOutline=False,
-            brush=(*self.excited_state_colour, 150),
+            brush=(*self.excited_state_colour, 200),
             pen=pg.mkPen(None)
         )
 
@@ -306,10 +346,11 @@ class DiscriminatorGui(QWidget):
 
         self.sorted_qubit_ids = [id for fid, id in sorted(zip(unsorted_qubit_fidelities, qubit_ids), key=lambda pair: pair[0])][::-1]
 
-        for fidelity, qubit_name in sorted(zip(unsorted_qubit_fidelities, qubit_names), key=lambda pair: pair[0])[::-1]:
-            self.dashboard_list.addItem(f"{qubit_name:<9} ({fidelity:.2f}%)")
+        for i, (fidelity, qubit_name) in enumerate(sorted(zip(unsorted_qubit_fidelities, qubit_names), key=lambda pair: pair[0])[::-1]):
+            # self.dashboard_list.addItem(f"{qubit_name:<9} ({fidelity:.2f}%)")
 
-
+            self.dashboard_list.setItem(i, 0, QTableWidgetItem(qubit_name))
+            self.dashboard_list.setItem(i, 1, QTableWidgetItem(f'{fidelity:.2f}%'))
 
 
 
