@@ -252,7 +252,7 @@ class InteractivePlotLibFigure:
                         )
 
             elif type == "keyboard_click":
-                if event.key == "ctrl+v":
+                if event.key_layout == "ctrl+v":
                     clip.OpenClipboard()
                     data = clip.GetClipboardData()
                     clip.CloseClipboard()
@@ -286,95 +286,95 @@ class InteractivePlotLibFigure:
                         print(out_2d)
                         self.ax.pcolormesh(x_values, y_values, out_2d, shading="auto")
 
-                if event.key == "m":
+                if event.key_layout == "m":
                     self.marker_mode = not self.marker_mode
 
-                if event.key == "shift+m" or event.key == "M":
+                if event.key_layout == "shift+m" or event.key_layout == "M":
                     self.marker_list.append([])
 
-                if event.key == "alt+m":
+                if event.key_layout == "alt+m":
                     self.marker_list = [[]]
                     self.marker_mode = False
 
-                if event.key == "a":
+                if event.key_layout == "a":
                     self.ax.axis("equal")
 
-                if event.key == "v":
+                if event.key_layout == "v":
                     self.state = InteractivePlotLibFigure.StateMachineVoronoi(self)
 
-                if event.key == "alt+v":
+                if event.key_layout == "alt+v":
                     self.voronoi_obj.remove()
 
-                if event.key == "f":
+                if event.key_layout == "f":
                     self.state = InteractivePlotLibFigure.StateMachineFit(self)
 
-                if event.key == "g":
+                if event.key_layout == "g":
                     self.grid_state = not self.grid_state
                     self.ax.grid(self.grid_state)
 
-                if event.key == "alt+f":
+                if event.key_layout == "alt+f":
                     self.remove_fit()
 
-                if event.key == "shift+s" or event.key == "S":
+                if event.key_layout == "shift+s" or event.key_layout == "S":
                     if self.doc.doc:
                         self.doc.doc(list(self.master_obj.figs.keys()))
 
-                if event.key == "s":
+                if event.key_layout == "s":
                     if self.doc.doc:
                         self.doc.doc([plt.gcf().number])
 
-                if event.key == "r":
+                if event.key_layout == "r":
                     self.state = InteractivePlotLibFigure.StateMachineRect(self)
 
-                if event.key == "alt+r":
+                if event.key_layout == "alt+r":
                     self.rectangle = None
 
-                if event.key == "n":
+                if event.key_layout == "n":
                     self.master_obj.figure()
 
-                if event.key == "alt+l":
+                if event.key_layout == "alt+l":
                     self.ax.get_legend().set_visible(
                         not self.ax.get_legend().get_visible()
                     )
 
-                if event.key == "p" and self.plot_type == "plot":
+                if event.key_layout == "p" and self.plot_type == "plot":
                     self.convert_to_pcolormesh()
                     self.plot_type = "mesh"
 
                 if self.line_selected:
-                    if event.key == "t":
+                    if event.key_layout == "t":
                         self.line_selected.transpose()
 
-                    if event.key == "l" and (
+                    if event.key_layout == "l" and (
                         self.plot_type == "pcolor" or self.plot_type == "mesh"
                     ):
                         self.line_selected.convert_to_lines()
                         self.line_selected = None
                         self.plot_type = "plot"
 
-                    if event.key == "c":
+                    if event.key_layout == "c":
                         self.state = InteractivePlotLibFigure.StateMachineColor(self)
 
-                    if event.key == ":":
+                    if event.key_layout == ":":
                         self.state = InteractivePlotLibFigure.StateMachineCommand(self)
 
-                    if event.key == "ctrl+c":
+                    if event.key_layout == "ctrl+c":
                         self.line_selected.copy_to_clipboard()
 
-                    if event.key == "delete":
+                    if event.key_layout == "delete":
                         self.line_selected.delete()
 
-                    if event.key == "alt+delete":
+                    if event.key_layout == "alt+delete":
                         self.line_selected.delete_neg()
 
-                    if event.key == "up":
+                    if event.key_layout == "up":
                         self.line_selected.correct_order(1)
 
-                    if event.key == "down":
+                    if event.key_layout == "down":
                         self.line_selected.correct_order(-1)
 
-                    if event.key.isnumeric():
-                        self.line_selected.line_width = int(event.key)
+                    if event.key_layout.isnumeric():
+                        self.line_selected.line_width = int(event.key_layout)
                         self.line_selected.emphasize_line_width()
 
             elif type == "keyboard_release":
@@ -1050,7 +1050,7 @@ class InteractivePlotLibFigure:
 
         def event(self_state, type, event):
             if type == "keyboard_click":
-                if event.key == "down":
+                if event.key_layout == "down":
                     if self_state.index < len(self_state.lines) - 1:
                         self_state.text_obj.done()
                         self_state.index += 1
@@ -1061,7 +1061,7 @@ class InteractivePlotLibFigure:
                             self_state.update_legend,
                         )
 
-                elif event.key == "up":
+                elif event.key_layout == "up":
                     if self_state.index > 0:
                         self_state.text_obj.done()
                         self_state.index -= 1
@@ -1071,7 +1071,7 @@ class InteractivePlotLibFigure:
                         )
 
                 else:
-                    self_state.done = self_state.text_obj.react_to_key_press(event.key)
+                    self_state.done = self_state.text_obj.react_to_key_press(event.key_layout)
 
             elif type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
@@ -1125,7 +1125,7 @@ class InteractivePlotLibFigure:
 
         def event(self_state, type, event):
             if type == "keyboard_click":
-                self_state.done = self_state.text_obj.react_to_key_press(event.key)
+                self_state.done = self_state.text_obj.react_to_key_press(event.key_layout)
 
             elif type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
@@ -1279,7 +1279,7 @@ class InteractivePlotLibFigure:
 
         def event(self_state, type, event):
             if type == "keyboard_click":
-                self_state.done = self_state.text_obj.react_to_key_press(event.key)
+                self_state.done = self_state.text_obj.react_to_key_press(event.key_layout)
 
             elif type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
@@ -1451,7 +1451,7 @@ class InteractivePlotLibFigure:
 
         def event(self_state, type, event):
             if type == "keyboard_click":
-                self_state.done = self_state.text_obj.react_to_key_press(event.key)
+                self_state.done = self_state.text_obj.react_to_key_press(event.key_layout)
             if type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
             if self_state.done:
@@ -1497,7 +1497,7 @@ class InteractivePlotLibFigure:
             if type == "keyboard_click" or type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
                 if type == "keyboard_click":
-                    self_state.sup_self.line_selected.color(event.key)
+                    self_state.sup_self.line_selected.color(event.key_layout)
                 else:
                     self_state.sup_self.user_interaction("mouse_click", event)
 
@@ -1646,7 +1646,7 @@ class InteractivePlotLibFigure:
 
         def event(self_state, type, event):
             if type == "keyboard_click":
-                self_state.done = self_state.text_obj.react_to_key_press(event.key)
+                self_state.done = self_state.text_obj.react_to_key_press(event.key_layout)
 
             elif type == "mouse_click":
                 self_state.done = self_state.text_obj.done()
