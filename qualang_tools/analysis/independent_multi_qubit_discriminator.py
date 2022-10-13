@@ -2,70 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from tqdm import tqdm
-from dataclasses import dataclass
-
-from tkinter import *
-from tkinter import ttk
 
 from .discriminator import two_state_discriminator
-# from .viewer import App
-
-@dataclass
-class DiscriminatorDataclass:
-    """
-    Dataclass for holding the results from a two state discriminator run.
-    Helper method self.confusion_matrix() generates the confusion matrix from this data.
-    """
-
-    # parameters
-    angle: float
-    threshold: float
-    fidelity: float
-    gg: np.ndarray
-    ge: np.ndarray
-    eg: np.ndarray
-    ee: np.ndarray
-
-    # data
-    ig: np.ndarray
-    qg: np.ndarray
-    ie: np.ndarray
-    qe: np.ndarray
-
-    def __post_init__(self):
-        self.generate_rotation_data()
-
-    def confusion_matrix(self):
-        return np.array([
-            [self.gg, self.ge],
-            [self.eg, self.ee]
-        ])
-
-    def get_params(self):
-        return self.angle, self.threshold, self.fidelity, self.gg, self.ge, self.eg, self.ee
-
-    def get_data(self):
-        return self.ig, self.qg, self.ie, self.qe
-
-    def get_rotated_data(self):
-        return self.ig_rotated, self.qg_rotated, self.ie_rotated, self.qe_rotated
-
-    def generate_rotation_data(self):
-        # this should happen in the results dataclass not here
-        C = np.cos(self.angle)
-        S = np.sin(self.angle)
-        # Condition for having e > Ig
-        if np.mean((self.ig - self.ie) * C - (self.qg - self.qe) * S) > 0:
-            self.angle += np.pi
-            C = np.cos(self.angle)
-            S = np.sin(self.angle)
-
-        self.ig_rotated = self.ig * C - self.qg * S
-        self.qg_rotated = self.ig * S + self.qg * C
-        self.ie_rotated = self.ie * C - self.qe * S
-        self.qe_rotated = self.ie * S + self.qe * C
-
-
+from .results_dataclass import DiscriminatorDataclass
 def independent_multi_qubit_discriminator(Igs, Qgs, Ies, Qes, b_print=True, b_plot=True, text=False):
     assert len(Igs) == len(Qgs) == len(Ies) == len(Qes), "we don't have full readout information for all qubits"
 
@@ -136,55 +75,4 @@ def generate_labels(length):
 
     return out
 
-def build_widget(num):
 
-    root = Tk()
-    root.title("Readout statistics")
-
-    # Add a grid
-    mainframe = Frame(root, height=500, width=500)
-    mainframe.grid(column=0, row=0, sticky=(W))
-    mainframe.columnconfigure(0, weight=1)
-    mainframe.rowconfigure(0, weight=5)
-    mainframe.pack(pady=10, padx=10)
-
-    # Create a Tkinter variable
-    tkvar = StringVar(root)
-
-    # Dictionary with options
-    choices = {'Qubit {}'.format(i) for i in range(num)}
-    tkvar.set('Qubit 0')  # set the default option
-
-    popupMenu = OptionMenu(mainframe, tkvar, *choices)
-    Label(mainframe, text="Select qubit").grid(row=0, column=0)
-    popupMenu.grid(row=1, column=0)
-
-    # on change dropdown value
-    def change_dropdown(*args):
-        print(tkvar.get())
-
-    # link function to change dropdown
-    tkvar.trace('w', change_dropdown)
-    root.geometry("600x500")
-    root.mainloop()
-
-
-if __name__ == '__main__':
-    from dataPresenter import multiQubitReadoutPresenter
-    import pyqtgraph as pg
-
-    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 32)).T
-    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 32)).T
-
-    igs, qgs = iq_state_g
-    ies, qes = iq_state_e
-
-    results = independent_multi_qubit_discriminator(igs, qgs, ies, qes, b_plot=False, b_print=False)
-
-    def main():
-        app = pg.mkQApp()
-        # loader = multiQubitReadoutPresenter(results)
-        loader = App(results)
-        pg.exec()
-
-    main()
