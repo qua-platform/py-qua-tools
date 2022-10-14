@@ -6,6 +6,7 @@ import pyqtgraph as pg
 import time
 import numpy as np
 
+# TODO: fix the table information so it updates and is taken from somewhere
 
 
 class ActiveResetGUI(QWidget):
@@ -121,15 +122,6 @@ class ActiveResetGUI(QWidget):
             self.information_layout.addWidget(check_box)
 
         self.information_layout.addWidget(QFrame())
-
-    def generate_fake_histograms(self, a, b):
-        ## make interesting distribution of values
-        vals1 = np.random.normal(size=500)
-        vals2 = np.random.normal(size=260, loc=4)
-        ## compute standard histogram
-        y, x = np.histogram(vals1, bins=np.linspace(-3, 8, 80))
-        y2, x2 = np.histogram(vals2, bins=np.linspace(-3, 8, 80))
-        return a * y, x, b * y2, x2
 
     def toggle_views(self):
 
