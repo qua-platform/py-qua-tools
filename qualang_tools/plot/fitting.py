@@ -1,6 +1,7 @@
 from scipy import optimize
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
+from typing import List, Union
 import itertools
 import json
 import numpy as np
@@ -21,7 +22,14 @@ class Fit:
     """
 
     @staticmethod
-    def linear(x_data, y_data, guess=None, verbose=False, plot=False, save=False):
+    def linear(
+        x_data: Union[np.ndarray, List[float]],
+        y_data: Union[np.ndarray, List[float]],
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
+    ) -> dict:
         """
         Create a linear fit of the form
 
@@ -38,7 +46,7 @@ class Fit:
          :param verbose: if True prints the initial guess and fitting results
          :param plot: if True plots the data and the fitting function
          :param save: if not False saves the data into a json file
-                      The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+                      The id of the file is save='id'. The name of the json file is `id.json`
          :return: A dictionary of (fit_func, a, b)
 
         """
@@ -112,20 +120,27 @@ class Fit:
                 label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f} \n b  = {out['b'][0]:.1f} +/- {out['b'][1]:.1f}",
             )
             plt.legend(loc="upper right")
-        # Save the data in a json file named 'data_fit_id.json' if save=id
+        # Save the data in a json file named 'id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (func(x, popt[0], popt[1]) * y_normal).tolist()
             json_object = json.dumps(fit_params)
-            with open(f"data_fit_{save}.json", "w") as outfile:
+            with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
         return out
 
     @staticmethod
-    def T1(x_data, y_data, guess=None, verbose=False, plot=False, save=False):
+    def T1(
+        x_data: Union[np.ndarray, List[float]],
+        y_data: Union[np.ndarray, List[float]],
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
+    ):
         """
         Create a fit to T1 experiment of the form
 
@@ -143,7 +158,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `id.json`
         :return: A dictionary of (fit_func, T1, amp, final_offset)
 
         """
@@ -245,20 +260,27 @@ class Fit:
             plt.xlabel("Waiting time [ns]")
             plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
-        # Save the data in a json file named 'data_fit_id.json' if save=id
+        # Save the data in a json file named 'id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
-            with open(f"data_fit_{save}.json", "w") as outfile:
+            with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
         return out
 
     @staticmethod
-    def ramsey(x_data, y_data, guess=None, verbose=False, plot=False, save=False):
+    def ramsey(
+        x_data: Union[np.ndarray, List[float]],
+        y_data: Union[np.ndarray, List[float]],
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
+    ):
         """
         Create a fit to Ramsey experiment of the form
 
@@ -282,7 +304,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `id.json`
           :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
 
         """
@@ -445,20 +467,25 @@ class Fit:
             plt.xlabel("Waiting time [ns]")
             plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
-        # Save the data in a json file named 'data_fit_id.json' if save=id
+        # Save the data in a json file named 'id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
-            with open(f"data_fit_{save}.json", "w") as outfile:
+            with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
         return out
 
     @staticmethod
     def transmission_resonator_spectroscopy(
-        x_data, y_data, guess=None, verbose=False, plot=False, save=False
+        x_data: Union[np.ndarray, List[float]],
+        y_data: Union[np.ndarray, List[float]],
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
     ):
         """
         Create a fit to transmission resonator spectroscopy of the form
@@ -480,7 +507,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `id.json`
              :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
@@ -552,11 +579,19 @@ class Fit:
         # Output the fitting function and its parameters
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
-            "f": [f0 * popt[2] * x_normal,f0 * perr[2] * x_normal],
-            "kc": [(peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal, (peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal],
-            "ki": [(popt[1] * width0 * x_normal)-((peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal), (perr[1] * width0 * x_normal)-((peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal)],
+            "f": [f0 * popt[2] * x_normal, f0 * perr[2] * x_normal],
+            "kc": [
+                (peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal,
+                (peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal,
+            ],
+            "ki": [
+                (popt[1] * width0 * x_normal)
+                - ((peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
+                (perr[1] * width0 * x_normal)
+                - ((peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
+            ],
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
-            "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal]
+            "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal],
         }
         # Print the fitting results if verbose=True
         if verbose:
@@ -580,21 +615,26 @@ class Fit:
             plt.xlabel("Frequency [Hz]")
             plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
-        # Save the data in a json file named 'data_fit_id.json' if save=id
+        # Save the data in a json file named 'id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
-            with open(f"data_fit_{save}.json", "w") as outfile:
+            with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
         return out
 
     @staticmethod
     def reflection_resonator_spectroscopy(
-        x_data, y_data, guess=None, verbose=False, plot=False, save=False
+        x_data: Union[np.ndarray, List[float]],
+        y_data: Union[np.ndarray, List[float]],
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
     ):
         """
         Create a fit to reflection resonator spectroscopy of the form
@@ -616,7 +656,7 @@ class Fit:
         :param verbose: if True prints the initial guess and fitting results
         :param plot: if True plots the data and the fitting function
         :param save: if not False saves the data into a json file
-                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+                     The id of the file is save='id'. The name of the json file is `id.json`
           :return: A dictionary of (fit_func, f, kc, k, ki, offset)
 
         """
@@ -706,13 +746,25 @@ class Fit:
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
             "f": [f0 * popt[2] * x_normal, f0 * perr[2] * x_normal],
-            "kc": [(v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal,
-                   (v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal],
-            "ki": [(popt[1] * width0 * x_normal) - ((v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
-                   (perr[1] * width0 * x_normal) - ((v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal)],
+            "kc": [
+                (v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal,
+                (v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal,
+            ],
+            "ki": [
+                (popt[1] * width0 * x_normal)
+                - ((v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
+                (perr[1] * width0 * x_normal)
+                - ((v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
+            ],
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
-            "offset": [(v0 - peak) * popt[3] * y_normal, (v0 - peak) * perr[3] * y_normal],
-            "slope": [m * popt[4] * y_normal / x_normal, m * perr[4] * y_normal / x_normal]
+            "offset": [
+                (v0 - peak) * popt[3] * y_normal,
+                (v0 - peak) * perr[3] * y_normal,
+            ],
+            "slope": [
+                m * popt[4] * y_normal / x_normal,
+                m * perr[4] * y_normal / x_normal,
+            ],
         }
         # Print the fitting results if verbose=True
         if verbose:
@@ -737,14 +789,14 @@ class Fit:
             plt.xlabel("Frequency [Hz]")
             plt.ylabel("$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
-        # Save the data in a json file named 'data_fit_id.json' if save=id
+        # Save the data in a json file named 'id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
-            with open(f"data_fit_{save}.json", "w") as outfile:
+            with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
         return out
@@ -756,15 +808,15 @@ class Read:
     """
 
     @staticmethod
-    def read_saved_params(id, verbose=False):
+    def read_saved_params(file_id: str, verbose=False) -> dict:
         """
         Read the saved json file and print the saved params if print_params=True
-        :param id: The is of the json file as been given in the Fit class
+        :param file_id: is the name of the json file as been given in the Fit class
         :param verbose: The parameters that were saved
-        :return: Dictionary with the saved data print the saved params if print_params=True
+        :return: Dictionary containing the saved data
         """
 
-        f = open(f"data_fit_{id}.json")
+        f = open(f"{file_id}.json")
         data = json.load(f)
         if verbose:
             for key, value in data.items():
