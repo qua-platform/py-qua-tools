@@ -127,6 +127,8 @@ class Fit:
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (func(x, popt[0], popt[1]) * y_normal).tolist()
             json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
             with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
@@ -267,6 +269,8 @@ class Fit:
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
             with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
@@ -474,6 +478,8 @@ class Fit:
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
             with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
         return out
@@ -622,6 +628,8 @@ class Fit:
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
             with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
@@ -796,6 +804,8 @@ class Fit:
             fit_params["y_data"] = y_data.tolist()
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
             with open(f"{save}.json", "w") as outfile:
                 outfile.write(json_object)
 
@@ -815,7 +825,8 @@ class Read:
         :param verbose: The parameters that were saved
         :return: Dictionary containing the saved data
         """
-
+        if file_id[-5:] == ".json":
+            file_id = file_id[:-5]
         f = open(f"{file_id}.json")
         data = json.load(f)
         if verbose:
