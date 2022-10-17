@@ -6,8 +6,6 @@ import pyqtgraph as pg
 import time
 import numpy as np
 
-# TODO: fix the table information so it updates and is taken from somewhere
-
 
 class ActiveResetGUI(QWidget):
     def __init__(self, reset_results_dictionary):
@@ -27,6 +25,17 @@ class ActiveResetGUI(QWidget):
         self.show()
 
     def _initialise_ui(self):
+        """
+        Initialise the user interface of the GUI. Sets the colour scheme, qapplication style, and the geometry
+        of the window. The two main parts of the GUI are the info_area (on the left) and the plot_area (on the right).
+
+        The info area contains the dropdown list so we can select a specific qubit, a table with information about the
+        qubit being looked at, a legend for the colours on the plots, and check boxes to select which plots are being
+        shown. The plot area contains a column for each readout type, with each of these boxes containing rotated
+        IQ blobs and a histogram of the I-projected data.
+
+        @return:
+        """
 
         self.hbox = QHBoxLayout(self)
 
@@ -51,6 +60,11 @@ class ActiveResetGUI(QWidget):
         self.show()
 
     def _initialise_plot_area(self):
+        """
+        Sets up the plot area. It's a horizontal box layout, meaning widgets are added in a row until a new row is called.
+        For each type of reset (name in self.reset_results_dictionary.keys()), we add a column containing two plots:
+        the IQ blob and the 1d histogram.
+        """
 
         self.plot_area = QWidget()
         # self.plot_area = pg.LayoutWidget()
@@ -69,6 +83,10 @@ class ActiveResetGUI(QWidget):
 
 
     def _initialise_info_area(self):
+        """
+        Sets up the info area with the required widgets. It's a vbox layout which means widgets are added row-by-row in
+        a single column until a new column is called.
+        """
 
         # create some widgets
         self.information = QWidget()
@@ -81,9 +99,8 @@ class ActiveResetGUI(QWidget):
         for key in self.reset_results_dictionary.keys():
             self.check_boxes.append(QCheckBox(str(key).replace('_', ' ')))
 
-        self.info_box = pg.TableWidget(3, 3)
-
-        self.info_box.setData(self.generate_table(98, 86, 100e-9, 90e-9))
+        self.info_box = pg.TableWidget(3, len(self.reset_results_dictionary))
+        self.set_table()
 
         self.information_layout.addWidget(self.qubit_list)
         self.information_layout.addWidget(self.info_box)
@@ -124,6 +141,11 @@ class ActiveResetGUI(QWidget):
         self.information_layout.addWidget(QFrame())
 
     def toggle_views(self):
+        """
+        All check boxes are connected to this function so whenever any of them are changed, it is called. This saves
+        having multiple functions at very low time overhead. If a checkbox isChecked()==True, this shows the respective
+        plots in the plot area. If it is not checked, the plots it corresponds to are hidden.
+        """
 
         for check_box, plot_region in zip(self.check_boxes, self.plot_regions):
             if check_box.isChecked():
@@ -131,27 +153,36 @@ class ActiveResetGUI(QWidget):
             else:
                 plot_region.hide()
 
-    def generate_random_table_data(self):
+    def generate_table(self):
+        """
+        Data in the QTableWidget is added in rows as a nested list. To keep the headers large I have added them as
+        the first row of the table and turned off the actual headers.
 
-        pf, af = np.random.rand(2) * 100
-        pt, at = np.random.rand(2) / 5e8
-        print(pt, at)
-        return pf, pt, af, at
+        @return: the list of lists representing rows of the table.
+        """
+        overall_table = [['', 'Fidelity (%)', 'Time (ns)']]
 
-    def generate_table(self, pf, pt, af, at):
-        table_data = [
-            ['', 'Passive', 'Active'],
-            ['Fidelity', f'{pf:.2f}%', f'{af:.2f}%'],
-            ['Time', f'{(pt):.2f} ns', f'{(at * 1e9):.2f} ns']
-        ]
+        for reset_type, results_datasets in self.reset_results_dictionary.items():
+            qubit_data = results_datasets[self.qubit_list.currentIndex()]
+            row = [reset_type, f'{qubit_data.fidelity:.2f}', f'{qubit_data.runtime:.2f}']
+            overall_table.append(row)
 
-        return table_data
+        return overall_table
 
-    def set_table(self, pf, pt, af, at):
-        data = self.generate_table(pf, pt, af, at)
+    def set_table(self):
+        """"
+        Sets the values for the table in the info area.
+        """
+        data = self.generate_table()
         self.info_box.setData(data)
 
+
     def plot_to_scatter(self, scatter_plot, result_dataclass):
+        """
+        Adds the required data (IQ blobs) from the result_dataclass to the scatter_plot object
+        @param scatter_plot: the plot onto which the data will be added
+        @param result_dataclass: the dataclass containing the IQ DATA
+        """
 
         rotated_data_g = pg.ScatterPlotItem(
             result_dataclass.ig_rotated,
@@ -185,9 +216,15 @@ class ActiveResetGUI(QWidget):
         return scatter_plot
 
     def plot_to_histogram(self, histogram_plot, result_dataclass):
+        """
+        Processes and adds the 1d histogram data stored in result_dataclass to the histogram_plot object
+        @param histogram_plot: histogram plot onto which the data will be added
+        @param result_dataclass: dataclass containing the IQ blob data that will then be processed into histogram data
+        @return:
+        """
 
-        y, x = np.histogram(result_dataclass.ig_rotated, bins=np.linspace(-3, 8, 80))
-        y2, x2 = np.histogram(result_dataclass.ie_rotated, bins=np.linspace(-3, 8, 80))
+        y, x = np.histogram(result_dataclass.ig_rotated, bins=80)#, bins=np.linspace(-3, 8, 80))
+        y2, x2 = np.histogram(result_dataclass.ie_rotated, bins=80)#, bins=np.linspace(-3, 8, 80))
 
         histogram_plot.plot(x, y, stepMode="center", fillLevel=0, fillOutline=True,
                             brush=(*self.ground_state_colour, 200), pen=pg.mkPen(None))
@@ -204,6 +241,10 @@ class ActiveResetGUI(QWidget):
         return histogram_plot
 
     def update_plots(self):
+        """
+        Updater function that selects the correct data values to present on the screen when a different qubit is
+        selected from the qubit list
+        """
 
         qubit_id = self.qubit_list.currentIndex()
 
@@ -218,20 +259,26 @@ class ActiveResetGUI(QWidget):
             self.plot_to_scatter(scatter, data)
             self.plot_to_histogram(histogram, data)
 
-    def _populate_list(self):
+        self.set_table()
 
-        for i in range(self.num_qubits):
+    def _populate_list(self):
+        """
+        Populates the dropdown list with the qubit names given as the name attributes of the result dataclasses.
+        """
+
+        key = list(self.reset_results_dictionary.keys())[0]
+
+        dataclasses = self.reset_results_dictionary[key]
+
+        for result in dataclasses:
             self.qubit_list.addItem(
-                f'Qubit {i + 1}'
+                result.name
             )
 
 
-def main():
+def launch_reset_gui(data_dictionary):
+
     app = QApplication(sys.argv)
-    ex = ActiveResetGUI({'passive_reset': [], 'active_reset': [], 'different_reset': []})
-    # sys.exit(app.exec_())
+    program = ActiveResetGUI(data_dictionary)
     app.exec_()
 
-
-if __name__ == '__main__':
-    main()

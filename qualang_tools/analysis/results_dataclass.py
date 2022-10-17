@@ -12,6 +12,7 @@ class DiscriminatorDataclass:
     Dataclass for holding the results from a two state discriminator run.
     Helper method self.confusion_matrix() generates the confusion matrix from this data.
     """
+    name: str
 
     # parameters
     angle: float
@@ -34,6 +35,9 @@ class DiscriminatorDataclass:
         @return: None
         """
         self.generate_rotation_data()
+
+    def add_attribute(self, attribute_name, value):
+        self.__setattr__(attribute_name, value)
 
     def confusion_matrix(self):
         """

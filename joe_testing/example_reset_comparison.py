@@ -10,14 +10,14 @@ import sys
 def generate_discrimination_data():
     from qualang_tools.analysis.independent_multi_qubit_discriminator import independent_multi_qubit_discriminator
 
-    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 32)).T
-    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 32)).T
+    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 10)).T
+    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 10)).T
 
     igs, qgs = iq_state_g
     ies, qes = iq_state_e
 
     results = independent_multi_qubit_discriminator(igs, qgs, ies, qes, b_plot=False, b_print=False)
-
+    [result.add_attribute('runtime', 100 * np.random.rand()) for result in results]
     return results
 
 

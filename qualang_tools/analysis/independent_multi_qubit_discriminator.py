@@ -6,14 +6,17 @@ from tqdm import tqdm
 from .discriminator import two_state_discriminator
 from .results_dataclass import DiscriminatorDataclass
 
+
 def independent_multi_qubit_discriminator(Igs, Qgs, Ies, Qes, b_print=True, b_plot=True, text=False):
     assert len(Igs) == len(Qgs) == len(Ies) == len(Qes), "we don't have full readout information for all qubits"
 
     result_dataclasses = []
 
-    for Ig, Qg, Ie, Qe in zip(Igs, Qgs, Ies, Qes):
+    for i, (Ig, Qg, Ie, Qe) in enumerate(zip(Igs, Qgs, Ies, Qes)):
         result_dataclass = DiscriminatorDataclass(
-            *two_state_discriminator(Ig, Qg, Ie, Qe, b_print=b_print, b_plot=b_plot),
+            f'Qubit_{i}',
+            *two_state_discriminator(
+                Ig, Qg, Ie, Qe, b_print=b_print, b_plot=b_plot),
             Ig, Qg, Ie, Qe
         )
 
@@ -78,8 +81,6 @@ def generate_labels(length):
 
 
 if __name__ == '__main__':
-
-
     iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 15)).T
     iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 15)).T
 
@@ -87,5 +88,3 @@ if __name__ == '__main__':
     Ies, Qes = iq_state_e
 
     independent_multi_qubit_discriminator(Igs, Qgs, Ies, Qes)
-
-
