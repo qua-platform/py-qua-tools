@@ -72,3 +72,21 @@ def test_reflection_resonator_spectroscopy(kc, k, f, offset, slope):
     out = fit.reflection_resonator_spectroscopy(x_data=x, y_data=y)
 
     np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+
+
+@pytest.mark.parametrize("offset", [0.01, 0.05])
+@pytest.mark.parametrize("T", [2000, 2500])
+@pytest.mark.parametrize("amp", [0.3, 0.5])
+@pytest.mark.parametrize("f", [20e-4, 25e-4])
+@pytest.mark.parametrize("phase", [0, 0.01])
+def test_rabi(offset, T, amp, f, phase):
+    fit = Fit()
+    tau_min = 32
+    tau_max = 800
+    d_tau = 16
+    x = np.arange(tau_min, tau_max + 0.1, d_tau)
+    y = amp * (np.sin(0.5 * (2 * np.pi * f) * x + phase))**2 * np.exp(-x / T) + offset
+
+    out = fit.ramsey(x_data=x, y_data=y)
+
+    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
