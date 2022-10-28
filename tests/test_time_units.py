@@ -1,8 +1,11 @@
 import pytest
 
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 #  modules needed for testing
-from qm.qua import program, for_, declare
-from qualang_tools import units 
+with pytest.warns(RemovedInMarshmallow4Warning):
+    # will avoid raising warnings from qua testing the timing feature
+    from qm.qua import program, for_, declare
+    from qualang_tools import units 
 
 # testing interference with other context managers
 from contextlib import contextmanager

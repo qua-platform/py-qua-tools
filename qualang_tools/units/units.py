@@ -13,8 +13,8 @@ from warnings import warn
 
 class _nanosecond:
 
-    def __init__(self, round_up : bool = False):
-        self.round_up = round_up
+    def __init__(self):
+        pass
 
     def _get_value(self) -> float:
 
@@ -28,35 +28,43 @@ class _nanosecond:
         else:
             return 1.0 # this is in nanosecods
 
-    def __mul__(self, other : int | float ) -> int:
+    def __mul__(self, other : int | float ) -> float:
 
         value = self._get_value()
 
-        result, remainder =  divmod(other * value, 1)
+        return value*other
 
-        if remainder != 0:
-
-            if self.round_up:
-                result +=1
-
-            warn(f'In a qua program we set clock cycles. Value {other} was found NOT to be divisible by 4ns. The timing will be set to {result/value} instead', RuntimeWarning)
-            
-        return int(result)
-
-    def __rmul__(self, other : int | float ) -> int :
+    def __rmul__(self, other : int | float ) -> float :
         return self.__mul__(other)
 
-    def __get__(self, obj, type=None):
-        return self._get_value()
+
+# class _ensure_integer(int):
+
+#     def __new__(cls, value, *args, **kwargs):
+#         return  super(cls, cls).__new__(cls, value)
+
+#     def __mul__(self, other : int | float ) -> int:
+
+#         result, remainder =  divmod(self*other, 1)
+
+#         if remainder != 0:
+
+#             result = int(result)
+
+#             warn(f"Warning: the specified duration ({other}) to be converted to clock cycles in not an integer. It has been converted to int ({result}) to avoid subsequent errors.", RuntimeWarning)
+            
+#         return result
+
+#     def __rmul__(self, other : int | float ) -> int :
+#         return self.__mul__(other)
 
 class unit:
-
 
     def __init__(self):
         # Time units
         self._ns = _nanosecond()
         self.cc = 1/4
-        
+
         # Frequency units
         self.mHz = 0.001
         self.Hz = 1
@@ -70,23 +78,23 @@ class unit:
         self.uV = 1e-6
 
     @property
-    def ns(self):
-        return self._ns._get_value()
+    def ns(self) -> float:
+        return 1 * self._ns
 
     @property
-    def us(self):
+    def us(self) -> float:
         return 1e3 * self._ns
     
     @property
-    def ms(self):
+    def ms(self) -> float:
         return 1e6 * self._ns
 
     @property
-    def s(self):
+    def s(self) -> float:
         return 1e9 * self._ns
 
     @property
-    def clock_cycle(self):
+    def clock_cycle(self) -> float:
         return 4 * self._ns
 
     # conversion functions
