@@ -914,11 +914,11 @@ class Fit:
                     guess_freq = float(guess[key]) * x_normal
                 elif key == "phase":
                     guess_phase = float(guess[key])
-                elif key == "T2":
+                elif key == "T":
                     guess_T = float(guess[key]) * x_normal
                 elif key == "amp":
                     peaks[0] = float(guess[key]) / y_normal
-                elif key == "final_offset":
+                elif key == "offset":
                     offset = float(guess[key]) / y_normal
                 else:
                     raise Exception(

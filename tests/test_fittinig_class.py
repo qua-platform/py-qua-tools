@@ -87,6 +87,6 @@ def test_rabi(offset, T, amp, f, phase):
     x = np.arange(tau_min, tau_max + 0.1, d_tau)
     y = amp * (np.sin(0.5 * (2 * np.pi * f) * x + phase))**2 * np.exp(-x / T) + offset
 
-    out = fit.ramsey(x_data=x, y_data=y)
+    out = fit.rabi(x_data=x, y_data=y)
 
     np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
