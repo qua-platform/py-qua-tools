@@ -818,7 +818,7 @@ class Fit:
         guess=None,
         verbose=False,
         plot=False,
-        save=False
+        save=False,
     ):
         """
         Create a fit to Rabi experiment of the form
@@ -856,8 +856,8 @@ class Fit:
         fft = np.fft.fft(y)
         f = np.fft.fftfreq(len(x))
         # Take the positive part only
-        fft = fft[1: len(f) // 2]
-        f = f[1: len(f) // 2]
+        fft = fft[1 : len(f) // 2]
+        f = f[1 : len(f) // 2]
         # Remove the DC peak if there is one
         if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
             first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][
@@ -873,22 +873,22 @@ class Fit:
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T
         period = int(np.ceil(1 / out_freq))
         peaks = (
-                np.array(
-                    [
-                        np.std(y[i * period: (i + 1) * period])
-                        for i in range(round(len(y) / period))
-                    ]
-                )
-                * np.sqrt(2)
-                * 2
+            np.array(
+                [
+                    np.std(y[i * period : (i + 1) * period])
+                    for i in range(round(len(y) / period))
+                ]
+            )
+            * np.sqrt(2)
+            * 2
         )
 
         # Finding a guess for the decay (slope of log(peaks))
         if len(peaks) > 1:
             guess_T = (
-                    -1
-                    / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
-                    * (x[1] - x[0])
+                -1
+                / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
+                * (x[1] - x[0])
             )
             print(peaks)
         else:
@@ -904,7 +904,7 @@ class Fit:
 
         # Finding a guess for the phase
         guess_phase = (
-                np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
+            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
         )
 
         # Check user guess
@@ -938,8 +938,9 @@ class Fit:
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3, a4):
-            return (peaks[0] * a0) * (np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)) ** 2 * np.exp(
-                -x_var / np.abs(guess_T * a2)) + offset * a4
+            return (peaks[0] * a0) * (
+                np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)
+            ) ** 2 * np.exp(-x_var / np.abs(guess_T * a2)) + offset * a4
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3], a[4])
@@ -962,8 +963,7 @@ class Fit:
             "offset": [
                 offset * popt[4] * y_normal,
                 perr[4] * offset * y_normal,
-            ]
-
+            ],
         }
         # Print the fitting results if verbose=True
         if verbose:
