@@ -48,7 +48,7 @@ plot_demodulated_data_2d(time, amp, I, Q, "time [ns]", "amplitude [mV]", "2D map
 ```
 
 ## get_simulated_samples_by_element
-This function gets the samples generated from the QUA simulator element per element.
+This function gets the samples generated from the QUA simulator by element.
 
 ### Usage example
 
@@ -72,7 +72,7 @@ resonator_samples = get_simulated_samples_by_element("resonator", job, config)
 
 
 ## plot_simulator_output
-This function plots the samples generated from the QUA simulator element per element using *plotly*.
+This function plots the samples generated from the QUA simulator by element using *plotly*.
 
 ### Usage example
 
