@@ -93,3 +93,68 @@ job = qmm.simulate(config, test_prog, simulation_config)
 fig = plot_simulator_output([["RF"],["qubit"]], job, config, duration_ns=8000)
 fig.show()
 ```
+
+## Fitting 
+This tool makes the fitting process much easier! Once you have the data you can:
+
+* Fit the data to a suitable fitting function.
+* Plot the data as well as the fitting function.
+* Extract physical parameters from the fitting.
+* Save the fitting parameters to a json file.
+* Open the json file and save its data to a python dictionary.
+
+The current available fitting functions in the class are:
+
+* Linear fitting.
+* Fitting for extracting T1 parameter. 
+* Fitting for the Ramsey experiment (when scanning the dephasing time).
+* Fitting for the transmission amplitude of the resonantor spectroscopy.
+* Fitting for the reflection amplitude of the resonantor spectroscopy.
+
+More functions are added frequently. 
+
+### Use
+In order to use the fitting class, one should have `from fitting import *` in his/her code.
+ 
+### Usage example
+In the example below you can see five parts:
+1. The measured data - This section simulates the data in order to show the relevant functions.
+2. Fit - This section does the fit to the data.
+3. Plot - This section plots the data and the fitting plot.
+4. Save - This section saves the data to a json file. You are required to enter the file name, so the saved file will be of the form `data_fit_{file_name}.json` 
+5. Read json - This section reads the json file and prints the saved parameters if the flag `print_params=True`.
+
+```python
+from qualang_tools.plot.fitting import Fit, Read
+
+### Simulating the measured data ###
+# taus and amplitude are the measured data
+def ramsey_data(x, final_offset, T2, amp, initial_offset, f, phase):
+    return  final_offset * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
+            np.exp(-x * (1/T2))
+            * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
+            )
+
+
+tau_min = 32
+tau_max = 800
+dtau = 16
+taus = np.arange(tau_min, tau_max + 0.1, dtau)
+amplitude = ramsey_data(taus, final_offset=0.05, T2=200, amp=1, initial_offset=0, f=10e-3, phase=0) + np.random.normal(
+                0, 0.001, len(taus))
+### Fit ###
+fit = Fit()
+# Choose the suitable fitting function
+file_name = 'Ramsey_experiment'
+fit.ramsey(taus, amplitude, verbose=True, plot=True, save=file_name)
+plt.title('Ramsey experiment')
+
+### Read json file as dictionary ###
+read = Read()
+data = read.read_saved_params(file_id=file_name, verbose=True)
+
+
+```
+
+Below is the plot of this example
+![fitting_example](example.PNG)
