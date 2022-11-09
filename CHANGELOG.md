@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 
 - Multi-user Tools - A subpackage that allows several users to work simultaneously.
+- Config.helper_tools - This package includes tools for writing and updating the configuration.
+- Plot.fitting - This tool enables the use to fit results from qua programs.
+
+### Changed
+- Plot.plots - Added functions to plot results from qua programs (`plot_demodulated_data 1D and 2D`, `get_simulated_samples_by_element` and `plot_simulator_output`)
 
 ## [0.12.0] - 2022-08-29
 ### Changed
