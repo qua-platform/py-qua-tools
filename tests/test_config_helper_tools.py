@@ -1,13 +1,11 @@
 import pytest
-import numpy as np
 from qualang_tools.config.helper_tools import *
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
-import matplotlib.pyplot as plt
-from scipy import signal
-from qm import SimulationConfig
 from scipy.signal.windows import gaussian
+from copy import deepcopy
 
+
+@pytest.fixture
 def config0():
     def IQ_imbalance(g, phi):
         c = np.cos(phi)
@@ -21,7 +19,13 @@ def config0():
         "version": 1,
         "controllers": {
             "con1": {
-                "analog_outputs": {1: {"offset": 0.0}, 2: {"offset": 0.0}, 3: {"offset": 0.0},4: {"offset": 0.0}, 5: {"offset": 0.0}},
+                "analog_outputs": {
+                    1: {"offset": 0.0},
+                    2: {"offset": 0.0},
+                    3: {"offset": 0.0},
+                    4: {"offset": 0.0},
+                    5: {"offset": 0.0},
+                },
                 "digital_outputs": {},
                 "analog_inputs": {
                     1: {"offset": 0.0, "gain_db": 0},  # I from down-conversion
@@ -38,9 +42,7 @@ def config0():
                     "mixer": "mixer_qubit",
                 },
                 "intermediate_frequency": 100e6,
-                "operations": {
-
-                },
+                "operations": {},
             },
             "resonator": {
                 "mixInputs": {
@@ -50,9 +52,7 @@ def config0():
                     "mixer": "mixer_qubit",
                 },
                 "intermediate_frequency": 100e6,
-                "operations": {
-                    "readout": "readout_pulse"
-                },
+                "operations": {"readout": "readout_pulse"},
                 "outputs": {
                     "out1": ("con1", 1),
                     "out2": ("con1", 2),
@@ -65,9 +65,7 @@ def config0():
                     "single": ("con1", 6),
                 },
                 "intermediate_frequency": 0e6,
-                "operations": {
-                    "readout": "readout_pulse"
-                },
+                "operations": {},
             },
         },
         "pulses": {
@@ -81,7 +79,7 @@ def config0():
                 "integration_weights": {
                     "cos": "cosine_weights",
                     "sin": "sine_weights",
-                    "minus_sin": "minus_sine_weights"
+                    "minus_sin": "minus_sine_weights",
                 },
                 "digital_marker": "ON",
             },
@@ -119,68 +117,73 @@ def config0():
         },
     }
 
-conf = config0()
-config = QuaConfig(conf)
 
-config.add_control_operation_iq("qubit", "gate", list(gaussian(112, 20)), [0.0 for _ in range(112)])
-config.add_control_operation_iq("resonator", "long_readout", [0.1 for _ in range(112)], [0.0 for _ in range(112)])
-config.update_integration_weight("resonator", "readout", "cos", [(1, 80)], [(0, 80)])
-config.update_integration_weight("resonator", "readout", "sin", [(0, 80)], [(1, 80)])
-config.update_integration_weight("resonator", "readout", "minus_sin", [(0, 80)], [(-1, 80)])
-# config.update_op_amp("resonator", "long_readout", 0.25)
-config.copy_operation("resonator", "readout", "short_readout")
-config.add_control_operation_single("flux_line", "bias", [0.1 for _ in range(112)])
-config.update_waveforms("resonator", "short_readout", ([1.1]*175, [0.0]*175))
-config.update_waveforms("flux_line", "bias", ([1.1]*175, ))
-# config.reset()
+def test_update_integration_weight(config0):
+    conf = deepcopy(config0)
+    config = QuaConfig(conf)
+    # Test update with only one operation using these iw
+    config.update_integration_weight(
+        "resonator", "readout", "cos", [(1, 180)], [(0, 180)]
+    )
+    assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 180)
+    assert conf["integration_weights"]["cosine_weights"]["sine"][0] == (0, 180)
+    # Add another operation using the same iw
+    config.copy_operation("resonator", "readout", "short_readout")
+    # Test update with two operations using these iw anf force_update=False
+    try:
+        config.update_integration_weight(
+            "resonator", "readout", "cos", [(1, 80)], [(0, 80)]
+        )
+    except Exception as e:
+        assert (
+            e.__str__()
+            == "The updated integration weights are used in other operations. To force the update, please set the force_update flag to True."
+        )
+        assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 180)
+    # Test update with two operations using these iw anf force_update=True
+    config.update_integration_weight(
+        "resonator", "readout", "cos", [(1, 80)], [(0, 80)], True
+    )
+    assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 80)
+    assert conf["integration_weights"]["cosine_weights"]["sine"][0] == (0, 80)
 
-n_avg = 100
 
-cooldown_time = 16  // 4
+def test_add_control_operation_iq(config0):
+    conf = deepcopy(config0)
+    config = QuaConfig(conf)
 
-f_min = 30e6
-f_max = 70e6
-df = 0.5e6
-freqs = np.arange(f_min, f_max + 0.1, df)
+    config.add_control_operation_iq(
+        "qubit", "gate", list(gaussian(112, 20)), [0.0 for _ in range(112)]
+    )
+    assert "gate" in config["elements"]["qubit"]["operations"]
+    assert "qubit_gate_pulse" in conf["pulses"]
+    assert "qubit_gate_wf_i" in conf["waveforms"]
+    assert conf["waveforms"]["qubit_gate_wf_i"]["samples"] == list(gaussian(112, 20))
 
-with program() as resonator_spec:
-    n = declare(int)
-    f = declare(int)
-    I = declare(fixed)
-    Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
-    adc = declare_stream(adc_trace=True)
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(f, f_min, f <= f_max, f + df):  # Notice it's <= to include f_max (This is only for integers!)
-            update_frequency("qubit", f)
-            play("gate", "qubit")
-            measure(
-                "readout",
-                "resonator",
-                None,
-                dual_demod.full("cos", "out1", "sin", "out2", I),
-                dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
-            )
-            wait(cooldown_time, "resonator")
-            save(I, I_st)
-            save(Q, Q_st)
+def test_update_op_amp(config0):
+    conf = deepcopy(config0)
+    config = QuaConfig(conf)
 
-    with stream_processing():
-        I_st.buffer(len(freqs)).average().save("I")
-        Q_st.buffer(len(freqs)).average().save("Q")
+    config.add_control_operation_single("flux_line", "bias", [0.1 for _ in range(112)])
+    assert config["waveforms"]["flux_line_bias_single_wf"]["sample"] == 0.1
+    config.update_op_amp("flux_line", "bias", 0.25)
+    assert config["waveforms"]["flux_line_bias_single_wf"]["sample"] == 0.25
 
-#####################################
-#  Open Communication with the QOP  #
-#####################################
-qmm = QuantumMachinesManager()
 
-#######################
-# Simulate or execute #
-#######################
+def test_update_update_waveforms(config0):
+    conf = deepcopy(config0)
+    config = QuaConfig(conf)
 
-simulation_config = SimulationConfig(duration=1000)
-job = qmm.simulate(config, resonator_spec, simulation_config)
-job.get_simulated_samples().con1.plot()
-
+    config.update_waveforms("resonator", "readout", ([1.1] * 175, [0.5] * 175))
+    assert config["pulses"]["readout_pulse"]["length"] == 175
+    assert config["waveforms"]["resonator_readout_wf_i"]["sample"] == 1.1
+    assert config["waveforms"]["resonator_readout_wf_q"]["sample"] == 0.5
+    config.add_control_operation_single("flux_line", "bias", [0.1 for _ in range(112)])
+    config.update_waveforms("flux_line", "bias", ([1.1] * 175,))
+    assert config["waveforms"]["flux_line_bias_single_wf"]["sample"] == 1.1
+    assert config["pulses"]["flux_line_bias_pulse"]["length"] == 175
+    config.update_waveforms("flux_line", "bias", (list(gaussian(112, 20)),))
+    assert config["waveforms"]["flux_line_bias_single_wf"]["samples"] == list(
+        gaussian(112, 20)
+    )
