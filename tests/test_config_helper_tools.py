@@ -1,6 +1,6 @@
 import pytest
 from qualang_tools.config.helper_tools import *
-from qm.qua import *
+import numpy as np
 from scipy.signal.windows import gaussian
 from copy import deepcopy
 
