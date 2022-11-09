@@ -60,27 +60,6 @@ class QuaConfig(_UserDict):
         }
         # Add waveform
         self.update_waveforms(element, operation_name, (wf_i, wf_q))
-        # if len(wf_i) > 0:
-        #     if wf_i[:-1] == wf_i[1:]:
-        #         self.data["waveforms"][wf_name + "_i"] = {
-        #             "type": "constant",
-        #             "sample": wf_i[0],
-        #         }
-        #         self.data["waveforms"][wf_name + "_q"] = {
-        #             "type": "constant",
-        #             "sample": wf_q[0],
-        #         }
-        #     else:
-        #         self.data["waveforms"][wf_name + "_i"] = {
-        #             "type": "arbitrary",
-        #             "samples": list(wf_i),
-        #         }
-        #         self.data["waveforms"][wf_name + "_q"] = {
-        #             "type": "arbitrary",
-        #             "samples": list(wf_q),
-        #         }
-        # else:
-        #     raise ValueError("The waveforms must have at least one point.")
 
     def add_control_operation_single(
         self, element: str, operation_name: str, wf: List[float]
@@ -111,19 +90,6 @@ class QuaConfig(_UserDict):
         }
         # Add waveform
         self.update_waveforms(element, operation_name, (wf,))
-        # if len(wf) > 0:
-        #     if wf[:-1] == wf[1:]:
-        #         self.data["waveforms"][wf_name] = {
-        #             "type": "constant",
-        #             "sample": wf[0],
-        #         }
-        #     else:
-        #         self.data["waveforms"][wf_name] = {
-        #             "type": "arbitrary",
-        #             "samples": list(wf),
-        #         }
-        # else:
-        #     raise ValueError("The waveform must have at least one point.")
 
     def get_waveforms_from_op(
         self, element: str, operation_name: str
