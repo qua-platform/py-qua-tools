@@ -11,6 +11,11 @@ class TwoStateDiscriminator:
     """
     TwoStateDiscriminator is a class that returns optimal weights for state discrimination
     of a two level system, namely, |g> and |e> of a qubit.
+    The optimization starts with a training program (TwoStateDiscriminator.train()) that will perform the following steps:
+        - Measure the raw adc traces and demodulated 'I' and 'Q' signals for the qubit in the ground and excited states.
+        - Demodulate and derive the average time evolution of the complex vector Z(t)=I(t)+j*Q(t) within the readout window.
+        - Derive the optimal weights as the difference between Z(t) for the qubit in the ground and excited state (Z_g(t)-Z_e(t)).
+        - Update the configuration with these optimal integration weights.
     """
 
     def __init__(
@@ -38,31 +43,36 @@ class TwoStateDiscriminator:
         :param path: A path to save optimized parameters, namely, integration weights and bias for each state. This file is generated during training, and it is used during the subsequent measure_state procedure.
         :param meas_len: Duration of the readout pulse extracted from the configuration.
         :param smearing: Smearing duration extracted from the configuration.
-        :param lsb: defines if the down-conversion mixers does a conversion to LO - IF, i.e., lower side band
-        :param iw_prefix: prefix to the name of the optimal integration weights. Default i 'opt_' leading to opt_cos_readout_element, opt_sin_readout_element...
+        :param lsb: Defines if the down-conversion mixers does a conversion to LO - IF, i.e., lower side band
+        :param iw_prefix: Prefix to the name of the optimal integration weights. Default i 'opt_' leading to opt_cos_readout_element, opt_sin_readout_element...
+        :param iq_mixer: Defines if an IQ mixer (True) or an image rejection mixer (False) is used for the down-conversion.
         """
 
+        # Load the user inputs
         self.qmm = qmm
         self.config = config
         self.resonator_el = readout_el
         self.resonator_pulse = readout_pulse
-        self.num_of_states = 2
         self.path = path
-        self.saved_data = None
-        self.time_diff = None
         self.update_tof = update_tof
-        self.finish_train = 0
-        self.mu = dict()
-        self.sigma = dict()
-        self._load_file(path)
         self.lsb = lsb
         self.iq_mixer = iq_mixer
         self.meas_len = meas_len
         self.smearing = smearing
         self.iw_prefix = iw_prefix
+        # Initialize some variables
+        self.num_of_states = 2
+        self.saved_data = None
+        self.time_diff = None
         self.Z = None
         self.ts = None
         self.plot = False
+        self.simulation = None
+        self.finish_train = 0
+        self.mu = dict()
+        self.sigma = dict()
+        # Load the Optimal weights if path is provided and update the config
+        self._load_file(path)
 
     def _load_file(self, path):
         """Load the saved integration weights and update the config"""
@@ -324,6 +334,195 @@ class TwoStateDiscriminator:
         if self.finish_train == 1:
             self._IQ_mu_sigma(b_vec)
 
+    def _training_program(self, qubit_element, pi_pulse, cooldown_time, n_shots):
+        if self.iq_mixer:
+            with program() as qua_program:
+                n = declare(int)
+                I = declare(fixed)
+                Q = declare(fixed)
+                I_st = declare_stream()
+                Q_st = declare_stream()
+                adc = declare_stream(adc_trace=True)
+
+                with for_(n, 0, n < n_shots, n + 1):
+                    # Wait 100µs for the qubit to decay
+                    wait(cooldown_time, self.resonator_el, qubit_element)
+                    # Measure ground state
+                    measure(
+                        self.resonator_pulse,
+                        self.resonator_el,
+                        adc,
+                        dual_demod.full("cos", "out1", "sin", "out2", I),
+                        dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+                    )
+                    save(I, I_st)
+                    save(Q, Q_st)
+
+                    # Wait 100µs for the qubit to decay
+                    wait(cooldown_time, self.resonator_el, qubit_element)
+                    # Measure excited state
+                    align(qubit_element, self.resonator_el)
+                    play(pi_pulse, qubit_element)
+                    align(qubit_element, self.resonator_el)
+                    measure(
+                        self.resonator_pulse,
+                        self.resonator_el,
+                        adc,
+                        dual_demod.full("cos", "out1", "sin", "out2", I),
+                        dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+                    )
+                    save(I, I_st)
+                    save(Q, Q_st)
+                with stream_processing():
+                    I_st.save_all("I")
+                    Q_st.save_all("Q")
+                    adc.input1().with_timestamps().save_all("adc1")
+                    adc.input2().save_all("adc2")
+        else:
+            with program() as qua_program:
+                n = declare(int)
+                I = declare(fixed)
+                Q = declare(fixed)
+                I_st = declare_stream()
+                Q_st = declare_stream()
+                adc = declare_stream(adc_trace=True)
+
+                with for_(n, 0, n < n_shots, n + 1):
+                    # Wait 100µs for the qubit to decay
+                    wait(cooldown_time, self.resonator_el, qubit_element)
+                    # Measure ground state
+                    measure(
+                        self.resonator_pulse,
+                        self.resonator_el,
+                        adc,
+                        demod.full("cos", I, "out1"),
+                        dual_demod.full("sin", Q, "out1"),
+                    )
+                    save(I, I_st)
+                    save(Q, Q_st)
+
+                    # Wait 100µs for the qubit to decay
+                    wait(cooldown_time, self.resonator_el, qubit_element)
+                    # Measure excited state
+                    align(qubit_element, self.resonator_el)
+                    play(pi_pulse, qubit_element)
+                    align(qubit_element, self.resonator_el)
+                    measure(
+                        self.resonator_pulse,
+                        self.resonator_el,
+                        adc,
+                        demod.full("cos", I, "out1"),
+                        dual_demod.full("sin", Q, "out1"),
+                    )
+                    save(I, I_st)
+                    save(Q, Q_st)
+                with stream_processing():
+                    I_st.save_all("I")
+                    Q_st.save_all("Q")
+                    adc.input1().with_timestamps().save_all("adc1")
+        return qua_program
+
+    def get_default_training_program(self):
+        """Print the default training program"""
+        if self.iq_mixer:
+            prog = f"""
+with program() as qua_program:
+    n = declare(int)
+    I = declare(fixed)
+    Q = declare(fixed)
+    I_st = declare_stream()
+    Q_st = declare_stream()
+    adc = declare_stream(adc_trace=True)
+
+    with for_(n, 0, n < n_shots, n + 1):
+        # Wait 100µs for the qubit to decay
+        wait(cooldown_time, {self.resonator_el}, qubit_element)
+        # Measure ground state
+        measure(
+            {self.resonator_pulse},
+            {self.resonator_el},
+            adc,
+            dual_demod.full("cos", "out1", "sin", "out2", I),
+            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+        )
+        save(I, I_st)
+        save(Q, Q_st)
+
+        # Wait 100µs for the qubit to decay
+        wait(cooldown_time, {self.resonator_el}, qubit_element)
+        # Measure excited state
+        align(qubit_element, {self.resonator_el})
+        play(pi_pulse, qubit_element)
+        align(qubit_element, {self.resonator_el})
+        measure(
+            {self.resonator_pulse},
+            {self.resonator_el},
+            adc,
+            dual_demod.full("cos", "out1", "sin", "out2", I),
+            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+        )
+        save(I, I_st)
+        save(Q, Q_st)
+    with stream_processing():
+        I_st.save_all("I")
+        Q_st.save_all("Q")
+        adc.input1().with_timestamps().save_all("adc1")
+        adc.input2().save_all("adc2")"""
+        else:
+            prog = f"""
+with program() as qua_program:
+    n = declare(int)
+    I = declare(fixed)
+    Q = declare(fixed)
+    I_st = declare_stream()
+    Q_st = declare_stream()
+    adc = declare_stream(adc_trace=True)
+
+    with for_(n, 0, n < n_shots, n + 1):
+        # Wait 100µs for the qubit to decay
+        wait(cooldown_time, {self.resonator_el}, qubit_element)
+        # Measure ground state
+        measure(
+            {self.resonator_pulse},
+            {self.resonator_el},
+            adc,
+            demod.full("cos", I, "out1"),
+            demod.full("sin", Q, "out1"),
+        )
+        save(I, I_st)
+        save(Q, Q_st)
+
+        # Wait 100µs for the qubit to decay
+        wait(cooldown_time, {self.resonator_el}, qubit_element)
+        # Measure excited state
+        align(qubit_element, {self.resonator_el})
+        play(pi_pulse, qubit_element)
+        align(qubit_element, {self.resonator_el})
+        measure(
+            {self.resonator_pulse},
+            {self.resonator_el},
+            adc,
+            demod.full("cos", I, "out1"),
+            demod.full("sin", Q, "out1"),
+        )
+        save(I, I_st)
+        save(Q, Q_st)
+    with stream_processing():
+        I_st.save_all("I")
+        Q_st.save_all("Q")
+        adc.input1().with_timestamps().save_all("adc1")"""
+        default = """
+By default:
+    n_shots = 10_000
+    cooldown_time = 25_000
+    qubit_element = 'qubit' (make sure that it is defined in the config)
+    pi_pulse = 'x_180' (make sure that it is defined in the config)
+            """
+
+        print(prog)
+        print(default)
+        return
+
     def train(
         self,
         qua_program,
@@ -337,7 +536,7 @@ class TwoStateDiscriminator:
         The train procedure is used to calibrate the optimal weights and bias for each state. A file with the optimal
         parameters is generated during training, and it is used during the subsequent measure_state procedure.
         A training program can be provided in the constructor otherwise the default program will be used.
-        This default training program can be seen by calling self.get_default_training_program() and the 'pi_pulse', 'qubit_element' and 'cooldown_time' can be specified as kwargs.
+        This default training program can be seen by calling self.get_default_training_program() and the 'pi_pulse' ('x_180'), 'qubit_element' ('qubit'), 'n_shots' (10_000) and 'cooldown_time' (25_000) can be specified as kwargs.
 
         :param qua_program: a training program that generates training sets. The program should generate equal number of training sets for each one of the states. Collection of training sets is achieved by first preparing the qubit in one of the states, and then measure the readout resonator element. The measure command must include streaming of the raw data (the tag must be called "adc") and the final complex demodulation results (which is constructed from 2 dual demodulation) must be saved under the tags "I" and "Q". E.g: measure("readout", "rr", "adc", dual_demod.full('cos', 'out1', 'sin', 'out2', I), dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)). The stream processing section must be constructed as
         :param simulation: passes the SimulationConfig
@@ -350,94 +549,12 @@ class TwoStateDiscriminator:
         qubit_element = kwargs.get("qubit_element", "qubit")
         pi_pulse = kwargs.get("pi_pulse", "x180")
         cooldown_time = kwargs.get("cooldown_time", 25_000)
-
+        n_shots = kwargs.get("n_shots", 10_000)
+        # Get qua_program
         if qua_program is None:
-            if self.iq_mixer:
-                with program() as qua_program:
-                    n = declare(int)
-                    I = declare(fixed)
-                    Q = declare(fixed)
-                    I_st = declare_stream()
-                    Q_st = declare_stream()
-                    adc = declare_stream(adc_trace=True)
-
-                    with for_(n, 0, n < 10000, n + 1):
-                        # Wait 100µs for the qubit to decay
-                        wait(cooldown_time, self.resonator_el, qubit_element)
-                        # Measure ground state
-                        measure(
-                            self.resonator_pulse,
-                            self.resonator_el,
-                            adc,
-                            dual_demod.full("cos", "out1", "sin", "out2", I),
-                            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
-                        )
-                        save(I, I_st)
-                        save(Q, Q_st)
-
-                        # Wait 100µs for the qubit to decay
-                        wait(cooldown_time, self.resonator_el, qubit_element)
-                        # Measure excited state
-                        align(qubit_element, self.resonator_el)
-                        play(pi_pulse, qubit_element)
-                        align(qubit_element, self.resonator_el)
-                        measure(
-                            self.resonator_pulse,
-                            self.resonator_el,
-                            adc,
-                            dual_demod.full("cos", "out1", "sin", "out2", I),
-                            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
-                        )
-                        save(I, I_st)
-                        save(Q, Q_st)
-                    with stream_processing():
-                        I_st.save_all("I")
-                        Q_st.save_all("Q")
-                        adc.input1().with_timestamps().save_all("adc1")
-                        adc.input2().save_all("adc2")
-            else:
-                with program() as qua_program:
-                    n = declare(int)
-                    I = declare(fixed)
-                    Q = declare(fixed)
-                    I_st = declare_stream()
-                    Q_st = declare_stream()
-                    adc = declare_stream(adc_trace=True)
-
-                    with for_(n, 0, n < 10000, n + 1):
-                        # Wait 100µs for the qubit to decay
-                        wait(cooldown_time, self.resonator_el, qubit_element)
-                        # Measure ground state
-                        measure(
-                            self.resonator_pulse,
-                            self.resonator_el,
-                            adc,
-                            demod.full("cos", I, "out1"),
-                            dual_demod.full("sin", Q, "out1"),
-                        )
-                        save(I, I_st)
-                        save(Q, Q_st)
-
-                        # Wait 100µs for the qubit to decay
-                        wait(cooldown_time, self.resonator_el, qubit_element)
-                        # Measure excited state
-                        align(qubit_element, self.resonator_el)
-                        play(pi_pulse, qubit_element)
-                        align(qubit_element, self.resonator_el)
-                        measure(
-                            self.resonator_pulse,
-                            self.resonator_el,
-                            adc,
-                            demod.full("cos", I, "out1"),
-                            dual_demod.full("sin", Q, "out1"),
-                        )
-                        save(I, I_st)
-                        save(Q, Q_st)
-                    with stream_processing():
-                        I_st.save_all("I")
-                        Q_st.save_all("Q")
-                        adc.input1().with_timestamps().save_all("adc1")
-
+            qua_program = self._training_program(
+                qubit_element, pi_pulse, cooldown_time, n_shots
+            )
         # Open qm, execute and fetch data, format is [|g>, |g>, |g>,... |e>, |e>, |e>,...]
         I_res, Q_res, self.ts, self.Z = self._execute_and_fetch(qua_program)
         # Down convert the raw ADC traces
@@ -451,7 +568,7 @@ class TwoStateDiscriminator:
             sig,
             use_hann_filter,
         )
-        # Get optimal weights
+        # Reshape the traces to steps of 4ns
         traces_4ns = self._reshape_traces(traces)
 
         norm = np.max(np.abs(traces_4ns))
@@ -509,114 +626,100 @@ class TwoStateDiscriminator:
             plt.plot(np.imag(traces_4ns[0, :] - traces_4ns[1, :]))
             plt.title("Optimal weights")
 
-    def get_default_training_program(self):
-        """Print the default training program"""
-        if self.iq_mixer:
-            prog = f"""
-        with program() as qua_program:
-            n = declare(int)
-            I = declare(fixed)
-            Q = declare(fixed)
-            I_st = declare_stream()
-            Q_st = declare_stream()
-            adc = declare_stream(adc_trace=True)
-    
-            with for_(n, 0, n < 10000, n + 1):
-                # Wait 100µs for the qubit to decay
-                wait(cooldown_time, {self.resonator_el}, qubit_element)
-                # Measure ground state
-                measure(
-                    {self.resonator_pulse},
-                    {self.resonator_el},
-                    adc,
-                    dual_demod.full("cos", "out1", "sin", "out2", I),
-                    dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
-                )
-                save(I, I_st)
-                save(Q, Q_st)
-    
-                # Wait 100µs for the qubit to decay
-                wait(cooldown_time, {self.resonator_el}, qubit_element)
-                # Measure excited state
-                align(qubit_element, {self.resonator_el})
-                play(pi_pulse, qubit_element)
-                align(qubit_element, {self.resonator_el})
-                measure(
-                    {self.resonator_pulse},
-                    {self.resonator_el},
-                    adc,
-                    dual_demod.full("cos", "out1", "sin", "out2", I),
-                    dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
-                )
-                save(I, I_st)
-                save(Q, Q_st)
-            with stream_processing():
-                I_st.save_all("I")
-                Q_st.save_all("Q")
-                adc.input1().with_timestamps().save_all("adc1")
-                adc.input2().save_all("adc2")"""
-        else:
-            prog = f"""
-            with program() as qua_program:
-                n = declare(int)
-                I = declare(fixed)
-                Q = declare(fixed)
-                I_st = declare_stream()
-                Q_st = declare_stream()
-                adc = declare_stream(adc_trace=True)
-
-                with for_(n, 0, n < 10000, n + 1):
-                    # Wait 100µs for the qubit to decay
-                    wait(cooldown_time, {self.resonator_el}, qubit_element)
-                    # Measure ground state
-                    measure(
-                        {self.resonator_pulse},
-                        {self.resonator_el},
-                        adc,
-                        demod.full("cos", I, "out1"),
-                        demod.full("sin", Q, "out1"),
-                    )
-                    save(I, I_st)
-                    save(Q, Q_st)
-
-                    # Wait 100µs for the qubit to decay
-                    wait(cooldown_time, {self.resonator_el}, qubit_element)
-                    # Measure excited state
-                    align(qubit_element, {self.resonator_el})
-                    play(pi_pulse, qubit_element)
-                    align(qubit_element, {self.resonator_el})
-                    measure(
-                        {self.resonator_pulse},
-                        {self.resonator_el},
-                        adc,
-                        demod.full("cos", I, "out1"),
-                        demod.full("sin", Q, "out1"),
-                    )
-                    save(I, I_st)
-                    save(Q, Q_st)
-                with stream_processing():
-                    I_st.save_all("I")
-                    Q_st.save_all("Q")
-                    adc.input1().with_timestamps().save_all("adc1")"""
-        default = """
-    By default:
-        cooldown_time = 25_000
-        qubit_element = 'qubit' (make sure that it is defined in the config)
-        pi_pulse = 'x_180' (make sure that it is defined in the config)
-            """
-
-        print(prog)
-        print(default)
-        return
-
     def get_threshold(self):
         bias = self.saved_data["bias"]
         return bias[0] - bias[1]
 
-    def measure_state(self, pulse, out1, out2, res, adc=None, I=None, Q=None):
+    def measure_state(
+        self, pulse: str, out1: str, out2: str, adc=None, state=None, I=None, Q=None
+    ):
+        """
+        This procedure generates a macro of QUA commands for measuring the readout resonator with the optimal
+        integration weights and perform state discrimination.
+
+        :param pulse: A string with the readout pulse name.
+        :param out1: A string with the name first output of the readout resonator (corresponding to the real part of the
+         complex IN(t_int) signal).
+        :param out2: A string with the name second output of the readout resonator (corresponding to the imaginary part
+        of the complex IN(t_int) signal).
+        :param state: A QUA variable for the state information. Should be of type `bool`.
+        If not given, a new variable will be created.
+        :param adc: (optional) the stream variable which the raw ADC data will be saved and will appear in result
+        analysis scope.
+        :param I: A QUA variable for the information in the `I` quadrature. Should be of type `Fixed`. If not given, a new
+        variable will be created.
+        :param Q: A QUA variable for the information in the `Q` quadrature. Should be of type `Fixed`. If not given, a new
+        variable will be created.
+        :return: a boolean representing the qubit state (True for excited and False for ground) and the corresponding 'I'
+        and 'Q' values if they were provided as input parameters.
+        """
+        # Declare I, Q and state if not provided
+        if I is None:
+            I = declare(fixed)
+        if Q is None:
+            Q = declare(fixed)
+        if state is None:
+            state = declare(bool)
+        # Measure with optimal weights
+        if self.iq_mixer:
+            if not self.lsb:
+                measure(
+                    pulse,
+                    self.resonator_el,
+                    adc,
+                    dual_demod.full(
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out1,
+                        self.iw_prefix + f"sin_{self.resonator_el}",
+                        out2,
+                        I,
+                    ),
+                    dual_demod.full(
+                        self.iw_prefix + f"minus_sin_{self.resonator_el}",
+                        out1,
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out2,
+                        Q,
+                    ),
+                )
+            else:
+                measure(
+                    pulse,
+                    self.resonator_el,
+                    adc,
+                    dual_demod.full(
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out1,
+                        self.iw_prefix + f"minus_sin_{self.resonator_el}",
+                        out2,
+                        I,
+                    ),
+                    dual_demod.full(
+                        self.iw_prefix + f"sin_{self.resonator_el}",
+                        out1,
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out2,
+                        Q,
+                    ),
+                )
+        else:
+            measure(
+                pulse,
+                self.resonator_el,
+                adc,
+                demod.full(self.iw_prefix + f"cos_{self.resonator_el}", I, out1),
+                demod.full(self.iw_prefix + f"sin_{self.resonator_el}", Q, out1),
+            )
+        # State discrimination
+        assign(state, I < self.get_threshold())
+        # Return state, I and Q
+        return state, I, Q
+
+    def measure_state_old(self, pulse, out1, out2, res, adc=None, I=None, Q=None):
         """
         This procedure generates a macro of QUA commands for measuring the readout resonator and discriminating between
-        the states of the qubit its states.
+        the qubit states.
+
         :param pulse: A string with the readout pulse name.
         :param out1: A string with the name first output of the readout resonator (corresponding to the real part of the
          complex IN(t_int) signal).
@@ -625,6 +728,7 @@ class TwoStateDiscriminator:
         :param res: A boolean QUA variable that will receive the discrimination result (0 or 1)
         :param adc: (optional) the stream variable which the raw ADC data will be saved and will appear in result
         analysis scope.
+        :return: a boolean representing the qubit state (True for excited and False for ground) and the corresponding 'I' and 'Q' values if they were provided as input parameters.
         """
         II = declare(fixed)
         QQ = declare(fixed)
@@ -632,16 +736,19 @@ class TwoStateDiscriminator:
         if self.iq_mixer:
             if not self.lsb:
                 Q1_weight, Q2_weight = (
-                    f"opt_minus_sin_{self.resonator_el}",
-                    f"opt_sin_{self.resonator_el}",
+                    self.iw_prefix + f"minus_sin_{self.resonator_el}",
+                    self.iw_prefix + f"sin_{self.resonator_el}",
                 )
             else:
                 Q1_weight, Q2_weight = (
-                    f"opt_sin_{self.resonator_el}",
-                    f"opt_minus_sin_{self.resonator_el}",
+                    self.iw_prefix + f"sin_{self.resonator_el}",
+                    self.iw_prefix + f"minus_sin_{self.resonator_el}",
                 )
         else:
-            Q1_weight, Q2_weight = (f"opt_sin_{self.resonator_el}", f"opt_minus_sin_{self.resonator_el}")
+            Q1_weight, Q2_weight = (
+                self.iw_prefix + f"sin_{self.resonator_el}",
+                self.iw_prefix + f"minus_sin_{self.resonator_el}",
+            )
 
         if Q is not None:
             if self.iq_mixer:
@@ -650,10 +757,18 @@ class TwoStateDiscriminator:
                     self.resonator_el,
                     adc,
                     dual_demod.full(
-                        f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out1,
+                        Q2_weight,
+                        out2,
+                        II,
                     ),
                     dual_demod.full(
-                        Q1_weight, out1, f"opt_cos_{self.resonator_el}", out2, QQ
+                        Q1_weight,
+                        out1,
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out2,
+                        QQ,
                     ),
                 )
             else:
@@ -661,12 +776,9 @@ class TwoStateDiscriminator:
                     pulse,
                     self.resonator_el,
                     adc,
-                    demod.full(
-                        f"opt_cos_{self.resonator_el}", II, out1),
-                    demod.full(
-                        Q1_weight, QQ, out1),
+                    demod.full(self.iw_prefix + f"cos_{self.resonator_el}", II, out1),
+                    demod.full(Q1_weight, QQ, out1),
                 )
-
 
         else:
             if self.iq_mixer:
@@ -675,7 +787,11 @@ class TwoStateDiscriminator:
                     self.resonator_el,
                     adc,
                     dual_demod.full(
-                        f"opt_cos_{self.resonator_el}", out1, Q2_weight, out2, II
+                        self.iw_prefix + f"cos_{self.resonator_el}",
+                        out1,
+                        Q2_weight,
+                        out2,
+                        II,
                     ),
                 )
             else:
@@ -684,7 +800,8 @@ class TwoStateDiscriminator:
                     self.resonator_el,
                     adc,
                     dual_demod.full(
-                        f"opt_cos_{self.resonator_el}", II, out1),
+                        self.iw_prefix + f"cos_{self.resonator_el}", II, out1
+                    ),
                 )
 
         assign(res, II < self.get_threshold())
