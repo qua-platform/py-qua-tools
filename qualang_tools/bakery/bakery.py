@@ -1126,7 +1126,10 @@ class Baking:
             alignment(qe_set)
 
     def run(
-        self, amp_array: List[Tuple] = None, trunc_array: List[Tuple] = None
+        self,
+        amp_array: List[Tuple] = None,
+        trunc_array: List[Tuple] = None,
+        align_elements: bool = True,
     ) -> None:
         """
         Plays the baked waveform
@@ -1135,16 +1138,20 @@ class Baking:
         :param amp_array: list of tuples for amplitudes (e.g [(qe1, amp1), (qe2, amp2)] ), each amplitude must be a scalar
         :param trunc_array: list of tuples for truncations (e.g [(qe1, amp1), (qe2, amp2)] ), each truncation must be a
             int or QUA int
+        :param align_elements: If true (default) and there are more than one element in the baking, adds an align
+            command between the elements.
         """
 
         qe_set = self.get_qe_set()
-        if len(qe_set) > 1:
-            qua.align(*qe_set)
+
+        if align_elements:
+            if len(qe_set) > 1:
+                qua.align(*qe_set)
+
         if trunc_array is None:
             if amp_array is None:
                 for qe in qe_set:
                     qua.play(f"baked_Op_{self._ctr}", qe)
-                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
             else:
                 for qe in qe_set:
@@ -1159,8 +1166,6 @@ class Baking:
                                 "Amplitude can only be a number (either Python or QUA variable)"
                             )
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
-                    if self._qe_dict[qe]["phase"] != 0:
-                        qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
 
         else:
             for qe in qe_set:
@@ -1185,8 +1190,10 @@ class Baking:
                         qua.play(
                             f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc
                         )
-                if self._qe_dict[qe]["phase"] != 0:
-                    qua.frame_rotation(self._qe_dict[qe]["phase"], qe)
+
+        for qe in qe_set:
+            if self._qe_dict[qe]["phase"] != 0:
+                qua.frame_rotation_2pi(self._qe_dict[qe]["phase"] / (2 * np.pi), qe)
 
     def _retrieve_constraint_length(self, baking_index: int = None) -> Optional[int]:
         if baking_index is not None:
