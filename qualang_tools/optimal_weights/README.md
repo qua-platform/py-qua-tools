@@ -38,12 +38,10 @@ from qualang_tools.optimal_weights.TwoStateDiscriminator_alpha import TwoStateDi
 discriminator = TwoStateDiscriminator(
     qmm=qmm,
     config=config,
+    readout_el=resonator_el,
+    readout_pulse=resonator_pulse,
     update_tof=False,
-    resonator_el=resonator_el,
-    resonator_pulse=resonator_pulse,
     path=f"ge_disc_params_{resonator_el}.npz",
     lsb=lsb,
-    meas_len=readout_len,
-    smearing=smearing,
 )
 ```
