@@ -166,7 +166,7 @@ class TwoStateDiscriminator:
         elif correction_method == "median":
             traces = np.array(
                 [
-                    np.median(sig[self.seq0 == i, :], axis=0)
+                    np.median(np.real(sig[self.seq0 == i, :]), axis=0) + 1j*np.median(np.imag(sig[self.seq0 == i, :]), axis=0)
                     for i in range(self.num_of_states)
                 ]
             )
@@ -254,7 +254,7 @@ class TwoStateDiscriminator:
             data = {"x": I_, "y": Q_}
             x = DataFrame(data, columns=["x", "y"])
             gmm = mixture.GaussianMixture(
-                n_components=1, covariance_type="spherical", tol=1e-12, reg_covar=1e-12
+                n_components=1, covariance_type="spherical", reg_covar=0
             )
             gmm.fit(x)
             self.mu[i] = gmm.means_[0]
@@ -273,6 +273,7 @@ class TwoStateDiscriminator:
                 plt.plot([self.mu[i][0]], [self.mu[i][1]], "o")
                 plt.plot(a, b)
                 plt.axis("equal")
+            plt.plot([self.saved_data["threshold"]] * 2, [min(Q_res), max(Q_res)], "g")
             plt.xlabel("I [a.u.]")
             plt.ylabel("Q [a.u.]")
             plt.title("IQ blobs with optimized integration weights")
@@ -690,14 +691,19 @@ By default:
             plt.legend()
             plt.tight_layout()
 
-    def benchmark(self, **kwargs):
+    def benchmark(self, qua_program=None, **kwargs):
         qubit_element = kwargs.get("qubit_element", "qubit")
         pi_pulse = kwargs.get("pi_pulse", "x180")
         cooldown_time = kwargs.get("cooldown_time", 25_000)
         n_shots = kwargs.get("n_shots", 10_000)
-        qua_program = self._training_program(
-            qubit_element, pi_pulse, cooldown_time, n_shots, [self.iw_prefix + f"cos_{self.resonator_el}", self.iw_prefix + f"sin_{self.resonator_el}", self.iw_prefix + f"minus_sin_{self.resonator_el}", self.iw_prefix + f"cos_{self.resonator_el}"], benchmark=True
-        )
+        if qua_program is None:
+            qua_program = self._training_program(
+                qubit_element, pi_pulse, cooldown_time, n_shots,
+                [self.iw_prefix + f"cos_{self.resonator_el}", self.iw_prefix + f"sin_{self.resonator_el}",
+                 self.iw_prefix + f"minus_sin_{self.resonator_el}", self.iw_prefix + f"cos_{self.resonator_el}"],
+                benchmark=True
+            )
+
         # Open QM
         qm = self.qmm.open_qm(self.config)
         # Execute the program
@@ -713,10 +719,12 @@ By default:
         state = result_handles.get("state").fetch_all()["value"]
         I = result_handles.get("I").fetch_all()["value"]
         Q = result_handles.get("Q").fetch_all()["value"]
-
+        I = np.concatenate([I[0::2], I[1::2]])
+        Q = np.concatenate([Q[0::2], Q[1::2]])
+        state = np.concatenate([state[0::2], state[1::2]])
         plt.figure()
-        plt.hist(I[np.array(self.seq0) == 0], 50)
-        plt.hist(I[np.array(self.seq0) == 1], 50)
+        plt.hist(I[np.array(self.seq0) == 0])
+        plt.hist(I[np.array(self.seq0) == 1])
         plt.plot([self.saved_data["threshold"]] * 2, [0, n_shots//10], "g")
         plt.show()
         plt.title("Histogram of |g> and |e> along I-values")
@@ -745,8 +753,9 @@ By default:
         labels = ["g", "e"]
         plt.figure()
         ax = plt.subplot()
-        # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
 
+        # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
+        ax.imshow(np.array(p_s))
         ax.set_xlabel("Predicted labels")
         ax.set_ylabel("Prepared labels")
         ax.set_title("Confusion Matrix")

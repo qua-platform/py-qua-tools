@@ -32,11 +32,11 @@ def simulate_pulse(IF_freq, chi, k, Ts, Td, power):
 resonators_lo = 7.1e9  # High Band Pass
 WG1_lo = resonators_lo
 WG2_lo = resonators_lo
-q1a_res_IF = 40e6
+q1a_res_IF = 200e6
 q2a_res_IF = 50e6
 
 
-readout_len = 480
+readout_len = 1000
 IF_freq = q1a_res_IF
 Ts = readout_len - 200
 Td = 200
