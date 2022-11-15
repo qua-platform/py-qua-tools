@@ -41,7 +41,6 @@ def training_program(
     weights,
     benchmark: bool = False,
 ):
-
     with program() as qua_program:
         n = declare(int)
         I = declare(fixed)
@@ -55,8 +54,7 @@ def training_program(
             state_st = declare_stream()
 
         with for_(n, 0, n < n_shots, n + 1):
-            reset_frame(resonator_el)
-            reset_phase(resonator_el)
+            # reset_phase(resonator_el)
             # Wait 100µs for the qubit to decay
             wait(cooldown_time, resonator_el, qubit_element)
             # Measure ground state
@@ -92,7 +90,7 @@ def training_program(
             align(qubit_element, resonator_el)
             if lsb:
                 measure(
-                    resonator_pulse * amp(0.998),
+                    resonator_pulse * amp(0.9),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[2], "out2", I),
@@ -100,7 +98,7 @@ def training_program(
                 )
             else:
                 measure(
-                    resonator_pulse * amp(0.998),
+                    resonator_pulse * amp(0.9),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[1], "out2", I),
