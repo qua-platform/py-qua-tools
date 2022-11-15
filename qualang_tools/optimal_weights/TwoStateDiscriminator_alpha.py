@@ -754,7 +754,12 @@ By default:
             plt.subplot(221)
             plt.hist(I[np.array(self.seq0) == 0], label="|g>")
             plt.hist(I[np.array(self.seq0) == 1], label="|e>")
-            plt.plot([self.saved_data["threshold"]] * 2, [0, n_shots // 10], "g", label="threshold")
+            plt.plot(
+                [self.saved_data["threshold"]] * 2,
+                [0, n_shots // 10],
+                "g",
+                label="threshold",
+            )
             plt.legend()
             plt.title("Histogram of |g> and |e> along I-values")
             plt.xlabel("I [a.u.]")
@@ -763,8 +768,18 @@ By default:
             # can only be used if signal was demodulated during training
             # with optimal integration weights
             plt.subplot(222)
-            plt.plot(I[np.array(self.seq0) == 0], Q[np.array(self.seq0) == 0], "b.", label="|g>")
-            plt.plot(I[np.array(self.seq0) == 1], Q[np.array(self.seq0) == 1], "r.", label="|e>")
+            plt.plot(
+                I[np.array(self.seq0) == 0],
+                Q[np.array(self.seq0) == 0],
+                "b.",
+                label="|g>",
+            )
+            plt.plot(
+                I[np.array(self.seq0) == 1],
+                Q[np.array(self.seq0) == 1],
+                "r.",
+                label="|e>",
+            )
             # can only be used if raw ADC is passed to the program
             theta = np.linspace(0, 2 * np.pi, 100)
             colors = ["c", "m"]
@@ -792,12 +807,20 @@ By default:
             ax.set_yticklabels(labels=["|g>", "|e>"])
             ax.set_ylabel("Prepared")
             ax.set_xlabel("Measured")
-            ax.text(0, 0, f"{100 * p_s[0, 0]:.1f}%", ha="center", va="center", color="k")
-            ax.text(1, 0, f"{100 * p_s[0, 1]:.1f}%", ha="center", va="center", color="w")
-            ax.text(0, 1, f"{100 * p_s[1, 0]:.1f}%", ha="center", va="center", color="w")
-            ax.text(1, 1, f"{100 * p_s[1, 1]:.1f}%", ha="center", va="center", color="k")
+            ax.text(
+                0, 0, f"{100 * p_s[0, 0]:.1f}%", ha="center", va="center", color="k"
+            )
+            ax.text(
+                1, 0, f"{100 * p_s[0, 1]:.1f}%", ha="center", va="center", color="w"
+            )
+            ax.text(
+                0, 1, f"{100 * p_s[1, 0]:.1f}%", ha="center", va="center", color="w"
+            )
+            ax.text(
+                1, 1, f"{100 * p_s[1, 1]:.1f}%", ha="center", va="center", color="k"
+            )
             ax.set_title("Confusion Matrix")
-             # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
+            # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
             # ax.imshow(np.array(p_s))
             # ax.set_xlabel("Predicted labels")
             # ax.set_ylabel("Prepared labels")
