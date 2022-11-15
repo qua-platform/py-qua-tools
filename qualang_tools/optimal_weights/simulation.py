@@ -113,13 +113,13 @@ with program() as benchmark_readout:
 
     with for_(n, 0, n < N, n + 1):
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_g", "out1", "out2", res, I=I, Q=Q)
+        discriminator.measure_state("readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q)
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)
 
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_e", "out1", "out2", res, I=I, Q=Q)
+        discriminator.measure_state("readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q)
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)
@@ -130,7 +130,7 @@ with program() as benchmark_readout:
         res_st.save_all("res")
         I_st.save_all("I")
         Q_st.save_all("Q")
-
+config = discriminator.config
 job = qmm.simulate(config, benchmark_readout, simulate=simulation_config)
 
 result_handles = job.result_handles
@@ -142,14 +142,15 @@ Q = result_handles.get("Q").fetch_all()["value"]
 plt.figure()
 plt.hist(I[np.array(seq0) == 0], 50)
 plt.hist(I[np.array(seq0) == 1], 50)
-plt.plot([discriminator.get_threshold()] * 2, [0, 60], "g")
+plt.plot([discriminator.saved_data["threshold"]] * 2, [0, 60], "g")
 plt.show()
 plt.title("Histogram of |g> and |e> along I-values")
 
 # can only be used if signal was demodulated during training
 # with optimal integration weights
 plt.figure()
-plt.plot(I, Q, ".")  # measured IQ blobs
+plt.plot(I[np.array(seq0) == 0], Q[np.array(seq0) == 0], "b.")  # measured IQ blobs
+plt.plot(I[np.array(seq0) == 1], Q[np.array(seq0) == 1], "r.")  # measured IQ blobs
 # can only be used if raw ADC is passed to the program
 theta = np.linspace(0, 2 * np.pi, 100)
 for i in range(discriminator.num_of_states):
