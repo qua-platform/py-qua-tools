@@ -99,7 +99,8 @@ It is also possible to delete samples within the baking context manager using th
        
 # **How to play in QUA my baked waveforms?**
 
-The baking object has a method called run, which takes no inputs and simply does appropriate alignment between quantum elements involved in the baking and play simultaneously (using this time a QUA play statement) the previously baked waveforms.
+The baking object has a method called run, which aligns all the elements involved in the baking and then plays them simultaneously.
+It is possible to disable this alignment, in order to reduce possible gaps.
 Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
 
 ```python
