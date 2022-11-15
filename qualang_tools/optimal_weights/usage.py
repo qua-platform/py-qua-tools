@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qm.simulate.credentials import create_credentials
 
-N = 1000
+N = 100
 wait_time = 10
 lsb = False
 rr_qe = "rr1a"
@@ -56,6 +56,7 @@ def training_program(
 
         with for_(n, 0, n < n_shots, n + 1):
             reset_frame(resonator_el)
+            reset_phase(resonator_el)
             # Wait 100µs for the qubit to decay
             wait(cooldown_time, resonator_el, qubit_element)
             # Measure ground state
@@ -85,12 +86,13 @@ def training_program(
             # Wait 100µs for the qubit to decay
             wait(cooldown_time, resonator_el, qubit_element)
             # Measure excited state
+            # reset_phase(resonator_el)
             align(qubit_element, resonator_el)
             play(pi_pulse, qubit_element)
             align(qubit_element, resonator_el)
             if lsb:
                 measure(
-                    resonator_pulse * amp(0.98),
+                    resonator_pulse * amp(0.998),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[2], "out2", I),
@@ -98,7 +100,7 @@ def training_program(
                 )
             else:
                 measure(
-                    resonator_pulse * amp(0.98),
+                    resonator_pulse * amp(0.998),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[1], "out2", I),

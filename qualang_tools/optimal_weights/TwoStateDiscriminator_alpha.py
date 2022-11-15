@@ -650,13 +650,13 @@ By default:
         traces_4ns = traces_4ns / norm
         # Bias = norm of the ground and excited state vectors
         bias = (
-            (np.linalg.norm(traces_4ns * norm, axis=1) ** 2) / norm / 2 * (2**-24) * 4
+            (np.linalg.norm(traces_4ns[0, :] - traces_4ns[1, :] * norm, axis=1) ** 2) / norm / 2 * (2**-24) * 4
         )
         # Save the traces and norms
         np.savez(
             self.path,
             weights=traces_4ns[0, :] - traces_4ns[1, :],
-            threshold=bias[0] - bias[1],
+            threshold=bias,
             traces=traces_4ns,
             bias=bias,
         )
