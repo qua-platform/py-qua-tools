@@ -196,21 +196,23 @@ def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict
     else:
         analog_samples = None
     # Digital waveforms
+    digital_samples = []
     if "digitalInputs" in element:
-        port = element["digitalInputs"]["port"]
-        digital_samples = sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int)
+
+        for key in element["digitalInputs"].keys():
+            port = element["digitalInputs"][key]["port"]
+            digital_samples.append(sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int))
     else:
-        digital_samples = None
+        digital_samples.append(None)
 
     return analog_samples, digital_samples
-
 
 def plot_simulator_output(
     plot_axes: List[List[str]], job: QmJob, config: dict, duration_ns: int
 ):
     """
     Generate a 'plotly' plot of simulator output by elements
-
+    
     :param plot_axes: a list of lists of elements (ex: [["qubit0"], ["qubit1"]]). Will open
     multiple axes, one for each list.
     :param job: The simulated QmJob to plot.
@@ -218,7 +220,6 @@ def plot_simulator_output(
     :param duration_ns: the duration to plot in nanosecond.
     :return: the generated 'plotly' figure.
     """
-
     time_vec = np.linspace(0, duration_ns - 1, duration_ns)
     samples_struct = []
     digital_samples_struct = []
@@ -234,32 +235,34 @@ def plot_simulator_output(
 
     for i, plot_axis in enumerate(plot_axes):
         for j, plot_item in enumerate(plot_axis):
-            if isinstance(samples_struct[i][j][0], float):
+            if samples_struct[i][j] is not None:
+                if isinstance(samples_struct[i][j][0], float):
+                    fig.add_trace(
+                        go.Scatter(x=time_vec, y=samples_struct[i][j], name=plot_item),
+                        row=i + 1,
+                        col=1,
+                    )
+                else:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec, y=samples_struct[i][j].real, name=plot_item + " I"
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec, y=samples_struct[i][j].imag, name=plot_item + " Q"
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+            for k in range(len(digital_samples_struct[i][j])):
                 fig.add_trace(
-                    go.Scatter(x=time_vec, y=samples_struct[i][j], name=plot_item),
+                    go.Scatter(x=time_vec, y=digital_samples_struct[i][j][k], name=plot_item + " " + list(config["elements"][plot_item]["digitalInputs"].keys())[k]),
                     row=i + 1,
                     col=1,
                 )
-            else:
-                fig.add_trace(
-                    go.Scatter(
-                        x=time_vec, y=samples_struct[i][j].real, name=plot_item + " I"
-                    ),
-                    row=i + 1,
-                    col=1,
-                )
-                fig.add_trace(
-                    go.Scatter(
-                        x=time_vec, y=samples_struct[i][j].imag, name=plot_item + " Q"
-                    ),
-                    row=i + 1,
-                    col=1,
-                )
-            fig.add_trace(
-                go.Scatter(x=time_vec, y=digital_samples_struct[i][j], name=plot_item + " digital marker"),
-                row=i + 1,
-                col=1,
-            )
     fig.update_xaxes(title="time [ns]")
     return fig
 
