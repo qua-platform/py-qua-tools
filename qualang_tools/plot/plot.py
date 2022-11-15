@@ -208,12 +208,12 @@ def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict
     return analog_samples, digital_samples
 
 def plot_simulator_output(
-    plot_axes: List[List[str]], job: QmJob, config: dict, duration_ns: int
+    job: QmJob, config: dict, duration_ns: int, plot_axes: List[List[str]] = (()),
 ):
     """
     Generate a 'plotly' plot of simulator output by elements
     
-    :param plot_axes: a list of lists of elements (ex: [["qubit0"], ["qubit1"]]). Will open
+    :param plot_axes: a list of lists of elements (ex: [["qubit0", "qubit1"], ["resonator0", "resonator1"]]). Will open
     multiple axes, one for each list.
     :param job: The simulated QmJob to plot.
     :param config: The config file used to create the job.
