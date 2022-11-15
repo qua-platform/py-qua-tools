@@ -34,15 +34,13 @@ discriminator = TwoStateDiscriminator(
     readout_el=rr_qe,
     readout_pulse=res_pulse,
     path=f"ge_disc_params_{rr_qe}.npz",
-    meas_len=readout_len,
-    smearing=smearing,
     lsb=lsb,
 )
 
 
 def training_measurement(readout_pulse, use_opt_weights):
     if use_opt_weights:
-        discriminator.measure_state(readout_pulse, "out1", "out2", res, I=I, adc=adc_st)
+        discriminator.measure_state(readout_pulse, "out1", "out2", adc=adc_st, state=res, I=I)
     else:
         if not lsb:
             measure(
