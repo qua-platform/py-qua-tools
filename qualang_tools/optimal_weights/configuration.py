@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 #############################
 # simulation helpers #
@@ -71,6 +71,8 @@ config = {
             "analog_outputs": {
                 1: {"offset": 0.0},
                 2: {"offset": 0.0},
+                9: {"offset": 0.0},
+                10: {"offset": 0.0},
             },
             "digital_outputs": {
                 1: {},
@@ -83,10 +85,22 @@ config = {
     },
     "elements": {
         # readout resonators:
-        "rr1a": {
+        "qubit": {
             "mixInputs": {
                 "I": ("con1", 1),
                 "Q": ("con1", 2),
+                "lo_frequency": WG1_lo,
+                "mixer": "mixer_WG1",
+            },
+            "intermediate_frequency": q1a_res_IF,
+            "operations": {
+                "x180": "x180_pulse",
+            },
+        },
+        "rr1a": {
+            "mixInputs": {
+                "I": ("con1", 9),
+                "Q": ("con1", 10),
                 "lo_frequency": WG1_lo,
                 "mixer": "mixer_WG1",
             },
@@ -127,6 +141,11 @@ config = {
         },
     },
     "pulses": {
+        "x180_pulse": {
+            "operation": "control",
+            "length": 200,
+            "waveforms": {"I": "x180_wf", "Q": "zero_wf"},
+        },
         "readout_pulse_q1a": {
             "operation": "measurement",
             "length": readout_len,
@@ -174,6 +193,7 @@ config = {
     },
     "waveforms": {
         "zero_wf": {"type": "constant", "sample": 0.0},
+        "x180_wf": {"type": "constant", "sample": 0.3},
         "ro_wf_q1a": {"type": "constant", "sample": 0.11},
         "Ig_wf": {
             "type": "arbitrary",
