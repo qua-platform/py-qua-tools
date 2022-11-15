@@ -5,7 +5,7 @@ Content:
 """
 
 
-from typing import List
+from typing import List, Union, Tuple
 import numpy as np
 from scipy import signal
 import plotly.graph_objects as go
@@ -170,29 +170,39 @@ def plot_demodulated_data_1d(
     return fig
 
 
-def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict):
+def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict) -> Tuple:
     """
-    Extract the simulated samples corresponding to a given element.
+    Extract the simulated samples (analog and digital) corresponding to a given element.
 
     :param element_name: name of the element corresponding to the samples to extract. Must be defined in the config.
     :param job: The simulated QmJob from which the samples will be extracted.
     :param config: The config file used to create the job.
-    :return: 1D complex array containing the simulated samples for the specified element.
+    :return: Two 1D lists containing the simulated analog and digital samples for the specified element.
     """
     element = config["elements"][element_name]
     job.result_handles.wait_for_all_values()
     sample_struct = job.get_simulated_samples()
+    # Analog waveforms
     if "mixInputs" in element:
         port_i = element["mixInputs"]["I"]
         port_q = element["mixInputs"]["Q"]
-        samples = (
+        analog_samples = (
             sample_struct.__dict__[port_i[0]].analog[str(port_i[1])]
             + 1j * sample_struct.__dict__[port_q[0]].analog[str(port_q[1])]
         )
-    else:
+    elif "singleInput" in element:
         port = element["singleInput"]["port"]
-        samples = sample_struct.__dict__[port[0]].analog[str(port[1])]
-    return samples
+        analog_samples = sample_struct.__dict__[port[0]].analog[str(port[1])]
+    else:
+        analog_samples = None
+    # Digital waveforms
+    if "digitalInputs" in element:
+        port = element["digitalInputs"]["port"]
+        digital_samples = sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int)
+    else:
+        digital_samples = None
+
+    return analog_samples, digital_samples
 
 
 def plot_simulator_output(
@@ -208,11 +218,16 @@ def plot_simulator_output(
     :param duration_ns: the duration to plot in nanosecond.
     :return: the generated 'plotly' figure.
     """
+
     time_vec = np.linspace(0, duration_ns - 1, duration_ns)
     samples_struct = []
+    digital_samples_struct = []
     for plot_axis in plot_axes:
         samples_struct.append(
-            [get_simulated_samples_by_element(pa, job, config) for pa in plot_axis]
+            [get_simulated_samples_by_element(pa, job, config)[0] for pa in plot_axis]
+        )
+        digital_samples_struct.append(
+            [get_simulated_samples_by_element(pa, job, config)[1] for pa in plot_axis]
         )
 
     fig = go.Figure().set_subplots(rows=len(plot_axes), cols=1, shared_xaxes=True)
@@ -240,6 +255,11 @@ def plot_simulator_output(
                     row=i + 1,
                     col=1,
                 )
+            fig.add_trace(
+                go.Scatter(x=time_vec, y=digital_samples_struct[i][j], name=plot_item + " digital marker"),
+                row=i + 1,
+                col=1,
+            )
     fig.update_xaxes(title="time [ns]")
     return fig
 
