@@ -211,14 +211,14 @@ class TwoStateDiscriminator:
             pulse["integration_weights"] = {}
         pulse["integration_weights"][iw] = iw
 
-    def _IQ_mu_sigma(self, b_vec):
-        """Derive the IQ blobs from measured rawADC with the optimal integration weights and get their centers and widths"""
+    def _IQ_mu_sigma(self, weights):
+        """Derive the IQ blobs with the optimal integration weights and get their centers and widths"""
         out1 = np.real(self.Z) * 2**-12
         rr_freq = self._get_element_freq(self.resonator_el)
         cos = np.cos(2 * np.pi * rr_freq * 1e-9 * (self.ts - self.time_diff))
         sin = np.sin(2 * np.pi * rr_freq * 1e-9 * (self.ts - self.time_diff))
         # Get iw with a 1ns timestep
-        b_vec = np.repeat(b_vec, 4)
+        weights = np.repeat(weights, 4)
         if self.iq_mixer:
             if not self.lsb:
                 out2 = np.imag(self.Z) * 2**-12
@@ -229,21 +229,21 @@ class TwoStateDiscriminator:
 
             # Demodulate and integrate the measured data with the optimal weights
             I_res = np.sum(
-                out1 * (cos * np.real(b_vec) + sin * np.imag(-b_vec)), axis=1
+                out1 * (cos * np.real(weights) + sin * np.imag(-weights)), axis=1
             ) + np.sum(
-                out2 * (cos * np.imag(b_vec) + sin * np.real(b_vec)) * sign, axis=1
+                out2 * (cos * np.imag(weights) + sin * np.real(weights)) * sign, axis=1
             )
             Q_res = np.sum(
-                out2 * (cos * np.real(b_vec) + sin * np.imag(-b_vec)), axis=1
+                out2 * (cos * np.real(weights) + sin * np.imag(-weights)), axis=1
             ) - np.sum(
-                out1 * (cos * np.imag(b_vec) + sin * np.real(b_vec)) * sign, axis=1
+                out1 * (cos * np.imag(weights) + sin * np.real(weights)) * sign, axis=1
             )
         else:
             # Demodulate and integrate the measured data with the optimal weights
             I_res = np.sum(
-                out1 * (cos * np.real(b_vec) + sin * np.imag(-b_vec)), axis=1
+                out1 * (cos * np.real(weights) + sin * np.imag(-weights)), axis=1
             )
-            Q_res = np.sum(out1 * (cos * np.imag(b_vec) + sin * np.real(b_vec)), axis=1)
+            Q_res = np.sum(out1 * (cos * np.imag(weights) + sin * np.real(weights)), axis=1)
         # Demodulation units
         I_res *= 2**-12
         Q_res *= 2**-12
@@ -262,6 +262,7 @@ class TwoStateDiscriminator:
         # Plot the IQ blobs obtained from rawADC with the derived optimal weights
         if self.plot:
             plt.figure()
+            plt.subplot(221)
             for i in range(self.num_of_states):
                 I_ = I_res[self.seq0 == i]
                 Q_ = Q_res[self.seq0 == i]
@@ -272,8 +273,9 @@ class TwoStateDiscriminator:
                 plt.plot([self.mu[i][0]], [self.mu[i][1]], "o")
                 plt.plot(a, b)
                 plt.axis("equal")
-            plt.xlabel("I")
-            plt.ylabel("Q")
+            plt.xlabel("I [a.u.]")
+            plt.ylabel("Q [a.u.]")
+            plt.title("IQ blobs with optimized integration weights")
             plt.legend()
             plt.show()
         # Add mu and sigma to the saved data
@@ -289,14 +291,12 @@ class TwoStateDiscriminator:
         if self.finish_train == 0:
             self.mu = self.saved_data["mu"].tolist()
             self.sigma = self.saved_data["sigma"].tolist()
-        # Derive optimal weights
-        b_vec = weights[0, :] - weights[1, :]
         # Assign the integration weights to list of tuples in steps of 4 ns
-        w_plus_cos = [(np.real(b_vec)[i], 4) for i in range(len(np.real(b_vec)))]
-        w_minus_sin = [(np.imag(-b_vec)[i], 4) for i in range(len(np.real(b_vec)))]
-        w_plus_sin = [(np.imag(b_vec)[i], 4) for i in range(len(np.real(b_vec)))]
-        w_minus_cos = [(np.real(-b_vec)[i], 4) for i in range(len(np.real(b_vec)))]
-        # Add optimal weights to configuration
+        w_plus_cos = [(np.real(weights)[i], 4) for i in range(len(np.real(weights)))]
+        w_minus_sin = [(np.imag(-weights)[i], 4) for i in range(len(np.real(weights)))]
+        w_plus_sin = [(np.imag(weights)[i], 4) for i in range(len(np.real(weights)))]
+        w_minus_cos = [(np.real(-weights)[i], 4) for i in range(len(np.real(weights)))]
+        # Derive the weights
         self.config["integration_weights"][
             self.iw_prefix + f"cos_{self.resonator_el}"
         ] = {
@@ -328,9 +328,9 @@ class TwoStateDiscriminator:
             self.config["elements"][self.resonator_el]["smearing"] = 0
         # If training is done, derive optimal IQ blobs mean and std
         if self.finish_train == 1:
-            self._IQ_mu_sigma(b_vec)
+            self._IQ_mu_sigma(weights)
 
-    def _training_program(self, qubit_element, pi_pulse, cooldown_time, n_shots):
+    def _training_program(self, qubit_element, pi_pulse, cooldown_time, n_shots, weights, benchmark: bool=False):
         if self.iq_mixer:
             with program() as qua_program:
                 n = declare(int)
@@ -339,29 +339,36 @@ class TwoStateDiscriminator:
                 I_st = declare_stream()
                 Q_st = declare_stream()
                 adc = declare_stream(adc_trace=True)
+                if benchmark:
+                    state = declare(bool)
+                    state_st = declare_stream()
 
                 with for_(n, 0, n < n_shots, n + 1):
                     # Wait 100µs for the qubit to decay
                     wait(cooldown_time, self.resonator_el, qubit_element)
                     # Measure ground state
-                    if not self.lsb:
+                    if self.lsb:
                         measure(
                             self.resonator_pulse,
                             self.resonator_el,
                             adc,
-                            dual_demod.full("cos", "out1", "sin", "out2", I),
-                            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+                            dual_demod.full(weights[0], "out1", weights[2], "out2", I),
+                            dual_demod.full(weights[1], "out1", weights[3], "out2", Q),
                         )
                     else:
                         measure(
                             self.resonator_pulse,
                             self.resonator_el,
                             adc,
-                            dual_demod.full("cos", "out1", "minus_sin", "out2", I),
-                            dual_demod.full("sin", "out1", "cos", "out2", Q),
+                            dual_demod.full(weights[0], "out1", weights[1], "out2", I),
+                            dual_demod.full(weights[2], "out1", weights[3], "out2", Q),
                         )
                     save(I, I_st)
                     save(Q, Q_st)
+                    if benchmark:
+                        # State discrimination
+                        assign(state, I < self.saved_data["threshold"])
+                        save(state, state_st)
 
                     # Wait 100µs for the qubit to decay
                     wait(cooldown_time, self.resonator_el, qubit_element)
@@ -369,29 +376,37 @@ class TwoStateDiscriminator:
                     align(qubit_element, self.resonator_el)
                     play(pi_pulse, qubit_element)
                     align(qubit_element, self.resonator_el)
-                    if not self.lsb:
+                    if self.lsb:
                         measure(
                             self.resonator_pulse,
                             self.resonator_el,
                             adc,
-                            dual_demod.full("cos", "out1", "sin", "out2", I),
-                            dual_demod.full("minus_sin", "out1", "cos", "out2", Q),
+                            dual_demod.full(weights[0], "out1", weights[2], "out2", I),
+                            dual_demod.full(weights[1], "out1", weights[3], "out2", Q),
                         )
                     else:
                         measure(
                             self.resonator_pulse,
                             self.resonator_el,
                             adc,
-                            dual_demod.full("cos", "out1", "minus_sin", "out2", I),
-                            dual_demod.full("sin", "out1", "cos", "out2", Q),
+                            dual_demod.full(weights[0], "out1", weights[1], "out2", I),
+                            dual_demod.full(weights[2], "out1", weights[3], "out2", Q),
                         )
                     save(I, I_st)
                     save(Q, Q_st)
+                    if benchmark:
+                        # State discrimination
+                        assign(state, I < self.saved_data["threshold"])
+                        save(state, state_st)
                 with stream_processing():
                     I_st.save_all("I")
                     Q_st.save_all("Q")
-                    adc.input1().with_timestamps().save_all("adc1")
-                    adc.input2().save_all("adc2")
+                    if benchmark:
+                        state_st.save_all("state")
+                    else:
+                        adc.input1().with_timestamps().save_all("adc1")
+                        adc.input2().save_all("adc2")
+
         else:
             with program() as qua_program:
                 n = declare(int)
@@ -400,6 +415,9 @@ class TwoStateDiscriminator:
                 I_st = declare_stream()
                 Q_st = declare_stream()
                 adc = declare_stream(adc_trace=True)
+                if benchmark:
+                    state = declare(bool)
+                    state_st = declare_stream()
 
                 with for_(n, 0, n < n_shots, n + 1):
                     # Wait 100µs for the qubit to decay
@@ -409,11 +427,15 @@ class TwoStateDiscriminator:
                         self.resonator_pulse,
                         self.resonator_el,
                         adc,
-                        demod.full("cos", I, "out1"),
-                        dual_demod.full("sin", Q, "out1"),
+                        demod.full(weights[0], I, "out1"),
+                        demod.full(weights[1], Q, "out1"),
                     )
                     save(I, I_st)
                     save(Q, Q_st)
+                    if benchmark:
+                        # State discrimination
+                        assign(state, I < self.saved_data["threshold"])
+                        save(state, state_st)
 
                     # Wait 100µs for the qubit to decay
                     wait(cooldown_time, self.resonator_el, qubit_element)
@@ -425,15 +447,22 @@ class TwoStateDiscriminator:
                         self.resonator_pulse,
                         self.resonator_el,
                         adc,
-                        demod.full("cos", I, "out1"),
-                        dual_demod.full("sin", Q, "out1"),
+                        demod.full(weights[0], I, "out1"),
+                        demod.full(weights[1], Q, "out1"),
                     )
                     save(I, I_st)
                     save(Q, Q_st)
+                    if benchmark:
+                        # State discrimination
+                        assign(state, I < self.saved_data["threshold"])
+                        save(state, state_st)
                 with stream_processing():
                     I_st.save_all("I")
                     Q_st.save_all("Q")
-                    adc.input1().with_timestamps().save_all("adc1")
+                    if benchmark:
+                        state_st.save_all("state")
+                    else:
+                        adc.input1().with_timestamps().save_all("adc1")
         return qua_program
 
     def get_default_training_program(self):
@@ -557,7 +586,7 @@ By default:
 
     def train(
         self,
-        qua_program,
+        qua_program=None,
         simulation=None,
         use_hann_filter: bool = True,
         plot: bool = False,
@@ -585,7 +614,7 @@ By default:
         # Get qua_program
         if qua_program is None:
             qua_program = self._training_program(
-                qubit_element, pi_pulse, cooldown_time, n_shots
+                qubit_element, pi_pulse, cooldown_time, n_shots, ["cos", "sin", "minus_sin", "cos"]
             )
         # Open qm, execute and fetch data, format is [|g>, |g>, |g>,... |e>, |e>, |e>,...]
         I_res, Q_res, self.ts, self.Z = self._execute_and_fetch(qua_program)
@@ -612,11 +641,15 @@ By default:
         # Save the traces and norms
         np.savez(
             self.path,
-            weights=traces_4ns,
+            weights=traces_4ns[0, :] - traces_4ns[1, :],
+            threshold=bias[0] - bias[1],
+            traces=traces_4ns,
             bias=bias,
         )
         self.saved_data = {
-            "weights": traces_4ns,
+            "weights": traces_4ns[0, :] - traces_4ns[1, :],
+            "threshold": bias[0] - bias[1],
+            "traces": traces_4ns,
             "bias": bias,
         }
         # The training is over
@@ -625,38 +658,102 @@ By default:
         self._update_config()
 
         if self.plot:
-            plt.figure()
+            # Raw IQ blobs
+            # plt.figure()
+            plt.subplot(222)
             for i in range(self.num_of_states):
                 I_ = I_res[self.seq0 == i]
                 Q_ = Q_res[self.seq0 == i]
                 plt.plot(I_, Q_, ".", label=f"state {i}")
                 plt.axis("equal")
-            plt.xlabel("I")
-            plt.ylabel("Q")
-            plt.title("IQ blobs from FPGA demod")
+            plt.xlabel("I [a.u.]")
+            plt.ylabel("Q [a.u.]")
+            plt.title("Raw IQ blobs from FPGA demodulation")
+            plt.tight_layout()
             plt.legend()
-
-            plt.figure()
+            # Phase space trajectories
+            plt.subplot(223)
             for i in range(self.num_of_states):
-                plt.subplot(self.num_of_states, 1, i + 1)
-                plt.plot(np.real(traces_4ns[i, :]))
-                plt.plot(np.imag(traces_4ns[i, :]))
-                if i == 0:
-                    plt.title("Time traces for |g> and |e>")
-            plt.figure()
-            for i in range(self.num_of_states):
-                plt.plot(np.real(traces_4ns[i, :]), np.imag(traces_4ns[i, :]))
+                plt.plot(np.real(traces_4ns[i, :]), np.imag(traces_4ns[i, :]), label=f"State {i}")
                 plt.axis("equal")
             plt.title("Trajectories in phase space")
-
-            plt.figure()
-            plt.plot(np.real(traces_4ns[0, :] - traces_4ns[1, :]))
-            plt.plot(np.imag(traces_4ns[0, :] - traces_4ns[1, :]))
+            plt.xlabel("Re(I+j*Q)")
+            plt.ylabel("Im(I+j*Q)")
+            plt.legend()
+            # Optimal weights
+            plt.subplot(224)
+            plt.plot(np.real(traces_4ns[0, :] - traces_4ns[1, :]), label="Real part")
+            plt.plot(np.imag(traces_4ns[0, :] - traces_4ns[1, :]), label="Imaginary part")
             plt.title("Optimal weights")
+            plt.xlabel("Time [4ns]")
+            plt.ylabel("Normalized weights")
+            plt.legend()
+            plt.tight_layout()
 
-    def get_threshold(self):
-        bias = self.saved_data["bias"]
-        return bias[0] - bias[1]
+    def benchmark(self, **kwargs):
+        qubit_element = kwargs.get("qubit_element", "qubit")
+        pi_pulse = kwargs.get("pi_pulse", "x180")
+        cooldown_time = kwargs.get("cooldown_time", 25_000)
+        n_shots = kwargs.get("n_shots", 10_000)
+        qua_program = self._training_program(
+            qubit_element, pi_pulse, cooldown_time, n_shots, [self.iw_prefix + f"cos_{self.resonator_el}", self.iw_prefix + f"sin_{self.resonator_el}", self.iw_prefix + f"minus_sin_{self.resonator_el}", self.iw_prefix + f"cos_{self.resonator_el}"], benchmark=True
+        )
+        # Open QM
+        qm = self.qmm.open_qm(self.config)
+        # Execute the program
+        if self.simulation is not None:
+            job = self.qmm.simulate(self.config, qua_program, self.simulation)
+        else:
+            job = qm.execute(qua_program, duration_limit=0, data_limit=0)
+        # Wait for all data and fetch
+        res_handles = job.result_handles
+        res_handles.wait_for_all_values()
+        result_handles = job.result_handles
+        result_handles.wait_for_all_values()
+        state = result_handles.get("state").fetch_all()["value"]
+        I = result_handles.get("I").fetch_all()["value"]
+        Q = result_handles.get("Q").fetch_all()["value"]
+
+        plt.figure()
+        plt.hist(I[np.array(self.seq0) == 0], 50)
+        plt.hist(I[np.array(self.seq0) == 1], 50)
+        plt.plot([self.saved_data["threshold"]] * 2, [0, n_shots//10], "g")
+        plt.show()
+        plt.title("Histogram of |g> and |e> along I-values")
+
+        # can only be used if signal was demodulated during training
+        # with optimal integration weights
+        plt.figure()
+        plt.plot(I[np.array(self.seq0) == 0], Q[np.array(self.seq0) == 0], "b.")  # measured IQ blobs
+        plt.plot(I[np.array(self.seq0) == 1], Q[np.array(self.seq0) == 1], "r.")  # measured IQ blobs
+        # can only be used if raw ADC is passed to the program
+        theta = np.linspace(0, 2 * np.pi, 100)
+        for i in range(self.num_of_states):
+            a = self.sigma[i] * np.cos(theta) + self.mu[i][0]
+            b = self.sigma[i] * np.sin(theta) + self.mu[i][1]
+            plt.plot([self.mu[i][0]], [self.mu[i][1]], "o")
+            plt.plot(a, b)
+        plt.axis("equal")
+
+        p_s = np.zeros(shape=(2, 2))
+        for i in range(2):
+            state_i = state[np.array(self.seq0) == i]
+            # calculates the fidelity based on the number of shots
+            # in the correct and incorrect state
+            p_s[i, :] = np.array([np.mean(state_i == 0), np.mean(state_i == 1)])
+
+        labels = ["g", "e"]
+        plt.figure()
+        ax = plt.subplot()
+        # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
+
+        ax.set_xlabel("Predicted labels")
+        ax.set_ylabel("Prepared labels")
+        ax.set_title("Confusion Matrix")
+        ax.xaxis.set_ticklabels(labels)
+        ax.yaxis.set_ticklabels(labels)
+
+        plt.show()
 
     def measure_state(
         self, pulse: str, out1: str, out2: str, adc=None, state=None, I=None, Q=None
@@ -739,6 +836,6 @@ By default:
                 demod.full(self.iw_prefix + f"sin_{self.resonator_el}", Q, out1),
             )
         # State discrimination
-        assign(state, I < self.get_threshold())
+        assign(state, I < self.saved_data["threshold"])
         # Return state, I and Q
         return state, I, Q
