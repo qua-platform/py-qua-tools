@@ -40,7 +40,9 @@ discriminator = TwoStateDiscriminator(
 
 def training_measurement(readout_pulse, use_opt_weights):
     if use_opt_weights:
-        discriminator.measure_state(readout_pulse, "out1", "out2", adc=adc_st, state=res, I=I)
+        discriminator.measure_state(
+            readout_pulse, "out1", "out2", adc=adc_st, state=res, I=I
+        )
     else:
         if not lsb:
             measure(
@@ -113,13 +115,17 @@ with program() as benchmark_readout:
 
     with for_(n, 0, n < N, n + 1):
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q)
+        discriminator.measure_state(
+            "readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q
+        )
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)
 
         wait(wait_time, rr_qe)
-        discriminator.measure_state("readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q)
+        discriminator.measure_state(
+            "readout_pulse_g", "out1", "out2", state=res, I=I, Q=Q
+        )
         save(res, res_st)
         save(I, I_st)
         save(Q, Q_st)

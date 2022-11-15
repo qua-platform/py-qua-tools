@@ -30,7 +30,17 @@ discriminator = TwoStateDiscriminator(
 )
 
 
-def training_program(resonator_el, resonator_pulse, threshold, qubit_element, pi_pulse, cooldown_time, n_shots, weights, benchmark: bool = False):
+def training_program(
+    resonator_el,
+    resonator_pulse,
+    threshold,
+    qubit_element,
+    pi_pulse,
+    cooldown_time,
+    n_shots,
+    weights,
+    benchmark: bool = False,
+):
 
     with program() as qua_program:
         n = declare(int)
@@ -79,7 +89,7 @@ def training_program(resonator_el, resonator_pulse, threshold, qubit_element, pi
             align(qubit_element, resonator_el)
             if lsb:
                 measure(
-                    resonator_pulse*amp(0.99),
+                    resonator_pulse * amp(0.99),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[2], "out2", I),
@@ -87,7 +97,7 @@ def training_program(resonator_el, resonator_pulse, threshold, qubit_element, pi
                 )
             else:
                 measure(
-                    resonator_pulse*amp(0.99),
+                    resonator_pulse * amp(0.99),
                     resonator_el,
                     adc,
                     dual_demod.full(weights[0], "out1", weights[1], "out2", I),
@@ -109,17 +119,30 @@ def training_program(resonator_el, resonator_pulse, threshold, qubit_element, pi
                 adc.input2().save_all("adc2")
     return qua_program
 
-qua_program = training_program(rr_qe, res_pulse, 0, "qubit", "x180", 1600, N, ["cos", "sin", "minus_sin", "cos"])
+
+qua_program = training_program(
+    rr_qe, res_pulse, 0, "qubit", "x180", 1600, N, ["cos", "sin", "minus_sin", "cos"]
+)
 
 # gives you a template for training program
 discriminator.get_default_training_program()
 # Training
-discriminator.train(qua_program=qua_program, plot=True, n_shots=N, correction_method="median")
-qua_program = training_program(rr_qe, res_pulse, discriminator.saved_data["threshold"], "qubit", "x180", 1600, N, ["opt_cos_rr1a", "opt_sin_rr1a", "opt_minus_sin_rr1a", "opt_cos_rr1a"], True)
+discriminator.train(
+    qua_program=qua_program, plot=True, n_shots=N, correction_method="median"
+)
+qua_program = training_program(
+    rr_qe,
+    res_pulse,
+    discriminator.saved_data["threshold"],
+    "qubit",
+    "x180",
+    1600,
+    N,
+    ["opt_cos_rr1a", "opt_sin_rr1a", "opt_minus_sin_rr1a", "opt_cos_rr1a"],
+    True,
+)
 # discriminator.train(qua_program=qua_program, plot=True, n_shots=N, correction_method="gmm")
 # discriminator.benchmark(qua_program=qua_program, n_shots=N)
-
-
 
 
 # result_handles = job.result_handles

@@ -166,7 +166,8 @@ class TwoStateDiscriminator:
         elif correction_method == "median":
             traces = np.array(
                 [
-                    np.median(np.real(sig[self.seq0 == i, :]), axis=0) + 1j*np.median(np.imag(sig[self.seq0 == i, :]), axis=0)
+                    np.median(np.real(sig[self.seq0 == i, :]), axis=0)
+                    + 1j * np.median(np.imag(sig[self.seq0 == i, :]), axis=0)
                     for i in range(self.num_of_states)
                 ]
             )
@@ -243,7 +244,9 @@ class TwoStateDiscriminator:
             I_res = np.sum(
                 out1 * (cos * np.real(weights) + sin * np.imag(-weights)), axis=1
             )
-            Q_res = np.sum(out1 * (cos * np.imag(weights) + sin * np.real(weights)), axis=1)
+            Q_res = np.sum(
+                out1 * (cos * np.imag(weights) + sin * np.real(weights)), axis=1
+            )
         # Demodulation units
         I_res *= 2**-12
         Q_res *= 2**-12
@@ -331,7 +334,15 @@ class TwoStateDiscriminator:
         if self.finish_train == 1:
             self._IQ_mu_sigma(weights)
 
-    def _training_program(self, qubit_element, pi_pulse, cooldown_time, n_shots, weights, benchmark: bool=False):
+    def _training_program(
+        self,
+        qubit_element,
+        pi_pulse,
+        cooldown_time,
+        n_shots,
+        weights,
+        benchmark: bool = False,
+    ):
         if self.iq_mixer:
             with program() as qua_program:
                 n = declare(int)
@@ -615,7 +626,11 @@ By default:
         # Get qua_program
         if qua_program is None:
             qua_program = self._training_program(
-                qubit_element, pi_pulse, cooldown_time, n_shots, ["cos", "sin", "minus_sin", "cos"]
+                qubit_element,
+                pi_pulse,
+                cooldown_time,
+                n_shots,
+                ["cos", "sin", "minus_sin", "cos"],
             )
         # Open qm, execute and fetch data, format is [|g>, |g>, |g>,... |e>, |e>, |e>,...]
         I_res, Q_res, self.ts, self.Z = self._execute_and_fetch(qua_program)
@@ -675,7 +690,11 @@ By default:
             # Phase space trajectories
             plt.subplot(223)
             for i in range(self.num_of_states):
-                plt.plot(np.real(traces_4ns[i, :]), np.imag(traces_4ns[i, :]), label=f"State {i}")
+                plt.plot(
+                    np.real(traces_4ns[i, :]),
+                    np.imag(traces_4ns[i, :]),
+                    label=f"State {i}",
+                )
                 plt.axis("equal")
             plt.title("Trajectories in phase space")
             plt.xlabel("Re(I+j*Q)")
@@ -684,7 +703,9 @@ By default:
             # Optimal weights
             plt.subplot(224)
             plt.plot(np.real(traces_4ns[0, :] - traces_4ns[1, :]), label="Real part")
-            plt.plot(np.imag(traces_4ns[0, :] - traces_4ns[1, :]), label="Imaginary part")
+            plt.plot(
+                np.imag(traces_4ns[0, :] - traces_4ns[1, :]), label="Imaginary part"
+            )
             plt.title("Optimal weights")
             plt.xlabel("Time [4ns]")
             plt.ylabel("Normalized weights")
@@ -698,10 +719,17 @@ By default:
         n_shots = kwargs.get("n_shots", 10_000)
         if qua_program is None:
             qua_program = self._training_program(
-                qubit_element, pi_pulse, cooldown_time, n_shots,
-                [self.iw_prefix + f"cos_{self.resonator_el}", self.iw_prefix + f"sin_{self.resonator_el}",
-                 self.iw_prefix + f"minus_sin_{self.resonator_el}", self.iw_prefix + f"cos_{self.resonator_el}"],
-                benchmark=True
+                qubit_element,
+                pi_pulse,
+                cooldown_time,
+                n_shots,
+                [
+                    self.iw_prefix + f"cos_{self.resonator_el}",
+                    self.iw_prefix + f"sin_{self.resonator_el}",
+                    self.iw_prefix + f"minus_sin_{self.resonator_el}",
+                    self.iw_prefix + f"cos_{self.resonator_el}",
+                ],
+                benchmark=True,
             )
 
         # Open QM
@@ -725,15 +753,19 @@ By default:
         plt.figure()
         plt.hist(I[np.array(self.seq0) == 0])
         plt.hist(I[np.array(self.seq0) == 1])
-        plt.plot([self.saved_data["threshold"]] * 2, [0, n_shots//10], "g")
+        plt.plot([self.saved_data["threshold"]] * 2, [0, n_shots // 10], "g")
         plt.show()
         plt.title("Histogram of |g> and |e> along I-values")
 
         # can only be used if signal was demodulated during training
         # with optimal integration weights
         plt.figure()
-        plt.plot(I[np.array(self.seq0) == 0], Q[np.array(self.seq0) == 0], "b.")  # measured IQ blobs
-        plt.plot(I[np.array(self.seq0) == 1], Q[np.array(self.seq0) == 1], "r.")  # measured IQ blobs
+        plt.plot(
+            I[np.array(self.seq0) == 0], Q[np.array(self.seq0) == 0], "b."
+        )  # measured IQ blobs
+        plt.plot(
+            I[np.array(self.seq0) == 1], Q[np.array(self.seq0) == 1], "r."
+        )  # measured IQ blobs
         # can only be used if raw ADC is passed to the program
         theta = np.linspace(0, 2 * np.pi, 100)
         for i in range(self.num_of_states):
