@@ -5,7 +5,7 @@ Content:
 """
 
 
-from typing import List, Union, Tuple
+from typing import List, Tuple
 import numpy as np
 from scipy import signal
 import plotly.graph_objects as go
@@ -240,7 +240,7 @@ def plot_simulator_output(
             for statement in qua_program.__dict__["_program"].script.body.statements:
                 if (
                     statement.play.qe.name not in el_list
-                    and statement.play.qe.name is not ""
+                    and statement.play.qe.name != ""
                 ):
                     el_list.append(statement.play.qe.name)
         else:
