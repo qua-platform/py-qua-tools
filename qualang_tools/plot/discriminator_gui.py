@@ -400,15 +400,19 @@ class DiscriminatorGui(QWidget):
 
 if __name__ == '__main__':
 
+    num_qubits = 10
+
     from qualang_tools.analysis.independent_multi_qubit_discriminator import independent_multi_qubit_discriminator
 
-    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, 32)).T
-    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, 32)).T
+    iq_state_g = np.random.multivariate_normal((0, -0.2), ((1.5, 0.), (0., 1.5)), (5000, num_qubits)).T
+    iq_state_e = np.random.multivariate_normal((-1.8, -3.), ((1.5, 0), (0, 1.5)), (5000, num_qubits)).T
 
     igs, qgs = iq_state_g
     ies, qes = iq_state_e
 
-    results = independent_multi_qubit_discriminator(igs, qgs, ies, qes, b_plot=False, b_print=False)
+    results_list = np.stack([igs, qgs, ies, qes], axis=1)
+
+    results = independent_multi_qubit_discriminator(results_list, b_plot=False, b_print=False)
 
     def main():
         app = pg.mkQApp()

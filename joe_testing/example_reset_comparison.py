@@ -16,7 +16,10 @@ def generate_discrimination_data():
     igs, qgs = iq_state_g
     ies, qes = iq_state_e
 
-    results = independent_multi_qubit_discriminator(igs, qgs, ies, qes, b_plot=False, b_print=False)
+    results_list = np.stack([igs, qgs, ies, qes], axis=1)
+
+
+    results = independent_multi_qubit_discriminator(results_list, b_plot=False, b_print=False)
     [result.add_attribute('runtime', 100 * np.random.rand()) for result in results]
     return results
 
