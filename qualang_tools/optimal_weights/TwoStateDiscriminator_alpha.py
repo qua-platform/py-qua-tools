@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn import mixture
 from scipy import signal
 import numpy as np
+from qualang_tools.analysis.discriminator import two_state_discriminator
 
 
 class TwoStateDiscriminator:
@@ -274,7 +275,7 @@ class TwoStateDiscriminator:
                 plt.plot([self.mu[i][0]], [self.mu[i][1]], "o")
                 plt.plot(a, b)
                 plt.axis("equal")
-            plt.plot([self.saved_data["threshold"]] * 2, [min(Q_res), max(Q_res)], "g")
+            # plt.plot([self.saved_data["threshold"]] * 2, [min(Q_res), max(Q_res)], "g")
             plt.xlabel("I [a.u.]")
             plt.ylabel("Q [a.u.]")
             plt.title("IQ blobs with optimized integration weights")
@@ -646,23 +647,17 @@ By default:
         # Reshape the traces to steps of 4ns
         traces_4ns = self._reshape_traces(traces)
 
-        # Bias = norm of the ground and excited state vectors
-        bias = (
-            (np.linalg.norm(traces_4ns, axis=1) ** 2) / 2 * (2**-24) * 4
-        )
         # Save the traces and norms
         np.savez(
             self.path,
-            weights=(traces_4ns[0, :] - traces_4ns[1, :]) / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :])),
-            threshold=bias[0] - bias[1],
+            weights=(traces_4ns[0, :] - traces_4ns[1, :])
+            / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :])),
             traces=traces_4ns,
-            bias=bias,
         )
         self.saved_data = {
-            "weights": (traces_4ns[0, :] - traces_4ns[1, :]) / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :])),
-            "threshold": bias[0] - bias[1],
+            "weights": (traces_4ns[0, :] - traces_4ns[1, :])
+            / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :])),
             "traces": traces_4ns,
-            "bias": bias,
         }
         # The training is over
         self.finish_train = 1
@@ -698,9 +693,19 @@ By default:
             plt.legend()
             # Optimal weights
             plt.subplot(224)
-            plt.plot(np.real(traces_4ns[0, :] - traces_4ns[1, :]), label="Real part")
             plt.plot(
-                np.imag(traces_4ns[0, :] - traces_4ns[1, :]), label="Imaginary part"
+                np.real(
+                    (traces_4ns[0, :] - traces_4ns[1, :])
+                    / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :]))
+                ),
+                label="Real part",
+            )
+            plt.plot(
+                np.imag(
+                    (traces_4ns[0, :] - traces_4ns[1, :])
+                    / np.max(np.abs(traces_4ns[0, :] - traces_4ns[1, :]))
+                ),
+                label="Imaginary part",
             )
             plt.title("Optimal weights")
             plt.xlabel("Time [4ns]")
@@ -740,93 +745,29 @@ By default:
         res_handles.wait_for_all_values()
         result_handles = job.result_handles
         result_handles.wait_for_all_values()
-        state = result_handles.get("state").fetch_all()["value"]
+        # state = result_handles.get("state").fetch_all()["value"]
         I = result_handles.get("I").fetch_all()["value"]
         Q = result_handles.get("Q").fetch_all()["value"]
         I = np.concatenate([I[0::2], I[1::2]])
         Q = np.concatenate([Q[0::2], Q[1::2]])
-        state = np.concatenate([state[0::2], state[1::2]])
+        # state = np.concatenate([state[0::2], state[1::2]])
 
-        if self.plot:
-            plt.figure()
-            plt.subplot(221)
-            plt.hist(I[np.array(self.seq0) == 0], label="|g>")
-            plt.hist(I[np.array(self.seq0) == 1], label="|e>")
-            plt.plot(
-                [self.saved_data["threshold"]] * 2,
-                [0, n_shots // 10],
-                "g",
-                label="threshold",
-            )
-            plt.legend()
-            plt.title("Histogram of |g> and |e> along I-values")
-            plt.xlabel("I [a.u.]")
-            plt.ylabel("Number of occurrences")
+        # ground and excited data
+        I_g = I[self.seq0 == 0]
+        Q_g = Q[self.seq0 == 0]
+        I_e = I[self.seq0 == 1]
+        Q_e = Q[self.seq0 == 1]
 
-            # can only be used if signal was demodulated during training
-            # with optimal integration weights
-            plt.subplot(222)
-            plt.plot(
-                I[np.array(self.seq0) == 0],
-                Q[np.array(self.seq0) == 0],
-                "b.",
-                label="|g>",
-            )
-            plt.plot(
-                I[np.array(self.seq0) == 1],
-                Q[np.array(self.seq0) == 1],
-                "r.",
-                label="|e>",
-            )
-            # can only be used if raw ADC is passed to the program
-            theta = np.linspace(0, 2 * np.pi, 100)
-            colors = ["c", "m"]
-            for i in range(self.num_of_states):
-                a = self.sigma[i] * np.cos(theta) + self.mu[i][0]
-                b = self.sigma[i] * np.sin(theta) + self.mu[i][1]
-                plt.plot([self.mu[i][0]], [self.mu[i][1]], "o", color=colors[i])
-                plt.plot(a, b, color=colors[i])
-            plt.axis("equal")
-            plt.xlabel("I [a.u.]")
-            plt.ylabel("Q [a.u.]")
-            plt.title("IQ blobs with optimized integration weights")
+        # two state discrimination
+        angle, threshold, fidelity, gg, ge, eg, ee = two_state_discriminator(
+            I_g, Q_g, I_e, Q_e, b_print=False, b_plot=True
+        )
 
-            p_s = np.zeros(shape=(2, 2))
-            for i in range(2):
-                state_i = state[np.array(self.seq0) == i]
-                # calculates the fidelity based on the number of shots
-                # in the correct and incorrect state
-                p_s[i, :] = np.array([np.mean(state_i == 0), np.mean(state_i == 1)])
-            ax = plt.subplot(223)
-            ax.imshow(np.array([[p_s[0, 0], p_s[0, 1]], [p_s[1, 0], p_s[1, 1]]]))
-            ax.set_xticks([0, 1])
-            ax.set_yticks([0, 1])
-            ax.set_xticklabels(labels=["|g>", "|e>"])
-            ax.set_yticklabels(labels=["|g>", "|e>"])
-            ax.set_ylabel("Prepared")
-            ax.set_xlabel("Measured")
-            ax.text(
-                0, 0, f"{100 * p_s[0, 0]:.1f}%", ha="center", va="center", color="k"
-            )
-            ax.text(
-                1, 0, f"{100 * p_s[0, 1]:.1f}%", ha="center", va="center", color="w"
-            )
-            ax.text(
-                0, 1, f"{100 * p_s[1, 0]:.1f}%", ha="center", va="center", color="w"
-            )
-            ax.text(
-                1, 1, f"{100 * p_s[1, 1]:.1f}%", ha="center", va="center", color="k"
-            )
-            ax.set_title("Confusion Matrix")
-            # sns.heatmap(p_s, annot=True, ax=ax, fmt='g', cmap='Blues')
-            # ax.imshow(np.array(p_s))
-            # ax.set_xlabel("Predicted labels")
-            # ax.set_ylabel("Prepared labels")
-            # ax.set_title("Confusion Matrix")
-            # ax.xaxis.set_ticklabels(labels)
-            # ax.yaxis.set_ticklabels(labels)
-            plt.tight_layout()
-            plt.show()
+        # Add threshold and fidelity to the saved data
+        data = dict(np.load(self.path, allow_pickle=True))
+        data["threshold"] = threshold
+        data["fidelity"] = fidelity
+        np.savez(self.path, **data)
 
     def measure_state(
         self, pulse: str, out1: str, out2: str, adc=None, state=None, I=None, Q=None

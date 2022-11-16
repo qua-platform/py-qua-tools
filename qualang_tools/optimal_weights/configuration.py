@@ -36,10 +36,10 @@ q1a_res_IF = 200e6
 q2a_res_IF = 50e6
 
 
-readout_len = 1000
+readout_len = 100
 IF_freq = q1a_res_IF
-Ts = readout_len - 200
-Td = 200
+Td = 5
+Ts = readout_len - Td
 power = 0.2
 k = 0.04
 chi = 0.023
@@ -61,7 +61,7 @@ chi = 0.023
 # plt.plot(Qf_)
 
 divide_signal_factor = 100
-smearing = 60
+smearing = 0
 
 config = {
     "version": 1,
