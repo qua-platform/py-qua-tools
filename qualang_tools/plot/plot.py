@@ -217,19 +217,18 @@ def plot_simulator_output(
     config: dict,
     duration_ns: int,
     plot_axes: List[List[str]] = (()),
-    **kwargs,
+    qua_program=None,
 ):
     """
     Generate a 'plotly' plot of simulator output by elements
 
-    :param plot_axes: (optional) a list of lists of elements (ex: [["qubit0", "qubit1"], ["resonator0", "resonator1"]]). Will open
-    multiple axes, one for each list. If not provided, then the qua_program must be specified as kwargs using qua_program= and all the elements will be plotted in their own axis.
     :param job: The simulated QmJob to plot.
     :param config: The config file used to create the job.
     :param duration_ns: the duration to plot in nanosecond.
+    :param plot_axes: (Either this or 'program' have to be provided) a list of lists of elements (ex: [["qubit0", "qubit1"], ["resonator0", "resonator1"]]). Will open multiple axes, one for each list.
+    :param qua_program: (Either this or 'plot_axes' have to be provided) All the elements will be plotted in their own axis.
     :return: the generated 'plotly' figure.
     """
-    qua_program = kwargs.get("qua_program", None)
     time_vec = np.linspace(0, duration_ns - 1, duration_ns)
     samples_struct = []
     digital_samples_struct = []
