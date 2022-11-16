@@ -760,7 +760,7 @@ By default:
 
         # two state discrimination
         angle, threshold, fidelity, gg, ge, eg, ee = two_state_discriminator(
-            I_g, Q_g, I_e, Q_e, b_print=False, b_plot=True
+            I_g, Q_g, I_e, Q_e, b_print=False, b_plot=self.plot
         )
 
         # Add threshold and fidelity to the saved data
@@ -768,88 +768,3 @@ By default:
         data["threshold"] = threshold
         data["fidelity"] = fidelity
         np.savez(self.path, **data)
-
-    def measure_state(
-        self, pulse: str, out1: str, out2: str, adc=None, state=None, I=None, Q=None
-    ):
-        """
-        This procedure generates a macro of QUA commands for measuring the readout resonator with the optimal
-        integration weights and perform state discrimination.
-
-        :param pulse: A string with the readout pulse name.
-        :param out1: A string with the name first output of the readout resonator (corresponding to the real part of the
-         complex IN(t_int) signal).
-        :param out2: A string with the name second output of the readout resonator (corresponding to the imaginary part
-        of the complex IN(t_int) signal).
-        :param state: A QUA variable for the state information. Should be of type `bool`.
-        If not given, a new variable will be created.
-        :param adc: (optional) the stream variable which the raw ADC data will be saved and will appear in result
-        analysis scope.
-        :param I: A QUA variable for the information in the `I` quadrature. Should be of type `Fixed`. If not given, a new
-        variable will be created.
-        :param Q: A QUA variable for the information in the `Q` quadrature. Should be of type `Fixed`. If not given, a new
-        variable will be created.
-        :return: a boolean representing the qubit state (True for excited and False for ground) and the corresponding 'I'
-        and 'Q' values if they were provided as input parameters.
-        """
-        # Declare I, Q and state if not provided
-        if I is None:
-            I = declare(fixed)
-        if Q is None:
-            Q = declare(fixed)
-        if state is None:
-            state = declare(bool)
-        # Measure with optimal weights
-        if self.iq_mixer:
-            if not self.lsb:
-                measure(
-                    pulse,
-                    self.resonator_el,
-                    adc,
-                    dual_demod.full(
-                        self.iw_prefix + f"cos_{self.resonator_el}",
-                        out1,
-                        self.iw_prefix + f"sin_{self.resonator_el}",
-                        out2,
-                        I,
-                    ),
-                    dual_demod.full(
-                        self.iw_prefix + f"minus_sin_{self.resonator_el}",
-                        out1,
-                        self.iw_prefix + f"cos_{self.resonator_el}",
-                        out2,
-                        Q,
-                    ),
-                )
-            else:
-                measure(
-                    pulse,
-                    self.resonator_el,
-                    adc,
-                    dual_demod.full(
-                        self.iw_prefix + f"cos_{self.resonator_el}",
-                        out1,
-                        self.iw_prefix + f"minus_sin_{self.resonator_el}",
-                        out2,
-                        I,
-                    ),
-                    dual_demod.full(
-                        self.iw_prefix + f"sin_{self.resonator_el}",
-                        out1,
-                        self.iw_prefix + f"cos_{self.resonator_el}",
-                        out2,
-                        Q,
-                    ),
-                )
-        else:
-            measure(
-                pulse,
-                self.resonator_el,
-                adc,
-                demod.full(self.iw_prefix + f"cos_{self.resonator_el}", I, out1),
-                demod.full(self.iw_prefix + f"sin_{self.resonator_el}", Q, out1),
-            )
-        # State discrimination
-        assign(state, I < self.saved_data["threshold"])
-        # Return state, I and Q
-        return state, I, Q
