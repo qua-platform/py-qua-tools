@@ -42,10 +42,10 @@ class ActiveResetGUI(QWidget):
         self.ground_state_colour = (100, 149, 237)
         self.excited_state_colour = (255, 185, 15)
 
-        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        QApplication.setStyle(QStyleFactory.create("Cleanlooks"))
 
         self.setGeometry(100, 100, 1200, 500)
-        self.setWindowTitle('Qubit reset comparison')
+        self.setWindowTitle("Qubit reset comparison")
 
         self._initialise_info_area()
         self._initialise_plot_area()
@@ -67,7 +67,6 @@ class ActiveResetGUI(QWidget):
         """
 
         self.plot_area = QWidget()
-        # self.plot_area = pg.LayoutWidget()
         self.plot_layout = QHBoxLayout()
         self.plot_area.setLayout(self.plot_layout)
 
@@ -78,9 +77,14 @@ class ActiveResetGUI(QWidget):
             plot_region = pg.GraphicsLayoutWidget()
             self.plot_layout.addWidget(plot_region, stretch=1)
             self.plot_regions.append(plot_region)
-            plot_region.addItem(pg.PlotItem(title=f'<font size="+1"><b>{name}</b></font>'.replace('_', ' ')), 0, 0)
+            plot_region.addItem(
+                pg.PlotItem(
+                    title=f'<font size="+1"><b>{name}</b></font>'.replace("_", " ")
+                ),
+                0,
+                0,
+            )
             plot_region.addItem(pg.PlotItem(), 1, 0)
-
 
     def _initialise_info_area(self):
         """
@@ -97,7 +101,7 @@ class ActiveResetGUI(QWidget):
 
         self.check_boxes = []
         for key in self.reset_results_dictionary.keys():
-            self.check_boxes.append(QCheckBox(str(key).replace('_', ' ')))
+            self.check_boxes.append(QCheckBox(str(key).replace("_", " ")))
 
         self.info_box = pg.TableWidget(3, len(self.reset_results_dictionary))
         self.set_table()
@@ -117,14 +121,18 @@ class ActiveResetGUI(QWidget):
         self.qubit_list.setMaximumWidth(int(table_size.width()))
         self.info_box.setShowGrid(False)
 
-        self.ground_state_label = QLabel('Ground state')
-        self.excited_state_label = QLabel('Excited state')
+        self.ground_state_label = QLabel("Ground state")
+        self.excited_state_label = QLabel("Excited state")
 
         self.ground_state_label.setAlignment(Qt.AlignCenter)
         self.excited_state_label.setAlignment(Qt.AlignCenter)
 
-        self.ground_state_label.setStyleSheet(f"background-color:rgb{self.ground_state_colour}; border-radius:5px")
-        self.excited_state_label.setStyleSheet(f"background-color:rgb{self.excited_state_colour}; border-radius:5px")
+        self.ground_state_label.setStyleSheet(
+            f"background-color:rgb{self.ground_state_colour}; border-radius:5px"
+        )
+        self.excited_state_label.setStyleSheet(
+            f"background-color:rgb{self.excited_state_colour}; border-radius:5px"
+        )
 
         self.information_layout.addWidget(self.ground_state_label)
         self.information_layout.addWidget(self.excited_state_label)
@@ -160,22 +168,25 @@ class ActiveResetGUI(QWidget):
 
         @return: the list of lists representing rows of the table.
         """
-        overall_table = [['', 'Fidelity (%)', 'Time (ns)']]
+        overall_table = [["", "Fidelity (%)", "Time (ns)"]]
 
         for reset_type, results_datasets in self.reset_results_dictionary.items():
             qubit_data = results_datasets[self.qubit_list.currentIndex()]
-            row = [reset_type, f'{qubit_data.fidelity:.2f}', f'{qubit_data.runtime:.2f}']
+            row = [
+                reset_type,
+                f"{qubit_data.fidelity:.2f}",
+                f"{qubit_data.runtime:.2f}",
+            ]
             overall_table.append(row)
 
         return overall_table
 
     def set_table(self):
-        """"
+        """
         Sets the values for the table in the info area.
         """
         data = self.generate_table()
         self.info_box.setData(data)
-
 
     def plot_to_scatter(self, scatter_plot, result_dataclass):
         """
@@ -188,18 +199,18 @@ class ActiveResetGUI(QWidget):
             result_dataclass.ig_rotated,
             result_dataclass.qg_rotated,
             brush=(*self.ground_state_colour, 100),
-            symbol='s',
-            size='2',
-            pen=pg.mkPen(None)
+            symbol="s",
+            size="2",
+            pen=pg.mkPen(None),
         )
 
         rotated_data_e = pg.ScatterPlotItem(
             result_dataclass.ie_rotated,
             result_dataclass.qe_rotated,
             brush=(*self.excited_state_colour, 100),
-            symbol='s',
-            size='2',
-            pen=pg.mkPen(None)
+            symbol="s",
+            size="2",
+            pen=pg.mkPen(None),
         )
 
         scatter_plot.addItem(rotated_data_g)
@@ -207,9 +218,9 @@ class ActiveResetGUI(QWidget):
 
         scatter_plot.addLine(
             x=result_dataclass.threshold,
-            label=f'{result_dataclass.threshold:.2f}, θ={(np.random.rand() * 1000) % 90:.2f}°',
-            labelOpts={'position': 0.9},
-            pen={'color': 'white', 'dash': [20, 20]}
+            label=f"{result_dataclass.threshold:.2f}, θ={(np.random.rand() * 1000) % 90:.2f}°",
+            labelOpts={"position": 0.9},
+            pen={"color": "white", "dash": [20, 20]},
         )
 
         scatter_plot.setAspectLocked()
@@ -223,19 +234,37 @@ class ActiveResetGUI(QWidget):
         @return:
         """
 
-        y, x = np.histogram(result_dataclass.ig_rotated, bins=80)#, bins=np.linspace(-3, 8, 80))
-        y2, x2 = np.histogram(result_dataclass.ie_rotated, bins=80)#, bins=np.linspace(-3, 8, 80))
+        y, x = np.histogram(
+            result_dataclass.ig_rotated, bins=80
+        )  # , bins=np.linspace(-3, 8, 80))
+        y2, x2 = np.histogram(
+            result_dataclass.ie_rotated, bins=80
+        )  # , bins=np.linspace(-3, 8, 80))
 
-        histogram_plot.plot(x, y, stepMode="center", fillLevel=0, fillOutline=True,
-                            brush=(*self.ground_state_colour, 200), pen=pg.mkPen(None))
-        histogram_plot.plot(x2, y2, stepMode="center", fillLevel=0, fillOutline=True,
-                            brush=(*self.excited_state_colour, 200), pen=pg.mkPen(None))
+        histogram_plot.plot(
+            x,
+            y,
+            stepMode="center",
+            fillLevel=0,
+            fillOutline=True,
+            brush=(*self.ground_state_colour, 200),
+            pen=pg.mkPen(None),
+        )
+        histogram_plot.plot(
+            x2,
+            y2,
+            stepMode="center",
+            fillLevel=0,
+            fillOutline=True,
+            brush=(*self.excited_state_colour, 200),
+            pen=pg.mkPen(None),
+        )
 
         histogram_plot.addLine(
             x=result_dataclass.threshold,
-            label=f'{result_dataclass.threshold:.2f}',
-            labelOpts={'position': 0.95},
-            pen={'color': 'white', 'dash': [20, 20]}
+            label=f"{result_dataclass.threshold:.2f}",
+            labelOpts={"position": 0.95},
+            pen={"color": "white", "dash": [20, 20]},
         )
 
         return histogram_plot
@@ -248,7 +277,9 @@ class ActiveResetGUI(QWidget):
 
         qubit_id = self.qubit_list.currentIndex()
 
-        for plot_region, (data_key, data_list) in zip(self.plot_regions, self.reset_results_dictionary.items()):
+        for plot_region, (data_key, data_list) in zip(
+            self.plot_regions, self.reset_results_dictionary.items()
+        ):
             data = data_list[qubit_id]
             scatter = plot_region.getItem(0, 0)
             histogram = plot_region.getItem(1, 0)
@@ -271,9 +302,7 @@ class ActiveResetGUI(QWidget):
         dataclasses = self.reset_results_dictionary[key]
 
         for result in dataclasses:
-            self.qubit_list.addItem(
-                result.name
-            )
+            self.qubit_list.addItem(result.name)
 
 
 def launch_reset_gui(data_dictionary):
@@ -281,4 +310,3 @@ def launch_reset_gui(data_dictionary):
     app = QApplication(sys.argv)
     program = ActiveResetGUI(data_dictionary)
     app.exec_()
-

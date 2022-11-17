@@ -94,7 +94,7 @@ def run_and_format(reset_program, qmm, simulation=True):
                                                                                  b_plot=False)
 
             results_dataclass = DiscriminatorDataclass(f'Qubit {qubit}', angle, threshold, fidelity, gg, ge, eg, ee, I_g, Q_g, I_e, Q_e)
-            results_dataclass.add_attribute('runtime', runtime)
+            results_dataclass._add_attribute('runtime', runtime)
             results_dataclass_list.append(results_dataclass)
 
         return results_dataclass_list
