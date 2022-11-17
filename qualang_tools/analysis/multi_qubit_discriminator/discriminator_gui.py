@@ -416,7 +416,7 @@ class DiscriminatorGui(QWidget):
             self.dashboard_list.setItem(i, 1, QTableWidgetItem(f"{fidelity:.2f}%"))
 
 
-def lauch_discriminator_gui(results):
+def launch_discriminator_gui(results):
     app = pg.mkQApp()
     loader = DiscriminatorGui(results)
     pg.exec()
@@ -447,5 +447,5 @@ if __name__ == "__main__":
         results_list, b_plot=False, b_print=False
     )
 
-    lauch_discriminator_gui(results)
+    launch_discriminator_gui(results)
 
