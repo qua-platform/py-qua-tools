@@ -197,5 +197,4 @@ if __name__ == "__main__":
 
     results_list = np.stack([Igs, Qgs, Ies, Qes], axis=1)
 
-    # new method
-    independent_multi_qubit_discriminator(results_list)
+    results_dataclasses = independent_multi_qubit_discriminator(results_list)

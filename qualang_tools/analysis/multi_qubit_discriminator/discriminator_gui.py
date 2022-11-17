@@ -416,6 +416,13 @@ class DiscriminatorGui(QWidget):
             self.dashboard_list.setItem(i, 1, QTableWidgetItem(f"{fidelity:.2f}%"))
 
 
+def lauch_discriminator_gui(results):
+    app = pg.mkQApp()
+    loader = DiscriminatorGui(results)
+    pg.exec()
+
+
+# example with fake data
 if __name__ == "__main__":
 
     num_qubits = 10
@@ -440,10 +447,5 @@ if __name__ == "__main__":
         results_list, b_plot=False, b_print=False
     )
 
-    def main():
-        app = pg.mkQApp()
-        # loader = multiQubitReadoutPresenter(results)
-        loader = DiscriminatorGui(results)
-        pg.exec()
+    lauch_discriminator_gui(results)
 
-    main()

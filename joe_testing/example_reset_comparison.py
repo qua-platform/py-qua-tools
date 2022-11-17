@@ -1,7 +1,7 @@
 # File to show for example how the reset comparison gui could work
 
 import numpy as np
-from qualang_tools.plot import ActiveResetGUI
+from qualang_tools.analysis.multi_qubit_discriminator import ActiveResetGUI
 from PyQt5.QtWidgets import QApplication
 import sys
 
