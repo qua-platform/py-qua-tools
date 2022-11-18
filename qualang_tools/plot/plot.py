@@ -222,7 +222,7 @@ def plot_simulator_output(
     qua_program=None,
 ):
     """
-    Generate a 'plotly' plot of simulator output by elements
+    Generate a 'plotly' plot of simulator output by elements. Note that this works only if the elements don't share the same ports.
 
     :param job: The simulated QmJob to plot.
     :param config: The config file used to create the job.
