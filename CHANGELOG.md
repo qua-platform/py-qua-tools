@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.13.1] - 2022-11-18
+- Fix init files.
+
 ## [0.13.0] - 2022-11-18
 ### Added
 - Multi-user Tools - A subpackage that allows several users to work simultaneously.
@@ -17,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Bakery - Now uses the more efficient `frame_rotation_2pi` instead of `frame_rotation`.
 
 ### Fixed
-- Bakery - Fixed cases in which a `frame_rotation_2pi(0.0)` was added .
+- Bakery - Fixed cases in which a `frame_rotation_2pi(0.0)` was added.
 
 ## [0.12.0] - 2022-08-29
 ### Changed
@@ -232,7 +235,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.11.1...v0.11.2
