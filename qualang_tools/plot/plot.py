@@ -84,6 +84,7 @@ def plot_demodulated_data_2d(
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
     plt.colorbar()
+    plt.pause(0.01)
     plt.tight_layout()
     return fig
 
@@ -166,6 +167,7 @@ def plot_demodulated_data_1d(
     plt.ylabel(y2_label, fontsize=_plot_options["fontsize"])
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
+    plt.pause(0.01)
     plt.tight_layout()
     return fig
 
