@@ -6,4 +6,7 @@ __all__ = [
     "loops",
     "results",
     "plot",
+    "analysis",
+    "multi_user",
+    "units",
 ]
