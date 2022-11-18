@@ -5,7 +5,7 @@ Content:
 """
 
 
-from typing import List
+from typing import List, Tuple
 import numpy as np
 from scipy import signal
 import plotly.graph_objects as go
@@ -84,6 +84,7 @@ def plot_demodulated_data_2d(
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
     plt.colorbar()
+    plt.pause(0.01)
     plt.tight_layout()
     return fig
 
@@ -166,81 +167,150 @@ def plot_demodulated_data_1d(
     plt.ylabel(y2_label, fontsize=_plot_options["fontsize"])
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
+    plt.pause(0.01)
     plt.tight_layout()
     return fig
 
 
-def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict):
+def get_simulated_samples_by_element(
+    element_name: str, job: QmJob, config: dict
+) -> Tuple:
     """
-    Extract the simulated samples corresponding to a given element.
+    Extract the simulated samples (analog and digital) corresponding to a given element.
 
     :param element_name: name of the element corresponding to the samples to extract. Must be defined in the config.
     :param job: The simulated QmJob from which the samples will be extracted.
     :param config: The config file used to create the job.
-    :return: 1D complex array containing the simulated samples for the specified element.
+    :return: Two 1D lists containing the simulated analog and digital samples for the specified element.
     """
     element = config["elements"][element_name]
     job.result_handles.wait_for_all_values()
     sample_struct = job.get_simulated_samples()
+    # Analog waveforms
     if "mixInputs" in element:
         port_i = element["mixInputs"]["I"]
         port_q = element["mixInputs"]["Q"]
-        samples = (
+        analog_samples = (
             sample_struct.__dict__[port_i[0]].analog[str(port_i[1])]
             + 1j * sample_struct.__dict__[port_q[0]].analog[str(port_q[1])]
         )
-    else:
+    elif "singleInput" in element:
         port = element["singleInput"]["port"]
-        samples = sample_struct.__dict__[port[0]].analog[str(port[1])]
-    return samples
+        analog_samples = sample_struct.__dict__[port[0]].analog[str(port[1])]
+    else:
+        analog_samples = None
+    # Digital waveforms
+    digital_samples = []
+    if "digitalInputs" in element:
+
+        for key in element["digitalInputs"].keys():
+            port = element["digitalInputs"][key]["port"]
+            digital_samples.append(
+                sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int)
+            )
+    else:
+        digital_samples.append(None)
+
+    return analog_samples, digital_samples
 
 
 def plot_simulator_output(
-    plot_axes: List[List[str]], job: QmJob, config: dict, duration_ns: int
+    job: QmJob,
+    config: dict,
+    duration_ns: int,
+    plot_axes: List[List[str]] = (()),
+    qua_program=None,
 ):
     """
-    Generate a 'plotly' plot of simulator output by elements
+    Generate a 'plotly' plot of simulator output by elements. Note that this works only if the elements don't share the same ports.
 
-    :param plot_axes: a list of lists of elements (ex: [["qubit0"], ["qubit1"]]). Will open
-    multiple axes, one for each list.
     :param job: The simulated QmJob to plot.
     :param config: The config file used to create the job.
     :param duration_ns: the duration to plot in nanosecond.
+    :param plot_axes: (Either this or 'program' have to be provided) a list of lists of elements (ex: [["qubit0", "qubit1"], ["resonator0", "resonator1"]]). Will open multiple axes, one for each list.
+    :param qua_program: (Either this or 'plot_axes' have to be provided) All the elements will be plotted in their own axis.
     :return: the generated 'plotly' figure.
     """
     time_vec = np.linspace(0, duration_ns - 1, duration_ns)
     samples_struct = []
+    digital_samples_struct = []
+    if plot_axes == (()):
+        if qua_program is not None:
+            # Find the elements used in the program
+            el_list = []
+            for statement in qua_program.__dict__["_program"].script.body.statements:
+                if (
+                    statement.play.qe.name not in el_list
+                    and statement.play.qe.name != ""
+                ):
+                    el_list.append(statement.play.qe.name)
+        else:
+            raise Exception(
+                "If plot_axis is not provided, then the qua_program must be specified as kwargs using qua_program=."
+            )
+        plot_axes = [[element] for element in el_list]
     for plot_axis in plot_axes:
         samples_struct.append(
-            [get_simulated_samples_by_element(pa, job, config) for pa in plot_axis]
+            [get_simulated_samples_by_element(pa, job, config)[0] for pa in plot_axis]
+        )
+        digital_samples_struct.append(
+            [get_simulated_samples_by_element(pa, job, config)[1] for pa in plot_axis]
         )
 
     fig = go.Figure().set_subplots(rows=len(plot_axes), cols=1, shared_xaxes=True)
 
+    plot_item = None
     for i, plot_axis in enumerate(plot_axes):
         for j, plot_item in enumerate(plot_axis):
-            if isinstance(samples_struct[i][j][0], float):
-                fig.add_trace(
-                    go.Scatter(x=time_vec, y=samples_struct[i][j], name=plot_item),
-                    row=i + 1,
-                    col=1,
-                )
-            else:
-                fig.add_trace(
-                    go.Scatter(
-                        x=time_vec, y=samples_struct[i][j].real, name=plot_item + " I"
-                    ),
-                    row=i + 1,
-                    col=1,
-                )
-                fig.add_trace(
-                    go.Scatter(
-                        x=time_vec, y=samples_struct[i][j].imag, name=plot_item + " Q"
-                    ),
-                    row=i + 1,
-                    col=1,
-                )
-    fig.update_xaxes(title="time [ns]")
+            if samples_struct[i][j] is not None:
+                if isinstance(samples_struct[i][j][0], float):
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec, y=samples_struct[i][j], name=plot_item + " [V]"
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+                else:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec,
+                            y=samples_struct[i][j].real,
+                            name=plot_item + "- I [V]",
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec,
+                            y=samples_struct[i][j].imag,
+                            name=plot_item + "- Q [V]",
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+
+            for k in range(len(digital_samples_struct[i][j])):
+                if digital_samples_struct[i][j][k] is not None:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=time_vec,
+                            y=digital_samples_struct[i][j][k],
+                            name=plot_item
+                            + " - "
+                            + list(
+                                config["elements"][plot_item]["digitalInputs"].keys()
+                            )[k]
+                            + " [3.3V]",
+                        ),
+                        row=i + 1,
+                        col=1,
+                    )
+        fig.get_subplot(i + 1, 1).yaxis.title.text = plot_item
+
+    fig.get_subplot(len(plot_axes), 1).xaxis.title.text = "time [ns]"
+    fig.update_layout(title="Simulated waveforms")
     return fig
 
 

@@ -90,7 +90,12 @@ with program() as test_prog:
 qmm = QuantumMachinesManager()
 simulation_config = SimulationConfig(duration=8000)
 job = qmm.simulate(config, test_prog, simulation_config)
-fig = plot_simulator_output([["RF"],["qubit"]], job, config, duration_ns=8000)
+# If plot_axes is provided (plot only the specified elements)
+fig = plot_simulator_output(job, config, duration_ns=8000, plot_axes=[["RF"],["qubit"]])
+fig.show()
+
+# If plot_axes is not provided (plot all elements used in the qua program in their own axis)
+fig = plot_simulator_output(job, config, duration_ns=8000, qua_program=test_prog)
 fig.show()
 ```
 
