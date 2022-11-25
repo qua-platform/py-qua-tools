@@ -38,32 +38,37 @@ class _nanosecond:
         return self.__mul__(other)
 
 
-# class _ensure_integer(int):
+class _ensure_integer(float):
 
-#     def __new__(cls, value, *args, **kwargs):
-#         return  super(cls, cls).__new__(cls, value)
+    def __new__(cls, value : int | float, verbose : bool = True, *args, **kwargs):
+        cls.verbose = verbose
+        return  super(cls, cls).__new__(cls, value)
 
-#     def __mul__(self, other : int | float ) -> int:
+    def __mul__(self, other : int | float ) -> int:
 
-#         result, remainder =  divmod(self*other, 1)
+        result, remainder =  divmod(float(self)*other, 1)
 
-#         if remainder != 0:
+        if remainder != 0:
 
-#             result = int(result)
-
-#             warn(f"Warning: the specified duration ({other}) to be converted to clock cycles in not an integer. It has been converted to int ({result}) to avoid subsequent errors.", RuntimeWarning)
+            result = int(result)
+            if self.verbose:
+                warn(f"Warning: the specified duration ({other}) to be converted to clock cycles in not an integer. It has been converted to int ({result}) to avoid subsequent errors.", RuntimeWarning)
             
-#         return result
+        return int(result)
 
-#     def __rmul__(self, other : int | float ) -> int :
-#         return self.__mul__(other)
+    def __rmul__(self, other : int | float ) -> int :
+        return self.__mul__(other)
 
 class unit:
 
-    def __init__(self):
+    def __init__(self, coerce_to_integer = False,  verbose = True):
         # Time units
         self._ns = _nanosecond()
         self.cc = 1/4
+
+        # Handling time units
+        self.ensure_integer = coerce_to_integer
+        self.verbose = verbose
 
         # Frequency units
         self.mHz = 0.001
@@ -79,23 +84,38 @@ class unit:
 
     @property
     def ns(self) -> float:
-        return 1 * self._ns
+        if self.ensure_integer:
+            return _ensure_integer(1 * self._ns, self.verbose)
+        else:
+            return 1 * self._ns
 
     @property
     def us(self) -> float:
-        return 1e3 * self._ns
+        if self.ensure_integer:
+            return _ensure_integer(1e3 * self._ns, self.verbose)
+        else:
+            return 1e3 * self._ns
     
     @property
     def ms(self) -> float:
-        return 1e6 * self._ns
+        if self.ensure_integer:
+            return _ensure_integer(1e6 * self._ns, self.verbose)
+        else:
+            return 1e6 * self._ns
 
     @property
     def s(self) -> float:
-        return 1e9 * self._ns
+        if self.ensure_integer:
+            return _ensure_integer(1e9 * self._ns, self.verbose)
+        else:
+            return 1e9 * self._ns
 
     @property
     def clock_cycle(self) -> float:
-        return 4 * self._ns
+        if self.ensure_integer:
+            return _ensure_integer(4 * self._ns, self.verbose)
+        else:
+            return 4 * self._ns
 
     # conversion functions
     def to_clock_cycles(self, t):
