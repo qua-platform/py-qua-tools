@@ -11,6 +11,7 @@ from qualang_tools.config.builder import ConfigBuilder
 from qualang_tools.config.components import *
 from qualang_tools.config.primitive_components import *
 from qualang_tools.config.parameters import Parameter, ConfigVars
+from qualang_tools.config.helper_tools import QuaConfig
 
 __all__ = [
     "drag_gaussian_pulse_waveforms",
@@ -53,4 +54,5 @@ __all__ = [
     "ConfigBuilder",
     "Parameter",
     "ConfigVars",
+    "QuaConfig",
 ]
