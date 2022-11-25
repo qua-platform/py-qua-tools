@@ -10,61 +10,66 @@ Content:
 from qm.program._Program import _Program
 from inspect import stack
 from warnings import warn
+from typing import Union
+
 
 class _nanosecond:
-
     def __init__(self):
         pass
 
     def _get_value(self) -> float:
 
         for frameinfo in stack():
-            
+
             for var in frameinfo.frame.f_locals.values():
 
-                if isinstance(var, _Program): # we have a qua program being declared somewhere
-                    if var._is_in_scope: # this is set by __enter__ and unset by __exit__
-                        return 0.25 # now it is in clock cycles
+                if isinstance(
+                    var, _Program
+                ):  # we have a qua program being declared somewhere
+                    if (
+                        var._is_in_scope  # this is set by __enter__ and unset by __exit__ of _Program
+                    ):
+                        return 0.25  # now it is in clock cycles
         else:
-            return 1.0 # this is in nanosecods
+            return 1.0  # this is in nanoseconds
 
-    def __mul__(self, other : int | float ) -> float:
+    def __mul__(self, other: Union[int, float]) -> float:
 
         value = self._get_value()
 
-        return value*other
+        return value * other
 
-    def __rmul__(self, other : int | float ) -> float :
+    def __rmul__(self, other: Union[int, float]) -> float:
         return self.__mul__(other)
 
 
 class _ensure_integer(float):
-
-    def __new__(cls, value : int | float, verbose : bool = True, *args, **kwargs):
+    def __new__(cls, value: Union[int, float], verbose: bool = True, *args, **kwargs):
         cls.verbose = verbose
-        return  super(cls, cls).__new__(cls, value)
+        return super(cls, cls).__new__(cls, value)
 
-    def __mul__(self, other : int | float ) -> int:
+    def __mul__(self, other: Union[int, float]) -> int:
 
-        result, remainder =  divmod(float(self)*other, 1)
+        result, remainder = divmod(float(self) * other, 1)
 
         if remainder != 0:
-
-            result = int(result)
             if self.verbose:
-                warn(f"Warning: the specified duration ({other}) to be converted to clock cycles in not an integer. It has been converted to int ({result}) to avoid subsequent errors.", RuntimeWarning)
-            
+                warn(
+                    f"Warning: the specified duration ({other}) to be converted to clock cycles in not an integer. It has been converted to int ({result}) to avoid subsequent errors.",
+                    RuntimeWarning,
+                )
+
         return int(result)
 
-    def __rmul__(self, other : int | float ) -> int :
+    def __rmul__(self, other: Union[int, float]) -> int:
         return self.__mul__(other)
 
-class unit:
 
-    def __init__(self, coerce_to_integer = False,  verbose = True):
+class unit:
+    def __init__(self, coerce_to_integer=False, verbose=True):
         # Time units
         self._ns = _nanosecond()
-        self.cc = 1/4
+        self.cc = 1 / 4
 
         # Handling time units
         self.ensure_integer = coerce_to_integer
@@ -95,7 +100,7 @@ class unit:
             return _ensure_integer(1e3 * self._ns, self.verbose)
         else:
             return 1e3 * self._ns
-    
+
     @property
     def ms(self) -> float:
         if self.ensure_integer:
