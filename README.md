@@ -32,6 +32,7 @@ storing them in the usual configuration file. It allows defining waveforms in a 
   * [Waveform Tools](qualang_tools/config/README_waveform_tools.md) - This package includes tools for creating waveforms useful for experiments with the QOP.
   * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file.
   * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files.
+  * [Config Helper Tools](qualang_tools/config/README_helper_tools.md) - This package includes tools for writing and updating the configuration.
 
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
   * [ManualOutputControl](qualang_tools/control_panel/README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
