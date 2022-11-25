@@ -20,6 +20,10 @@ def DummyContextManager():
 def unit():
     return units.unit()
 
+@pytest.fixture
+def unit_verbose():
+    return units.unit(coerce_to_integer=True, verbose=True)
+
 def test_not_in_scope(unit):
 
     assert unit.ns == 1
@@ -95,3 +99,34 @@ def _subroutine_not_in_scope(unit):
 def test_not_in_scope_subroutine(unit):
 
     _subroutine_not_in_scope(unit)
+
+# Test the integer coercion
+
+def test_not_in_scope_verbose(unit_verbose):
+
+    assert unit_verbose.ns == 1
+    assert unit_verbose.us == 1e3
+    assert unit_verbose.ms == 1e6
+    assert unit_verbose.s  == 1e9
+    assert unit_verbose.clock_cycle == 4
+
+def test_in_scope_verbose(unit_verbose):
+
+    with program() as dummyprogram:
+        assert 4*unit_verbose.ns == 1
+        assert 4*unit_verbose.us == 1e3
+        assert 4*unit_verbose.ms == 1e6
+        assert 4*unit_verbose.s  == 1e9
+        assert unit_verbose.clock_cycle == 1
+
+def test_in_scope_verbose_warnings(unit_verbose):
+
+    with program() as dummyprogram:
+        with pytest.warns(RuntimeWarning):
+            assert 6*unit_verbose.ns == 1
+        with pytest.warns(RuntimeWarning):
+            assert (4/3)*unit_verbose.us == int(1/3*1e3)
+        with pytest.warns(RuntimeWarning):
+            assert (4/3)*unit_verbose.ms == int(1/3*1e6)
+        with pytest.warns(RuntimeWarning):
+            assert (4/3)*unit_verbose.s  == int(1/3*1e9)
