@@ -152,7 +152,7 @@ class Fit:
         for unknown parameters :
             T1 - The decay constant [ns]
             amp - The amplitude [a.u.]
-            final_offset -  The offset visible for long dephasing times [a.u.]
+            final_offset -  The offset visible for long waiting times [a.u.]
 
         :param x_data: The dephasing time [ns]
         :param y_data: Data containing the Ramsey signal
@@ -172,27 +172,12 @@ class Fit:
         x_normal = xn[1][0]
         y_normal = yn[1][0]
 
-        # Finding a guess for the decay (slope of log(peaks))
-        derivative = np.abs(np.diff(y))
-        if np.std(np.log(derivative)) < np.abs(
-            np.mean(np.log(derivative)[-10:]) - np.mean(np.log(derivative)[:10])
-        ):
-            guess_T1 = (
-                -1
-                / (
-                    (
-                        np.mean(np.log(derivative)[-10:])
-                        - np.mean(np.log(derivative)[:10])
-                    )
-                    / (len(y) - 1)
-                )
-                * (x[1] - x[0])
-            )
-        # Initial guess if the data is too noisy
-        else:
-            guess_T1 = 100 / x_normal
         # Finding a guess for the offsets
-        final_offset = np.mean(y[int(len(y) * 0.9) :])
+        final_offset = np.mean(y[np.min((int(len(y) * 0.9), len(y) - 3)) :])
+        # Finding a guess for the decay
+        guess_T1 = (
+            1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
+        )
 
         # Check user guess
         if guess is not None:
@@ -208,12 +193,16 @@ class Fit:
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
         # Print the initial guess if verbose=True
+        if np.max(x_data) > 10:
+            time_unit = "ns"
+        else:
+            time_unit = "s"
         if verbose:
             print(
                 f"Initial guess:\n "
-                f"T1 = {guess_T1 * x_normal:.3f}, \n "
-                f"amp = {y[0] * y_normal:.3f}, \n "
-                f"final offset = {final_offset * y_normal:.3f}"
+                f"T1 = {guess_T1 * x_normal:.3f} {time_unit}, \n "
+                f"amp = {y[0] * y_normal:.3e} a.u., \n "
+                f"final offset = {final_offset * y_normal:.3e} a.u."
             )
 
         # Fitting function
@@ -246,9 +235,9 @@ class Fit:
         if verbose:
             print(
                 f"Fitting results:\n"
-                f" T1 = {out['T1'][0]:.2f} +/- {out['T1'][1]:.3f} ns, \n"
-                f" amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
-                f" final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
+                f" T1 = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}, \n"
+                f" amp = {out['amp'][0]:.2e} +/- {out['amp'][1]:.1e} a.u., \n"
+                f" final offset = {out['final_offset'][0]:.2e} +/- {out['final_offset'][1]:.1e} a.u."
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -257,10 +246,10 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f}ns",
+                label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}",
             )
-            plt.xlabel("Waiting time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
+            plt.xlabel(f"Waiting time [{time_unit}]")
+            # plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
