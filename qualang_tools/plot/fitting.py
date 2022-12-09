@@ -847,18 +847,33 @@ class Fit:
         # Take the positive part only
         fft = fft[1 : len(f) // 2]
         f = f[1 : len(f) // 2]
-        # Remove the DC peak if there is one
-        if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
-            first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][
-                0
-            ]  # away from the DC peak
-            fft = fft[first_read_data_ind:]
-            f = f[first_read_data_ind:]
 
         # Finding a guess for the frequency
         out_freq = f[np.argmax(np.abs(fft))]
         guess_freq = out_freq / (x[1] - x[0])
-
+        # If not enough oscillations
+        if np.argmax(np.abs(fft)) < 1:
+            # If at least 1 oscillation
+            if (
+                np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y)))))
+                > 1
+            ):
+                guess_freq = 1 / (
+                    np.max(
+                        np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))
+                    )
+                    * (x[1] - x[0])
+                )
+            # If less than 1 oscillation
+            else:
+                guess_freq = 1 / (
+                    (
+                        np.argmin(y[len(y) // 2 :])
+                        + len(y) // 2
+                        - np.argmin(y[: len(y) // 2])
+                    )
+                    * (x[1] - x[0])
+                )
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T
         period = int(np.ceil(1 / out_freq))
         peaks = (
@@ -879,7 +894,6 @@ class Fit:
                 / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
                 * (x[1] - x[0])
             )
-            print(peaks)
         else:
             guess_T = 100 / x_normal
             print(
@@ -890,6 +904,9 @@ class Fit:
 
         # Finding a guess for the offset
         offset = np.mean(y[-period:])
+
+        # Finding a guess for the offset
+        guess_amp = np.abs(np.max(y) - np.min(y))
 
         # Finding a guess for the phase
         guess_phase = (
@@ -906,7 +923,7 @@ class Fit:
                 elif key == "T":
                     guess_T = float(guess[key]) * x_normal
                 elif key == "amp":
-                    peaks[0] = float(guess[key]) / y_normal
+                    guess_amp = float(guess[key]) / y_normal
                 elif key == "offset":
                     offset = float(guess[key]) / y_normal
                 else:
@@ -921,13 +938,13 @@ class Fit:
                 f" f = {guess_freq / x_normal:.3f}, \n"
                 f" phase = {guess_phase:.3f}, \n"
                 f" T = {guess_T * x_normal:.3f}, \n"
-                f" amplitude = {peaks[0] * y_normal:.3f}, \n"
-                f" offset = {offset * y_normal:.3f}"
+                f" amplitude = {guess_amp * y_normal:.1e}, \n"
+                f" offset = {offset * y_normal:.1e}"
             )
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3, a4):
-            return (peaks[0] * a0) * (
+            return (guess_amp * a0) * (
                 np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)
             ) ** 2 * np.exp(-x_var / np.abs(guess_T * a2)) + offset * a4
 
@@ -948,12 +965,22 @@ class Fit:
             "f": [popt[1] * guess_freq / x_normal, perr[1] * guess_freq / x_normal],
             "phase": [popt[3] % (2 * np.pi), perr[3] % (2 * np.pi)],
             "T": [(guess_T * abs(popt[2])) * x_normal, perr[2] * guess_T * x_normal],
-            "amp": [popt[0] * peaks[0] * y_normal, perr[0] * peaks[0] * y_normal],
+            "amp": [popt[0] * guess_amp * y_normal, perr[0] * guess_amp * y_normal],
             "offset": [
                 offset * popt[4] * y_normal,
                 perr[4] * offset * y_normal,
             ],
         }
+        # FInd if power rabi or time rabi
+        if 0.01 < np.abs(np.max(x_data)) < 1:
+            pi_param = 0.5 / out["f"][0]
+            pi_label = f"x180 amplitude = {pi_param:.3f} V"
+        else:
+            pi_param = 0.5 / out["f"][0]
+            if pi_param > 1:
+                pi_label = f"x180 length = {pi_param:.1f} ns"
+            else:
+                pi_label = f"x180 length = {pi_param:.3e} s"
         # Print the fitting results if verbose=True
         if verbose:
             print(
@@ -961,8 +988,8 @@ class Fit:
                 f" f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz, \n"
                 f" phase = {out['phase'][0]:.3f} +/- {out['phase'][1]:.3f} rad, \n"
                 f" T = {out['T'][0]:.2f} +/- {out['T'][1]:.3f} ns, \n"
-                f" amplitude = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f}, \n"
-                f" offset = {out['offset'][0]:.2f} +/- {out['offset'][1]:.3f} a.u."
+                f" amplitude = {out['amp'][0]:.1e} +/- {out['amp'][1]:.1e} a.u., \n"
+                f" offset = {out['offset'][0]:.1e} +/- {out['offset'][1]:.1e} a.u."
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -971,7 +998,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz \n T  = {out['T'][0]:.1f} +/- {out['T'][1]:.1f}ns",
+                label=pi_label,
             )
             plt.xlabel("Time [ns]")
             plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
