@@ -5,6 +5,8 @@ from typing import List, Union
 import itertools
 import json
 import numpy as np
+import warnings
+from scipy.optimize import OptimizeWarning
 
 
 class Fit:
@@ -20,6 +22,10 @@ class Fit:
         - Plotting the data and the fitting function
         - Saving the data
     """
+
+    # Remove optimize warnings
+    warnings.simplefilter("ignore", RuntimeWarning)
+    warnings.simplefilter("ignore", OptimizeWarning)
 
     @staticmethod
     def linear(
@@ -348,11 +354,6 @@ class Fit:
             )
         else:
             guess_T2 = 100 / x_normal
-            print(
-                Warning(
-                    "WARNING: The initial guess for the decay failed, increasing the number of oscillations should solve the issue."
-                )
-            )
 
         # Finding a guess for the offsets
         initial_offset = np.mean(y[:period])
@@ -903,11 +904,6 @@ class Fit:
             )
         else:
             guess_T = 100 / x_normal
-            print(
-                Warning(
-                    "WARNING: The initial guess for the decay failed, increasing the number of oscillations should solve the issue."
-                )
-            )
 
         # Finding a guess for the offset
         offset = np.mean(y[-period:])
