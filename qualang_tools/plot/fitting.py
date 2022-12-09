@@ -588,15 +588,22 @@ class Fit:
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
             "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal],
         }
+        # Check freq unit
+        if np.max(np.abs(x_data)) < 18:
+            freq_unit = "GHz"
+        elif np.max(np.abs(x_data)) < 18000:
+            freq_unit = "MHz"
+        else:
+            freq_unit = "Hz"
         # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
-                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
-                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
-                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
-                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
-                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz \n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} {freq_unit}, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} {freq_unit}, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} {freq_unit}, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} {freq_unit}, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} a.u., \n"
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -605,10 +612,9 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
+                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
+            plt.xlabel(f"Frequency {freq_unit}")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -763,16 +769,23 @@ class Fit:
                 m * perr[4] * y_normal / x_normal,
             ],
         }
+        # Check freq unit
+        if np.max(np.abs(x_data)) < 18:
+            freq_unit = "GHz"
+        elif np.max(np.abs(x_data)) < 18000:
+            freq_unit = "MHz"
+        else:
+            freq_unit = "Hz"
         # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
-                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
-                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
-                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
-                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
-                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz, \n"
-                f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} Hz\n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} {freq_unit}, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} {freq_unit}, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} {freq_unit}, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} {freq_unit}, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} a.u., \n"
+                f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} 1/{freq_unit}\n"
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -781,10 +794,8 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
+                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -1000,8 +1011,6 @@ class Fit:
                 ".",
                 label=pi_label,
             )
-            plt.xlabel("Time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
