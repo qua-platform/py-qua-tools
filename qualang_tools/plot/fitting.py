@@ -248,8 +248,6 @@ class Fit:
                 ".",
                 label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}",
             )
-            plt.xlabel(f"Waiting time [{time_unit}]")
-            # plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -457,8 +455,6 @@ class Fit:
                 ".",
                 label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns \n f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz",
             )
-            plt.xlabel("Waiting time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
