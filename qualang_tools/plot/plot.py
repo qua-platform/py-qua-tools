@@ -11,7 +11,7 @@ from scipy import signal
 import plotly.graph_objects as go
 from matplotlib import pyplot as plt
 from qm.QmJob import QmJob
-from fitting import *
+from qualang_tools.plot.fitting import *
 
 
 def plot_demodulated_data_2d(
