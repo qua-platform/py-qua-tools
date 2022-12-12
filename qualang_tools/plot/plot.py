@@ -98,8 +98,8 @@ def plot_demodulated_data_1d(
     title: str = None,
     amp_and_phase: bool = True,
     fig=None,
-    fit=None,
     plot_options: dict = None,
+    fit=None,
 ):
     """
     Plots 1D graphs of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
@@ -111,8 +111,8 @@ def plot_demodulated_data_1d(
     :param title: title of the plot.
     :param amp_and_phase: if `True` (default value), plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
     :param fig: a matplotlib figure. If `none` (default), will create a new one.
-    :param fit: Name of the fitting function to be used: 'rabi', 'ramsey', 'T1', 'transmission_resonator_spectroscopy', 'reflection_resonator_spectroscopy'.
     :param plot_options: dictionary containing various plotting options. Defaults are ['fontsize': 14, 'color': 'b', 'marker': 'o', 'linewidth': 0, 'figsize': None].
+    :param fit: Name of the fitting function to be used: 'rabi', 'ramsey', 'T1', 'transmission_resonator_spectroscopy', 'reflection_resonator_spectroscopy'.
     :return: the matplotlib figure object.
     """
     _plot_options = {
