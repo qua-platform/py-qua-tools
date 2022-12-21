@@ -117,6 +117,35 @@ def config0():
         },
     }
 
+@pytest.fixture
+def config1():
+    return {
+        "version": 1,
+        "controllers": {
+            "con1": {
+                "analog_outputs": {
+                    1: {"offset": -24.0},
+                    2: {"offset": -100.0},
+                    3: {"offset": 12.0},
+                    4: {"offset": 16.0},
+                    5: {"offset": 48.0},
+                },
+                "digital_outputs": {},
+                "analog_inputs": {
+                    1: {"offset": 0.0, "gain_db": 0},  # I from down-conversion
+                    2: {"offset": 0.0, "gain_db": 0},  # Q from down-conversion
+                },
+            }
+        },
+        "elements": {},
+        "pulses": {},
+        "waveforms": {},
+        "digital_waveforms": {},
+        "integration_weights": {},
+        "mixers": {},
+    }
+
+
 
 def test_update_integration_weight(config0):
     conf = deepcopy(config0)
@@ -187,3 +216,9 @@ def test_update_update_waveforms(config0):
     assert config["waveforms"]["flux_line_bias_single_wf"]["samples"] == list(
         gaussian(112, 20)
     )
+
+
+def test_transform_negative_delays(config1):
+    transform_negative_delays(config1)
+
+    print(config1)
