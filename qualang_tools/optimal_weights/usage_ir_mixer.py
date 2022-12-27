@@ -2,7 +2,7 @@ from qm import SimulationConfig, LoopbackInterface
 from qualang_tools.optimal_weights.TwoStateDiscriminator_alpha import (
     TwoStateDiscriminator,
 )
-from configuration import *
+from configuration_ir_mixer import *
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 import matplotlib.pyplot as plt
@@ -29,6 +29,7 @@ discriminator = TwoStateDiscriminator(
     readout_pulse=res_pulse,
     path=f"ge_disc_params_{rr_qe}.npz",
     lsb=lsb,
+    iq_mixer=False,
 )
 
 
@@ -59,16 +60,16 @@ def training_program(
                     resonator_pulse,
                     resonator_el,
                     adc,
-                    dual_demod.full(weights[0], "out1", weights[2], "out2", I),
-                    dual_demod.full(weights[1], "out1", weights[3], "out2", Q),
+                    demod.full(weights[0], I,  "out1"),
+                    demod.full(weights[1], Q, "out1"),
                 )
             else:
                 measure(
                     resonator_pulse,
                     resonator_el,
                     adc,
-                    dual_demod.full(weights[0], "out1", weights[1], "out2", I),
-                    dual_demod.full(weights[2], "out1", weights[3], "out2", Q),
+                    demod.full(weights[0], I,  "out1"),
+                    demod.full(weights[1], Q, "out1"),
                 )
             save(I, I_st)
             save(Q, Q_st)
@@ -90,8 +91,8 @@ def training_program(
                     ),
                     resonator_el,
                     adc,
-                    dual_demod.full(weights[0], "out1", weights[2], "out2", I),
-                    dual_demod.full(weights[1], "out1", weights[3], "out2", Q),
+                    demod.full(weights[0], I,  "out1"),
+                    demod.full(weights[1], Q, "out1"),
                 )
             else:
                 measure(
@@ -104,8 +105,8 @@ def training_program(
                     ),
                     resonator_el,
                     adc,
-                    dual_demod.full(weights[0], "out1", weights[1], "out2", I),
-                    dual_demod.full(weights[2], "out1", weights[3], "out2", Q),
+                    demod.full(weights[0], I,  "out1"),
+                    demod.full(weights[1], Q, "out1"),
                 )
             save(I, I_st)
             save(Q, Q_st)
@@ -114,7 +115,7 @@ def training_program(
             I_st.save_all("I")
             Q_st.save_all("Q")
             adc.input1().with_timestamps().save_all("adc1")
-            adc.input2().save_all("adc2")
+            # adc.input2().save_all("adc2")
 
     return qua_program
 

@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 #############################
 # simulation helpers #
@@ -36,9 +36,9 @@ q1a_res_IF = 200e6
 q2a_res_IF = 50e6
 
 
-readout_len = 400
+readout_len = 360
 IF_freq = q1a_res_IF
-Td = 100
+Td = 120
 Ts = readout_len - Td
 power = 0.2
 k = 0.04
@@ -113,7 +113,7 @@ config = {
             },
             "outputs": {
                 "out1": ("con1", 1),
-                "out2": ("con1", 2),
+                # "out2": ("con1", 2),
             },
             "time_of_flight": 188,
             "smearing": smearing,
@@ -134,7 +134,7 @@ config = {
             },
             "outputs": {
                 "out1": ("con1", 1),
-                "out2": ("con1", 2),
+                # "out2": ("con1", 2),
             },
             "time_of_flight": 188,
             "smearing": 0,
