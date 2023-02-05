@@ -15,6 +15,9 @@ def create_simulator_controller_connections(n_controllers, n_connections=12):
     :returns: The ControllerConnection object
 
     """
+    if n_controllers == 1:
+        return None
+
     ncbc = n_connections // (
         n_controllers - 1
     )  # ncbc = number_of_connections_between_controllers
