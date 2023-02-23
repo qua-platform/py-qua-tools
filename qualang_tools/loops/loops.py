@@ -23,6 +23,8 @@ def from_array(var, array):
     # Check for array length
     if len(array) == 0:
         raise Exception("The array must be of length > 0.")
+    elif len(array) == 1:
+        return var, array[0], var <= array[0], var + 1
     # Check QUA vs python variables
     if not isinstance(var, _Expression):
         raise Exception("The first argument must be a QUA variable.")

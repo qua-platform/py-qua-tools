@@ -11,6 +11,7 @@ from scipy import signal
 import plotly.graph_objects as go
 from matplotlib import pyplot as plt
 from qm.QmJob import QmJob
+from qualang_tools.plot.fitting import *
 
 
 def plot_demodulated_data_2d(
@@ -98,6 +99,7 @@ def plot_demodulated_data_1d(
     amp_and_phase: bool = True,
     fig=None,
     plot_options: dict = None,
+    fit=None,
 ):
     """
     Plots 1D graphs of either 'I' and 'Q' or the corresponding amplitude and phase in a single figure.
@@ -110,6 +112,7 @@ def plot_demodulated_data_1d(
     :param amp_and_phase: if `True` (default value), plots the amplitude [np.sqrt(I**2 + Q**2)] and phase [signal.detrend(np.unwrap(np.angle(I + 1j * Q)))] instead of I and Q.
     :param fig: a matplotlib figure. If `none` (default), will create a new one.
     :param plot_options: dictionary containing various plotting options. Defaults are ['fontsize': 14, 'color': 'b', 'marker': 'o', 'linewidth': 0, 'figsize': None].
+    :param fit: Name of the fitting function to be used: 'rabi', 'ramsey', 'T1', 'transmission_resonator_spectroscopy', 'reflection_resonator_spectroscopy'.
     :return: the matplotlib figure object.
     """
     _plot_options = {
@@ -151,6 +154,19 @@ def plot_demodulated_data_1d(
         marker=_plot_options["marker"],
         linewidth=_plot_options["linewidth"],
     )
+    try:
+        if fit == "rabi":
+            Fit.rabi(x, y1, plot=True)
+        elif fit == "ramsey":
+            Fit.ramsey(x, y1, plot=True)
+        elif fit == "T1":
+            Fit.T1(x, y1, plot=True)
+        elif fit == "transmission_resonator_spectroscopy":
+            Fit.transmission_resonator_spectroscopy(x, y1, plot=True)
+        elif fit == "reflection_resonator_spectroscopy":
+            Fit.reflection_resonator_spectroscopy(x, y1, plot=True)
+    except (Exception,):
+        pass
     plt.ylabel(y1_label, fontsize=_plot_options["fontsize"])
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
@@ -163,13 +179,26 @@ def plot_demodulated_data_1d(
         marker=_plot_options["marker"],
         linewidth=_plot_options["linewidth"],
     )
+    try:
+        if fit == "rabi":
+            Fit.rabi(x, y2, plot=True)
+        elif fit == "ramsey":
+            Fit.ramsey(x, y2, plot=True)
+        elif fit == "T1":
+            Fit.T1(x, y2, plot=True)
+        elif fit == "transmission_resonator_spectroscopy":
+            Fit.transmission_resonator_spectroscopy(x, y2, plot=True)
+        elif fit == "reflection_resonator_spectroscopy":
+            Fit.reflection_resonator_spectroscopy(x, y2, plot=True)
+    except (Exception,):
+        pass
     plt.xlabel(x_label, fontsize=_plot_options["fontsize"])
     plt.ylabel(y2_label, fontsize=_plot_options["fontsize"])
     plt.xticks(fontsize=_plot_options["fontsize"])
     plt.yticks(fontsize=_plot_options["fontsize"])
     plt.pause(0.01)
     plt.tight_layout()
-    return fig
+    return fig, fit
 
 
 def get_simulated_samples_by_element(

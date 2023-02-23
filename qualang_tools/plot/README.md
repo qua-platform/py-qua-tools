@@ -44,7 +44,10 @@ amp = np.linspace(-2, 2, 101)
 I = np.array([[np.sin(i/100)*np.cos(k) for i in time] for k in amp])
 Q = np.array([[np.cos(i/100)*np.sin(k) for i in time] for k in amp])
 
+# 2D plot
 plot_demodulated_data_2d(time, amp, I, Q, "time [ns]", "amplitude [mV]", "2D map", amp_and_phase=True, plot_options={"cmap": "magma"})
+# 1D plot with fitting
+plot_demodulated_data_1d(time, I, Q, "dephasing time [ns]", "Ramsey", amp_and_phase=True, fit="ramsey", plot_options={"marker": "."})
 ```
 
 ## get_simulated_samples_by_element
@@ -111,10 +114,12 @@ This tool makes the fitting process much easier! Once you have the data you can:
 The current available fitting functions in the class are:
 
 * Linear fitting.
-* Fitting for extracting T1 parameter. 
+* Fitting for extracting T1 parameter.
+* Fitting for Rabi experiment (power Rabi or time Rabi)
 * Fitting for the Ramsey experiment (when scanning the dephasing time).
-* Fitting for the transmission amplitude of the resonantor spectroscopy.
-* Fitting for the reflection amplitude of the resonantor spectroscopy.
+* Fitting for the transmission amplitude of the resonator spectroscopy.
+* Fitting for the reflection amplitude of the resonator spectroscopy.
+* Fitting for resonator frequency versus flux from the resonator vs flux 2D map.
 
 More functions are added frequently. 
 

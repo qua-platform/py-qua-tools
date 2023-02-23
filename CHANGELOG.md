@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
 ### Added
+- Plot.fitting - add resonator frequency vs flux fitting function.
+- Plot.plots - add the possibility to fit the data to be plotted for plot_demodulated_data_1D.
 - addons.variables.assign_variables_to_element - A function to force variables assignment to specific elements.
+
 ### Changed
 - Units.unit - `units.unit.ns` now returns `1/4` within an open `qm.qua.program` scope and `1` otherwise. Same for `us`, `ms`, `s`, and `clock_cycle`. By default results of `a * ns` operation are cast to `int` and a warning is generated if casting discards a nonzero remainder.
 

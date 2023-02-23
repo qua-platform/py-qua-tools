@@ -115,7 +115,7 @@ def progress_counter(
         bar = "#" * int(current_percent / 2)
         progress += "[" + bar + " " * (50 - len(bar)) + "] "
     if percent:
-        progress += f"{current_percent:.1f}%"
+        progress += f"{current_percent:.1f}% (n={iteration + 1}/{total})"
     if start_time is not None:
         progress += f" --> elapsed time: {time.time()-start_time:.2f}s"
 

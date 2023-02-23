@@ -5,6 +5,8 @@ from typing import List, Union
 import itertools
 import json
 import numpy as np
+import warnings
+from scipy.optimize import OptimizeWarning
 
 
 class Fit:
@@ -20,6 +22,10 @@ class Fit:
         - Plotting the data and the fitting function
         - Saving the data
     """
+
+    # Remove optimize warnings
+    warnings.simplefilter("ignore", RuntimeWarning)
+    warnings.simplefilter("ignore", OptimizeWarning)
 
     @staticmethod
     def linear(
@@ -152,7 +158,7 @@ class Fit:
         for unknown parameters :
             T1 - The decay constant [ns]
             amp - The amplitude [a.u.]
-            final_offset -  The offset visible for long dephasing times [a.u.]
+            final_offset -  The offset visible for long waiting times [a.u.]
 
         :param x_data: The dephasing time [ns]
         :param y_data: Data containing the Ramsey signal
@@ -172,27 +178,12 @@ class Fit:
         x_normal = xn[1][0]
         y_normal = yn[1][0]
 
-        # Finding a guess for the decay (slope of log(peaks))
-        derivative = np.abs(np.diff(y))
-        if np.std(np.log(derivative)) < np.abs(
-            np.mean(np.log(derivative)[-10:]) - np.mean(np.log(derivative)[:10])
-        ):
-            guess_T1 = (
-                -1
-                / (
-                    (
-                        np.mean(np.log(derivative)[-10:])
-                        - np.mean(np.log(derivative)[:10])
-                    )
-                    / (len(y) - 1)
-                )
-                * (x[1] - x[0])
-            )
-        # Initial guess if the data is too noisy
-        else:
-            guess_T1 = 100 / x_normal
         # Finding a guess for the offsets
-        final_offset = np.mean(y[int(len(y) * 0.9) :])
+        final_offset = np.mean(y[np.min((int(len(y) * 0.9), len(y) - 3)) :])
+        # Finding a guess for the decay
+        guess_T1 = (
+            1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
+        )
 
         # Check user guess
         if guess is not None:
@@ -208,12 +199,16 @@ class Fit:
                         f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
                     )
         # Print the initial guess if verbose=True
+        if np.max(x_data) > 10:
+            time_unit = "ns"
+        else:
+            time_unit = "s"
         if verbose:
             print(
                 f"Initial guess:\n "
-                f"T1 = {guess_T1 * x_normal:.3f}, \n "
-                f"amp = {y[0] * y_normal:.3f}, \n "
-                f"final offset = {final_offset * y_normal:.3f}"
+                f"T1 = {guess_T1 * x_normal:.3f} {time_unit}, \n "
+                f"amp = {y[0] * y_normal:.3e} a.u., \n "
+                f"final offset = {final_offset * y_normal:.3e} a.u."
             )
 
         # Fitting function
@@ -246,9 +241,9 @@ class Fit:
         if verbose:
             print(
                 f"Fitting results:\n"
-                f" T1 = {out['T1'][0]:.2f} +/- {out['T1'][1]:.3f} ns, \n"
-                f" amp = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} a.u., \n"
-                f" final offset = {out['final_offset'][0]:.2f} +/- {out['final_offset'][1]:.3f} a.u."
+                f" T1 = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}, \n"
+                f" amp = {out['amp'][0]:.2e} +/- {out['amp'][1]:.1e} a.u., \n"
+                f" final offset = {out['final_offset'][0]:.2e} +/- {out['final_offset'][1]:.1e} a.u."
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -257,10 +252,8 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f}ns",
+                label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}",
             )
-            plt.xlabel("Waiting time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -361,11 +354,6 @@ class Fit:
             )
         else:
             guess_T2 = 100 / x_normal
-            print(
-                Warning(
-                    "WARNING: The initial guess for the decay failed, increasing the number of oscillations should solve the issue."
-                )
-            )
 
         # Finding a guess for the offsets
         initial_offset = np.mean(y[:period])
@@ -468,8 +456,6 @@ class Fit:
                 ".",
                 label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns \n f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz",
             )
-            plt.xlabel("Waiting time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -599,15 +585,22 @@ class Fit:
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
             "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal],
         }
+        # Check freq unit
+        if np.max(np.abs(x_data)) < 18:
+            freq_unit = "GHz"
+        elif np.max(np.abs(x_data)) < 18000:
+            freq_unit = "MHz"
+        else:
+            freq_unit = "Hz"
         # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
-                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
-                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
-                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
-                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
-                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz \n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} {freq_unit}, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} {freq_unit}, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} {freq_unit}, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} {freq_unit}, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} a.u., \n"
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -616,10 +609,9 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
+                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
+            plt.xlabel(f"Frequency {freq_unit}")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -774,16 +766,23 @@ class Fit:
                 m * perr[4] * y_normal / x_normal,
             ],
         }
+        # Check freq unit
+        if np.max(np.abs(x_data)) < 18:
+            freq_unit = "GHz"
+        elif np.max(np.abs(x_data)) < 18000:
+            freq_unit = "MHz"
+        else:
+            freq_unit = "Hz"
         # Print the fitting results if verbose=True
         if verbose:
             print(
                 f"Fit results:\n"
-                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} Hz, \n"
-                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} Hz, \n"
-                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} Hz, \n"
-                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} Hz, \n"
-                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} Hz, \n"
-                f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} Hz\n"
+                f"f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} {freq_unit}, \n"
+                f"kc = {out['kc'][0]:.3f} +/- {out['kc'][1]:.3f} {freq_unit}, \n"
+                f"ki = {out['ki'][0]:.3f} +/- {out['ki'][1]:.3f} {freq_unit}, \n"
+                f"k = {out['k'][0]:.3f} +/- {out['k'][1]:.3f} {freq_unit}, \n"
+                f"offset = {out['offset'][0]:.3f} +/- {out['offset'][1]:.3f} a.u., \n"
+                f"slope = {out['slope'][0]:.3f} +/- {out['slope'][1]:.3f} 1/{freq_unit}\n"
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -792,10 +791,8 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"k  = {out['k'][0]:.1f} +/- {out['k'][1]:.1f}Hz",
+                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
         if save:
@@ -858,18 +855,33 @@ class Fit:
         # Take the positive part only
         fft = fft[1 : len(f) // 2]
         f = f[1 : len(f) // 2]
-        # Remove the DC peak if there is one
-        if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
-            first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][
-                0
-            ]  # away from the DC peak
-            fft = fft[first_read_data_ind:]
-            f = f[first_read_data_ind:]
 
         # Finding a guess for the frequency
         out_freq = f[np.argmax(np.abs(fft))]
         guess_freq = out_freq / (x[1] - x[0])
-
+        # If not enough oscillations
+        if np.argmax(np.abs(fft)) < 1:
+            # If at least 1 oscillation
+            if (
+                np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y)))))
+                > 1
+            ):
+                guess_freq = 1 / (
+                    np.max(
+                        np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))
+                    )
+                    * (x[1] - x[0])
+                )
+            # If less than 1 oscillation
+            else:
+                guess_freq = 1 / (
+                    (
+                        np.argmin(y[len(y) // 2 :])
+                        + len(y) // 2
+                        - np.argmin(y[: len(y) // 2])
+                    )
+                    * (x[1] - x[0])
+                )
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T
         period = int(np.ceil(1 / out_freq))
         peaks = (
@@ -890,17 +902,14 @@ class Fit:
                 / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
                 * (x[1] - x[0])
             )
-            print(peaks)
         else:
             guess_T = 100 / x_normal
-            print(
-                Warning(
-                    "WARNING: The initial guess for the decay failed, increasing the number of oscillations should solve the issue."
-                )
-            )
 
         # Finding a guess for the offset
         offset = np.mean(y[-period:])
+
+        # Finding a guess for the offset
+        guess_amp = np.abs(np.max(y) - np.min(y))
 
         # Finding a guess for the phase
         guess_phase = (
@@ -917,7 +926,7 @@ class Fit:
                 elif key == "T":
                     guess_T = float(guess[key]) * x_normal
                 elif key == "amp":
-                    peaks[0] = float(guess[key]) / y_normal
+                    guess_amp = float(guess[key]) / y_normal
                 elif key == "offset":
                     offset = float(guess[key]) / y_normal
                 else:
@@ -932,13 +941,13 @@ class Fit:
                 f" f = {guess_freq / x_normal:.3f}, \n"
                 f" phase = {guess_phase:.3f}, \n"
                 f" T = {guess_T * x_normal:.3f}, \n"
-                f" amplitude = {peaks[0] * y_normal:.3f}, \n"
-                f" offset = {offset * y_normal:.3f}"
+                f" amplitude = {guess_amp * y_normal:.1e}, \n"
+                f" offset = {offset * y_normal:.1e}"
             )
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3, a4):
-            return (peaks[0] * a0) * (
+            return (guess_amp * a0) * (
                 np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)
             ) ** 2 * np.exp(-x_var / np.abs(guess_T * a2)) + offset * a4
 
@@ -959,12 +968,22 @@ class Fit:
             "f": [popt[1] * guess_freq / x_normal, perr[1] * guess_freq / x_normal],
             "phase": [popt[3] % (2 * np.pi), perr[3] % (2 * np.pi)],
             "T": [(guess_T * abs(popt[2])) * x_normal, perr[2] * guess_T * x_normal],
-            "amp": [popt[0] * peaks[0] * y_normal, perr[0] * peaks[0] * y_normal],
+            "amp": [popt[0] * guess_amp * y_normal, perr[0] * guess_amp * y_normal],
             "offset": [
                 offset * popt[4] * y_normal,
                 perr[4] * offset * y_normal,
             ],
         }
+        # FInd if power rabi or time rabi
+        if 0.01 < np.abs(np.max(x_data)) < 1:
+            pi_param = 0.5 / out["f"][0]
+            pi_label = f"x180 amplitude = {pi_param:.3f} V"
+        else:
+            pi_param = 0.5 / out["f"][0]
+            if pi_param > 1:
+                pi_label = f"x180 length = {pi_param:.1f} ns"
+            else:
+                pi_label = f"x180 length = {pi_param:.3e} s"
         # Print the fitting results if verbose=True
         if verbose:
             print(
@@ -972,8 +991,8 @@ class Fit:
                 f" f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz, \n"
                 f" phase = {out['phase'][0]:.3f} +/- {out['phase'][1]:.3f} rad, \n"
                 f" T = {out['T'][0]:.2f} +/- {out['T'][1]:.3f} ns, \n"
-                f" amplitude = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f}, \n"
-                f" offset = {out['offset'][0]:.2f} +/- {out['offset'][1]:.3f} a.u."
+                f" amplitude = {out['amp'][0]:.1e} +/- {out['amp'][1]:.1e} a.u., \n"
+                f" offset = {out['offset'][0]:.1e} +/- {out['offset'][1]:.1e} a.u."
             )
         # Plot the data and the fitting function if plot=True
         if plot:
@@ -982,16 +1001,190 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz \n T  = {out['T'][0]:.1f} +/- {out['T'][1]:.1f}ns",
+                label=pi_label,
             )
-            plt.xlabel("Time [ns]")
-            plt.ylabel(r"$\sqrt{I^2+Q^2}$ [a.u.]")
             plt.legend(loc="upper right")
         # Save the data in a json file named 'data_fit_id.json' if save=id
         if save:
             fit_params = dict(itertools.islice(out.items(), 1, len(out)))
             fit_params["x_data"] = x_data.tolist()
             fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            with open(f"data_fit_{save}.json", "w") as outfile:
+                outfile.write(json_object)
+        return out
+
+    @staticmethod
+    def resonator_frequency_vs_flux(
+        frequency: Union[np.ndarray, List[float]],
+        flux: Union[np.ndarray, List[float]],
+        data: np.ndarray,
+        guess=None,
+        verbose=False,
+        plot=False,
+        save=False,
+    ):
+        """
+        Create a fit for the resonator frequency versus flux 2D map.
+        Each flux points (line-cuts) is fitted with the reflection_resonator_spectroscopy() function to extract the
+        resonance frequency of the resonator and the evolution of this frequency versu flux if fitted using
+
+        .. math::
+        f(x) = amp * (np.sin((2 * np.pi * f) * frequency + phase))**2 + offset
+
+        for unknown parameters :
+            f - The resonator vs flux oscillating frequency [Hz or GHz / V]
+            phase - The phase [rad]
+            amp - The oscillation amplitude [Hz or GHz]
+            offset -  The resonator frequency offset [Hz or GHz]
+
+        :param frequency: The readout frequency [Hz or GHz]
+        :param flux: The flux biases [V]
+        :param data: Data containing the frequency vs flux map. Must be a 2D array with data.shape=(len(flux), len(frequency)).
+        :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(T2=20))
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
+        :param save: if not False saves the data into a json file
+                     The id of the file is save='id'. The name of the json file is `data_fit_id.json`
+          :return: A dictionary of (fit_func, f, phase, amp, offset)
+
+        """
+        freq = [np.nan for _ in range(len(flux))]
+        # Extract 1D curve f_res vs flux
+        map2 = np.zeros((len(flux), len(frequency)))
+        for i in range(len(flux)):
+            try:
+                f = Fit.reflection_resonator_spectroscopy(frequency, data[i])
+                freq[i] = f["f"][0]
+            except (Exception,):
+                if i > 0:
+                    freq[i] = freq[i - 1]
+                else:
+                    freq[i] = np.mean(frequency)
+            # Get fitted curve on 2D map
+            map2[i][np.argmin(np.abs(frequency - freq[i]))] = -np.max(data)
+        # Normalizing the vectors
+        xn = preprocessing.normalize([flux], return_norm=True)
+        yn = preprocessing.normalize([freq], return_norm=True)
+        x = xn[0][0]
+        y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
+
+        # Compute the FFT for guessing the frequency
+        fft = np.fft.fft(y)
+        f = np.fft.fftfreq(len(x))
+        # Take the positive part only
+        fft = fft[1 : len(f) // 2]
+        f = f[1 : len(f) // 2]
+        # Finding a guess for the frequency
+        out_freq = f[np.argmax(np.abs(fft))]
+        guess_freq = out_freq / (x[1] - x[0])
+        if np.argmax(np.abs(fft)) < 1:
+            guess_freq = 1 / (x[-1] - x[0])
+
+        # Finding a guess for the offset
+        offset = np.mean(y)
+
+        # Finding a guess for the phase
+        guess_phase = (
+            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
+        )
+
+        guess_amp = np.max(y) - np.min(y)
+        # Check user guess
+        if guess is not None:
+            for key in guess.keys():
+                if key == "f":
+                    guess_freq = float(guess[key]) * x_normal
+                elif key == "phase":
+                    guess_phase = float(guess[key])
+                elif key == "amp":
+                    guess_amp = float(guess[key]) / y_normal
+                elif key == "offset":
+                    offset = float(guess[key]) / y_normal
+                else:
+                    raise Exception(
+                        f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
+                    )
+
+        # Print the initial guess if verbose=True
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" f = {guess_freq / x_normal:.3f}, \n"
+                f" phase = {guess_phase:.3f}, \n"
+                f" amplitude = {guess_amp * y_normal:.3f}, \n"
+                f" offset = {offset * y_normal:.3f}"
+            )
+
+        # Fitting function
+        def func(x_var, a0, a1, a2, a3):
+            return (guess_amp * a0) * np.sin(
+                (2 * np.pi * guess_freq * a1) * x_var + a2
+            ) + offset * a3
+
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2], a[3])
+
+        popt, pcov = optimize.curve_fit(
+            func,
+            x,
+            y,
+            p0=[1, 1, guess_phase, 1],
+        )
+        perr = np.sqrt(np.diag(pcov))
+        # Check freq unit
+        if np.max(np.abs(frequency)) < 18:
+            freq_unit = "GHz"
+        elif np.max(np.abs(frequency)) < 18000:
+            freq_unit = "MHz"
+        else:
+            freq_unit = "Hz"
+        # Output the fitting function and its parameters
+        out = {
+            "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
+            "f": [popt[1] * guess_freq / x_normal, perr[1] * guess_freq / x_normal],
+            "phase": [popt[2] % (2 * np.pi), perr[2] % (2 * np.pi)],
+            "amp": [popt[0] * guess_amp * y_normal, perr[0] * guess_amp * y_normal],
+            "offset": [
+                offset * popt[3] * y_normal,
+                perr[3] * offset * y_normal,
+            ],
+        }
+        # Print the fitting results if verbose=True
+        if verbose:
+            print(
+                f"Fitting results:\n"
+                f" f = {out['f'][0]:.3f} +/- {out['f'][1]:.3f} 1/V, \n"
+                f" phase = {out['phase'][0]:.3f} +/- {out['phase'][1]:.3f} rad, \n"
+                f" amplitude = {out['amp'][0]:.2f} +/- {out['amp'][1]:.3f} {freq_unit}, \n"
+                f" offset = {out['offset'][0]:.2f} +/- {out['offset'][1]:.3f} {freq_unit}"
+            )
+        # Plot the data and the fitting function if plot=True
+        if plot:
+            plt.figure()
+            plt.subplot(211)
+            plt.pcolor(frequency, flux, map2 + data)
+            plt.ylabel("Flux bias [V]")
+            plt.xlabel(f"Readout frequency [{freq_unit}]")
+            plt.title("Readout resonator spec vs flux")
+            plt.subplot(212)
+            plt.plot(flux, freq, "b.")
+            plt.plot(flux, fit_type(x, popt) * y_normal)
+            plt.tight_layout()
+            if np.max(np.abs(flux)) < 1:
+                plt.xlabel("Flux bias [V]")
+            else:
+                plt.xlabel("Flux bias [mV]")
+            plt.ylabel(f"Resonator frequency [{freq_unit}]")
+            plt.tight_layout()
+        # Save the data in a json file named 'data_fit_id.json' if save=id
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            fit_params["x_data"] = flux.tolist()
+            fit_params["y_data"] = freq
             fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
             json_object = json.dumps(fit_params)
             with open(f"data_fit_{save}.json", "w") as outfile:
