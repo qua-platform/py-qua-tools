@@ -27,7 +27,7 @@ storing them in the usual configuration file. It allows defining waveforms in a 
   enables easily editing various parts of the figure, copy-pasting data between figures and into spreadsheets, 
   fitting the data and saving the figures.
   * [assign_variables_to_element](qualang_tools/addons/variables.py) - Forces the given variables to be used by the given element thread. Useful as a workaround for when the compiler
-  wrongly assigns variables which can causes gaps.
+  wrongly assigns variables which can cause gaps.
 
 * [Config Tools](qualang_tools/config/README.md) - This package includes tools related to the QOP configuration file, including:
   * [Integration Weights Tools](qualang_tools/config/README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
