@@ -19,7 +19,7 @@ The available functions are:
 
 The following tool `transform_negative_delays`:
 * It takes as input a config dictionary that can contain a wide variety of controllers as well as different delays to the analog outputs channels. 
-Positive and negative delays are permitted. The tool finds the minimum delay among all channels (can be negative) and
+Positive and negative delays are permitted. The tool finds the maximum/most negative delay among all channels and
 adds this value to all channels to synchronize them in the set-up.
 
 ## Example use case for QuaConfig

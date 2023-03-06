@@ -8,6 +8,7 @@ from pprint import pprint
 def transform_negative_delays(config, create_new_config=False):
     """
     Adds the most negative delay to all the elements in the configuration.
+
     :param config: A valid QOP configuration.
     :param create_new_config: If true, returns a new copy of the configuration.
         If false, edits the existing configuration. Default is false.
