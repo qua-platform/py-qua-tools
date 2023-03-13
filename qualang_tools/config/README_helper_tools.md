@@ -17,7 +17,12 @@ The available functions are:
         only from their waveforms than can be updated using the corresponding function `update_waveforms()`.
 * `update_waveforms` - Update the waveforms from a specific operation and element.
 
-## Example use case
+The following tool `transform_negative_delays`:
+* It takes as input a config dictionary that can contain a wide variety of controllers as well as different delays to the analog outputs channels. 
+Positive and negative delays are permitted. The tool finds the maximum/most negative delay among all channels and
+adds this value to all channels to synchronize them in the set-up.
+
+## Example use case for QuaConfig
 Usage example of the helper tools:
 
 ```python
@@ -58,4 +63,42 @@ config.copy_operation("resonator", "readout", new_name="short_readout")
 config.update_waveforms("resonator", "short_readout", ((0.15*gaussian(175, 30)).tolist(), [0.0]*175))
 ## with singleInput elements & constant waveform
 config.update_waveforms("flux_line", "bias", ([0.118]*175, ))
+```
+
+## Example use case for transform negative delays
+
+```python
+from qualang_tools.config.helper_tools import transform_negative_delays
+
+config = {
+    "version": 1,
+    "controllers": {
+        "con1": {
+            "analog_outputs": {
+                1: {"offset": 0.0, "delay": -24.0},
+                2: {"offset": 0.0, "delay": -100.0},
+                3: {"offset": 0.0, "delay": 0.0},
+                4: {"offset": 0.0, "delay": 0.0},
+            },
+            "digital_outputs": {},
+            "analog_inputs": {
+                1: {"offset": 0.0, "gain_db": 0},
+                2: {"offset": 0.0, "gain_db": 0},
+            },
+        },
+    },
+    "elements": {},
+    "pulses": {},
+    "waveforms": {},
+    "digital_waveforms": {},
+    "integration_weights": {},
+    "mixers": {},
+}
+
+
+u_config = transform_negative_delays(config, create_new_config=True)
+
+for i in range(1, 5):
+    print(f"original configuration delays on output {i}", config['controllers']['con1']['analog_outputs'][i]['delay'])
+    print(f"updated configuration delays on output {i}", u_config['controllers']['con1']['analog_outputs'][i]['delay'])
 ```

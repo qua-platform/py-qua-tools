@@ -5,6 +5,33 @@ import json as _json
 from pprint import pprint
 
 
+def transform_negative_delays(config, create_new_config=False):
+    """
+    Adds the most negative delay to all the elements in the configuration.
+
+    :param config: A valid QOP configuration.
+    :param create_new_config: If true, returns a new copy of the configuration.
+        If false, edits the existing configuration. Default is false.
+    :returns: The edited configuration.
+    """
+    min_delay = 0
+    if create_new_config:
+        config = _deepcopy(config)
+    cons = config.get("controllers")
+    for con in cons:
+        ports = cons.get(con).get("analog_outputs")
+        for port in ports:
+            min_delay = min(ports.get(port).get("delay", 0), min_delay)
+
+    if min_delay < 0:
+        for con in cons:
+            ports = cons.get(con).get("analog_outputs")
+            for port in ports:
+                delay = ports.get(port).get("delay", 0)
+                ports.get(port)["delay"] = delay - min_delay
+    return config
+
+
 class QuaConfig(_UserDict):
     def __init__(self, data):
         super().__init__(data)

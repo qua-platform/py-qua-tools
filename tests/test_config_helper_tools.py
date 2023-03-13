@@ -118,6 +118,35 @@ def config0():
     }
 
 
+@pytest.fixture
+def negative_delay_config():
+    return {
+        "version": 1,
+        "controllers": {
+            "con1": {
+                "analog_outputs": {
+                    1: {"offset": 0.0, "delay": -24.0},
+                    2: {"offset": 0.0, "delay": -100.0},
+                    3: {"offset": 0.0, "delay": 12.0},
+                    4: {"offset": 0.0, "delay": 16.0},
+                    5: {"offset": 0.0, "delay": 0.0},
+                },
+                "digital_outputs": {},
+                "analog_inputs": {
+                    1: {"offset": 0.0, "gain_db": 0},  # I from down-conversion
+                    2: {"offset": 0.0, "gain_db": 0},  # Q from down-conversion
+                },
+            }
+        },
+        "elements": {},
+        "pulses": {},
+        "waveforms": {},
+        "digital_waveforms": {},
+        "integration_weights": {},
+        "mixers": {},
+    }
+
+
 def test_update_integration_weight(config0):
     conf = deepcopy(config0)
     config = QuaConfig(conf)
@@ -187,3 +216,43 @@ def test_update_update_waveforms(config0):
     assert config["waveforms"]["flux_line_bias_single_wf"]["samples"] == list(
         gaussian(112, 20)
     )
+
+
+def test_transform_negative_delays(negative_delay_config):
+    initial_config = deepcopy(negative_delay_config)
+    corrected_config = {
+        "version": 1,
+        "controllers": {
+            "con1": {
+                "analog_outputs": {
+                    1: {"offset": 0.0, "delay": 76.0},
+                    2: {"offset": 0.0, "delay": 0.0},
+                    3: {"offset": 0.0, "delay": 112.0},
+                    4: {"offset": 0.0, "delay": 116.0},
+                    5: {"offset": 0.0, "delay": 100.0},
+                },
+                "digital_outputs": {},
+                "analog_inputs": {
+                    1: {"offset": 0.0, "gain_db": 0},  # I from down-conversion
+                    2: {"offset": 0.0, "gain_db": 0},  # Q from down-conversion
+                },
+            }
+        },
+        "elements": {},
+        "pulses": {},
+        "waveforms": {},
+        "digital_waveforms": {},
+        "integration_weights": {},
+        "mixers": {},
+    }
+
+    test_config = transform_negative_delays(
+        negative_delay_config, create_new_config=True
+    )
+    # Test that initial config has not been changed
+    assert initial_config == negative_delay_config
+    # Test that the updated config is correct
+    assert test_config == corrected_config
+    # Test that the updated config is correct with create_new_config=False
+    transform_negative_delays(negative_delay_config)
+    assert test_config == negative_delay_config
