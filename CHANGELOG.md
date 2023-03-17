@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- External_frameworks - add qcodes drivers to set the OPX as a qcodes instrument.
+- Examples - add examples to show how to integrate the OPX in your qcodes framework and customize the qcodes driver
 
 ## [0.14.0] - 2023-03-23
 - Changed `qm-qua` requirements to be >=1.1.0
+
 ### Added
 - Config.helper_tools - Added the function `transform_negative_delays()` to adjust a config containing negative delays by offsetting all delays by the most negative one.
 
