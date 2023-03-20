@@ -9,6 +9,22 @@ import warnings
 from scipy.optimize import OptimizeWarning
 
 
+####################
+# helper functions #
+####################
+
+def find_nearest(array, value):
+    """
+    finds the index which corresponds to the value in the array closest to the value given
+    :param array:
+    :param value:
+    :return:
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
 class Fit:
     """
     This class takes care of the fitting to the measured data.
@@ -29,12 +45,12 @@ class Fit:
 
     @staticmethod
     def linear(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ) -> dict:
         """
         Create a linear fit of the form
@@ -142,12 +158,12 @@ class Fit:
 
     @staticmethod
     def T1(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit to T1 experiment of the form
@@ -179,10 +195,10 @@ class Fit:
         y_normal = yn[1][0]
 
         # Finding a guess for the offsets
-        final_offset = np.mean(y[np.min((int(len(y) * 0.9), len(y) - 3)) :])
+        final_offset = np.mean(y[np.min((int(len(y) * 0.9), len(y) - 3)):])
         # Finding a guess for the decay
         guess_T1 = (
-            1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
+                1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
         )
 
         # Check user guess
@@ -272,12 +288,12 @@ class Fit:
 
     @staticmethod
     def ramsey(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit to Ramsey experiment of the form
@@ -319,8 +335,8 @@ class Fit:
         fft = np.fft.fft(y)
         f = np.fft.fftfreq(len(x))
         # Take the positive part only
-        fft = fft[1 : len(f) // 2]
-        f = f[1 : len(f) // 2]
+        fft = fft[1: len(f) // 2]
+        f = f[1: len(f) // 2]
         # Remove the DC peak if there is one
         if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
             first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][
@@ -336,22 +352,22 @@ class Fit:
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T2
         period = int(np.ceil(1 / out_freq))
         peaks = (
-            np.array(
-                [
-                    np.std(y[i * period : (i + 1) * period])
-                    for i in range(round(len(y) / period))
-                ]
-            )
-            * np.sqrt(2)
-            * 2
+                np.array(
+                    [
+                        np.std(y[i * period: (i + 1) * period])
+                        for i in range(round(len(y) / period))
+                    ]
+                )
+                * np.sqrt(2)
+                * 2
         )
 
         # Finding a guess for the decay (slope of log(peaks))
         if len(peaks) > 1:
             guess_T2 = (
-                -1
-                / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
-                * (x[1] - x[0])
+                    -1
+                    / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
+                    * (x[1] - x[0])
             )
         else:
             guess_T2 = 100 / x_normal
@@ -362,7 +378,7 @@ class Fit:
 
         # Finding a guess for the phase
         guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
+                np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
         )
 
         # Check user guess
@@ -402,12 +418,12 @@ class Fit:
             return final_offset * a4 * (1 - np.exp(-x_var / (guess_T2 * a1))) + peaks[
                 0
             ] / 2 * a2 * (
-                np.exp(-x_var / (guess_T2 * a1))
-                * (
-                    a5 * initial_offset / peaks[0] * 2
-                    + np.cos(2 * np.pi * a0 * guess_freq * x + a3)
-                )
-            )
+                           np.exp(-x_var / (guess_T2 * a1))
+                           * (
+                                   a5 * initial_offset / peaks[0] * 2
+                                   + np.cos(2 * np.pi * a0 * guess_freq * x + a3)
+                           )
+                   )
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3], a[4], a[5])
@@ -678,18 +694,83 @@ class Fit:
                 outfile.write(json_object)
         return out
 
+    @staticmethod
+    def fit_abs(x, y, guess=None, plot=False):
+        """
+        Fit a function with an absolute linear form :
+
+        f(x) = m * |x - lateral_offset| + vertical_offset
+
+        for unknown parameters:
+            gradient - the gradient of the function
+            offset - the horizontal offset from zero of the minima of the function
+            vertical_offset - the vertical offset from zero of the minima of the function
+
+        @param x: x data
+        @param y: y data
+        @param guess: dictionary containing initial guesses for the fitting parameters
+        @param plot: boolean to dictate whether the fit and data are plotted upon calling the function
+        @return:
+        """
+
+        offset_guess = x[find_nearest(y, 0)]
+
+        gradient_guess = (y[-1] - y[0]) / (x[-1] - x[0])
+
+        vertical_offset = np.min(x)
+
+        if guess is not None:
+            for key in guess.keys():
+                if key == 'offset':
+                    offset_guess = float(guess[key])
+                elif key == 'gradient':
+                    gradient_guess = float(guess[key])
+                elif key == 'vertical_offset':
+                    vertical_offset = float(guess[key])
+                else:
+                    raise Exception(
+                        f'The key {key} you entered does not match a fitting parameter for this model'
+                    )
+
+        def func(x_var, a0, a1, a2):
+            return (a0 * gradient_guess) * np.abs(x_var - (a1 * offset_guess)) + (vertical_offset * a2)
+
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2])
+
+        popt, _ = optimize.curve_fit(
+            func,
+            x,
+            y,
+            p0=[1, 1, 1]
+        )
 
 
+        out = {
+            'fit_func': lambda x_var: fit_type(x_var, popt),
+            'gradient': popt[0] * gradient_guess,
+            'offset': popt[1] * offset_guess,
+            'vertical_offset': popt[2] * vertical_offset
+        }
 
+        if plot:
+            # to increase the resolution of fitted line
+            use_x = np.linspace(x[0], x[-1], 1000)
+            plt.figure()
+            plt.plot(use_x, fit_type(use_x, popt), label='Fitted data')
+            plt.plot(x, y, '.', label='Raw data')
+            plt.legend()
+
+        return out
 
     @staticmethod
     def transmission_resonator_spectroscopy(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit to transmission resonator spectroscopy of the form
@@ -734,7 +815,7 @@ class Fit:
             y_FWHM = (peak + np.mean(y[-10:-1])) / 2
 
         # Finding a guess for the width
-        width0_arg_right = (np.abs(y_FWHM - y[arg_max + 1 : len(y)])).argmin() + arg_max
+        width0_arg_right = (np.abs(y_FWHM - y[arg_max + 1: len(y)])).argmin() + arg_max
         width0_arg_left = (np.abs(y_FWHM - y[0:arg_max])).argmin()
         width0 = x[width0_arg_right] - x[width0_arg_left]
 
@@ -742,7 +823,7 @@ class Fit:
         f0 = x[arg_max]
 
         # Finding a guess to offset
-        v0 = np.mean(y[0 : int(width0_arg_left - width0 / 2)])
+        v0 = np.mean(y[0: int(width0_arg_left - width0 / 2)])
 
         # Check user guess
         if guess is not None:
@@ -770,9 +851,9 @@ class Fit:
         # Fitting function
         def func(x_var, a0, a1, a2, a3):
             return (
-                ((peak - v0) * a0)
-                / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
-            ) + (v0 * a3)
+                           ((peak - v0) * a0)
+                           / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
+                   ) + (v0 * a3)
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3])
@@ -841,12 +922,12 @@ class Fit:
 
     @staticmethod
     def reflection_resonator_spectroscopy(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit to reflection resonator spectroscopy of the form
@@ -895,7 +976,7 @@ class Fit:
             y_FWHM = (peak + np.mean(y[-10:-1])) / 2
 
         # Finding a guess to the width
-        width0_arg_right = (np.abs(y_FWHM - y[arg_min + 1 : len(y)])).argmin() + arg_min
+        width0_arg_right = (np.abs(y_FWHM - y[arg_min + 1: len(y)])).argmin() + arg_min
         width0_arg_left = (np.abs(y_FWHM - y[0:arg_min])).argmin()
         width0 = x[width0_arg_right] - x[width0_arg_left]
         width0 = width0
@@ -904,12 +985,12 @@ class Fit:
 
         # Finding a guess to the slope
         m = (
-            np.mean(y[int(width0_arg_right + width0) : -1])
-            - np.mean(y[0 : int(width0_arg_left - width0)])
-        ) / (
-            np.mean(x[int(width0_arg_right + width0) : -1])
-            - np.mean(x[0 : int(width0_arg_left - width0)])
-        )
+                    np.mean(y[int(width0_arg_right + width0): -1])
+                    - np.mean(y[0: int(width0_arg_left - width0)])
+            ) / (
+                    np.mean(x[int(width0_arg_right + width0): -1])
+                    - np.mean(x[0: int(width0_arg_left - width0)])
+            )
 
         # Check user guess
         if guess is not None:
@@ -940,12 +1021,12 @@ class Fit:
 
         def func(x_var, a0, a1, a2, a3, a4):
             return (
-                ((v0 - peak) * a3)
-                - (
-                    ((v0 - peak) * a0)
-                    / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
-                )
-                + m * a4 * x_var
+                    ((v0 - peak) * a3)
+                    - (
+                            ((v0 - peak) * a0)
+                            / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
+                    )
+                    + m * a4 * x_var
             )
 
         def fit_type(x_var, a):
@@ -1022,12 +1103,12 @@ class Fit:
 
     @staticmethod
     def rabi(
-        x_data: Union[np.ndarray, List[float]],
-        y_data: Union[np.ndarray, List[float]],
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit to Rabi experiment of the form
@@ -1065,8 +1146,8 @@ class Fit:
         fft = np.fft.fft(y)
         f = np.fft.fftfreq(len(x))
         # Take the positive part only
-        fft = fft[1 : len(f) // 2]
-        f = f[1 : len(f) // 2]
+        fft = fft[1: len(f) // 2]
+        f = f[1: len(f) // 2]
 
         # Finding a guess for the frequency
         out_freq = f[np.argmax(np.abs(fft))]
@@ -1075,44 +1156,44 @@ class Fit:
         if np.argmax(np.abs(fft)) < 1:
             # If at least 1 oscillation
             if (
-                np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y)))))
-                > 1
+                    np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y)))))
+                    > 1
             ):
                 guess_freq = 1 / (
-                    np.max(
-                        np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))
-                    )
-                    * (x[1] - x[0])
+                        np.max(
+                            np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))
+                        )
+                        * (x[1] - x[0])
                 )
             # If less than 1 oscillation
             else:
                 guess_freq = 1 / (
-                    (
-                        np.argmin(y[len(y) // 2 :])
-                        + len(y) // 2
-                        - np.argmin(y[: len(y) // 2])
-                    )
-                    * (x[1] - x[0])
+                        (
+                                np.argmin(y[len(y) // 2:])
+                                + len(y) // 2
+                                - np.argmin(y[: len(y) // 2])
+                        )
+                        * (x[1] - x[0])
                 )
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T
         period = int(np.ceil(1 / out_freq))
         peaks = (
-            np.array(
-                [
-                    np.std(y[i * period : (i + 1) * period])
-                    for i in range(round(len(y) / period))
-                ]
-            )
-            * np.sqrt(2)
-            * 2
+                np.array(
+                    [
+                        np.std(y[i * period: (i + 1) * period])
+                        for i in range(round(len(y) / period))
+                    ]
+                )
+                * np.sqrt(2)
+                * 2
         )
 
         # Finding a guess for the decay (slope of log(peaks))
         if len(peaks) > 1:
             guess_T = (
-                -1
-                / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
-                * (x[1] - x[0])
+                    -1
+                    / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
+                    * (x[1] - x[0])
             )
         else:
             guess_T = 100 / x_normal
@@ -1125,7 +1206,7 @@ class Fit:
 
         # Finding a guess for the phase
         guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
+                np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
         )
 
         # Check user guess
@@ -1230,13 +1311,13 @@ class Fit:
 
     @staticmethod
     def resonator_frequency_vs_flux(
-        frequency: Union[np.ndarray, List[float]],
-        flux: Union[np.ndarray, List[float]],
-        data: np.ndarray,
-        guess=None,
-        verbose=False,
-        plot=False,
-        save=False,
+            frequency: Union[np.ndarray, List[float]],
+            flux: Union[np.ndarray, List[float]],
+            data: np.ndarray,
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
     ):
         """
         Create a fit for the resonator frequency versus flux 2D map.
@@ -1290,8 +1371,8 @@ class Fit:
         fft = np.fft.fft(y)
         f = np.fft.fftfreq(len(x))
         # Take the positive part only
-        fft = fft[1 : len(f) // 2]
-        f = f[1 : len(f) // 2]
+        fft = fft[1: len(f) // 2]
+        f = f[1: len(f) // 2]
         # Finding a guess for the frequency
         out_freq = f[np.argmax(np.abs(fft))]
         guess_freq = out_freq / (x[1] - x[0])
@@ -1303,7 +1384,7 @@ class Fit:
 
         # Finding a guess for the phase
         guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
+                np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
         )
 
         guess_amp = np.max(y) - np.min(y)
