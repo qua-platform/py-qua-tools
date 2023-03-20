@@ -245,6 +245,7 @@ class Fit:
                 f" amp = {out['amp'][0]:.2e} +/- {out['amp'][1]:.1e} a.u., \n"
                 f" final offset = {out['final_offset'][0]:.2e} +/- {out['final_offset'][1]:.1e} a.u."
             )
+
         # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
@@ -372,7 +373,7 @@ class Fit:
                 elif key == "phase":
                     guess_phase = float(guess[key])
                 elif key == "T2":
-                    guess_T2 = float(guess[key]) * x_normal
+                    guess_T2 = float(guess[key]) / x_normal
                 elif key == "amp":
                     peaks[0] = float(guess[key]) / y_normal
                 elif key == "initial_offset":
@@ -924,7 +925,7 @@ class Fit:
                 elif key == "phase":
                     guess_phase = float(guess[key])
                 elif key == "T":
-                    guess_T = float(guess[key]) * x_normal
+                    guess_T = float(guess[key]) / x_normal
                 elif key == "amp":
                     guess_amp = float(guess[key]) / y_normal
                 elif key == "offset":
@@ -994,6 +995,7 @@ class Fit:
                 f" amplitude = {out['amp'][0]:.1e} +/- {out['amp'][1]:.1e} a.u., \n"
                 f" offset = {out['offset'][0]:.1e} +/- {out['offset'][1]:.1e} a.u."
             )
+
         # Plot the data and the fitting function if plot=True
         if plot:
             plt.plot(x_data, fit_type(x, popt) * y_normal)
@@ -1028,7 +1030,7 @@ class Fit:
         """
         Create a fit for the resonator frequency versus flux 2D map.
         Each flux points (line-cuts) is fitted with the reflection_resonator_spectroscopy() function to extract the
-        resonance frequency of the resonator and the evolution of this frequency versu flux if fitted using
+        resonance frequency of the resonator and the evolution of this frequency versus flux if fitted using
 
         .. math::
         f(x) = amp * (np.sin((2 * np.pi * f) * frequency + phase))**2 + offset
@@ -1064,6 +1066,7 @@ class Fit:
                     freq[i] = np.mean(frequency)
             # Get fitted curve on 2D map
             map2[i][np.argmin(np.abs(frequency - freq[i]))] = -np.max(data)
+
         # Normalizing the vectors
         xn = preprocessing.normalize([flux], return_norm=True)
         yn = preprocessing.normalize([freq], return_norm=True)
