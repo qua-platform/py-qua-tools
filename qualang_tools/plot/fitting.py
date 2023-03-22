@@ -1486,6 +1486,167 @@ class Fit:
                 outfile.write(json_object)
         return out
 
+    @staticmethod
+    def lorentzian(
+            x_data: Union[np.ndarray, List[float]],
+            y_data: Union[np.ndarray, List[float]],
+            guess=None,
+            verbose=False,
+            plot=False,
+            save=False,
+    ):
+        """
+        Create a fit of 1 - lorentzian
+
+        .. math::
+        f(x) = offset -  amp * ( (1/pi) * (1/2 gamma) / ((x - x0)**2 + (1/2 gamma)**2))
+
+        for unknown parameters :
+            gamma - width parameter
+            x0 - centre of the distribution
+            offset -  The vertical offset of the distribution
+            amp - scaling amplitude
+
+        :param x_data:
+        :param y_data:
+        :param dict guess: Dictionary containing the initial guess for the fitting parameters (guess=dict(T2=20))
+        :param verbose: if True prints the initial guess and fitting results
+        :param plot: if True plots the data and the fitting function
+        :param save: if not False saves the data into a json file
+                     The id of the file is save='id'. The name of the json file is `id.json`
+          :return: A dictionary of (fit_func, f, phase, tau, amp, uncertainty_population, initial_offset)
+
+        """
+
+        # Normalizing the vectors
+        xn = preprocessing.normalize([x_data], return_norm=True)
+        yn = preprocessing.normalize([y_data], return_norm=True)
+        x = xn[0][0]
+        y = yn[0][0]
+        x_normal = xn[1][0]
+        y_normal = yn[1][0]
+
+        ### generating initial parameters ###
+
+        # x0 should be around the minimum of the function
+        guess_x0 = x[np.argmin(y)]
+
+        # all of the function is below the offset, so the offset is approximately the maximum value of the function
+        guess_offset = np.max(y)
+
+        # guess FWHM
+        height = np.abs(guess_offset - np.min(y))
+        half_maximum = np.min(y) + height / 2
+
+        lower_hwhm = guess_x0 - x[find_nearest(y[:np.argmin(y)], half_maximum)]
+        guess_gamma = 2 * lower_hwhm
+
+        # scale guess using definition of lorentzian
+        guess_scale = (np.pi / 2) * (guess_gamma * height)
+
+        # Check user guess
+        if guess is not None:
+            for key in guess.keys():
+                if key == "gamma":
+                    guess_gamma = float(guess[key]) / x_normal
+                elif key == "x0":
+                    guess_x0 = float(guess[key]) / x_normal
+                elif key == "scale":
+                    guess_scale = float(guess[key]) / y_normal / x_normal
+                elif key == "offset":
+                    guess_offset = float(guess[key]) / y_normal
+                else:
+                    raise Exception(
+                        f"The key '{key}' specified in 'guess' does not match a fitting parameters for this function."
+                    )
+
+        # Print the initial guess if verbose=True
+        if verbose:
+            print(
+                f"Initial guess:\n"
+                f" gamma = {guess_gamma * x_normal:.3f}, \n"
+                f" x0 = {guess_x0 * x_normal:.3f}, \n"
+                f" scale = {guess_scale * y_normal * x_normal:.3f}, \n"
+                f" offset = {guess_offset * y_normal:.3f}, \n"
+            )
+
+        # Fitting function
+        def func(x_var, a0, a1, a2, a3):
+
+            lorentzian = a2 * guess_scale / np.pi * (1 / 2 * a0 * guess_gamma) / (
+                    (x_var - a1 * guess_x0) ** 2 + (1 / 2 * a0 * guess_gamma) ** 2)
+
+            return (a3 * guess_offset) - lorentzian
+
+        def fit_type(x_var, a):
+            return func(x_var, a[0], a[1], a[2], a[3])
+
+        popt, pcov = optimize.curve_fit(
+            func,
+            x,
+            y,
+            p0=[1, 1, 1, 1],
+        )
+
+        perr = np.sqrt(np.diag(pcov))
+
+        # Output the fitting function and its parameters
+        out = {
+            "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
+            "gamma": [popt[0] * guess_gamma * x_normal, perr[0] * guess_gamma * x_normal],
+            "x0": [popt[1] * guess_x0 * x_normal, perr[1] * guess_x0 * x_normal],
+            "scale": [popt[2] * guess_scale * y_normal * x_normal, perr[2] * guess_scale * y_normal * x_normal],
+            "offset": [
+                popt[3] * guess_offset * y_normal,
+                perr[3] * guess_offset * y_normal,
+            ],
+        }
+
+        y_peak = out.get('fit_func')(out.get('x0')[0])
+        y_saturated = out.get('offset')
+
+        out['contrast'] = [
+            (y_saturated[0] - y_peak) / y_saturated[0],
+            y_saturated[1] / y_saturated[0]
+        ]
+
+        # Print the fitting results if verbose=True
+        if verbose:
+            print(
+                f"Fitting results:\n"
+                f" gamma = {out['gamma'][0]:.2f} +/- {out['gamma'][1]:.3f} a.u., \n"
+                f" x0 = {out['x0'][0]:.2f} +/- {out['x0'][1]:.3f}, \n"
+                f" scale = {out['scale'][0]:.2f} +/- {out['scale'][1]:.3f} a.u., \n"
+                f" offset = {out['offset'][0]:.2f} +/- {out['offset'][1]:.3f}, \n"
+                f" contrast = {out['contrast']}\n"
+
+            )
+
+        # Plot the data and the fitting function if plot=True
+        if plot:
+            plt.plot(x_data, fit_type(x, popt) * y_normal, label='fit')
+            plt.scatter(
+                x_data,
+                y_data,
+                alpha=0.7,
+                label='data')
+            plt.legend()
+            plt.legend(loc="upper right")
+
+        # Save the data in a json file named 'id.json' if save=id
+        if save:
+            fit_params = dict(itertools.islice(out.items(), 1, len(out)))
+            fit_params["x_data"] = x_data.tolist()
+            fit_params["y_data"] = y_data.tolist()
+            fit_params["y_fit"] = (fit_type(x, popt) * y_normal).tolist()
+            json_object = json.dumps(fit_params)
+            if save[-5:] == ".json":
+                save = save[:-5]
+            with open(f"{save}.json", "w") as outfile:
+                outfile.write(json_object)
+
+        return out
+
 
 class Read:
     """
