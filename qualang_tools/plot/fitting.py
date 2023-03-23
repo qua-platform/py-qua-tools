@@ -570,6 +570,16 @@ class Fit:
                 * 2
         )
 
+        # Finding a guess for the decay (slope of log(peaks))
+        if len(peaks) > 1:
+            guess_T2 = (
+                    -1
+                    / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
+                    * (x[1] - x[0])
+            )
+        else:
+            guess_T2 = 100 / x_normal
+
         guess_T1 = None
 
         # Finding a guess for the offsets
@@ -1343,6 +1353,7 @@ class Fit:
                      The id of the file is save='id'. The name of the json file is `data_fit_id.json`
           :return: A dictionary of (fit_func, f, phase, amp, offset)
 
+
         """
         freq = [np.nan for _ in range(len(flux))]
         # Extract 1D curve f_res vs flux
@@ -1539,16 +1550,16 @@ class Fit:
         half_maximum = np.min(y) + height / 2
 
         lower_hwhm = guess_x0 - x[find_nearest(y[:np.argmin(y)], half_maximum)]
-        guess_gamma = 2 * lower_hwhm
+        guess_lambda = 2 * lower_hwhm
 
         # scale guess using definition of lorentzian
-        guess_scale = (np.pi / 2) * (guess_gamma * height)
+        guess_scale = (np.pi / 2) * (guess_lambda * height)
 
         # Check user guess
         if guess is not None:
             for key in guess.keys():
-                if key == "gamma":
-                    guess_gamma = float(guess[key]) / x_normal
+                if key == "lambda":
+                    guess_lambda = float(guess[key]) / x_normal
                 elif key == "x0":
                     guess_x0 = float(guess[key]) / x_normal
                 elif key == "scale":
@@ -1564,7 +1575,7 @@ class Fit:
         if verbose:
             print(
                 f"Initial guess:\n"
-                f" gamma = {guess_gamma * x_normal:.3f}, \n"
+                f" lambda = {guess_lambda * x_normal:.3f}, \n"
                 f" x0 = {guess_x0 * x_normal:.3f}, \n"
                 f" scale = {guess_scale * y_normal * x_normal:.3f}, \n"
                 f" offset = {guess_offset * y_normal:.3f}, \n"
@@ -1573,8 +1584,8 @@ class Fit:
         # Fitting function
         def func(x_var, a0, a1, a2, a3):
 
-            lorentzian = a2 * guess_scale / np.pi * (1 / 2 * a0 * guess_gamma) / (
-                    (x_var - a1 * guess_x0) ** 2 + (1 / 2 * a0 * guess_gamma) ** 2)
+            lorentzian = a2 * guess_scale / np.pi * (1 / 2 * a0 * guess_lambda) / (
+                    (x_var - a1 * guess_x0) ** 2 + (1 / 2 * a0 * guess_lambda) ** 2)
 
             return (a3 * guess_offset) - lorentzian
 
@@ -1593,7 +1604,7 @@ class Fit:
         # Output the fitting function and its parameters
         out = {
             "fit_func": lambda x_var: fit_type(x_var / x_normal, popt) * y_normal,
-            "gamma": [popt[0] * guess_gamma * x_normal, perr[0] * guess_gamma * x_normal],
+            "lambda": [popt[0] * guess_lambda * x_normal, perr[0] * guess_lambda * x_normal],
             "x0": [popt[1] * guess_x0 * x_normal, perr[1] * guess_x0 * x_normal],
             "scale": [popt[2] * guess_scale * y_normal * x_normal, perr[2] * guess_scale * y_normal * x_normal],
             "offset": [
@@ -1614,7 +1625,7 @@ class Fit:
         if verbose:
             print(
                 f"Fitting results:\n"
-                f" gamma = {out['gamma'][0]:.2f} +/- {out['gamma'][1]:.3f} a.u., \n"
+                f" lambda = {out['lambda'][0]:.2f} +/- {out['lambda'][1]:.3f} a.u., \n"
                 f" x0 = {out['x0'][0]:.2f} +/- {out['x0'][1]:.3f}, \n"
                 f" scale = {out['scale'][0]:.2f} +/- {out['scale'][1]:.3f} a.u., \n"
                 f" offset = {out['offset'][0]:.2f} +/- {out['offset'][1]:.3f}, \n"

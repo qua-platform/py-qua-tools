@@ -137,13 +137,14 @@ In the example below you can see five parts:
 ```python
 from qualang_tools.plot.fitting import Fit, Read
 
+
 ### Simulating the measured data ###
 # taus and amplitude are the measured data
 def ramsey_data(x, final_offset, T2, amp, initial_offset, f, phase):
-    return  final_offset * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
-            np.exp(-x * (1/T2))
+    return final_offset * (1 - np.exp(-x * (1 / T2))) + amp / 2 * (
+            np.exp(-x * (1 / T2))
             * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
-            )
+    )
 
 
 tau_min = 32
@@ -151,12 +152,12 @@ tau_max = 800
 dtau = 16
 taus = np.arange(tau_min, tau_max + 0.1, dtau)
 amplitude = ramsey_data(taus, final_offset=0.05, T2=200, amp=1, initial_offset=0, f=10e-3, phase=0) + np.random.normal(
-                0, 0.001, len(taus))
+    0, 0.001, len(taus))
 ### Fit ###
 fit = Fit()
 # Choose the suitable fitting function
 file_name = 'Ramsey_experiment'
-fit.ramsey(taus, amplitude, verbose=True, plot=True, save=file_name)
+fit.Ramsey(taus, amplitude, verbose=True, plot=True, save=file_name)
 plt.title('Ramsey experiment')
 
 ### Read json file as dictionary ###

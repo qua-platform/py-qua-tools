@@ -10,7 +10,7 @@ def test_linear(a, b):
     fit = Fit()
     x = np.linspace(0, 100, 100)
     y = a * x + b
-    out = fit.linear(x_data=x, y_data=y)
+    out = fit.Linear(x_data=x, y_data=y)
 
     np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
 
@@ -42,7 +42,7 @@ def test_ramsey(final_offset, T2, amp, initial_offset, f, phase):
             np.exp(-x * (1/T2))
             * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
             )
-    out = fit.ramsey(x_data=x, y_data=y)
+    out = fit.Ramsey(x_data=x, y_data=y)
 
     np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
 

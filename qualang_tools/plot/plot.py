@@ -158,7 +158,7 @@ def plot_demodulated_data_1d(
         if fit == "rabi":
             Fit.rabi(x, y1, plot=True)
         elif fit == "ramsey":
-            Fit.ramsey(x, y1, plot=True)
+            Fit.Ramsey(x, y1, plot=True)
         elif fit == "T1":
             Fit.T1(x, y1, plot=True)
         elif fit == "transmission_resonator_spectroscopy":
@@ -183,7 +183,7 @@ def plot_demodulated_data_1d(
         if fit == "rabi":
             Fit.rabi(x, y2, plot=True)
         elif fit == "ramsey":
-            Fit.ramsey(x, y2, plot=True)
+            Fit.Ramsey(x, y2, plot=True)
         elif fit == "T1":
             Fit.T1(x, y2, plot=True)
         elif fit == "transmission_resonator_spectroscopy":
