@@ -9,7 +9,7 @@ Content:
 import numpy as np
 import warnings
 from qm.qua import Cast
-from qm.qua._dsl import _Expression
+from qm.qua._dsl import _Variable
 
 
 def from_array(var, array):
@@ -26,7 +26,7 @@ def from_array(var, array):
     elif len(array) == 1:
         return var, array[0], var <= array[0], var + 1
     # Check QUA vs python variables
-    if not isinstance(var, _Expression):
+    if not isinstance(var, _Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (not isinstance(array[0], (np.generic, int, float))) or (
         isinstance(array[0], bool)
@@ -43,14 +43,13 @@ def from_array(var, array):
         )
 
     # Get the type of the specified QUA variable
-    var_type = _get_qua_variable_type(var)
     start = array[0]
     stop = array[-1]
     # Linear increment
     if increment == "lin":
         step = array[1] - array[0]
 
-        if var_type == "int":
+        if var.is_int():
             # Check that the array is an array of int with integer increments
             if (
                 not float(step).is_integer()
@@ -66,7 +65,7 @@ def from_array(var, array):
             else:
                 return var, int(start), var >= int(stop), var + int(step)
 
-        elif var_type == "fixed":
+        elif var.is_fixed():
             # Check for fixed number overflows
             if not (-8 <= start < 8) and not (-8 <= stop < 8):
                 raise Exception("fixed numbers are bounded to [-8, 8).")
@@ -94,7 +93,7 @@ def from_array(var, array):
     elif increment == "log":
         step = array[1] / array[0]
 
-        if var_type == "int":
+        if var.is_int():
 
             warnings.warn(
                 "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
@@ -114,7 +113,7 @@ def from_array(var, array):
                     Cast.mul_int_by_fixed(var, float(step)),
                 )
 
-        elif var_type == "fixed":
+        elif var.is_fixed():
             # Check for fixed number overflows
             if not (-8 <= start < 8) and not (-8 <= stop < 8):
                 raise Exception("fixed numbers are bounded to [-8, 8).")
@@ -149,7 +148,7 @@ def qua_arange(var, start, stop, step):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Expression):
+    if not isinstance(var, _Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))
@@ -192,7 +191,7 @@ def qua_linspace(var, start, stop, num):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Expression):
+    if not isinstance(var, _Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))
@@ -233,7 +232,7 @@ def qua_logspace(var, start, stop, num):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Expression):
+    if not isinstance(var, _Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))
@@ -256,8 +255,7 @@ def qua_logspace(var, start, stop, num):
         raise Exception("`num` must be greater than 0.")
 
     # Get the type of the specified QUA variable
-    var_type = _get_qua_variable_type(var)
-    if var_type == "int":
+    if var.is_int():
         warnings.warn(
             "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
         )
@@ -275,7 +273,7 @@ def qua_logspace(var, start, stop, num):
                 var > round(10**stop / np.sqrt(step)),
                 Cast.mul_int_by_fixed(var, float(step)),
             )
-    elif var_type == "fixed":
+    elif var.is_fixed():
         # Check for fixed number overflows
         if not (-8 <= 10**start < 8) and not (-8 <= 10**stop < 8):
             raise Exception("fixed numbers are bounded to [-8, 8).")
@@ -316,19 +314,3 @@ def get_equivalent_log_array(log_array):
             a_log.append(aprev)
             aprev = int(aprev * step)
     return np.array(a_log)
-
-
-def _get_qua_variable_type(variable):
-    from qm.qua._dsl import _get_root_program_scope
-
-    scope = _get_root_program_scope()
-    variable_type = None
-    for var in list(scope._program._program.script.variables):
-        if var.name == variable._exp.variable.name:
-            variable_type = var.type
-    if variable_type == 0:
-        return "int"
-    elif variable_type == 1:
-        return "bool"
-    elif variable_type == 2:
-        return "fixed"

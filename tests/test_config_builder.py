@@ -49,10 +49,7 @@ def config_resonator():
 
 def test_controller(config_resonator):
     config = config_resonator
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
     assert config["version"] == 1
     assert "con1" in [*config["controllers"]]
     assert config["controllers"]["con1"]["type"] == "opx1"
@@ -66,10 +63,7 @@ def test_controller(config_resonator):
 
 def test_element(config_resonator):
     config = config_resonator
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
     assert "res1" in [*config["elements"]]
     assert config["elements"]["res1"]["time_of_flight"] == 0
     assert config["elements"]["res1"]["smearing"] == 0
@@ -84,10 +78,7 @@ def test_element(config_resonator):
 
 def test_pulses(config_resonator):
     config = config_resonator
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
     assert [*config["pulses"]] == ["ro_pulse"]
     assert config["pulses"]["ro_pulse"]["operation"] == "measurement"
     assert config["pulses"]["ro_pulse"]["length"] == 16
@@ -103,10 +94,7 @@ def test_pulses(config_resonator):
 
 def test_integration_weights(config_resonator):
     config = config_resonator
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
     assert [*config["integration_weights"]] == [
         "integ_w1_I",
         "integ_w1_Q",
@@ -172,10 +160,7 @@ def config_transmon():
 
 def test_transmon(config_transmon):
     config = config_transmon
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
     assert [*config["elements"]] == ["qb1", "qb2", "qb2_flux_line"]
     assert [*config["mixers"]] == ["mx1"]
     assert [*config["waveforms"]] == ["wf1", "wf2"]
@@ -331,10 +316,7 @@ def config_3qb_3res():
 
 def test_load_config(config_3qb_3res):
     config = config_3qb_3res
-    try:
-        load_config(config)
-    except:
-        assert False
+    load_config(config)
 
 
 def test_config_vars():

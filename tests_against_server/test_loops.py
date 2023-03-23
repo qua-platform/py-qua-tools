@@ -97,7 +97,7 @@ def config():
 
 def simulate_program_and_return(config, prog, duration=50000):
 
-    qmm = QuantumMachinesManager(host="172.16.2.103", port=80)
+    qmm = QuantumMachinesManager(host="172.16.2.102", port=80)
     # qmm.close_all_quantum_machines()
     # job = qmm.simulate(
     #     config,
