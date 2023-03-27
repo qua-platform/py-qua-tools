@@ -1,8 +1,4 @@
-from grid_gui_class import GUI
-import numpy as np
-
-x = np.random.rand(400)
-
-gui = GUI()
-
-y = np.random.rand(300)
+# from grid_gui_class import GUI
+# from interacive import MainWindow
+#
+# from PyQt5 import QtWidgets
