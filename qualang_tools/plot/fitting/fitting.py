@@ -149,3 +149,4 @@ class Fitting:
             save=False
     ):
         return ResonatorFrequencyVsFlux(frequency, flux, data, guess, verbose, plot, save)
+
