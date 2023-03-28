@@ -9,13 +9,13 @@ import numpy as np
 from multiprocessing import Process
 
 
-class MyPlotWidget(pg.PlotWidget):
+class PlotWidget(pg.GraphicsWidget):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # self.scene() is a pyqtgraph.GraphicsScene.GraphicsScene.GraphicsScene
-        self.scene().sigMouseClicked.connect(self.mouse_clicked)
+    def mouseDoubleClickEvent(self, QGraphicsSceneMouseEvent):
+        print('test')
 
     def mouse_clicked(self, mouseClickEvent):
         # mouseClickEvent is a pyqtgraph.GraphicsScene.mouseEvents.MouseClickEvent
@@ -43,8 +43,8 @@ class GUI(QWidget):
         super(GUI, self).__init__()
 
         self.initialise_ui()
-        self.setup_plot_items()
-        self.set_plot_data()
+        self.setup_plot_layouts()
+        # self.set_plot_data()
 
         # self.setup_plots()
 
@@ -66,7 +66,7 @@ class GUI(QWidget):
 
     def update_plot(self, index, data):
 
-        plot = self.get_plot(index)
+        plot = self.get_layout(index)
 
         plot.clear()
         plot.plot(*data)
@@ -76,90 +76,57 @@ class GUI(QWidget):
         plot.showButtons()
 
     def set_plot_to_text(self, index, text):
-        plot = self.get_plot(index)
-        plot.clear()
+        plot = self.get_layout(index)
 
+        plot.addItem(pg.TextItem('99.9'))
+        #
+        # plot.clear()
+        #
+        # plot.addItem(PlotWidget())
+
+    def set_plot_custom(self, index):
+        box = self.plot_layout.getViewBox(index)
+
+        return box
 
     def update_plot_title(self, index, new_title):
 
-        plot = self.get_plot(index)
+        plot = self.get_layout(index)
         plot.setTitle(new_title)
 
     def set_text(self, index, text):
         self.plot_layout.removeItem(self.plot_layout.getItem(*index))
         self.plot_layout.addLabel(text, *index)
 
-    def get_plot(self, index):
+    def get_layout(self, index):
         i, j = index
-        return self.plots[i][j]
+        return self.plot_layouts[i][j]
 
-    def setup_plot_items(self):
+    def setup_plot_layouts(self):
 
-        self.plots = []
+        self.plot_layouts = []
 
         for i in range(self.x):
             row = []
             for j in range(self.y):
-                plot = self.plot_layout.addPlot(title=f'qubit [{i}{j}]')
+                # plot = self.plot_layout.addPlot(title=f'qubit [{i}{j}]')
+                plot = self.plot_layout.addLayout(rowspan=1, colspan=1)
                 row.append(plot)
-                plot.hideAxis('bottom')
-                plot.hideAxis('left')
-                plot.hideButtons()
-            self.plots.append(row)
+                # plot.hideAxis('bottom')
+                # plot.hideAxis('left')
+                # plot.hideButtons()
+            self.plot_layouts.append(row)
             self.plot_layout.nextRow()
 
     def set_plot_data(self):
         for index, data in self.data.items():
             self.update_plot(index, data)
 
-    def setup_plots(self):
-        self.plots = []
-        for i in range(self.x):
-            row = []
-            for j in range(self.y):
-                plot = self.plot_layout.addPlot(title=f'Qubit[{i}{j}]')
-                row.append(plot)
-
-                if (i, j) in self.qubits:
-                    plot.plot(*self.data[(i, j)])
-                else:
-                    plot.hideAxis('bottom')
-                    plot.hideAxis('left')
-                    plot.hideButtons()
-
-                plot.scene().sigMouseClicked.connect(self.mouse_clicked)
-
-            self.plots.append(row)
-            self.plot_layout.nextRow()
-
     def mouse_clicked(self, event):
         # print(f'{event}')
 
         pass
 
-    def fake_function(self, x):
-        x0 = (0.5 - np.random.rand()) * 0.8
-        return 1 - (1 / (1 + ((x - x0) / 0.25) ** 2))
-
-    def fake_data(self):
-        x = np.linspace(-1, 1, 100)
-        y = self.fake_function(x)
-        y += np.random.rand(y.size) * 0.2
-        return x, y
-
     def get_plots(self):
-        return self.plots
+        return self.plot_layouts
 
-
-def launch_discriminator_gui():
-    # app = pg.mkQApp()
-    loader = GUI()
-    pg.exec()
-    return loader
-
-
-# example with fake data
-if __name__ == "__main__":
-    # proc = Process(target=launch_discriminator_gui, daemon=True)
-    x = launch_discriminator_gui()
-    # proc.start()/

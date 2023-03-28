@@ -10,14 +10,13 @@ def fake_data():
     x = np.linspace(-1, 1, 100)
     y = fake_function(x)
     y += np.random.rand(y.size) * 0.2
-    return x, y
+    return x * 1e6, y
 
 
 # run something
 qubit_arrangement = (4, 5)
 qubits = ((0, 0), (1, 1), (2, 2), (2, 3), (3, 2), (3, 3), (3, 4))
 data = {qubit: fake_data() for qubit in qubits}
-
 
 
 gui = GUI(qubit_arrangement, data, ipython=True)

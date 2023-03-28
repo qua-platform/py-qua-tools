@@ -1,75 +1,46 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-"""
-Exmaple pattern of setting up PyQt to run
-under iPython and not block, by default.
-Code modified from:
-ZetCode PyQt4 tutorial
-In this example, we receive data from
-a QtGui.QInputDialog dialog.
-author: Jan Bodnar
-website: zetcode.com
-last edited: October 2011
-"""
-
 import sys
-from PyQt5 import QtGui, QtCore
 
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+import numpy as np
+import pyqtgraph as pg
+from PyQt5.QtWidgets import QApplication
 
-class Example(QWidget):
 
-    def __init__(self):
-        super(Example, self).__init__()
+class CrosshairPlotWidget(pg.PlotWidget):
 
-        self.initUI()
+    def __init__(self, parent=None, background='default', plotItem=None, **kargs):
+        super().__init__(parent=parent, background=background, plotItem=plotItem, **kargs)
+        self.vLine = pg.InfiniteLine(angle=90, movable=False)
+        self.hLine = pg.InfiniteLine(angle=0, movable=False)
+        self.addItem(self.vLine, ignoreBounds=True)
+        self.addItem(self.hLine, ignoreBounds=True)
+        self.hLine.hide()
+        self.vLine.hide()
 
-    def initUI(self):
+    def leaveEvent(self, ev):
+        """Mouse left PlotWidget"""
+        self.hLine.hide()
+        self.vLine.hide()
 
-        self.btn = QPushButton('Dialog', self)
-        self.btn.move(20, 20)
-        self.btn.clicked.connect(self.showDialog)
+    def enterEvent(self, ev):
+        """Mouse enter PlotWidget"""
+        self.hLine.show()
+        self.vLine.show()
 
-        self.le = QLineEdit(self)
-        self.le.move(130, 22)
+    def mouseMoveEvent(self, ev):
+        """Mouse moved in PlotWidget"""
+        if self.sceneBoundingRect().contains(ev.pos()):
+            mousePoint = self.plotItem.vb.mapSceneToView(ev.pos())
+            self.vLine.setPos(mousePoint.x())
+            self.hLine.setPos(mousePoint.y())
 
-        self.setGeometry(300, 300, 290, 150)
-        self.setWindowTitle('Input dialog')
-        self.show()
 
-    def showDialog(self):
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
 
-        text, ok = QInputDialog.getText(self, 'Input Dialog',
-            'Enter your name:')
+    x = [0, 1, 2, 3, 4, 5]
+    y = np.random.normal(size=6)
+    plot = CrosshairPlotWidget()
+    plot.plot(x, y)
+    plot.show()
 
-        if ok:
-            self.le.setText(str(text))
-
-def start_gui(block=False):
-    try:
-        if not block & __IPYTHON__:
-            from IPython.lib.inputhook import enable_gui
-            app = enable_gui('qt4')
-        else:
-            raise ImportError
-    except (ImportError, NameError):
-        app = QtCore.QCoreApplication.instance()
-        if app is None:
-            app = QApplication(sys.argv)
-
-    ex = Example()
-
-    try:
-        from IPython.lib.guisupport import start_event_loop_qt4
-        start_event_loop_qt4(app)
-        return ex
-    except ImportError:
-        app.exec_()
-
-def _main():
-    start_gui(block=True)
-
-if __name__ == '__main__':
-    _main()
+    app.exec()
