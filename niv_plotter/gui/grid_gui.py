@@ -2,12 +2,13 @@
 A GUI for presenting state discrimination data for a multi-qubit setup.
 """
 
-from PyQt5.QtCore import *
+
 from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 import numpy as np
+import time
+from threading import Thread
 
-from widget import ViewerWidgetOld
 from widget import StackedWidget
 
 class MainWidget(QWidget):
@@ -20,7 +21,7 @@ class MainWidget(QWidget):
         self.grid_size = grid_size
 
         self.initialise_ui()
-        self.setup_controls()
+        # self.setup_controls()
         self.setup_qubit_plot_grid()
 
         if ipython:
@@ -82,7 +83,7 @@ class MainWidget(QWidget):
     def _reset_views(self):
         for row in self.widgets:
             for widget in row:
-                widget.view_widget.autoRange()
+                widget.Stack.currentWidget().autoRange()
 
     def setup_qubit_plot_grid(self):
         self.plot_grid_layout = QGridLayout()
@@ -96,7 +97,7 @@ class MainWidget(QWidget):
             for j in range(self.grid_size[1]):
                 self.plot_grid_layout.setColumnStretch(j, 1)
                 # widget = ViewerWidget(name=f'qubit [{i}{j}]')
-                widget = StackedWidget()
+                widget = StackedWidget(f'qubit [{i}{j}]')
                 self.plot_grid_layout.addWidget(widget, i, j)
                 # self.plot_grid_layout.addWidget(widget, i, j)
                 # widget = ViewerWidget(name=f'qubit [{i}{j}]')
@@ -111,16 +112,55 @@ class MainWidget(QWidget):
         widget = self.get_widget(index)
         widget.view_widget.set_data(data, dimensionality=dimensionality)
 
+    def add_layer_to_widget(self, index, name, data, dimensionality):
+        widget = self.get_widget(index)
+        widget._add_layer(name, data, dimensionality)
+
+    def update_layer(self, index, layer_name, data):
+        widget = self.get_widget(index)
+        widget.update_layer_data(layer_name, data)
+
+    def plot_1d(self, index, name, data):
+        widget = self.get_widget(index)
+        widget.add_1d_plot(name, data)
+
+    def plot_2d(self, index, name, x, y, data):
+        widget = self.get_widget(index)
+        widget.add_2d_plot(name, x, y, data)
+
+    def plot_0d(self, index, name, value):
+        widget = self.get_widget(index)
+        widget.add_0d_plot(name, value)
+
+    def update_data(self):
+        while True:
+            self.update_layer((0, 1), 'osc', np.fromfunction(lambda i, j: np.sin(i/8 * np.random.rand())*j/128, (100, 100), dtype=float) + np.random.rand(100, 100))
+            time.sleep(0.24)
 
 if __name__ == '__main__':
-    i = 4
-    j = 4
+
+    def fake_function(x):
+        x0 = (np.random.rand()) * 0.8
+        return 1 - (1 / (1 + ((x - x0) / 0.25) ** 2))
+
+
+    def fake_data():
+        x = np.linspace(0, 1, 100)
+        y = fake_function(x)
+        y += np.random.rand(y.size) * 0.2
+        return x * 1e6, y
+
+
+    i = 5
+    j = 5
     grid_size = (i, j)
 
     gui = MainWidget(grid_size, ipython=True)
 
-    qubits = ((0, 0), (1, 1), (1, 2),(2, 2), (2, 3), (3, 2), (3, 3))
-    qubit_data = {qubit: np.random.rand(100, 100) for qubit in qubits}
-    #
-    # for qubit, data in qubit_data.items():
-    #     gui.set_widget_data(qubit, data, dimensionality=2)
+    qubits = ((0, 0), (0, 1), (1, 0), (1, 1))
+    qubit_data = {qubit: np.fromfunction(lambda i, j: np.sin(i/8 * np.random.rand())*j/128, (100, 100), dtype=float) + np.random.rand(100, 100) for qubit in qubits}
+
+    for qubit, data in qubit_data.items():
+        gui.plot_0d(qubit, 'Fidelity', f'{np.random.rand() * 100:.2f}%')
+        gui.plot_2d(qubit, 'osc', data)
+        gui.plot_1d(qubit, 'spect', np.stack(fake_data()).T)

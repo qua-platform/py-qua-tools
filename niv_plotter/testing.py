@@ -49,7 +49,7 @@ import sys
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from gui.widget import ViewerWidgetOld
+from gui.widget import ViewerWidget
 
 
 # class stackedExample(QWidget):
@@ -127,9 +127,9 @@ class StackedWidget(QWidget):
         self.leftlist.insertItem(2, 'three')
         self.leftlist.setMaximumWidth(self.leftlist.minimumSizeHint().width())
 
-        self.stack1 = ViewerWidgetOld(name='2d measure')
-        self.stack2 = ViewerWidgetOld(name='1d trace')
-        self.stack3 = ViewerWidgetOld(name='2d also ')
+        self.stack1 = ViewerWidget(name='2d measure')
+        self.stack2 = ViewerWidget(name='1d trace')
+        self.stack3 = ViewerWidget(name='2d also ')
 
         self.stack1.set_data(np.random.rand(100, 100), dimensionality=2)
         self.stack2.set_data(np.stack([np.linspace(0, 1, 100), np.random.rand(100)]).T, dimensionality=1)
