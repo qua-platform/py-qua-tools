@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 import numpy as np
 
-from widget import ViewerWidget
-
+from widget import ViewerWidgetOld
+from widget import StackedWidget
 
 class MainWidget(QWidget):
 
@@ -69,19 +69,20 @@ class MainWidget(QWidget):
     def _set_all_to_data(self):
         for row in self.widgets:
             for widget in row:
-                if widget.hidden and hasattr(widget, 'plot_item'):
-                    widget.toggle_hide()
-
+                # if widget.view_widget.hidden and hasattr(widget.view_widget, 'plot_item'):
+                #     widget.view_widget.toggle_hide()
+                widget.Stack.setCurrentIndex(0)
 
     def _set_all_to_fidelity(self):
         for row in self.widgets:
             for widget in row:
-                if not widget.hidden and hasattr(widget, 'plot_item'):
-                    widget.toggle_hide()
+                # if not widget.view_widget.hidden and hasattr(widget.view_widget, 'plot_item'):
+                #     widget.view_widget.toggle_hide()
+                widget.Stack.setCurrentIndex(1)
     def _reset_views(self):
         for row in self.widgets:
             for widget in row:
-                widget.autoRange()
+                widget.view_widget.autoRange()
 
     def setup_qubit_plot_grid(self):
         self.plot_grid_layout = QGridLayout()
@@ -91,9 +92,15 @@ class MainWidget(QWidget):
 
         for i in range(self.grid_size[0]):
             row = []
+            self.plot_grid_layout.setRowStretch(i, 1)
             for j in range(self.grid_size[1]):
-                widget = ViewerWidget(name=f'qubit [{i}{j}]')
+                self.plot_grid_layout.setColumnStretch(j, 1)
+                # widget = ViewerWidget(name=f'qubit [{i}{j}]')
+                widget = StackedWidget()
                 self.plot_grid_layout.addWidget(widget, i, j)
+                # self.plot_grid_layout.addWidget(widget, i, j)
+                # widget = ViewerWidget(name=f'qubit [{i}{j}]')
+                # self.plot_grid_layout.addLayout(widget, i, j)
                 row.append(widget)
             self.widgets.append(row)
 
@@ -102,16 +109,18 @@ class MainWidget(QWidget):
 
     def set_widget_data(self, index, data, dimensionality):
         widget = self.get_widget(index)
-        widget.set_data(data, dimensionality=dimensionality)
+        widget.view_widget.set_data(data, dimensionality=dimensionality)
 
 
 if __name__ == '__main__':
-    grid_size = (3, 5)
+    i = 4
+    j = 4
+    grid_size = (i, j)
 
     gui = MainWidget(grid_size, ipython=True)
 
-    qubits = ((0, 0), (0, 2), (1, 2), (2, 2))
-    qubit_data = {qubit: np.random.rand(100, 2) for qubit in qubits}
-
-    for qubit, data in qubit_data.items():
-        gui.set_widget_data(qubit, data, dimensionality=1)
+    qubits = ((0, 0), (1, 1), (1, 2),(2, 2), (2, 3), (3, 2), (3, 3))
+    qubit_data = {qubit: np.random.rand(100, 100) for qubit in qubits}
+    #
+    # for qubit, data in qubit_data.items():
+    #     gui.set_widget_data(qubit, data, dimensionality=2)
