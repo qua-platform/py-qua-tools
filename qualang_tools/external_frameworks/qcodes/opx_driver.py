@@ -288,31 +288,33 @@ class OPX(Instrument):
         :param count: counter to keep track of the buffers for a given stream.
         :param averaging_buffer: flag identifying if a buffer is used for averaging.
         """
-        if gene[0] == "saveAll":
-            self.results["names"].append(gene[1])
-            self.results["types"].append("IQ")
-            self.results["units"].append("V")
-            self.results["buffers"].append([])
-            # Check if next buffer is for averaging
-            if len(gene[2][1]) > 0:
-                if gene[2][1][0] == "average":
-                    averaging_buffer = True
-        elif gene[0] == "buffer":
-            if not averaging_buffer:
-                self.results["buffers"][count].append(int(gene[1]))
+
+        if len(gene.values) > 0:
+            if gene.values[0].string_value == "saveAll":
+                self.results["names"].append(gene.values[1].string_value)
+                self.results["types"].append("IQ")
+                self.results["units"].append("V")
+                self.results["buffers"].append([])
                 # Check if next buffer is for averaging
-                if len(gene[2][1]) > 0:
-                    if gene[2][1][0] == "average":
+                if len(gene.values[2].list_value.values[1].list_value.values) > 0:
+                    if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
                         averaging_buffer = True
+            elif gene.values[0].string_value == "buffer":
+                if not averaging_buffer:
+                    self.results["buffers"][count].append(int(gene.values[1].string_value))
+                    # Check if next buffer is for averaging
+                    if len(gene.values[2].list_value.values[1].list_value.values) > 0:
+                        if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
+                            averaging_buffer = True
+                else:
+                    averaging_buffer = False
+            elif gene.values[0].string_value == "@macro_adc_trace":
+                self.results["buffers"][count].append(int(self.readout_pulse_length()))
+                self.results["types"][count] = "adc"
             else:
-                averaging_buffer = False
-        elif gene[0] == "@macro_adc_trace":
-            self.results["buffers"][count].append(int(self.readout_pulse_length()))
-            self.results["types"][count] = "adc"
-        else:
-            pass
-        if len(gene) > 2:
-            self._extend_result(gene[2], count, averaging_buffer)
+                pass
+            if len(gene.values) > 2:
+                self._extend_result(gene.values[2].list_value, count, averaging_buffer)
 
     def _get_stream_processing(self, prog):
         """
