@@ -297,14 +297,28 @@ class OPX(Instrument):
                 self.results["buffers"].append([])
                 # Check if next buffer is for averaging
                 if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                    if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
+                    if (
+                        gene.values[2]
+                        .list_value.values[1]
+                        .list_value.values[0]
+                        .string_value
+                        == "average"
+                    ):
                         averaging_buffer = True
             elif gene.values[0].string_value == "buffer":
                 if not averaging_buffer:
-                    self.results["buffers"][count].append(int(gene.values[1].string_value))
+                    self.results["buffers"][count].append(
+                        int(gene.values[1].string_value)
+                    )
                     # Check if next buffer is for averaging
                     if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                        if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
+                        if (
+                            gene.values[2]
+                            .list_value.values[1]
+                            .list_value.values[0]
+                            .string_value
+                            == "average"
+                        ):
                             averaging_buffer = True
                 else:
                     averaging_buffer = False
