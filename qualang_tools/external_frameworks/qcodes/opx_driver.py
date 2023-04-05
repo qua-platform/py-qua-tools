@@ -16,7 +16,7 @@ import numpy as np
 
 # noinspection PyAbstractClass
 class OPX(Instrument):
-    def __init__(self, config: Dict, name: str = "OPX", host=None, port=None) -> None:
+    def __init__(self, config: Dict, name: str = "OPX", host=None, port=None, close_other_machines=True) -> None:
         """
         QCoDeS driver for the OPX.
 
@@ -24,6 +24,7 @@ class OPX(Instrument):
         :param name: The name of the instrument used internally by QCoDeS. Must be unique.
         :param host: IP address of the router to which the OPX is connected.
         :param port: Port of the OPX or main OPX if working with a cluster.
+        :param close_other_machines: Flag to control if opening a quantum machine will close the existing ones. Default is True. Set to False if multiple a QOP is to be used by multiple users or to run several experiments in parallel.
         """
         super().__init__(name)
 
@@ -138,7 +139,7 @@ class OPX(Instrument):
         # Set config
         self.set_config(config=config)
         # Open QM
-        self.open_qm()
+        self.open_qm(close_other_machines)
 
     def connect_to_qmm(self, host=None, port=None):
         """
@@ -196,12 +197,12 @@ class OPX(Instrument):
         """
         self.config = config
 
-    def open_qm(self):
+    def open_qm(self, close_other_machines):
         """
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
         """
-        self.qm = self.qmm.open_qm(self.config, close_other_machines=True)
+        self.qm = self.qmm.open_qm(self.config, close_other_machines=close_other_machines)
 
     # Empty method that can be replaced by your pulse sequence in the main script
     # This can also be modified so that you can put the sequences here directly...
