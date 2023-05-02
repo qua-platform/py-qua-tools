@@ -475,7 +475,7 @@ class OPX(Instrument):
         Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
         """
         prog = self.get_prog()
-        self.job = self.qm.simulate(prog, SimulationConfig(self.sim_time() // 4))
+        self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
         self.simulated_wf["analog"] = self.job.get_simulated_samples().con1.analog
         self.simulated_wf["digital"] = self.job.get_simulated_samples().con1.digital
         self.result_handles = self.job.result_handles
