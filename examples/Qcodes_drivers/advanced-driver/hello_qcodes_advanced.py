@@ -68,7 +68,7 @@ opx_instrument.readout_pulse_amplitude(0.01)  # Set the readout amplitude in V
 # OPX simulation mode
 opx_instrument.simulation(True)
 opx_instrument.sim_time(11_000)  # Simulation duration in ns
-run = "sliced"
+run = "rabi_2d"
 #######################################
 #     Power Rabi vs external flux     #
 #######################################
@@ -82,9 +82,10 @@ if run == "rabi_1d":
         with for_(n, 0, n < n_avg, n + 1):
             with for_(*from_array(a, amp_vec)):
                 play("cw" * amp(a), "qubit")
+                align()
                 self.measurement()
                 align()
-                wait(10_000, "qubit")
+                wait(100, "qubit")
 
     # Parametrize the OPX sweep
     # Dimension of the sweeps performed by the OPX. Can be '0d', '1d' or '2d'
@@ -112,7 +113,7 @@ if run == "rabi_1d":
 ###################################################
 if run == "rabi_2d":
     n_avg = 100
-    amp_vec = np.arange(0, 1.9, 0.02)
+    amp_vec = np.arange(0.1, 1.9, 0.02)
     pulse_lengths = np.arange(4, 1000, 10)
     # QUA sequence
     def custom_sequence(self):
@@ -123,9 +124,10 @@ if run == "rabi_2d":
             with for_(n, 0, n < n_avg, n + 1):
                 with for_(*from_array(t, pulse_lengths)):
                     play("cw" * amp(a), "qubit", duration=t)
+                    align()
                     self.measurement()
                     align()
-                    wait(10_000, "qubit")
+                    wait(100, "qubit")
 
     # Parametrize the OPX sweep
     # Dimension of the sweeps performed by the OPX. Can be '0d', '1d' or '2d'
@@ -192,6 +194,7 @@ if run == "sliced":
 #        Run OPX experiment         #
 #####################################
 if opx_instrument.simulation():
+    opx_instrument.sim_time(100_000)
     opx_instrument.simulate()
     opx_instrument.plot_simulated_wf()
 elif qcodes_do_nd == "do0d":

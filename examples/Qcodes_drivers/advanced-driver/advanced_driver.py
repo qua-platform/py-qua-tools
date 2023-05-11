@@ -33,10 +33,12 @@ class OPXCustomSequence(OPX):
         name: str = "OPXCustomSequence",
         host=None,
         port=None,
+        close_other_machines=True,
     ):
         super().__init__(config, name, host=host, port=port)
         self.counter = 0
         self.measurement_variables = None
+        self.close_other_machines = close_other_machines
         self.add_parameter(
             "readout_element",
             unit="",
@@ -153,7 +155,7 @@ class OPXCustomSequence(OPX):
         wf = self.config["pulses"][pulse]["waveforms"]["I"]
         self.config["waveforms"][wf]["sample"] = self.readout_pulse_amplitude()
         # Open QM
-        self.open_qm()
+        self.open_qm(self.close_other_machines)
 
     # Declare the QUA variables for the measurement based on the self.acquisition_mode() parameter.
     def measurement_declaration(self):

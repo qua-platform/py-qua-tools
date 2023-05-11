@@ -24,8 +24,8 @@ config = {
     "elements": {
         "qubit": {
             "mixInputs": {
-                "I": ("con1", 9),
-                "Q": ("con1", 10),
+                "I": ("con1", 1),
+                "Q": ("con1", 2),
                 "lo_frequency": 8e9,
                 "mixer": "mixer_qubit",
             },
