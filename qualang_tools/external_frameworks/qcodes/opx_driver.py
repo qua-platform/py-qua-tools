@@ -16,7 +16,14 @@ import numpy as np
 
 # noinspection PyAbstractClass
 class OPX(Instrument):
-    def __init__(self, config: Dict, name: str = "OPX", host=None, port=None, close_other_machines=True) -> None:
+    def __init__(
+        self,
+        config: Dict,
+        name: str = "OPX",
+        host=None,
+        port=None,
+        close_other_machines=True,
+    ) -> None:
         """
         QCoDeS driver for the OPX.
 
@@ -202,7 +209,9 @@ class OPX(Instrument):
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
         """
-        self.qm = self.qmm.open_qm(self.config, close_other_machines=close_other_machines)
+        self.qm = self.qmm.open_qm(
+            self.config, close_other_machines=close_other_machines
+        )
 
     # Empty method that can be replaced by your pulse sequence in the main script
     # This can also be modified so that you can put the sequences here directly...
@@ -373,6 +382,8 @@ class OPX(Instrument):
         :return: Qcodes measurement parameters.
         """
 
+        # Reset the results in case the stream processing was changed between two iterations
+        self.results = {"names": [], "types": [], "buffers": [], "units": []}
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
             self._get_stream_processing(self.get_prog())
@@ -475,7 +486,9 @@ class OPX(Instrument):
         Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
         """
         prog = self.get_prog()
-        self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
+        self.job = self.qmm.simulate(
+            self.config, prog, SimulationConfig(self.sim_time() // 4)
+        )
         self.simulated_wf["analog"] = self.job.get_simulated_samples().con1.analog
         self.simulated_wf["digital"] = self.job.get_simulated_samples().con1.digital
         self.result_handles = self.job.result_handles
