@@ -15,24 +15,8 @@ from qcodes.utils.validators import Numbers
 # noinspection PyAbstractClass
 class OPXCustomSequence(OPX):
     """
-    QCoDeS driver for the OPX.
-
-    This specific experiment consists of a custom pulse sequence (to be set with the self.pulse_sequence() attribute)
-    embedded in an infinite loop with a pause statement at the beginning of each iteration to allow the synchronization
-    with the qcodes do"nd" scans.
-
-    The readout element, operation and duration can be parametrized, as well as the acquisition_mode that can be
-    'raw_adc', 'full_integration', 'full_demodulation', 'sliced_integration' or 'sliced_demodulation'.
-    A specific mode for which the OPX will perform a measurement when it receives a trigger can be enabled by setting
-    wait_for_trigger(True).
-
-    The parameter sweeps performed by the OPX can also be parametrized using the opx_scan() attribute that can be '0d',
-    '1d' or '2d'. The corresponding scan axes are accessible via axis1_start(), axis1_stop() and axis1_step().
-
-    :param config: python dict containing the configuration expected by the OPX.
-    :param name: The name of the instrument used internally by QCoDeS. Must be unique.
-    :param host: IP address of the router to which the OPX is connected.
-    :param port: Port of the OPX or main OPX if working with a cluster.
+    Adaptation of the QCoDeS driver for the OPX for acquiring a charge stability map using a spiral scan.
+    The driver was modified to adapt the reshaping and reordering of the data due to the spiral.
     """
 
     def __init__(
@@ -41,8 +25,15 @@ class OPXCustomSequence(OPX):
         name: str = "OPXCustomSequence",
         host=None,
         port=None,
+        close_other_machines=True,
     ):
-        super().__init__(config, name, host=host, port=port)
+        super().__init__(
+            config,
+            name,
+            host=host,
+            port=port,
+            close_other_machines=close_other_machines,
+        )
         self.counter = 0
 
     @staticmethod
@@ -144,6 +135,9 @@ class OPXCustomSequence(OPX):
         :return: Qcodes measurement parameters.
         """
 
+        # Reset the results in case the stream processing was changed between two iterations
+        self.results = {"names": [], "types": [], "buffers": [], "units": []}
+
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
             self._get_stream_processing(self.get_prog())
@@ -215,7 +209,7 @@ experiment = load_or_create_experiment(
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPXCustomSequence(config, name="OPX", host="172.16.2.102", port=83)
+opx_instrument = OPXCustomSequence(config, name="OPX", host="127.0.0.1")
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
 # Create fake parameters for do1d and do2d scan demonstration, can be replaced by external instrument parameters
