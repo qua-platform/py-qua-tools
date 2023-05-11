@@ -490,11 +490,15 @@ class OPX(Instrument):
             self.config, prog, SimulationConfig(self.sim_time() // 4)
         )
         simulated_samples = self.job.get_simulated_samples()
-        for con in [f"con{i}" for i in range(1,10)]:
+        for con in [f"con{i}" for i in range(1, 10)]:
             if hasattr(simulated_samples, con):
                 self.simulated_wf[con] = {}
-                self.simulated_wf[con]["analog"] = self.job.get_simulated_samples().__dict__[con].analog
-                self.simulated_wf[con]["digital"] = self.job.get_simulated_samples().__dict__[con].digital
+                self.simulated_wf[con]["analog"] = (
+                    self.job.get_simulated_samples().__dict__[con].analog
+                )
+                self.simulated_wf[con]["digital"] = (
+                    self.job.get_simulated_samples().__dict__[con].digital
+                )
         self.result_handles = self.job.result_handles
 
     def plot_simulated_wf(self):
@@ -506,10 +510,15 @@ class OPX(Instrument):
             for t in self.simulated_wf[con].keys():
                 for port in self.simulated_wf[con][t].keys():
                     if not np.all(self.simulated_wf[con][t][port] == 0):
-                        if len(self.simulated_wf.keys()) == 1 :
-                            plt.plot(self.simulated_wf[con][t][port], label=f"{t} {port}")
+                        if len(self.simulated_wf.keys()) == 1:
+                            plt.plot(
+                                self.simulated_wf[con][t][port], label=f"{t} {port}"
+                            )
                         else:
-                            plt.plot(self.simulated_wf[con][t][port], label=f"{con} {t} {port}")
+                            plt.plot(
+                                self.simulated_wf[con][t][port],
+                                label=f"{con} {t} {port}",
+                            )
         plt.xlabel("Time [ns]")
         plt.ylabel("Voltage level [V]")
         plt.title("Simulated waveforms")
