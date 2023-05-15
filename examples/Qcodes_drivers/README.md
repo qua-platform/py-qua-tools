@@ -4,8 +4,9 @@ __Package__: https://github.com/qua-platform/py-qua-tools/tree/main/qualang_tool
 
 This package contains drivers to set the OPX as a QCoDeS instrument and synchronize external parameter sweeps with 
 sequences running on the OPX using the QCoDeS do"nd" methods. 
-Since the OPX contains an FPGA, it can perform complex sequences, acquire data with different formats and sweep 
-parameters on his own, which complexifies a bit the drivers compared to other instruments.
+Since the OPX runs on a unique pulse processor, it can perform complex sequences that QCoDeS do not natively support. 
+For example, acquire data with different formats and sweep parameters on his own.
+To more fully support the OPX capabilities, this driver is more complex compared to other QCoDeS instruments' drivers.
 
 In this example folder, you will find two folders containing:
 * [basic-driver](basic-driver): demonstrating how to use the basic QCoDeS driver for the OPX.
