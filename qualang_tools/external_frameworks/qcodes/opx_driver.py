@@ -22,6 +22,7 @@ class OPX(Instrument):
         name: str = "OPX",
         host=None,
         port=None,
+        octave=None,
         close_other_machines=True,
     ) -> None:
         """
@@ -31,6 +32,7 @@ class OPX(Instrument):
         :param name: The name of the instrument used internally by QCoDeS. Must be unique.
         :param host: IP address of the router to which the OPX is connected.
         :param port: Port of the OPX or main OPX if working with a cluster.
+        :param octave: Octave configuration if an Octave is to be used in this experiment.
         :param close_other_machines: Flag to control if opening a quantum machine will close the existing ones. Default is True. Set to False if multiple a QOP is to be used by multiple users or to run several experiments in parallel.
         """
         super().__init__(name)
@@ -142,21 +144,22 @@ class OPX(Instrument):
             vals=Arrays(shape=(self.axis2_npoints.get_latest,)),
         )
         # Open QMM
-        self.connect_to_qmm(host=host, port=port)
+        self.connect_to_qmm(host=host, port=port, octave=octave)
         # Set config
         self.set_config(config=config)
         # Open QM
         self.open_qm(close_other_machines)
 
-    def connect_to_qmm(self, host=None, port=None):
+    def connect_to_qmm(self, host=None, port=None, octave=None):
         """
         Enable the connection with the OPX by creating the QuantumMachineManager.
         Displays the connection message with idn when the connection is established.
 
         :param host: IP address of the router to which the OPX is connected.
         :param port: Port of the OPX or main OPX if working with a cluster.
+        :param octave: Octave configuration if an Octave is to be used in this experiment.
         """
-        self.qmm = QuantumMachinesManager(host=host, port=port)
+        self.qmm = QuantumMachinesManager(host=host, port=port, octave=octave)
         self.connect_message()
 
     def connect_message(
