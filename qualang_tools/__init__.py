@@ -9,4 +9,5 @@ __all__ = [
     "analysis",
     "multi_user",
     "units",
+    "external_frameworks",
 ]
