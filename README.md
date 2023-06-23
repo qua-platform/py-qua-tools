@@ -10,7 +10,7 @@ The QUA language tools package includes various tools useful while writing QUA p
 It includes:
 
 
-* [QUA Loops Tools](qualang_tools/loops/README.md) - This library includes tools for parametrizing QUA for_ loops using the numpy (linspace, arange, logspace) syntaxes or by directly inputting a numpy array.
+* [QUA Loops Tools](qualang_tools/loops/README.md) - This library includes tools for parametrizing QUA for_ loops using the numpy (linspace, arange, logspace) methods or by directly inputting a numpy array.
 * [Plotting Tools](qualang_tools/plot/README.md) - This library includes tools to help handling plots from QUA programs.
 * [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs.
 * [Units Tools](qualang_tools/units/README.md) - This library includes tools for using units (MHz, us, mV...) and converting data to other units (demodulated data to volts for instance).
@@ -20,6 +20,8 @@ It currently has a two-states discriminator for analyzing the ground and excited
 
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
+
+* [External Frameworks](qualang_tools/external_frameworks/qcodes/README.md) - This library introduces drivers for integrating the OPX within external frameworks such as QCoDeS. Please refer to the [examples](./examples) section for more details about how to use these drivers.
 
 * Addons:
   * [Calibrations](qualang_tools/addons/calibration/README.md) - This module allows to easily perform most of the standard single qubit calibrations from a single python file.
