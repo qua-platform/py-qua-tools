@@ -422,6 +422,8 @@ class OPX(Instrument):
                     * len(self.results["names"]),
                     setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
                     * len(self.results["names"]),
+                    setpoint_names=((self.axis2_axis.label.replace(' ', '').lower(), self.axis1_axis.label.replace(' ', '').lower()),)
+                                    * len(self.results["names"]),
                 )
             elif len(self.results["buffers"][0]) == 1:
                 return ResultParameters(
@@ -436,6 +438,8 @@ class OPX(Instrument):
                     setpoint_units=((self.axis1_axis.unit,),)
                     * len(self.results["names"]),
                     setpoint_labels=((self.axis1_axis.label,),)
+                    * len(self.results["names"]),
+                    setpoint_names=((self.axis2_axis.label.replace(' ', '').lower(),) ,)
                     * len(self.results["names"]),
                 )
         else:
