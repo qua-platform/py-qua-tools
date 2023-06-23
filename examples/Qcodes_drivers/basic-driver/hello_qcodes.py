@@ -55,7 +55,7 @@ VP1 = MyCounter("counter1", "Vp1")
 VP2 = MyCounter("counter2", "Vp2")
 
 #####################################
-run = "raw_adc"
+run = "1d"
 # Pass the readout length (in ns) to the class to convert the demodulated/integrated data into Volts
 # and create the setpoint Parameter for raw adc trace acquisition
 opx_instrument.readout_pulse_length(readout_len)
@@ -221,7 +221,7 @@ if run == "1d":
     do0d(
         opx_instrument.run_exp,
         opx_instrument.resume,
-        opx_instrument.get_measurement_parameter(),
+        opx_instrument.get_measurement_parameter(scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]),
         opx_instrument.halt,
         do_plot=True,
         exp=experiment,
