@@ -46,7 +46,6 @@ class OPX(Instrument):
         self.results = {"names": [], "types": [], "buffers": [], "units": []}
         self.prog_id = None
         self.simulated_wf = {}
-        # self.add_parameter("results", label="results", get_cmd=self.get_res)
         # Parameter for simulation duration
         self.add_parameter(
             "sim_time",
@@ -262,6 +261,7 @@ class OPX(Instrument):
                         )
                         * 4096
                         / self.readout_pulse_length()
+                        * self.results["scale_factor"][i]
                     )
                 # raw adc traces
                 elif self.results["types"][i] == "adc":
@@ -272,6 +272,7 @@ class OPX(Instrument):
                             )["value"]
                         )
                         / 4096
+                        * self.results["scale_factor"][i]
                     )
                 # Reshape data
                 if len(self.results["buffers"][i]) == 2:
@@ -308,6 +309,7 @@ class OPX(Instrument):
                 self.results["types"].append("IQ")
                 self.results["units"].append("V")
                 self.results["buffers"].append([])
+                self.results["scale_factor"].append(1)
                 # Check if next buffer is for averaging
                 if len(gene.values[2].list_value.values[1].list_value.values) > 0:
                     if (
@@ -338,6 +340,7 @@ class OPX(Instrument):
             elif gene.values[0].string_value == "@macro_adc_trace":
                 self.results["buffers"][count].append(int(self.readout_pulse_length()))
                 self.results["types"][count] = "adc"
+                self.results["scale_factor"].append(1)
             else:
                 pass
             if len(gene.values) > 2:
@@ -378,15 +381,16 @@ class OPX(Instrument):
             self.axis2_axis.unit = unit
             self.axis2_axis.label = label
 
-    def get_measurement_parameter(self):
+    def get_measurement_parameter(self, scale_factor=((),)):
         """
         Find the correct Parameter shape based on the stream-processing and return the measurement Parameter.
 
+        :param: scale_factor: list of tuples containing the parameter to rescale, the scale factor with respect to Volts and the new unit as in scale_factor=[(I, 0.152, "pA"), (Q, 0.152, "pA")].
         :return: Qcodes measurement parameters.
         """
 
         # Reset the results in case the stream processing was changed between two iterations
-        self.results = {"names": [], "types": [], "buffers": [], "units": []}
+        self.results = {"names": [], "types": [], "buffers": [], "units": [], "scale_factor": []}
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
             self._get_stream_processing(self.get_prog())
@@ -403,7 +407,16 @@ class OPX(Instrument):
                 self.axis1_npoints(int(self.readout_pulse_length()))
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
-
+        # Rescale the results if a scale factor is provided
+        if len(scale_factor) > 0:
+            if len(scale_factor[0]) > 0:
+                if len(scale_factor[0]) == 3:
+                    for param in scale_factor:
+                        if param[0] in self.results["names"]:
+                            self.results["units"][self.results["names"].index(param[0])] = param[2]
+                            self.results["scale_factor"][self.results["names"].index(param[0])] = param[1]
+                else:
+                    raise ValueError("scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ].")
         if len(self.results["buffers"]) > 0 and len(self.results["buffers"][0]) > 0:
             if len(self.results["buffers"][0]) == 2:
                 return ResultParameters(
