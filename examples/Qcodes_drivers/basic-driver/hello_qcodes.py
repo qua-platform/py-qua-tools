@@ -218,6 +218,7 @@ if run == "1d":
     opx_instrument.plot_simulated_wf()
     # Execute program
     opx_instrument.qua_program = OPX_1d_scan(simulate=False)
+    # Here we add a scale factor to convert the data from V to pA
     do0d(
         opx_instrument.run_exp,
         opx_instrument.resume,
