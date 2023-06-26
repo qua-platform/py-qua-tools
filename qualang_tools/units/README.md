@@ -77,7 +77,7 @@ with program() as prog:
 
 #### Casting and Warnings
 
-The OPX only supports an **integer number** of clock cycles. Therefore, by default, the result of a multiplication with `u.ns` and similar time units **is automatically cast to `int`**.
+The OPX only supports an **integer number** of clock cycles. Therefore, the result of a multiplication with `u.ns` and similar time units **can be automatically cast to `int`**.
 For example
 
 ```python
@@ -85,10 +85,10 @@ with program() as prog:
     6 * u.ns == 1
 ```
 
-This behavior can be disabled when declaring `unit` as
+This behavior is **disabled** by default and can be enabled when declaring `unit` as
 
 ```python
-u = unit(coerce_to_integer = False)
+u = unit(coerce_to_integer = True)
 ```
 
 If casting occurs with nonzero reminder, (e.g. `6 * u.ns`), this will emit a `RuntimeWarning`. This can be avoided by declaring
