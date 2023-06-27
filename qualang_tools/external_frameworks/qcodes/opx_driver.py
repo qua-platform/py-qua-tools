@@ -385,7 +385,7 @@ class OPX(Instrument):
         """
         Find the correct Parameter shape based on the stream-processing and return the measurement Parameter.
 
-        :param: scale_factor: list of tuples containing the parameter to rescale, the scale factor with respect to Volts and the new unit as in scale_factor=[(I, 0.152, "pA"), (Q, 0.152, "pA")].
+        :param scale_factor: list of tuples containing the parameter to rescale, the scale factor with respect to Volts and the new unit as in scale_factor=[(I, 0.152, "pA"), (Q, 0.152, "pA")].
         :return: Qcodes measurement parameters.
         """
 

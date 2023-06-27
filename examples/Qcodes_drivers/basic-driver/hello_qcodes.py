@@ -222,7 +222,9 @@ if run == "1d":
     do0d(
         opx_instrument.run_exp,
         opx_instrument.resume,
-        opx_instrument.get_measurement_parameter(scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]),
+        opx_instrument.get_measurement_parameter(
+            scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]
+        ),
         opx_instrument.halt,
         do_plot=True,
         exp=experiment,

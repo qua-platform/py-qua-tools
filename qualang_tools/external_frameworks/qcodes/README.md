@@ -28,7 +28,7 @@ open a quantum machine, simulate, compile and execute QUA programs.
 * ``get_prog()``: Get the implemented QUA program.
 * ``get_res()``: Get the results from the OPX.
 * ``set_sweep_parameters(scanned_axis, setpoints, unit=None, label=None)``: Set the setpoints based on the sweep parameters.
-* ``get_measurement_parameter()``: Find the correct Parameter shape based on the stream-processing and return the measurement Parameter. If 'I' and 'Q' are saved in the stream_processing, then the amplitude 'R' and phase 'Phi' will also be returned.
+* ``get_measurement_parameter(scale_factor=[(),])``: Find the correct Parameter shape based on the stream-processing and return the measurement Parameter. If 'I' and 'Q' are saved in the stream_processing, then the amplitude 'R' and phase 'Phi' will also be returned. Additionally, the default unit for the raw adc traces, and the results from the integration and demodulation methods are automatically converted into Volts. It is however possible to convert it to another unit by specifying a scale factor as an input parameter of the form [(name of the variable, conversion factor, new unit), ], as in ``scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]``. 
 * ``execute_prog(prog)``: Execute a given QUA program and creates a result handle to fetch the results.
 * ``compile_prog(prog)``: Compile a given QUA program and stores it under the prog_id attribute.
 * ``execute_compiled_prog()``: Add a compiled program to the current queue and create a result handle to fetch the results.
