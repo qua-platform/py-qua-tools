@@ -390,7 +390,13 @@ class OPX(Instrument):
         """
 
         # Reset the results in case the stream processing was changed between two iterations
-        self.results = {"names": [], "types": [], "buffers": [], "units": [], "scale_factor": []}
+        self.results = {
+            "names": [],
+            "types": [],
+            "buffers": [],
+            "units": [],
+            "scale_factor": [],
+        }
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
             self._get_stream_processing(self.get_prog())
@@ -413,10 +419,16 @@ class OPX(Instrument):
                 if len(scale_factor[0]) == 3:
                     for param in scale_factor:
                         if param[0] in self.results["names"]:
-                            self.results["units"][self.results["names"].index(param[0])] = param[2]
-                            self.results["scale_factor"][self.results["names"].index(param[0])] = param[1]
+                            self.results["units"][
+                                self.results["names"].index(param[0])
+                            ] = param[2]
+                            self.results["scale_factor"][
+                                self.results["names"].index(param[0])
+                            ] = param[1]
                 else:
-                    raise ValueError("scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ].")
+                    raise ValueError(
+                        "scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ]."
+                    )
         if len(self.results["buffers"]) > 0 and len(self.results["buffers"][0]) > 0:
             if len(self.results["buffers"][0]) == 2:
                 return ResultParameters(
@@ -435,8 +447,13 @@ class OPX(Instrument):
                     * len(self.results["names"]),
                     setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
                     * len(self.results["names"]),
-                    setpoint_names=((self.axis2_axis.label.replace(' ', '').lower(), self.axis1_axis.label.replace(' ', '').lower()),)
-                                    * len(self.results["names"]),
+                    setpoint_names=(
+                        (
+                            self.axis2_axis.label.replace(" ", "").lower(),
+                            self.axis1_axis.label.replace(" ", "").lower(),
+                        ),
+                    )
+                    * len(self.results["names"]),
                 )
             elif len(self.results["buffers"][0]) == 1:
                 return ResultParameters(
@@ -452,7 +469,7 @@ class OPX(Instrument):
                     * len(self.results["names"]),
                     setpoint_labels=((self.axis1_axis.label,),)
                     * len(self.results["names"]),
-                    setpoint_names=((self.axis2_axis.label.replace(' ', '').lower(),) ,)
+                    setpoint_names=((self.axis2_axis.label.replace(" ", "").lower(),),)
                     * len(self.results["names"]),
                 )
         else:
