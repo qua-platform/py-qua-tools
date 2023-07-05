@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ## [0.15.1] - 2023-06-07
 ### Changed
-- loosened requirements on `pandas`
+- Loosened requirements on `pandas`
+
+### Added
+- External_frameworks/qcodes - Add the possibility to input a scale factor to the get_measurement_parameter() function in order to convert the results from Volts to an arbitrary unit.
+
+### Fixed
+- External_frameworks/qcodes - Now it is possible to plot several results on the same graph with the inspectr tool.
 
 ## [0.15.0] - 2023-05-15
 ### Added
