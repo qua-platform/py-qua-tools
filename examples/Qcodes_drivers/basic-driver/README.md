@@ -181,7 +181,7 @@ In order to execute the QUA program using the do'n'd methods, several steps are 
 1. The first command, or ``enter_actions`` must be ``run_exp`` to send the program to the OPX and initialize the result handle.
 2. The last command, or ``exit_actions`` must be ``halt`` to exit the infinite loop and stop the QUA program.
 3. At each QCoDeS iteration, the ``resume`` command must be called to pass the ``pause()`` statement and execute the pulse sequence.
-4. The measurement parameters must be defined by calling the ``get_measurement_parameter()`` function as a QCoDeS ``*param_meas``. Note that the measurement parameters are automatically defined from the stream_processing.
+4. The measurement parameters must be defined by calling the ``get_measurement_parameter()`` function as a QCoDeS ``*param_meas``. Note that the measurement parameters are automatically defined from the stream_processing. Additionally, the default unit for the raw adc traces, and the results from the integration and demodulation methods are automatically converted into Volts. It is however possible to convert it to another unit by specifying a scale factor as an input parameter of the form [(name of the variable, conversion factor, new unit), ], as in ``scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]``. 
 
 You will find below the examples of calling do0d, do1d and do2d with fake external parameters VP1 and VP2.
 ```python
@@ -202,7 +202,7 @@ do1d(
     10,
     0.1,
     opx_instrument.resume,
-    opx_instrument.get_measurement_parameter(),
+    opx_instrument.get_measurement_parameter(scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]),
     enter_actions=[opx_instrument.run_exp],
     exit_actions=[opx_instrument.halt],
     show_progress=True,
