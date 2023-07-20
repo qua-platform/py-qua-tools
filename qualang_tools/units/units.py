@@ -7,7 +7,7 @@ Content:
     - raw2volts: converts raw data to volts.
 """
 
-from qm.program._Program import _Program
+from qm import Program
 from inspect import stack
 from warnings import warn
 from typing import Union
@@ -24,10 +24,10 @@ class _nanosecond:
             for var in frameinfo.frame.f_locals.values():
 
                 if isinstance(
-                    var, _Program
+                    var, Program
                 ):  # we have a qua program being declared somewhere
                     if (
-                        var._is_in_scope  # this is set by __enter__ and unset by __exit__ of _Program
+                        var._is_in_scope  # this is set by __enter__ and unset by __exit__ of Program
                     ):
                         return 0.25  # now it is in clock cycles
         else:
