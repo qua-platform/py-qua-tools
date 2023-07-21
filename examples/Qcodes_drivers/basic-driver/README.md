@@ -107,7 +107,7 @@ The QUA program can either be written directly using the ``with program() as pro
 ```python
 with program() as prog:
     ...
-return prog
+
 # Add the QUA program to the OPX
 opx_instrument.qua_program = prog
 ```
