@@ -469,7 +469,7 @@ class OPX(Instrument):
                     * len(self.results["names"]),
                     setpoint_labels=((self.axis1_axis.label,),)
                     * len(self.results["names"]),
-                    setpoint_names=((self.axis2_axis.label.replace(" ", "").lower(),),)
+                    setpoint_names=((self.axis1_axis.label.replace(" ", "").lower(),),)
                     * len(self.results["names"]),
                 )
         else:
