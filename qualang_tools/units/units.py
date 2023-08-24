@@ -19,11 +19,8 @@ class _nanosecond:
         pass
 
     def _get_value(self) -> float:
-
         for frameinfo in stack():
-
             for var in frameinfo.frame.f_locals.values():
-
                 if isinstance(
                     var, Program
                 ):  # we have a qua program being declared somewhere
@@ -35,7 +32,6 @@ class _nanosecond:
             return 1.0  # this is in nanoseconds
 
     def __mul__(self, other: Union[int, float]) -> float:
-
         value = self._get_value()
 
         return value * other
@@ -49,7 +45,6 @@ class _hz:
         pass
 
     def __mul__(self, other: Union[int, float]) -> float:
-
         return other
 
     def __rmul__(self, other: Union[int, float]) -> float:
@@ -62,7 +57,6 @@ class _ensure_integer(float):
         return super(cls, cls).__new__(cls, value)
 
     def __mul__(self, other: Union[int, float]) -> int:
-
         result, remainder = divmod(float(self) * other, 1)
 
         if remainder != 0:
@@ -84,7 +78,6 @@ class _ensure_rounded_integer(float):
         return super(cls, cls).__new__(cls, value)
 
     def __mul__(self, other: Union[int, float]) -> int:
-
         result, remainder = divmod(float(self) * other, 1)
         if remainder != 0:
             if self.verbose:
