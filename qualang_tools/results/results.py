@@ -6,6 +6,7 @@ Content:
 """
 import numpy as np
 import time
+from qm.jobs.running_qm_job import RunningQmJob
 
 
 class fetching_tool:
@@ -122,3 +123,19 @@ def progress_counter(
     print(progress, end="\r")
     if current_percent == 100:
         print("")
+
+
+def wait_until_job_is_paused(running_job: RunningQmJob):
+    """
+    Waits until the OPX FPGA reaches a "pause" statement.
+    Used when the OPX sequence needs to be synchronized with an external parameter sweep and to ensure that the OPX
+    sequence is done before proceeding to the next iteration of the external loop, or when using IO variables:
+    https://docs.quantum-machines.co/0.1/qm-qua-sdk/docs/Guides/features/?h=pause#pause-resume-and-io-variables
+
+    :param running_job: the QM running job object.
+    :return: True when the pause statement has been reached.
+    """
+    while not running_job.is_paused():
+        time.sleep(0.1)
+        pass
+    return True
