@@ -137,5 +137,4 @@ def wait_until_job_is_paused(running_job: RunningQmJob):
     """
     while not running_job.is_paused():
         time.sleep(0.1)
-        pass
     return True
