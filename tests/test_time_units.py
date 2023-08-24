@@ -155,3 +155,22 @@ def test_in_scope_verbose_warnings(unit_verbose):
             assert (4 / 3) * unit_verbose.ms == int(1 / 3 * 1e6)
         with pytest.warns(RuntimeWarning):
             assert (4 / 3) * unit_verbose.s == int(1 / 3 * 1e9)
+
+
+def test_frequency_units(unit):
+
+    assert unit.mHz == 1e-3
+    assert unit.Hz == 1
+    assert unit.kHz == 1e3
+    assert unit.MHz == 1e6
+    assert unit.GHz == 1e9
+
+
+def test_frequency_conversion(unit_verbose):
+
+    assert 4.1 * unit_verbose.mHz == 4.1 * 1e-3
+    assert 4.1 * unit_verbose.Hz == 4
+    assert 4.1 * unit_verbose.kHz == 4_100
+    assert 4.1 * unit_verbose.MHz == 4_100_000
+    assert 4.1 * unit_verbose.GHz == 4_100_000_000
+    
