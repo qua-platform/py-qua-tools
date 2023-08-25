@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - results - Add `wait_until_job_is_paused()` to block python console until the OPX sequence reaches a `pause()` statement.
 - Units.unit - `units.unit.Hz` now rounds the result and casts it to an integer if the flag coerce_to_integer is set to True. Same for `kHz`, `MHz` and `GHz`.
-
+- External_frameworks/qcodes - Added ``cluster_name`` as optional input parameter to connect to the OPX with QOP220 or above.
 
 ## [0.15.1] - 2023-06-07
 ### Changed
