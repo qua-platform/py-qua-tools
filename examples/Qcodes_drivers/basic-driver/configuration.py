@@ -2,6 +2,7 @@
 # VARIABLES #
 #############
 qop_ip = "127.0.0.1"
+cluster_name = "my_cluster"
 
 readout_len = 100
 readout_amp = 0.001

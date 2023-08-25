@@ -31,11 +31,21 @@ class OPXCustomSequence(OPX):
         self,
         config: Dict,
         name: str = "OPXCustomSequence",
-        host=None,
-        port=None,
-        close_other_machines=True,
+        host: str = None,
+        port: int = None,
+        cluster_name: str = None,
+        octave=None,
+        close_other_machines: bool = True,
     ):
-        super().__init__(config, name, host=host, port=port)
+        super().__init__(
+            config,
+            name,
+            host=host,
+            port=port,
+            cluster_name=cluster_name,
+            octave=octave,
+            close_other_machines=close_other_machines,
+        )
         self.counter = 0
         self.measurement_variables = None
         self.close_other_machines = close_other_machines
@@ -330,7 +340,6 @@ class OPXCustomSequence(OPX):
                     self.n_avg()
                 ).map(FUNCTIONS.average()).save_all("Q")
         elif self.opx_scan() == "2d":
-
             if (
                 self.acquisition_mode() == "full_integration"
                 or self.acquisition_mode() == "full_demodulation"

@@ -88,7 +88,10 @@ as an example and you can replace it with your own way of doing.
 
 In order to incorporate the OPX into your existing framework, you just need to create the OPX instrument class and add it to your station:
 ```python
-opx_instrument = OPXCustomSequence(config=config, name="OPX_demo", host="127.0.0.1", port=80)
+# For OPX version >= QOP220
+opx_instrument = OPX(config=config, name="OPX_demo", host="127.0.0.1", cluster_name="my_cluster")
+# For OPX version < QOP220
+opx_instrument = OPX(config=config, name="OPX_demo", host="127.0.0.1", port=80)
 station.add_component(opx_instrument)
 ```
 

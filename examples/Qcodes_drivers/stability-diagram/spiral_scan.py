@@ -25,20 +25,23 @@ class OPXCustomSequence(OPX):
         name: str = "OPXCustomSequence",
         host=None,
         port=None,
-        close_other_machines=True,
+        cluster_name: str = None,
+        octave=None,
+        close_other_machines: bool = True,
     ):
         super().__init__(
             config,
             name,
             host=host,
             port=port,
+            cluster_name=cluster_name,
+            octave=octave,
             close_other_machines=close_other_machines,
         )
         self.counter = 0
 
     @staticmethod
     def spiral(N: int):
-
         # casting to int if necessary
         if not isinstance(N, int):
             N = int(N)
@@ -129,14 +132,22 @@ class OPXCustomSequence(OPX):
                 )
             return output
 
-    def get_measurement_parameter(self):
+    def get_measurement_parameter(self, scale_factor=((),)):
         """
         Find the correct Parameter shape based on the stream-processing and return the measurement Parameter.
+
+        :param scale_factor: list of tuples containing the parameter to rescale, the scale factor with respect to Volts and the new unit as in scale_factor=[(I, 0.152, "pA"), (Q, 0.152, "pA")].
         :return: Qcodes measurement parameters.
         """
 
         # Reset the results in case the stream processing was changed between two iterations
-        self.results = {"names": [], "types": [], "buffers": [], "units": []}
+        self.results = {
+            "names": [],
+            "types": [],
+            "buffers": [],
+            "units": [],
+            "scale_factor": [],
+        }
 
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
@@ -155,21 +166,37 @@ class OPXCustomSequence(OPX):
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
 
-            return ResultParameters(
-                self,
-                self.results["names"],
-                "OPX_results",
-                names=self.results["names"],
-                units=self.results["units"],
-                shapes=((self.results["buffers"][0][0], self.results["buffers"][0][0]),)
-                * len(self.results["names"]),
-                setpoints=((self.axis2_axis(), self.axis1_axis()),)
-                * len(self.results["names"]),
-                setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),)
-                * len(self.results["names"]),
-                setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
-                * len(self.results["names"]),
-            )
+        # Rescale the results if a scale factor is provided
+        if len(scale_factor) > 0:
+            if len(scale_factor[0]) > 0:
+                if len(scale_factor[0]) == 3:
+                    for param in scale_factor:
+                        if param[0] in self.results["names"]:
+                            self.results["units"][
+                                self.results["names"].index(param[0])
+                            ] = param[2]
+                            self.results["scale_factor"][
+                                self.results["names"].index(param[0])
+                            ] = param[1]
+                else:
+                    raise ValueError(
+                        "scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ]."
+                    )
+        return ResultParameters(
+            self,
+            self.results["names"],
+            "OPX_results",
+            names=self.results["names"],
+            units=self.results["units"],
+            shapes=((self.results["buffers"][0][0], self.results["buffers"][0][0]),)
+            * len(self.results["names"]),
+            setpoints=((self.axis2_axis(), self.axis1_axis()),)
+            * len(self.results["names"]),
+            setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),)
+            * len(self.results["names"]),
+            setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
+            * len(self.results["names"]),
+        )
 
 
 def round_to_fixed(x, number_of_bits=12):
@@ -209,9 +236,14 @@ experiment = load_or_create_experiment(
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPXCustomSequence(config, name="OPX", host="127.0.0.1")
+opx_instrument = OPXCustomSequence(
+    config, name="OPX", host=qop_ip, cluster_name=cluster_name
+)
+
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
+
+
 # Create fake parameters for do1d and do2d scan demonstration, can be replaced by external instrument parameters
 class MyCounter(Parameter):
     def __init__(self, name, label):
