@@ -97,13 +97,18 @@ class OPX(Instrument):
             set_cmd=None,
         )
         self.add_parameter(
+            "axis1_full_list",
+            unit="",
+            initial_value=0,
+            get_cmd=None,
+            set_cmd=None,
+        )
+        self.add_parameter(
             "axis1_axis",
             unit="",
             label="Axis 1",
-            parameter_class=GeneratedSetPoints,
-            startparam=self.axis1_start,
-            stopparam=self.axis1_stop,
-            numpointsparam=self.axis1_npoints,
+            parameter_class=GeneratedSetPointsArbitrary,
+            full_list=self.axis1_full_list,
             vals=Arrays(shape=(self.axis1_npoints.get_latest,)),
         )
         self.add_parameter(
@@ -135,14 +140,19 @@ class OPX(Instrument):
             set_cmd=None,
         )
         self.add_parameter(
+            "axis2_full_list",
+            unit="",
+            initial_value=0,
+            get_cmd=None,
+            set_cmd=None,
+        )
+        self.add_parameter(
             "axis2_axis",
             unit="",
             label="Axis 2",
-            parameter_class=GeneratedSetPoints,
-            startparam=self.axis2_start,
-            stopparam=self.axis2_stop,
-            numpointsparam=self.axis2_npoints,
-            vals=Arrays(shape=(self.axis2_npoints.get_latest,)),
+            parameter_class=GeneratedSetPointsArbitrary,
+            full_list=self.axis2_full_list,
+            vals=Arrays(shape=(self.axis1_npoints.get_latest,)),
         )
         # Open QMM
         self.connect_to_qmm(
@@ -376,6 +386,7 @@ class OPX(Instrument):
         :param label: Label of the setpoint ("Bias voltage" for instance).
         """
         if scanned_axis == "axis1":
+            self.axis1_full_list(setpoints)
             self.axis1_start(setpoints[0])
             self.axis1_stop(setpoints[-1])
             self.axis1_step(setpoints[1] - setpoints[0])
@@ -383,6 +394,7 @@ class OPX(Instrument):
             self.axis1_axis.unit = unit
             self.axis1_axis.label = label
         elif scanned_axis == "axis2":
+            self.axis2_full_list(setpoints)
             self.axis2_start(setpoints[0])
             self.axis2_stop(setpoints[-1])
             self.axis2_step(setpoints[1] - setpoints[0])
@@ -665,3 +677,16 @@ class GeneratedSetPointsSpan(Parameter):
             self._centerparam() + self._spanparam() / 2,
             self._numpointsparam(),
         )
+
+# noinspection PyAbstractClass
+class GeneratedSetPointsArbitrary(Parameter):
+    """
+    A parameter that generates a setpoint array from an arbitrary list of points.
+    """
+
+    def __init__(self, full_list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.full_list = full_list
+
+    def get_raw(self):
+        return self.full_list()
