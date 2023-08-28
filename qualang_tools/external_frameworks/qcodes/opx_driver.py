@@ -678,6 +678,7 @@ class GeneratedSetPointsSpan(Parameter):
             self._numpointsparam(),
         )
 
+
 # noinspection PyAbstractClass
 class GeneratedSetPointsArbitrary(Parameter):
     """
