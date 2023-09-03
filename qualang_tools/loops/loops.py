@@ -305,12 +305,13 @@ def get_equivalent_log_array(log_array):
     a_log = []
     aprev = round(log_array[0])
     step = np.mean(np.array(log_array[1:]) / np.array(log_array[:-1]))
+    end = log_array[-1] * np.sqrt(step)
     if step > 1:
-        while aprev < log_array[-1]:
+        while aprev < end:
             a_log.append(aprev)
             aprev = int(aprev * step)
     else:
-        while aprev > log_array[-1]:
+        while aprev > end:
             a_log.append(aprev)
             aprev = int(aprev * step)
     return np.array(a_log)
