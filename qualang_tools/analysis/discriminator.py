@@ -43,8 +43,8 @@ def two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True):
     angle = np.arctan2(np.mean(Qe) - np.mean(Qg), np.mean(Ig) - np.mean(Ie))
     C = np.cos(angle)
     S = np.sin(angle)
-    # Condition for having e > Ig
-    if np.mean((Ig - Ie) * C - (Qg - Qe) * S) > 0:
+    # Condition for having Ie > Ig
+    if np.mean((Ie - Ig) * C - (Qe - Qg) * S) > 0:
         angle += np.pi
         C = np.cos(angle)
         S = np.sin(angle)
