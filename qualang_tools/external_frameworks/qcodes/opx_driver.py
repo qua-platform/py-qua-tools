@@ -20,10 +20,11 @@ class OPX(Instrument):
         self,
         config: Dict,
         name: str = "OPX",
-        host=None,
-        port=None,
+        host: str = None,
+        port: int = None,
+        cluster_name: str = None,
         octave=None,
-        close_other_machines=True,
+        close_other_machines: bool = True,
     ) -> None:
         """
         QCoDeS driver for the OPX.
@@ -31,6 +32,7 @@ class OPX(Instrument):
         :param config: python dict containing the configuration expected by the OPX.
         :param name: The name of the instrument used internally by QCoDeS. Must be unique.
         :param host: IP address of the router to which the OPX is connected.
+        :param cluster_name: Name of the cluster as defined in the OPX admin panel (from version QOP220)
         :param port: Port of the OPX or main OPX if working with a cluster.
         :param octave: Octave configuration if an Octave is to be used in this experiment.
         :param close_other_machines: Flag to control if opening a quantum machine will close the existing ones. Default is True. Set to False if multiple a QOP is to be used by multiple users or to run several experiments in parallel.
@@ -95,13 +97,18 @@ class OPX(Instrument):
             set_cmd=None,
         )
         self.add_parameter(
+            "axis1_full_list",
+            unit="",
+            initial_value=0,
+            get_cmd=None,
+            set_cmd=None,
+        )
+        self.add_parameter(
             "axis1_axis",
             unit="",
             label="Axis 1",
-            parameter_class=GeneratedSetPoints,
-            startparam=self.axis1_start,
-            stopparam=self.axis1_stop,
-            numpointsparam=self.axis1_npoints,
+            parameter_class=GeneratedSetPointsArbitrary,
+            full_list=self.axis1_full_list,
             vals=Arrays(shape=(self.axis1_npoints.get_latest,)),
         )
         self.add_parameter(
@@ -133,32 +140,44 @@ class OPX(Instrument):
             set_cmd=None,
         )
         self.add_parameter(
+            "axis2_full_list",
+            unit="",
+            initial_value=0,
+            get_cmd=None,
+            set_cmd=None,
+        )
+        self.add_parameter(
             "axis2_axis",
             unit="",
             label="Axis 2",
-            parameter_class=GeneratedSetPoints,
-            startparam=self.axis2_start,
-            stopparam=self.axis2_stop,
-            numpointsparam=self.axis2_npoints,
-            vals=Arrays(shape=(self.axis2_npoints.get_latest,)),
+            parameter_class=GeneratedSetPointsArbitrary,
+            full_list=self.axis2_full_list,
+            vals=Arrays(shape=(self.axis1_npoints.get_latest,)),
         )
         # Open QMM
-        self.connect_to_qmm(host=host, port=port, octave=octave)
+        self.connect_to_qmm(
+            host=host, port=port, cluster_name=cluster_name, octave=octave
+        )
         # Set config
         self.set_config(config=config)
         # Open QM
         self.open_qm(close_other_machines)
 
-    def connect_to_qmm(self, host=None, port=None, octave=None):
+    def connect_to_qmm(
+        self, host: str = None, port: int = None, cluster_name: str = None, octave=None
+    ):
         """
         Enable the connection with the OPX by creating the QuantumMachineManager.
         Displays the connection message with idn when the connection is established.
 
         :param host: IP address of the router to which the OPX is connected.
         :param port: Port of the OPX or main OPX if working with a cluster.
+        :param cluster_name: Name of the cluster as defined in the OPX admin panel (from version QOP220)
         :param octave: Octave configuration if an Octave is to be used in this experiment.
         """
-        self.qmm = QuantumMachinesManager(host=host, port=port, octave=octave)
+        self.qmm = QuantumMachinesManager(
+            host=host, port=port, cluster_name=cluster_name, octave=octave
+        )
         self.connect_message()
 
     def connect_message(
@@ -367,6 +386,7 @@ class OPX(Instrument):
         :param label: Label of the setpoint ("Bias voltage" for instance).
         """
         if scanned_axis == "axis1":
+            self.axis1_full_list(setpoints)
             self.axis1_start(setpoints[0])
             self.axis1_stop(setpoints[-1])
             self.axis1_step(setpoints[1] - setpoints[0])
@@ -374,6 +394,7 @@ class OPX(Instrument):
             self.axis1_axis.unit = unit
             self.axis1_axis.label = label
         elif scanned_axis == "axis2":
+            self.axis2_full_list(setpoints)
             self.axis2_start(setpoints[0])
             self.axis2_stop(setpoints[-1])
             self.axis2_step(setpoints[1] - setpoints[0])
@@ -656,3 +677,17 @@ class GeneratedSetPointsSpan(Parameter):
             self._centerparam() + self._spanparam() / 2,
             self._numpointsparam(),
         )
+
+
+# noinspection PyAbstractClass
+class GeneratedSetPointsArbitrary(Parameter):
+    """
+    A parameter that generates a setpoint array from an arbitrary list of points.
+    """
+
+    def __init__(self, full_list, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.full_list = full_list
+
+    def get_raw(self):
+        return self.full_list()

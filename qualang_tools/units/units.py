@@ -11,6 +11,7 @@ from qm import Program
 from inspect import stack
 from warnings import warn
 from typing import Union
+from numpy import round
 
 
 class _nanosecond:
@@ -18,11 +19,8 @@ class _nanosecond:
         pass
 
     def _get_value(self) -> float:
-
         for frameinfo in stack():
-
             for var in frameinfo.frame.f_locals.values():
-
                 if isinstance(
                     var, Program
                 ):  # we have a qua program being declared somewhere
@@ -34,10 +32,20 @@ class _nanosecond:
             return 1.0  # this is in nanoseconds
 
     def __mul__(self, other: Union[int, float]) -> float:
-
         value = self._get_value()
 
         return value * other
+
+    def __rmul__(self, other: Union[int, float]) -> float:
+        return self.__mul__(other)
+
+
+class _hz:
+    def __init__(self):
+        pass
+
+    def __mul__(self, other: Union[int, float]) -> float:
+        return other
 
     def __rmul__(self, other: Union[int, float]) -> float:
         return self.__mul__(other)
@@ -49,7 +57,6 @@ class _ensure_integer(float):
         return super(cls, cls).__new__(cls, value)
 
     def __mul__(self, other: Union[int, float]) -> int:
-
         result, remainder = divmod(float(self) * other, 1)
 
         if remainder != 0:
@@ -60,6 +67,26 @@ class _ensure_integer(float):
                 )
 
         return int(result)
+
+    def __rmul__(self, other: Union[int, float]) -> int:
+        return self.__mul__(other)
+
+
+class _ensure_rounded_integer(float):
+    def __new__(cls, value: Union[int, float], verbose: bool = True, *args, **kwargs):
+        cls.verbose = verbose
+        return super(cls, cls).__new__(cls, value)
+
+    def __mul__(self, other: Union[int, float]) -> int:
+        result, remainder = divmod(float(self) * other, 1)
+        if remainder != 0:
+            if self.verbose:
+                warn(
+                    f"Warning: the specified frequency ({other}) to be converted to Hz in not an integer. It has been converted to {int(round(result + remainder))} to avoid subsequent errors.",
+                    RuntimeWarning,
+                )
+
+        return int(round(result + remainder))
 
     def __rmul__(self, other: Union[int, float]) -> int:
         return self.__mul__(other)
@@ -76,16 +103,41 @@ class unit:
         self.verbose = verbose
 
         # Frequency units
+        self._Hz = _hz()
         self.mHz = 0.001
-        self.Hz = 1
-        self.kHz = 1000
-        self.MHz = 1000_000
-        self.GHz = 1000_000_000
 
         # Voltage units
         self.V = 1
         self.mV = 1e-3
         self.uV = 1e-6
+
+    @property
+    def GHz(self) -> float:
+        if self.ensure_integer:
+            return _ensure_rounded_integer(1e9 * self._Hz, False)
+        else:
+            return 1e9 * self._Hz
+
+    @property
+    def MHz(self) -> float:
+        if self.ensure_integer:
+            return _ensure_rounded_integer(1e6 * self._Hz, False)
+        else:
+            return 1e6 * self._Hz
+
+    @property
+    def kHz(self) -> float:
+        if self.ensure_integer:
+            return _ensure_rounded_integer(1e3 * self._Hz, False)
+        else:
+            return 1e3 * self._Hz
+
+    @property
+    def Hz(self) -> float:
+        if self.ensure_integer:
+            return _ensure_rounded_integer(1 * self._Hz, False)
+        else:
+            return 1 * self._Hz
 
     @property
     def ns(self) -> float:

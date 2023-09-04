@@ -96,3 +96,17 @@ If casting occurs with nonzero reminder, (e.g. `6 * u.ns`), this will emit a `Ru
 ```python
 u = unit(verbose = False)
 ```
+
+### Frequency Units
+
+To avoid floating point errors and incompatibilities with some configuration entries and mixer calibration parameters, 
+the flag ``coerce_to_integer = True`` will automatically round and cast to integers the frequencies defined with the 
+unit class. 
+For instance:
+
+```python
+u = unit(coerce_to_integer = True)
+
+qubit_LO = 4.1 * u.GHz # --> will return 4_100_000_000 instead of 4099999999.9999995 (= 4.1 * 1e9)
+qubit_IF = 4.1 * u.MHz # --> Will return 4_100_000 instead of 4099999.9999995 (= 4.1 * 1e6)
+```

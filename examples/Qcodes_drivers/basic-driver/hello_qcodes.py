@@ -26,9 +26,11 @@ experiment = load_or_create_experiment(
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPX(config, name="OPX_demo", host=qop_ip)
+opx_instrument = OPX(config, name="OPX_demo", host=qop_ip, cluster_name=cluster_name)
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
+
+
 # Create fake parameters for do1d and do2d scan demonstration, can be replaced by external instrument parameters
 class MyCounter(Parameter):
     def __init__(self, name, label):
@@ -97,6 +99,8 @@ if run == "raw_adc":
         do_plot=True,
         exp=experiment,
     )
+
+
 #####################################
 #        0D SWEEP & do2d            #
 #####################################
@@ -166,6 +170,8 @@ step = 0.01
 biases = np.arange(0, 0.5, 0.01)
 prefactor = step / gate_1_amp
 n_avg = 10
+
+
 # QUA sequence
 def OPX_1d_scan(simulate=False):
     with program() as prog:

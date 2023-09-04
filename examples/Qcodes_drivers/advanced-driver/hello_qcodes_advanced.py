@@ -27,9 +27,13 @@ experiment = load_or_create_experiment(
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPXCustomSequence(config, name="OPX_demo", host="127.0.0.1")
+opx_instrument = OPXCustomSequence(
+    config, name="OPX_demo", host="127.0.0.1", cluster_name="my_cluster"
+)
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
+
+
 # Create fake parameters for do1d and do2d scan demonstration, can be replaced by external instrument parameters
 class MyCounter(Parameter):
     def __init__(self, label):
@@ -75,6 +79,7 @@ run = "rabi_2d"
 if run == "rabi_1d":
     n_avg = 100
     amp_vec = np.arange(0, 1.9, 0.02)
+
     # QUA sequence
     def custom_sequence(self):
         n = declare(int)
@@ -115,6 +120,7 @@ if run == "rabi_2d":
     n_avg = 100
     amp_vec = np.arange(0.1, 1.9, 0.02)
     pulse_lengths = np.arange(4, 1000, 10)
+
     # QUA sequence
     def custom_sequence(self):
         n = declare(int)
@@ -161,6 +167,7 @@ if run == "sliced":
     n_avg = 100
     slice_size = 20  # Size of one slice in ns (must a multiple of 4)
     nb_of_slices = opx_instrument.readout_pulse_length() // slice_size
+
     # QUA sequence
     def custom_sequence(self):
         n = declare(int)

@@ -94,7 +94,6 @@ def from_array(var, array):
         step = array[1] / array[0]
 
         if var.is_int():
-
             warnings.warn(
                 "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
             )
@@ -305,12 +304,15 @@ def get_equivalent_log_array(log_array):
     a_log = []
     aprev = round(log_array[0])
     step = np.mean(np.array(log_array[1:]) / np.array(log_array[:-1]))
+
     if step > 1:
-        while aprev < log_array[-1]:
+        end = log_array[-1] * np.sqrt(step)
+        while aprev < end:
             a_log.append(aprev)
             aprev = int(aprev * step)
     else:
-        while aprev > log_array[-1]:
+        end = log_array[-1] / np.sqrt(step)
+        while aprev > end:
             a_log.append(aprev)
             aprev = int(aprev * step)
     return np.array(a_log)

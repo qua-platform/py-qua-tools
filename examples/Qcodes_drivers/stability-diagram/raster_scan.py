@@ -26,9 +26,11 @@ experiment = load_or_create_experiment(
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPX(config, name="OPX", host="172.16.33.100", port=81)
+opx_instrument = OPX(config, name="OPX", host=qop_ip, cluster_name=cluster_name)
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
+
+
 # Create fake parameters for do1d and do2d scan demonstration, can be replaced by external instrument parameters
 class MyCounter(Parameter):
     def __init__(self, name, label):
