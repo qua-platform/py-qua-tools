@@ -97,7 +97,7 @@ def config():
 
 def simulate_program_and_return(config, prog, duration=50000):
 
-    qmm = QuantumMachinesManager(host="172.16.2.102", port=80)
+    qmm = QuantumMachinesManager()
     # qmm.close_all_quantum_machines()
     # job = qmm.simulate(
     #     config,
@@ -197,6 +197,7 @@ def test_from_array(config):
 
     cfg = deepcopy(config)
     arange_param_list = [
+        [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
         [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
         [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
         [np.logspace(6, 4, 19), "int"],
