@@ -125,7 +125,7 @@ def progress_counter(
         print("")
 
 
-def wait_until_job_is_paused(running_job: RunningQmJob, timeout:int = 30):
+def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
     """
     Waits until the OPX FPGA reaches a "pause" statement.
     Used when the OPX sequence needs to be synchronized with an external parameter sweep and to ensure that the OPX
