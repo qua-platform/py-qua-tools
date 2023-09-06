@@ -523,8 +523,13 @@ class OPX(Instrument):
         :param timeout: duration in seconds after which the console will be freed even if the pause statement has not been reached to prevent from being stuck here forever.
         """
         wait_until_job_is_paused(self.job, timeout)
-        self.job.resume()
-        self.counter += 1
+        if not self.job.is_paused():
+            raise RuntimeError(
+                f"The program has not reached the pause statement before {timeout=}s."
+            )
+        else:
+            self.job.resume()
+            self.counter += 1
 
     def compile_prog(self, prog):
         """
