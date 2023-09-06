@@ -10,6 +10,7 @@ from qcodes.utils.validators import Numbers, Arrays
 from qm import SimulationConfig
 from qm.qua import program
 from qm.QuantumMachinesManager import QuantumMachinesManager
+from qualang_tools.results import wait_until_job_is_paused
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -515,10 +516,13 @@ class OPX(Instrument):
         self.counter = 0
         self.result_handles = self.job.result_handles
 
-    def resume(self):
+    def resume(self, timeout: int = 30):
         """
         Resume the job and increment the counter to keep track of the fetched results.
+
+        :param timeout: duration in seconds after which the console will be freed even if the pause statement has not been reached to prevent from being stuck here forever.
         """
+        wait_until_job_is_paused(self.job, timeout)
         self.job.resume()
         self.counter += 1
 
