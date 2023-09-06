@@ -4,12 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.15.2] - 2023-09-06
 ### Added
 - results - Add `wait_until_job_is_paused()` to block python console until the OPX sequence reaches a `pause()` statement.
-- Units.unit - `units.unit.Hz` now rounds the result and casts it to an integer if the flag coerce_to_integer is set to True. Same for `kHz`, `MHz` and `GHz`.
 - External_frameworks/qcodes - Added ``cluster_name`` as optional input parameter to connect to the OPX with QOP220 or above.
 
 ### Changed
+- Units.unit - `units.unit.Hz` now rounds the result and casts it to an integer if the flag coerce_to_integer is set to True. Same for `kHz`, `MHz` and `GHz`.
 - External_frameworks/qcodes - Added ``wait_until_job_is_paused()`` in the resume() command to ensure that resume will be called only after the program reached the pause() statement.
 
 ## [0.15.1] - 2023-06-07
@@ -278,7 +280,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...HEAD
+[0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.13.2...v0.14.0
