@@ -525,7 +525,7 @@ class OPX(Instrument):
         wait_until_job_is_paused(self.job, timeout)
         if not self.job.is_paused():
             raise RuntimeError(
-                f"The program has not reached the pause statement before {timeout=}s."
+                f"The program has not reached the pause statement before {timeout} s."
             )
         else:
             self.job.resume()
