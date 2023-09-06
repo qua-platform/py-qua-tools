@@ -125,7 +125,7 @@ def progress_counter(
         print("")
 
 
-def wait_until_job_is_paused(running_job: RunningQmJob):
+def wait_until_job_is_paused(running_job: RunningQmJob, timeout:int = 30):
     """
     Waits until the OPX FPGA reaches a "pause" statement.
     Used when the OPX sequence needs to be synchronized with an external parameter sweep and to ensure that the OPX
@@ -133,8 +133,12 @@ def wait_until_job_is_paused(running_job: RunningQmJob):
     https://docs.quantum-machines.co/0.1/qm-qua-sdk/docs/Guides/features/?h=pause#pause-resume-and-io-variables
 
     :param running_job: the QM running job object.
+    :param timeout: duration in seconds after which the console will be freed even if the pause statement has not been reached to prevent from being stuck here forever.
     :return: True when the pause statement has been reached.
     """
-    while not running_job.is_paused():
+    start = time.time()
+    delay = 0
+    while (not running_job.is_paused()) and (delay < timeout):
         time.sleep(0.1)
+        delay = time.time() - start
     return True
