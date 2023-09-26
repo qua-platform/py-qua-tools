@@ -11,8 +11,13 @@ from qm import SimulationConfig
 from qm.qua import program
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qualang_tools.results import wait_until_job_is_paused
+from qualang_tools.results import fetching_tool
+from qualang_tools.plot import interrupt_on_close
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 # noinspection PyAbstractClass
@@ -365,6 +370,8 @@ class OPX(Instrument):
                 pass
             if len(gene.values) > 2:
                 self._extend_result(gene.values[2].list_value, count, averaging_buffer)
+            elif gene.values[0].string_value == "average":
+                self._extend_result(gene.values[1].list_value, count, averaging_buffer)
 
     def _get_stream_processing(self, prog):
         """
@@ -507,6 +514,51 @@ class OPX(Instrument):
                 setpoint_units=((),) * len(self.results["names"]),
                 setpoint_labels=((),) * len(self.results["names"]),
             )
+
+    def live_plotting(self, results_to_plot: list = ()):
+        # Get the plotting grid
+        if len(results_to_plot) == 0:
+            raise ValueError("At least 1 result to plot must be provided")
+        elif len(results_to_plot) == 1:
+            grid = 1
+        elif len(results_to_plot) == 2:
+            grid = 121
+        elif len(results_to_plot) == 3 or len(results_to_plot) == 4:
+            grid = 221
+        else:
+            raise ValueError("Live plotting is limited to 4 parameters.")
+        # Get results from QUA program
+        results = fetching_tool(self.job, results_to_plot, "live")
+        # Live plotting
+        fig = plt.figure()
+        interrupt_on_close(fig, self.job)  # Interrupts the job when closing the figure
+        while results.is_processing():
+            # Fetch results
+            data_list = results.fetch_all()
+            # Subplot counter
+            i = 0
+            for data in data_list:
+                # Convert the results into Volts
+                data = -data[-1] * 4096 / int(self.readout_pulse_length())
+                # Plot results
+                if len(data.shape) == 1:
+                    if len(results_to_plot) > 1:
+                        plt.subplot(grid + i)
+                    plt.cla()
+                    plt.plot(self.axis1_axis(), data)
+                    plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                    plt.ylabel(results_to_plot[i] + " [V]")
+                elif len(data.shape) == 2:
+                    if len(results_to_plot) > 1:
+                        plt.subplot(grid + i)
+                    plt.cla()
+                    plt.pcolor(self.axis1_axis(), self.axis2_axis(), data)
+                    plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                    plt.ylabel(self.axis2_axis.label + f" [{self.axis2_axis.unit}]")
+                    plt.title(results_to_plot[i] + " [V]")
+                i += 1
+            plt.pause(1)
+            plt.tight_layout()
 
     def run_exp(self):
         """
