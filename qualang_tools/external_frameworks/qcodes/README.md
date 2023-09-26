@@ -34,6 +34,7 @@ open a quantum machine, simulate, compile and execute QUA programs.
 * ``execute_compiled_prog()``: Add a compiled program to the current queue and create a result handle to fetch the results.
 * ``simulate_prog(prog)``: Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
 * ``plot_simulated_wf()``: Plot the simulated waveforms in a new figure using matplotlib.
+* ``live_plotting(results_to_plot=[])``: Enable live fetching and plotting of the data while the QUA program is running. This works only if the averaging is done on the most outer loop and using the `.average()` method in the stream-processing. See the dedicated section below for a usage example.
 * ``halt()``: Interrupt the current job and halt the running program.
 * ``close()``: Close the quantum machine and tear down the OPX instrument.
 
@@ -87,9 +88,9 @@ experiment = load_or_create_experiment(
 # Initialize the QCoDeS station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_pulse_sequence = OPX(config, name="OPX_demo", host="127.0.0.1")
+opx_instrument = OPX(config, name="OPX_demo", host="127.0.0.1")
 # Add the OPX instrument to the QCoDeS station
-station.add_component(opx_pulse_sequence)
+station.add_component(opx_instrument)
 
 #####################################
 #        2D SWEEP & do0d            #
@@ -140,25 +141,144 @@ def OPX_2d_scan(simulate=False):
     return prog
 
 # Parametrize the OPX readout scheme
-opx_pulse_sequence.readout_pulse_length(readout_len)  # Set the readout duration in ns
+opx_instrument.readout_pulse_length(readout_len)  # Set the readout duration in ns
 # Axis1 is the most inner loop
-opx_pulse_sequence.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
+opx_instrument.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
 # Axis2 is the second loop
-opx_pulse_sequence.set_sweep_parameters("axis2", gate_1_biases, "V", "Gate 1 biases")
+opx_instrument.set_sweep_parameters("axis2", gate_1_biases, "V", "Gate 1 biases")
 # Add the custom sequence to the OPX
-opx_pulse_sequence.qua_program = OPX_2d_scan(simulate=True)
+opx_instrument.qua_program = OPX_2d_scan(simulate=True)
 # Simulate program
-opx_pulse_sequence.sim_time(100_000)
-opx_pulse_sequence.simulate()
-opx_pulse_sequence.plot_simulated_wf()
+opx_instrument.sim_time(100_000)
+opx_instrument.simulate()
+opx_instrument.plot_simulated_wf()
 # Execute program
-opx_pulse_sequence.qua_program = OPX_2d_scan(simulate=False)
+opx_instrument.qua_program = OPX_2d_scan(simulate=False)
 do0d(
-    opx_pulse_sequence.run_exp,
-    opx_pulse_sequence.resume,
-    opx_pulse_sequence.get_full_data(),
+    opx_instrument.run_exp,
+    opx_instrument.resume,
+    opx_instrument.get_full_data(),
     do_plot=True,
     exp=experiment
+)
+```
+
+### Live plotting example
+
+
+```python
+from qualang_tools.external_frameworks.qcodes.opx_driver import OPX
+import os
+import qcodes as qc
+from qcodes import initialise_or_create_database_at, load_or_create_experiment
+from qcodes.utils.dataset.doNd import do2d, do1d, do0d
+from qcodes import Parameter
+from qm.qua import *
+from configuration import *
+
+#####################################
+#           QCoDeS set-up           #
+#####################################
+db_name = "QM_demo.db"  # Database name
+sample_name = "demo"  # Sample name
+exp_name = "OPX_qcodes_drivers"  # Experiment name
+
+# Initialize QCoDeS database
+db_file_path = os.path.join(os.getcwd(), db_name)
+qc.config.core.db_location = db_file_path
+initialise_or_create_database_at(db_file_path)
+# Initialize QCoDeS experiment
+experiment = load_or_create_experiment(
+    experiment_name=exp_name, sample_name=sample_name
+)
+# Initialize the QCoDeS station to which instruments will be added
+station = qc.Station()
+# Create the OPX instrument class
+opx_instrument = OPX(config, name="OPX_demo", host="127.0.0.1")
+# Add the OPX instrument to the QCoDeS station
+station.add_component(opx_instrument)
+
+#####################################
+#        2D SWEEP & do0d            #
+#####################################
+n_avg = 1000
+
+gate_1_step = 0.01
+gate_1_biases = np.arange(-0.2, 0.2, gate_1_step)
+gate_1_prefactor = gate_1_step / gate_1_amp
+
+gate_2_step = 0.01
+gate_2_biases = np.arange(0, 0.25, gate_2_step)
+gate_2_prefactor = gate_2_step / gate_2_amp
+
+def OPX_2d_scan_liveplot(simulate=False):
+    with program() as prog:
+        i = declare(int)
+        j = declare(int)
+        n = declare(int)
+        I = declare(fixed)
+        Q = declare(fixed)
+        I_st = declare_stream()
+        Q_st = declare_stream()
+        
+        if not simulate:
+            pause()
+            
+        with for_(n, 0, n < n_avg, n+1):
+            with for_(i, 0, i < len(gate_1_biases), i + 1):
+                with if_(i == 0):
+                    play("bias" * amp(0), "gate_1")
+                with else_():
+                    play("bias" * amp(gate_1_prefactor), "gate_1")
+    
+                with for_(j, 0, j < len(gate_2_biases), j + 1):
+                    with if_(j == 0):
+                        play("bias" * amp(0), "gate_2")
+                    with else_():
+                        play("bias" * amp(gate_2_prefactor), "gate_2")
+    
+                    wait(200 // 4, "readout_element")
+                    measure("readout", "readout_element", None,
+                            integration.full("cos", I, "out1"),
+                            integration.full("cos", Q, "out2"))
+                    save(I, I_st)
+                    save(Q, Q_st)
+    
+                ramp_to_zero("gate_2")
+            ramp_to_zero("gate_1")
+
+        with stream_processing():
+            I_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).average().save_all("I")
+            Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).average().save_all("Q")
+    return prog
+
+# Parametrize the OPX readout scheme
+opx_instrument.readout_pulse_length(readout_len)  # Set the readout duration in ns
+# Axis1 is the most inner loop
+opx_instrument.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
+# Axis2 is the second loop
+opx_instrument.set_sweep_parameters("axis2", gate_1_biases, "V", "Gate 1 biases")
+# Add the custom sequence to the OPX
+opx_instrument.qua_program = OPX_2d_scan_liveplot(simulate=True)
+# Simulate program
+opx_instrument.sim_time(100_000)
+opx_instrument.simulate()
+opx_instrument.plot_simulated_wf()
+# Execute program
+opx_instrument.qua_program = OPX_2d_scan_liveplot(simulate=False)
+# Compile the QUA program and execute it
+opx_instrument.run_exp()
+# Exit the pause() statement and start the sequence
+opx_instrument.resume()
+# Fetch the data in real-time and plot them
+opx_instrument.live_plotting(["I", "Q"])
+# Update the data counter to save the last dataset to the qcodes database
+opx_instrument.counter = n_avg
+# Store the results in the qcodes database
+do0d(
+    opx_instrument.get_measurement_parameter(),
+    do_plot=True,
+    exp=experiment,
 )
 ```
 
