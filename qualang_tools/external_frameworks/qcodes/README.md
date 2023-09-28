@@ -97,6 +97,8 @@ station.add_component(opx_instrument)
 #####################################
 #        2D SWEEP & do0d            #
 #####################################
+n_avg = 100
+
 gate_1_step = 0.01
 gate_1_biases = np.arange(-0.2, 0.2, gate_1_step)
 gate_1_prefactor = gate_1_step / gate_1_amp
@@ -108,6 +110,7 @@ def OPX_2d_scan(simulate=False):
     with program() as prog:
         i = declare(int)
         j = declare(int)
+        n = declare(int)
         I = declare(fixed)
         Q = declare(fixed)
         I_st = declare_stream()
@@ -115,31 +118,34 @@ def OPX_2d_scan(simulate=False):
         with infinite_loop_():
             if not simulate:
                 pause()
-            with for_(i, 0, i < len(gate_1_biases), i + 1):
-                with if_(i == 0):
-                    play("bias" * amp(0), "gate_1")
-                with else_():
-                    play("bias" * amp(gate_1_prefactor), "gate_1")
-
-                with for_(j, 0, j < len(gate_2_biases), j + 1):
-                    with if_(j == 0):
-                        play("bias" * amp(0), "gate_2")
+            with for_(n, 0, n < n_avg, n + 1):
+                with for_(i, 0, i < len(gate_1_biases), i + 1):
+                    with if_(i == 0):
+                        play("bias" * amp(0), "gate_1")
                     with else_():
-                        play("bias" * amp(gate_2_prefactor), "gate_2")
-
-                    wait(200 // 4, "readout_element")
-                    measure("readout", "readout_element", None,
-                            integration.full("cos", I, "out1"),
-                            integration.full("cos", Q, "out2"))
-                    save(I, I_st)
-                    save(Q, Q_st)
-
-                ramp_to_zero("gate_2")
-            ramp_to_zero("gate_1")
+                        play("bias" * amp(gate_1_prefactor), "gate_1")
+    
+                    with for_(j, 0, j < len(gate_2_biases), j + 1):
+                        with if_(j == 0):
+                            play("bias" * amp(0), "gate_2")
+                        with else_():
+                            play("bias" * amp(gate_2_prefactor), "gate_2")
+    
+                        wait(200 // 4, "readout_element")
+                        measure("readout", "readout_element", None,
+                                integration.full("cos", I, "out1"),
+                                integration.full("cos", Q, "out2"))
+                        save(I, I_st)
+                        save(Q, Q_st)
+    
+                    ramp_to_zero("gate_2")
+                ramp_to_zero("gate_1")
 
         with stream_processing():
-            I_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).save_all("I")
-            Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).save_all("Q")
+            # Here the averaging is done with .buffer(n_avg).map(FUNCTIONS.average()) so that only the data from the 
+            # same iteration of the qcodes loop are averaged together.
+            I_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
+            Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
     return prog
 
 # Update the readout length of a given readout operation and readout element.
@@ -226,6 +232,8 @@ def OPX_2d_scan_liveplot(simulate=False):
         I_st = declare_stream()
         Q_st = declare_stream()
         
+        # The infinite loop was removed, otherwise the live plotting never stops 
+        # and the python console remains busy forever.
         if not simulate:
             pause()
             
@@ -253,6 +261,8 @@ def OPX_2d_scan_liveplot(simulate=False):
             ramp_to_zero("gate_1")
 
         with stream_processing():
+            # Note that `.buffer(n_avg).map(FUNCTIONS.average())` was replaced by `.average`,
+            # since the live plotting feature will only work when used outside of dond as shown below.
             I_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).average().save_all("I")
             Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).average().save_all("Q")
     return prog

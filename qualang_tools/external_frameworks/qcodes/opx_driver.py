@@ -569,6 +569,15 @@ class OPX(Instrument):
         )
 
     def live_plotting(self, results_to_plot: list = ()):
+        """
+        Fetch and plot the specified OPX results while the program is running.
+
+        **Warning:** This method will only work if used when no external parameters are being swept (no dond),
+        because it requires the averaging to be done on the most outer loop and with the *.average()* method in the
+        stream_processing as opposed to *.buffer(n_avg).map(FUNCTIONS.average())*.
+
+        :param results_to_plot: list of the streamed data to be plotted in real-time.
+        """
         # Get the plotting grid
         if len(results_to_plot) == 0:
             raise ValueError("At least 1 result to plot must be provided")
