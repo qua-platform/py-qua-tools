@@ -25,6 +25,8 @@ open a quantum machine, simulate, compile and execute QUA programs.
 * ``connect_message()``: Print a standard message on initial connection to an instrument.
 * ``set_config(config)``: Update the configuration used by the OPX.
 * ``open_qm()``: Open a quantum machine with a given configuration ready to execute a program.
+* ``update_qm()``: Close and re-open a new quantum machine so that it reloads the configuration in case it has been updated.
+* ``update_readout_length(readout_element, readout_operation, new_length)``: Update locally the readout length of a given readout operation and readout element.
 * ``get_prog()``: Get the implemented QUA program.
 * ``get_res()``: Get the results from the OPX.
 * ``set_sweep_parameters(scanned_axis, setpoints, unit=None, label=None)``: Set the setpoints based on the sweep parameters.
@@ -140,8 +142,11 @@ def OPX_2d_scan(simulate=False):
             Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).save_all("Q")
     return prog
 
-# Parametrize the OPX readout scheme
-opx_instrument.readout_pulse_length(readout_len)  # Set the readout duration in ns
+# Update the readout length of a given readout operation and readout element.
+readout_len = 2_000  # --> 2µs
+opx_instrument.update_readout_length("readout_element", "readout", readout_len)
+# Specify the readout length used in this experiment to convert the results into Volts and define the setpoints 
+opx_instrument.readout_pulse_length(readout_len)
 # Axis1 is the most inner loop
 opx_instrument.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
 # Axis2 is the second loop
@@ -252,8 +257,11 @@ def OPX_2d_scan_liveplot(simulate=False):
             Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).average().save_all("Q")
     return prog
 
-# Parametrize the OPX readout scheme
-opx_instrument.readout_pulse_length(readout_len)  # Set the readout duration in ns
+# Update the readout length of a given readout operation and readout element.
+readout_len = 2_000  # --> 2µs
+opx_instrument.update_readout_length("readout_element", "readout", readout_len)
+# Specify the readout length used in this experiment to convert the results into Volts and define the setpoints 
+opx_instrument.readout_pulse_length(readout_len)
 # Axis1 is the most inner loop
 opx_instrument.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
 # Axis2 is the second loop

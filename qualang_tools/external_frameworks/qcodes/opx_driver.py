@@ -46,7 +46,9 @@ class OPX(Instrument):
         super().__init__(name)
 
         self.qm = None
+        self.qm_id = None
         self.qmm = None
+        self.close_other_machines = close_other_machines
         self.config = None
         self.result_handles = None
         self.job = None
@@ -231,7 +233,7 @@ class OPX(Instrument):
         """
         self.config = config
 
-    def open_qm(self, close_other_machines):
+    def open_qm(self, close_other_machines:bool):
         """
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
@@ -239,6 +241,15 @@ class OPX(Instrument):
         self.qm = self.qmm.open_qm(
             self.config, close_other_machines=close_other_machines
         )
+        self.qm_id = self.qm.id
+
+    def update_qm(self):
+        """
+        Close and re-open a new quantum machine so that it reloads the configuration in case it has been updated.
+        """
+        if self.qm_id in self.qmm.list_open_quantum_machines():
+            self.qm.close()
+        self.open_qm(self.close_other_machines)
 
     # Empty method that can be replaced by your pulse sequence in the main script
     # This can also be modified so that you can put the sequences here directly...
@@ -517,6 +528,40 @@ class OPX(Instrument):
                 setpoint_labels=((),) * len(self.results["names"]),
             )
 
+    def update_readout_length(self, readout_element:str, readout_operation:str, new_length:int):
+        """
+        Update the readout length of a given readout operation and readout element.
+        This only works if the corresponding integration weights are constant.
+
+        **Warning**: this function only updates the config in the current environment.
+        The configuration.py file needs to be modified manually if one wishes to permanently update the readout length.
+
+        :param readout_element: the readout element to update.
+        :param readout_operation: the operation to update.
+        :param new_length: the new readout length in ns - Must be a multiple of 4ns and larger than 16ns.
+        """
+        assert new_length%4==0, "The readout length must be a multiple of 4ns."
+        assert new_length>15, "The minimum readout length is 16ns."
+
+        config = self.config
+        pulse = config["elements"][readout_element]["operations"][readout_operation]
+
+        # Update length
+        config["pulses"][pulse]["length"] = new_length
+        # Update integration weights
+        for weight in config["pulses"][pulse]["integration_weights"].values():
+            iw = config["integration_weights"][weight]
+            if len(iw["cosine"]) == 1 and len(iw["sine"]) == 1:
+                value_cos = iw["cosine"][0][0]
+                value_sin = iw["sine"][0][0]
+                iw["cosine"] = [(value_cos, new_length)]
+                iw["sine"] = [(value_sin, new_length)]
+            else:
+                raise RuntimeError("This method the update the readout length only works if the corresponding integration weights are constant.")
+        # Update the quantum machine
+        self.update_qm()
+        print(f"The duration of the operation '{readout_operation}' from element '{readout_element}' is now {new_length} ns")
+
     def live_plotting(self, results_to_plot: list = ()):
         # Get the plotting grid
         if len(results_to_plot) == 0:
@@ -651,7 +696,7 @@ class OPX(Instrument):
         """
         Close the quantum machine and tear down the OPX instrument.
         """
-        if self.qm is not None:
+        if self.qm_id is in self.qmm.list_open_quantum_machines():
             self.qm.close()
         super().close()
 

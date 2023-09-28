@@ -216,6 +216,12 @@ def OPX_1d_scan(simulate=False):
 if run == "1d":
     # Axis1 is the most inner loop
     opx_instrument.set_sweep_parameters("axis1", biases, "V", "Biases")
+    # Update the readout length for this experiment
+    readout_length = 600  # in ns
+    opx_instrument.update_readout_length("readout_element", "readout", readout_length)
+    # Pass the readout length (in ns) to the class to convert the demodulated/integrated data into Volts
+    # and create the setpoint Parameter for raw adc trace acquisition
+    opx_instrument.readout_pulse_length(readout_length)
     # Add the custom sequence to the OPX
     opx_instrument.qua_program = OPX_1d_scan(simulate=True)
     # Simulate program
