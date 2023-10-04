@@ -7,7 +7,7 @@ from qcodes import (
     MultiParameter,
 )
 from qcodes.utils.validators import Numbers, Arrays
-from qm import SimulationConfig
+from qm import SimulationConfig, generate_qua_script
 from qm.qua import program
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qualang_tools.results import wait_until_job_is_paused
@@ -53,6 +53,7 @@ class OPX(Instrument):
         self.result_handles = None
         self.job = None
         self.counter = 0
+        self.demod_factor = 1
         self.results = {"names": [], "types": [], "buffers": [], "units": []}
         self.prog_id = None
         self.simulated_wf = {}
@@ -297,6 +298,7 @@ class OPX(Instrument):
                         )
                         * 4096
                         / self.readout_pulse_length()
+                        * self.demod_factor
                         * self.results["scale_factor"][i]
                     )
                 # raw adc traces
@@ -568,7 +570,7 @@ class OPX(Instrument):
             f"The duration of the operation '{readout_operation}' from element '{readout_element}' is now {new_length} ns"
         )
 
-    def live_plotting(self, results_to_plot: list = ()):
+    def live_plotting(self, results_to_plot: list = (), number_of_runs: int = 0):
         """
         Fetch and plot the specified OPX results while the program is running.
 
@@ -577,20 +579,22 @@ class OPX(Instrument):
         stream_processing as opposed to *.buffer(n_avg).map(FUNCTIONS.average())*.
 
         :param results_to_plot: list of the streamed data to be plotted in real-time.
+        :param number_of_runs: Total number of averaging loops.
         """
         # Get the plotting grid
         if len(results_to_plot) == 0:
             raise ValueError("At least 1 result to plot must be provided")
-        elif len(results_to_plot) == 1:
-            grid = 1
         elif len(results_to_plot) == 2:
+            grid = 1
+        elif len(results_to_plot) == 3:
             grid = 121
-        elif len(results_to_plot) == 3 or len(results_to_plot) == 4:
+        elif len(results_to_plot) == 4 or len(results_to_plot) == 5:
             grid = 221
         else:
             raise ValueError("Live plotting is limited to 4 parameters.")
         # Get results from QUA program
         results = fetching_tool(self.job, results_to_plot, "live")
+        progress = 0
         # Live plotting
         fig = plt.figure()
         interrupt_on_close(fig, self.job)  # Interrupts the job when closing the figure
@@ -600,25 +604,40 @@ class OPX(Instrument):
             # Subplot counter
             i = 0
             for data in data_list:
-                # Convert the results into Volts
-                data = -data[-1] * 4096 / int(self.readout_pulse_length())
-                # Plot results
-                if len(data.shape) == 1:
-                    if len(results_to_plot) > 1:
-                        plt.subplot(grid + i)
-                    plt.cla()
-                    plt.plot(self.axis1_axis(), data)
-                    plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
-                    plt.ylabel(results_to_plot[i] + " [V]")
-                elif len(data.shape) == 2:
-                    if len(results_to_plot) > 1:
-                        plt.subplot(grid + i)
-                    plt.cla()
-                    plt.pcolor(self.axis1_axis(), self.axis2_axis(), data)
-                    plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
-                    plt.ylabel(self.axis2_axis.label + f" [{self.axis2_axis.unit}]")
-                    plt.title(results_to_plot[i] + " [V]")
+                if results_to_plot[i] == "iteration":
+                    progress = data + 1
+                    if data + 1 == number_of_runs:
+                        self.job.halt()
+
+                else:
+                    # Convert the results into Volts
+                    data = (
+                        -data[-1]
+                        * 4096
+                        / int(self.readout_pulse_length())
+                        * self.demod_factor
+                    )
+                    # Plot results
+                    if len(data.shape) == 1:
+                        if len(results_to_plot) > 1:
+                            plt.subplot(grid + i)
+                        plt.cla()
+                        plt.plot(self.axis1_axis(), data)
+                        plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                        plt.ylabel(results_to_plot[i] + " [V]")
+                    elif len(data.shape) == 2:
+                        if len(results_to_plot) > 1:
+                            plt.subplot(grid + i)
+                        plt.cla()
+                        plt.pcolor(self.axis1_axis(), self.axis2_axis(), data)
+                        plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                        plt.ylabel(self.axis2_axis.label + f" [{self.axis2_axis.unit}]")
+                        plt.title(results_to_plot[i] + " [V]")
                 i += 1
+
+            plt.suptitle(
+                f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %"
+            )
             plt.pause(1)
             plt.tight_layout()
 
@@ -627,6 +646,10 @@ class OPX(Instrument):
         Execute a given QUA program, initialize the counter to 0 and creates a result handle to fetch the results.
         """
         prog = self.get_prog()
+        if " demod" in generate_qua_script(prog, self.config):
+            self.demod_factor = 2
+        else:
+            self.demod_factor = 1
         self.job = self.qm.execute(prog)
         self.counter = 0
         self.result_handles = self.job.result_handles
