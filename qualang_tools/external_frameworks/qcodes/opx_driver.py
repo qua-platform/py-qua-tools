@@ -410,7 +410,10 @@ class OPX(Instrument):
             self.axis1_full_list(setpoints)
             self.axis1_start(setpoints[0])
             self.axis1_stop(setpoints[-1])
-            self.axis1_step(setpoints[1] - setpoints[0])
+            if len(setpoints) > 1:
+                self.axis1_step(setpoints[1] - setpoints[0])
+            else:
+                self.axis1_step(0)
             self.axis1_npoints(len(setpoints))
             self.axis1_axis.unit = unit
             self.axis1_axis.label = label
@@ -418,7 +421,10 @@ class OPX(Instrument):
             self.axis2_full_list(setpoints)
             self.axis2_start(setpoints[0])
             self.axis2_stop(setpoints[-1])
-            self.axis2_step(setpoints[1] - setpoints[0])
+            if len(setpoints) > 1:
+                self.axis2_step(setpoints[1] - setpoints[0])
+            else:
+                self.axis2_step(0)
             self.axis2_npoints(len(setpoints))
             self.axis2_axis.unit = unit
             self.axis2_axis.label = label
