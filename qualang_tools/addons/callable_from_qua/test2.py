@@ -36,11 +36,10 @@ def my_prog(callables_from_qua, qm):
     return prog
 
 batches = CallableFromQUA()
-qmm = QuantumMachinesManager(host="192.168.0.129", cluster_name="Cluster_Bordeaux")
+qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
 qm = qmm.open_qm(config)
 prog = my_prog(batches, qm)
 
 job = batches.execute(qm, prog)
 
 print(generate_qua_script(prog, config)[:1000])
-qm.set
