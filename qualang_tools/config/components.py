@@ -432,7 +432,6 @@ class Element(ConfigBuilderElement):
             element_digital_outputs = digital_output_ports
 
         self.dict = dict()
-        assert len(element_analog_inputs) <= 2
         self.type = "singleInput" if len(element_analog_inputs) == 1 else "mixInputs"
         self.pulses = []
         if pulses is not None:
@@ -449,6 +448,7 @@ class Element(ConfigBuilderElement):
         self.element_digital_inputs = (
             [] if element_digital_inputs is None else element_digital_inputs
         )
+        assert len(element_analog_inputs) <= 2
         self.mixer: Mixer = mixer
 
         if len(self.element_analog_inputs) > 0:
