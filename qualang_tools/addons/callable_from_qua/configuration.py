@@ -24,9 +24,9 @@ qop_port = None  # Write the QOP port if version < QOP220
 ################
 
 # AOM
-AOM_IF = 0
-const_amplitude = 0.1
-const_len = 100
+AOM_IF = 10e6
+const_amplitude = 0.25
+const_len = 1000
 
 # Noise
 noise_IF = 20e3
@@ -34,7 +34,7 @@ noise_amplitude = 0.04
 noise_len = 100
 
 # Photo-diode
-readout_len = 100
+readout_len = 1000
 time_of_flight = 192
 
 
@@ -45,6 +45,7 @@ config = {
             "analog_outputs": {
                 9: {"offset": 0.0},
                 2: {"offset": 0.0},
+                1: {"offset": 0.0},
             },
             "digital_outputs": {
                 1: {},
