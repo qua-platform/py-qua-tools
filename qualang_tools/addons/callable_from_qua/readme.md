@@ -27,7 +27,7 @@ from callable_from_qua import program, run_local
 
 @run_local
 def set_lo_freq(qm, element, frequency):
-    # Here the LO frequency must be passed in MHz instead of Hz, 
+    # Here the LO frequency must be passed in kHz instead of Hz, 
     # because the maximum QUA integer is 2**32 ~ 4.29e9
     print(f"setting the LO frequency of {element} to {frequency * 1e-3} GHz")
     qm.octave.set_lo_frequency(element, frequency * 1e3)
@@ -56,7 +56,7 @@ with program() as prog:
     Q = declare(fixed)
     I_st = declare_stream()
     Q_st = declare_stream()
-    # Loop over the LO frequencies in MHz
+    # Loop over the LO frequencies in kHz
     with for_(*from_array(f_LO, LOs / 1e3)):
         # Update the LO frequency in Python
         set_lo_freq(qm, "resonator", f_LO)

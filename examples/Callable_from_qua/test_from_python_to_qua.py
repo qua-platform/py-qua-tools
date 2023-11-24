@@ -3,18 +3,20 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 from callable_from_qua import program, run_local
 from configuration import *
 
+
 # Define your run_local functions
 @run_local
-def update_from_python(qm, value,n):
-    out = value*100+0.1
+def update_from_python(qm, value, n):
+    out = value * 100 + 0.1
     f = np.random.randint(1e6, 300e6)
     print(f"Got {value}, sent {out} and {f}")
     return out, f
 
+
 @run_local
 def qua_print(*args):
     text = ""
-    for i in range(0, len(args)-1, 2):
+    for i in range(0, len(args) - 1, 2):
         text += f"{args[i]} = {args[i+1]} | "
     print(text)
 
@@ -32,7 +34,7 @@ with program() as prog:
     I_st = declare_stream()
     with for_(n, 0, n < 10, n + 1):
         measure(
-            "readout"*amp(a),
+            "readout" * amp(a),
             "resonator",
             None,
             integration.full("cos", I, "out1"),
