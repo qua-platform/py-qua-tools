@@ -3,6 +3,7 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 from callable_from_qua import program, run_local
 from configuration import *
 
+
 # Define your run_local functions
 @run_local
 def set_lo_freq(q: str, qm, value):
@@ -14,6 +15,7 @@ def set_lo_freq(q: str, qm, value):
 def set_lo_power(q: str, qm, value):
     qm.set_output_dc_offset_by_element("AOM", "single", float(value) / 10)
     print(f"setting POWER to {value} Hz to qubit {q}")
+
 
 # Open the quantum machine manager
 qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")

@@ -40,7 +40,9 @@ def octave_declaration(octaves: list = ()):
         if octaves[i].name is None:
             raise TypeError(f"Please insert the octave name for the {i}'s octave")
         if octaves[i].con is None:
-            raise TypeError(f"Please insert the controller that is connected to the {i}'s octave")
+            raise TypeError(
+                f"Please insert the controller that is connected to the {i}'s octave"
+            )
         if octaves[i].ip is None:
             raise TypeError(f"Please insert the octave ip for the {i}'s octave")
         if octaves[i].port is None:
