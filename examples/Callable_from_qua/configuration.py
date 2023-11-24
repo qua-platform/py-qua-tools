@@ -24,9 +24,9 @@ qop_port = None  # Write the QOP port if version < QOP220
 ################
 
 # AOM
-AOM_IF = 10e6
-const_amplitude = 0.25
-const_len = 1000
+AOM_IF = 0
+const_amplitude = 0.1
+const_len = 100
 
 # Noise
 noise_IF = 20e3
@@ -34,7 +34,7 @@ noise_amplitude = 0.04
 noise_len = 100
 
 # Photo-diode
-readout_len = 1000
+readout_len = 100
 time_of_flight = 192
 
 
@@ -45,13 +45,15 @@ config = {
             "analog_outputs": {
                 9: {"offset": 0.0},
                 2: {"offset": 0.0},
-                1: {"offset": 0.0},
+                3: {"offset": 0.0},
+                4: {"offset": 0.0},
             },
             "digital_outputs": {
                 1: {},
             },
             "analog_inputs": {
                 1: {"offset": 0.0},
+                2: {"offset": 0.0},
             },
         }
     },
@@ -65,6 +67,24 @@ config = {
                 "cw": "cw_pulse",
             },
         },
+        "resonator": {
+            "mixInputs": {
+                "I": ("con1", 3),
+                "Q": ("con1", 4),
+                "lo_frequency": 5e9,
+                "mixer": "mixer_resonator",
+            },
+            "intermediate_frequency": 100e6,
+            "operations": {
+                "readout": "readout_pulse_IQ",
+            },
+            "outputs": {
+                "out1": ("con1", 1),
+                "out2": ("con1", 2),
+            },
+            "time_of_flight": time_of_flight,
+            "smearing": 0,
+        },
         "noise": {
             "singleInput": {
                 "port": ("con1", 9),
@@ -74,7 +94,7 @@ config = {
                 "cw": "noise_pulse",
             },
         },
-        "photo-diode": {
+        "readout_element": {
             "singleInput": {
                 "port": ("con1", 2),
             },
@@ -121,9 +141,24 @@ config = {
             },
             "digital_marker": "ON",
         },
+        "readout_pulse_IQ": {
+            "operation": "measurement",
+            "length": readout_len,
+            "waveforms": {
+                "I": "readout_wf",
+                "Q": "zero_wf",
+            },
+            "integration_weights": {
+                "cos": "cosine_weights",
+                "sin": "sine_weights",
+                "minus_sin": "minus_sine_weights",
+            },
+            "digital_marker": "ON",
+        },
     },
     "waveforms": {
         "const_wf": {"type": "constant", "sample": const_amplitude},
+        "readout_wf": {"type": "constant", "sample": const_amplitude},
         "noise_wf": {"type": "constant", "sample": noise_amplitude},
         "zero_wf": {"type": "constant", "sample": 0.0},
     },
@@ -133,5 +168,26 @@ config = {
             "cosine": [(1.0, readout_len)],
             "sine": [(0.0, readout_len)],
         },
+        "cosine_weights": {
+            "cosine": [(1.0, readout_len)],
+            "sine": [(0.0, readout_len)],
+        },
+        "sine_weights": {
+            "cosine": [(0.0, readout_len)],
+            "sine": [(1.0, readout_len)],
+        },
+        "minus_sine_weights": {
+            "cosine": [(0.0, readout_len)],
+            "sine": [(-1.0, readout_len)],
+        },
+    },
+    "mixers": {
+        "mixer_resonator": [
+            {
+                "intermediate_frequency": 100e6,
+                "lo_frequency": 5e9,
+                "correction": (1, 0, 0, 1),
+            }
+        ],
     },
 }
