@@ -66,13 +66,18 @@ def set_lo_freq(qm, value, intermediate_frequency):
     lo_freq = value * 1e3
     print(f"setting LO to {lo_freq*1e-9} GHz")
     qm.octave.set_lo_frequency("qubit", lo_freq)
-    i0, q0, gain, phase = get_calibration_parameters("calibration_db.json", lo_freq, intermediate_frequency)
-    print(f"Updating calibration parameters for (LO, IF) = ({lo_freq*1e-6:0f}, {IFs[len(IFs)//2]*1e-6}) MHz\n"
-          f"with i0 = {i0*1e3:.2f} mV, q0 = {q0*1e3:.2f} mV, g = {gain:.4f} & phase = {phase:.3f}")
-    qm.set_output_dc_offset_by_element("qubit", "I", i0)
-    qm.set_output_dc_offset_by_element("qubit", "Q", q0)
-    qm.get_running_job().set_element_correction("qubit", IQ_imbalance(gain, phase))
-    sleep(1)
+    # i0, q0, gain, phase = get_calibration_parameters("calibration_db.json", lo_freq, intermediate_frequency)
+    # print(f"Updating calibration parameters for (LO, IF) = ({lo_freq*1e-6:0f}, {IFs[len(IFs)//2]*1e-6}) MHz\n"
+    #       f"with i0 = {i0*1e3:.2f} mV, q0 = {q0*1e3:.2f} mV, g = {gain:.4f} & phase = {phase:.3f}")
+    # qm.set_output_dc_offset_by_element("qubit", "I", i0)
+    # qm.set_output_dc_offset_by_element("qubit", "Q", q0)
+    # qm.get_running_job().set_element_correction("qubit", IQ_imbalance(gain, phase))
+    qm.octave.set_element_parameters_from_calibration_db("qubit", qm.get_running_job())
+    # sleep(1)
+
+@run_local
+def set_if(IF):
+    print(IF)
 
 
 def get_LOs(fstart, fend, intermediate_frequencies=()):
@@ -87,7 +92,7 @@ def get_LOs(fstart, fend, intermediate_frequencies=()):
 
 IFs = np.linspace(1e6, 251e6, 101)
 LOs, ftot = get_LOs(4.501e9, 6.75e9, IFs)
-
+config["elements"]["qubit"]["intermediate_frequency"] = IFs[len(IFs)//2]
 def my_prog(callables_from_qua, qm):  # TODO: no program() scope
     n_avg = 100
     n = declare(int)
@@ -102,6 +107,8 @@ def my_prog(callables_from_qua, qm):  # TODO: no program() scope
         with for_(n, 0, n < n_avg, n + 1):
             with for_(*from_array(f_IF, IFs)):
                 update_frequency("qubit", f_IF)
+                # with if_(f_IF == int(11e6)):
+                #     set_if(batches=callables_from_qua, IF=f_IF)
                 align()
                 play("cw", "qubit", duration=100000)
                 measure(
@@ -122,15 +129,15 @@ def my_prog(callables_from_qua, qm):  # TODO: no program() scope
         Q_st.buffer(len(IFs)).buffer(n_avg).map(FUNCTIONS.average()).buffer(len(LOs)).save("Q")
 
 
-def my_prog(callables_from_qua, qm):
-    n_avg = 1000
-    n = declare(int)
-    f_LO = declare(int)
-    with for_(*from_array(f_LO, LOs / 1e3)):
-        update_frequency("qubit", 126e6)
-        set_lo_freq(batches=callables_from_qua, qm=qm, value=f_LO, intermediate_frequency=126e6)
-        with for_(n, 0, n < n_avg, n + 1):
-            play("cw", "qubit", duration=1_000_000)
+# def my_prog(callables_from_qua, qm):
+#     n_avg = 1000
+#     n = declare(int)
+#     f_LO = declare(int)
+#     with for_(*from_array(f_LO, LOs / 1e3)):
+#         update_frequency("qubit", 126e6)
+#         set_lo_freq(batches=callables_from_qua, qm=qm, value=f_LO, intermediate_frequency=126e6)
+#         with for_(n, 0, n < n_avg, n + 1):
+#             play("cw"*amp(0), "qubit", duration=1_000_000)
 
 
 def build_prog(callables_from_qua, sequence):  # TODO: behind the scene
@@ -154,6 +161,7 @@ def calibrate_several_LOs(element, lo_frequencies, mean_if_frequency):
 # calibrate_several_LOs("qubit", LOs, IFs[len(IFs)//2])
 prog = build_prog(batches, my_prog)
 job = batches.execute(qm, prog)
+
 # job = qm.execute(prog)
 
 print(generate_qua_script(prog, config)[:1000])
