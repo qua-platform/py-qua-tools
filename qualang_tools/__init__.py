@@ -7,6 +7,7 @@ __all__ = [
     "results",
     "plot",
     "analysis",
+    "macros",
     "multi_user",
     "units",
     "external_frameworks",
