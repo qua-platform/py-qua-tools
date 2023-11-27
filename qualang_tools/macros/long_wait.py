@@ -1,7 +1,7 @@
 from typing import Union
 from qm.qua import declare, wait, for_
 
-MAX_WAIT = 2 ** 31 - 1  # units of clock cycles (4ns)
+MAX_WAIT = 2**31 - 1  # units of clock cycles (4ns)
 
 
 def long_wait(wait_time: Union[float, int], *elements: str):
@@ -18,6 +18,6 @@ def long_wait(wait_time: Union[float, int], *elements: str):
         wait(wait_time, *elements)
     else:
         loop_runs = (wait_time // MAX_WAIT) - 1
-        with for_(i, 0, i < loop_runs, i+1):
+        with for_(i, 0, i < loop_runs, i + 1):
             wait(MAX_WAIT, *elements)
         wait(int(wait_time - MAX_WAIT * loop_runs), *elements)
