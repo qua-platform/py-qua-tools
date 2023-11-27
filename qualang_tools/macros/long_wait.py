@@ -9,11 +9,14 @@ def long_wait(wait_time: Union[float, int], *elements: str):
 
     This macro unrolls into QUA for-loop of smaller waits if the maximum wait time is exceeded in `wait_time`.
 
+    Note: `wait_time` must strictly be a python literal.
+
     Args:
         wait_time (Union[float, int]): Desired wait time in units of clock cycles (4ns).
         *elements (str): Variable length argument list of elements to wait on.
     """
     i = declare(int)
+
     if wait_time < MAX_WAIT:
         wait(wait_time, *elements)
     else:
