@@ -6,9 +6,10 @@ from qm import QuantumMachinesManager
 from qualang_tools.addons.variables import assign_variables_to_element
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.results import fetching_tool
-from Cavity_locking_ETHZ_OPX1_thread import PID_derivation, phase_mod_amplitude
-from configuration_cavity_locking_ETHZ_OPX1 import config
+from configuration import *
+import warnings
 
+warnings.filterwarnings("ignore")
 from videomode import VideoMode, ParameterTable
 
 target = 0.0  # Set-point to which the PID should converge
@@ -17,11 +18,28 @@ N_shots = 1000000  # Total number of iterations - can be replaced by an infinite
 
 variance_window = 100  # Window to check the convergence of the lock
 variance_threshold = 0.0001  # Threshold below which the cavity is considered to be stable
+def PID_derivation(input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target):
+    error = declare(fixed)
+    integrator_error = declare(fixed)
+    derivative_error = declare(fixed)
+    old_error = declare(fixed)
+
+    # calculate the error
+    assign(error, (target - input_signal) << bitshift_scale_factor)
+    # calculate the integrator error with exponentially decreasing weights with coefficient alpha
+    assign(integrator_error, (1.0 - alpha) * integrator_error + alpha * error)
+    # calculate the derivative error
+    assign(derivative_error, old_error - error)
+    # save old error to be error
+    assign(old_error, error)
+
+    return gain_P * error + gain_I * integrator_error + gain_D * derivative_error, error, integrator_error, derivative_error
 
 
 def PID_prog(video_mode: VideoMode):
     with program() as prog:
         n = declare(int)
+        test = declare(int, value=[0,1])
         # Results variables
         I = declare(fixed)
         Q = declare(fixed)
@@ -73,7 +91,7 @@ def PID_prog(video_mode: VideoMode):
                     demod.full("constant", Q, "out1"))
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, integrator_error, derivative_error = PID_derivation(single_shot_DC, *param_table.variables())
+            correction, error, integrator_error, derivative_error = PID_derivation(single_shot_DC, *video_mode._parameter_table.variables)
 
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
@@ -83,7 +101,8 @@ def PID_prog(video_mode: VideoMode):
             with if_(dc_offset_1 < -0.5 + phase_mod_amplitude):
                 assign(dc_offset_1, -0.5 + phase_mod_amplitude)
             # Apply the correction
-            play("offset" * amp(correction * 4), "filter_cavity_1")
+            # play("offset" * amp(correction * 4), "filter_cavity_1")
+            set_dc_offset("filter_cavity_1", "single", dc_offset_1)
 
             # Estimate variance (actually simply max distance from target)
             with if_(variance_index == variance_window):
@@ -113,18 +132,20 @@ def PID_prog(video_mode: VideoMode):
 
 
 if __name__ == "__main__":
-    qmm = QuantumMachinesManager()
+    qmm = QuantumMachinesManager(qop_ip, cluster_name="Cluster_83")
     qm = qmm.open_qm(config)
     qm.set_io1_value(0)
     qm.set_io2_value(0.0)
 
     time.sleep(1)
     # Send the QUA program to the OPX, which compiles and executes it - Execute does not block python!
-    prog = PID_prog()
     param_dict = {"bitshift_scale_factor": 9, "gain_P": -1e-4, "gain_I": 0.0, "gain_D": 0.0, "alpha": 0.0,
                   "target": 0.0}
     video_mode = VideoMode(qm, ParameterTable(param_dict))
-    video_mode.start()
+    prog = PID_prog(video_mode)
+    # from qm import generate_qua_script
+    # print(generate_qua_script((prog)))
+    video_mode.start(prog)
     job = video_mode.job
     results = fetching_tool(job,
                             ["error", "integration_error", "derivative_error", "single_shot", "offset", "variance"],
@@ -161,4 +182,4 @@ if __name__ == "__main__":
         plt.title('Applied offset [V]')
         plt.tight_layout()
         plt.pause(0.1)
-        print(np.abs(np.max(variance)) - np.abs(target))
+        # print(np.abs(np.max(variance)) - np.abs(target))
