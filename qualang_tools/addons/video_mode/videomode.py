@@ -21,6 +21,7 @@ class ParameterTable:
     """
 
     parameters_dict: Dict[str, float | int | bool]
+    initialize: bool=True
 
     def __post_init__(self):
         self.table = {}
@@ -94,7 +95,6 @@ class ParameterTable:
         """
         for parameter_name, parameter in self.table.items():
             if parameter["declare_expression"] is not None:
-                print(f"{parameter_name} = {parameter['declare_expression']}")
                 exec(f"{parameter_name} = {parameter['declare_expression']}")
                 self.table[parameter_name]["var"] = eval(parameter_name)
 
@@ -106,6 +106,13 @@ class ParameterTable:
 
         if pause_program:
             pause()
+
+        if self.initialize:
+            for parameter in self.table.values():
+                if parameter["length"] == 0:
+                    assign(parameter["var"], parameter["value"])
+            self.initialize = False
+
         param_index_var = declare(int)
         assign(param_index_var, IO1)
 
@@ -327,6 +334,9 @@ class VideoMode:
         """
         if self.job is None:
             self.job = self.qm.execute(prog, *execute_args)
+            # Initialize the IO values
+            self.qm.set_io1_value(666)
+            self.qm.set_io2_value(0.0)
         print("start")
         self.thread.start()
 
