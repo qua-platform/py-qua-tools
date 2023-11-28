@@ -1,9 +1,6 @@
-import time
-
 from matplotlib import pyplot as plt
 from qm.qua import *
 from qm import QuantumMachinesManager
-from qualang_tools.addons.variables import assign_variables_to_element
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.results import fetching_tool
 from configuration import *
@@ -13,7 +10,7 @@ warnings.filterwarnings("ignore")
 from videomode import VideoMode
 
 
-def PID_prog(video_mode: VideoMode):
+def qua_prog(video_mode: VideoMode):
     with program() as prog:
         # Results variables
         single_shot_DC = declare(fixed)
@@ -45,24 +42,29 @@ def PID_prog(video_mode: VideoMode):
 
 
 if __name__ == "__main__":
+    # Open the Quantum Machine Manager
     qmm = QuantumMachinesManager(qop_ip, cluster_name="Cluster_83")
+    # Open the Quantum Machine
     qm = qmm.open_qm(config)
-
+    # Define the parameters to be updated in video mode with their initial value
     param_dict = {
         "dc_offset": 0.0,
     }
-
+    # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)
-    prog = PID_prog(video_mode)
+    # Get the QUA program
+    prog = qua_prog(video_mode)
+    # Execute the QUA program in video mode
     job = video_mode.execute(prog)
-
+    # Get the results from the OPX in live mode
     results = fetching_tool(job, ["signal"], mode="live")
+    # Live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)
-
     while results.is_processing():
+        # Fetch data from the OPX
         signal = -results.fetch_all()[0] * 2**12 / readout_len
-
+        # Plot the data
         plt.cla()
         plt.plot(signal, "-")
         plt.title("Error signal [a.u.]")
