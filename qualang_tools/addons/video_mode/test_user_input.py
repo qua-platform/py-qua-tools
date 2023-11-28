@@ -48,7 +48,7 @@ def PID_prog(video_mode: VideoMode):
         # PID variables
         video_mode.declare_variables()
 
-        param_var = declare(int)
+        # param_var = declare(int)
 
         dc_offset_1 = declare(fixed)
         param = declare(int)
@@ -72,7 +72,7 @@ def PID_prog(video_mode: VideoMode):
             # Update the PID parameters based on the user input.
             # IO1 specifies the parameter to be updated and IO2 the corresponding value
 
-            video_mode.load_parameters(param_var)
+            video_mode.load_parameters()
             # Once the parameters are set, this can be used to stop the lock once the cavity is considered stable
             # with while_((Math.abs(Math.max(variance_vector)) - np.abs(target) > variance_threshold) | (Math.abs(Math.min(variance_vector)) - np.abs(target) > variance_threshold)):
             # Ensure that the two digital oscillators will start with the same phase
