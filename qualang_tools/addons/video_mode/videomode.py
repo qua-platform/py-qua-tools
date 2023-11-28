@@ -23,26 +23,31 @@ class ParameterTable:
 
     def __post_init__(self):
         self.table = {}
-        print(self.parameters_dict)
         for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
             self.table[parameter_name] = {"index": index}
             if isinstance(parameter_value, float):
                 if float(parameter_value).is_integer() and parameter_value > 8:
                     self.table[parameter_name]["declare_expression"] = f'declare(int, value=int({parameter_value}))'
                     self.table[parameter_name]["type"] = int
+                    self.table[parameter_name]["value"] = parameter_value
                 else:
                     self.table[parameter_name]["declare_expression"] = f'declare(fixed, value={parameter_value})'
                     self.table[parameter_name]["type"] = float
+                    self.table[parameter_name]["value"] = parameter_value
+
                 self.table[parameter_name]["length"] = 0
 
             elif isinstance(parameter_value, int):
                 self.table[parameter_name]["declare_expression"] = f'declare(int, value={parameter_value})'
                 self.table[parameter_name]["type"] = int
                 self.table[parameter_name]["length"] = 0
+                self.table[parameter_name]["value"] = parameter_value
+
             elif isinstance(parameter_value, bool):
                 self.table[parameter_name]["declare_expression"] = f'declare(bool, value={parameter_value})'
                 self.table[parameter_name]["type"] = bool
                 self.table[parameter_name]["length"] = 0
+                self.table[parameter_name]["value"] = parameter_value
 
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
@@ -100,6 +105,12 @@ class ParameterTable:
             with default_():
                 pass
 
+
+    def get_parameters(self):
+        text = ""
+        for parameter_name, parameter in self.table.items():
+            text += f"{parameter_name}: {parameter['value']}, "
+        print(text)
     def __getitem__(self, item):
         return self.table[item]["var"]
 
@@ -153,6 +164,7 @@ class VideoMode:
             elif param_name == 'done' and self.job is not None:
                 if self.job.is_paused():
                     self.job.resume()
+                self.job.halt()
 
             elif param_name in self.parameter_table.table.keys():
                 self.qm.set_io1_value(self.parameter_table.table[param_name]["index"])
@@ -189,6 +201,7 @@ class VideoMode:
                         while not (self.job.is_paused()):
                             time.sleep(0.001)
                         self.qm.set_io2_value(value)
+                        self.parameter_table.table[param_name]["value"] = value
                         self.job.resume()
 
                 else:
@@ -221,6 +234,9 @@ class VideoMode:
                             except ValueError:
                                 print(f"Invalid input. {self.parameter_table[param_name]} could not be cast to bool")
                     self.qm.set_io2_value(param_value)
+                    self.parameter_table.table[param_name]["value"] = param_value
+            elif param_name == 'get':
+                self.parameter_table.get_parameters()
             else:
                 print(f"Invalid input. {param_name} is not a valid parameter name.")
 
