@@ -54,11 +54,9 @@ def PID_prog(video_mode: VideoMode):
         Q = declare(fixed)
         single_shot_DC = declare(fixed)
         single_shot_AC = declare(fixed)
+        dc_offset_1 = declare(fixed)
         # PID variables
         video_mode.declare_variables()
-
-
-        dc_offset_1 = declare(fixed)
         # Variance derivation parameters
         variance_vector = declare(fixed, value=[7 for _ in range(variance_window)])
         variance_index = declare(int, value=0)
@@ -77,8 +75,6 @@ def PID_prog(video_mode: VideoMode):
         with infinite_loop_():
             # with for_(n, 0, n < N_shots, n + 1):
             # Update the PID parameters based on the user input.
-            # IO1 specifies the parameter to be updated and IO2 the corresponding value
-
             video_mode.load_parameters()
             # Once the parameters are set, this can be used to stop the lock once the cavity is considered stable
             # with while_((Math.abs(Math.max(variance_vector)) - np.abs(target) > variance_threshold) | (Math.abs(Math.min(variance_vector)) - np.abs(target) > variance_threshold)):
@@ -153,10 +149,7 @@ def PID_prog(video_mode: VideoMode):
 if __name__ == "__main__":
     qmm = QuantumMachinesManager(qop_ip, cluster_name="Cluster_83")
     qm = qmm.open_qm(config)
-    qm.set_io1_value(0)
-    qm.set_io2_value(0.0)
 
-    time.sleep(1)
     param_dict = {
         "bitshift_scale_factor": 9,
         "gain_P": -1e-4,
