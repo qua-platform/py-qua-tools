@@ -23,22 +23,26 @@ class ParameterTable:
 
     def __post_init__(self):
         self.table = {}
+        print(self.parameters_dict)
         for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
             self.table[parameter_name] = {"index": index}
             if isinstance(parameter_value, float):
                 if float(parameter_value).is_integer() and parameter_value > 8:
-                    self.table[parameter_name]["declare_expression"] = 'declare(int, value=int(parameter_value))'
+                    self.table[parameter_name]["declare_expression"] = f'declare(int, value=int({parameter_value}))'
                     self.table[parameter_name]["type"] = int
                 else:
-                    self.table[parameter_name]["declare_expression"] = 'declare(fixed, value=parameter_value)'
+                    self.table[parameter_name]["declare_expression"] = f'declare(fixed, value={parameter_value})'
                     self.table[parameter_name]["type"] = float
+                self.table[parameter_name]["length"] = 0
 
             elif isinstance(parameter_value, int):
-                self.table[parameter_name]["declare_expression"] = 'declare(int, value=parameter_value)'
+                self.table[parameter_name]["declare_expression"] = f'declare(int, value={parameter_value})'
                 self.table[parameter_name]["type"] = int
+                self.table[parameter_name]["length"] = 0
             elif isinstance(parameter_value, bool):
-                self.table[parameter_name]["declare_expression"] = 'declare(bool, value=parameter_value)'
+                self.table[parameter_name]["declare_expression"] = f'declare(bool, value={parameter_value})'
                 self.table[parameter_name]["type"] = bool
+                self.table[parameter_name]["length"] = 0
 
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
@@ -47,11 +51,11 @@ class ParameterTable:
                 assert all(isinstance(x, type(parameter_value[0])) for x in
                            parameter_value), "Invalid parameter type, all elements must be of same type."
                 if isinstance(parameter_value[0], bool):
-                    self.table[parameter_name]["declare_expression"] = 'declare(bool, value=parameter_value)'
+                    self.table[parameter_name]["declare_expression"] = f'declare(bool, value={parameter_value})'
                 if isinstance(parameter_value[0], int):
-                    self.table[parameter_name]["declare_expression"] = 'declare(int, value=parameter_value)'
+                    self.table[parameter_name]["declare_expression"] = f'declare(int, value={parameter_value})'
                 elif isinstance(parameter_value[0], float):
-                    self.table[parameter_name]["declare_expression"] = 'declare(fixed, value=parameter_value)'
+                    self.table[parameter_name]["declare_expression"] = f'declare(fixed, value={parameter_value})'
                 self.table[parameter_name]["type"] = List
                 self.table[parameter_name]["length"] = len(parameter_value)
             else:
@@ -63,6 +67,7 @@ class ParameterTable:
         """
         for parameter_name, parameter in self.table.items():
             if parameter["declare_expression"] is not None:
+                print(f"{parameter_name} = {parameter['declare_expression']}")
                 exec(f"{parameter_name} = {parameter['declare_expression']}")
                 self.table[parameter_name]["var"] = eval(parameter_name)
 
@@ -84,9 +89,10 @@ class ParameterTable:
         with switch_(param_index_var):
             for parameter in self.table.values():
                 with case_(parameter["index"]):
-                    with if_(parameter["var"].length() == 1):
+                    if parameter["length"] == 0:
                         assign(parameter["var"], IO2)
-                    with else_():
+                    else:
+                        looping_var = declare(int)
                         with for_(looping_var, 0, looping_var < parameter["var"].length(), looping_var + 1):
                             pause()
                             assign(parameter["var"][looping_var], IO2)
@@ -103,7 +109,7 @@ class ParameterTable:
 
 
 class VideoMode:
-    def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: Optional[QmJob] = None):
+    def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify the
@@ -127,10 +133,10 @@ class VideoMode:
         """
         self.qm = qm
         self.job = job
-        self._parameter_table = parameters if isinstance(parameters, Dict) else ParameterTable(parameters)
+        self._parameter_table = parameters if isinstance(parameters, ParameterTable) else ParameterTable(parameters)
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
-        self.thread.start()
+        # self.thread.start()
 
     def update_parameters(self):
         """Update parameters in the parameter table through user input.
@@ -229,6 +235,7 @@ class VideoMode:
             """
         if self.job is None:
             self.job = self.qm.execute(prog, *execute_args)
+        print("start")
         self.thread.start()
 
     @property
