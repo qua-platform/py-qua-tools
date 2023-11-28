@@ -48,11 +48,9 @@ start look like this:
 ```
 with program() as video_mode_prog:
     video_mode.declare_variables()
-    param_indexing_var = declare(int)
-    loop_var = declare(int)
     
     with infinite_loop():
-        video_mode.load_parameters(param_indexing_var, loop_var)
+        video_mode.load_parameters()
         
         play("my_pulse"*amp(video_mode["amp_param"]), "qe1")
         
@@ -71,27 +69,55 @@ as we please within the program, as shown above with the custom amplitude parame
 
 ### Updating variables dynamically
 
-As you can see in the code snippet above, we declared two QUA int variables that are then used in the method 
-``load_parameters`` of the ```VideoMode```. To understand what they are here for, we should explain how the parameter update
-is done dynamically behind the scene.
+
 The ```VideoMode```, once launched in Python, will query continuously the user to input (through the keyboard) 
-the name of parameter, and then its associated new value. 
+the name of parameter, and the associated new value it should take.
+The format should be written as follows:
+```
+param_name=new_value
+```
+The user can also update a parameter that is a QUA array by providing a list of values separated by a space:
+```
+param_name= new_value_1 new_value_2 new_value_3 ...
+```
 
 Once the user has typed an appropriate update, the ```VideoMode``` will use the IO variables of the ``QuantumMachine`` 
 to pass the following information:
 - which parameter of the initial dictionary should be updated next (IO1)
 - what new value should be set for the parameter (IO2)
 
-To enable an easy mapping between the names of the parameters the user provide and an indicator in QUA of which parameter to update,
-we use a simple indexing integer variable, ```param_indexing_var```, to perform the dynamic checking of which parameter to update next.
+For updating a QUA array, a loop over the elements of the array is performed to update dynamically each element 
+with a successive back and forth interaction between the program and the Python (through interleaved ```pause()``` within QUA and ```job.resume()``` in Python).
 
-The second QUA int variable declared is called ```loop_var``` and is used within the macro ```load_parameters``` 
-only when the parameter to be updated next is actually a QUA array. This variables loops over the elements of the array and dynamically updates each element of the array with a successive back and forth between the program and the Python (through interleaved ```pause()``` within QUA and ```job.resume()``` in Python).
+The only thing that the user should implement in the QUA program on top of the declaration of variables shown above is the following macro:
+```
+with program() as video_mode_prog:
+    ...
+    with infinite_loop():
+        video_mode.load_parameters()
+        ...
+```
+
+### Accessing QUA variables from ```VideoMode``` within the program
+The QUA variables declared in the program through the ```VideoMode.declare_variables()``` can be accessed from the
+through the ```video_mode["param_name"]``` syntax. This enables you to choose where your QUA variable should land in 
+your program. For instance, if you want to use the same QUA variable for two different pulse parameters, you can do the following:
+```
+with program() as video_mode_prog:
+    video_mode.declare_variables()
+    
+    with infinite_loop():
+        video_mode.load_parameters()
+        
+        play("my_pulse"*amp(video_mode["amp_param"]), "qe1")
+        play("my_other_pulse"*amp(video_mode["amp_param"]), "qe2")
+```
 
 ## Outside the QUA program
-The ```VideoMode``` class has 2 main methods to be called outside of the QUA program scope:
-    - ```start()```: starts the video mode execution by starting a new thread calling the ``update_parameters()`` method
-    - ``update_parameters()``: updates the parameters defined by the user with values provided by the user through Python ```input()``` function
+The ```VideoMode``` class has only one ```execute```method to be called outside the QUA program scope, which takes the same arguments as the 
+```qm.execute()``` method. It will start the video mode execution by starting a new thread launching the QUA program and a continuous query of input parameters from the user.
+Note that the QUA program runs in the background and the user can still interact with the Python environment while the program is running.
+
 
 To start the VideoMode, The user just has to call the ```start()``` method of the ```VideoMode``` object. The user can choose to call it
 either before or after the QUA program execution. If before, the user should provide the QUA program and the VideoMode object will automatically execute the program while launching a new thread.

@@ -180,7 +180,7 @@ class VideoMode:
         )
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
-        self.implemented_commands = "LIst of implemented commands: \n get: returns the current value of the parameters. \n stop: quit VideoMode. \n done: resume program. \n help: displays the list of available commands. \n 'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n"
+        self.implemented_commands = "List of implemented commands: \n get: returns the current value of the parameters. \n stop: quit VideoMode. \n done: resume program. \n help: displays the list of available commands. \n 'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n"
 
     def update_parameters(self):
         """Update parameters in the parameter table through user input."""
