@@ -79,7 +79,7 @@ config = {
             "operations": {
                 "offset": "offset_pulse",
             },
-            'sticky': {'analog': True, 'duration': 60}
+            "sticky": {"analog": True, "duration": 60},
         },
         # "filter_cavity_2": {
         #     "singleInput": {
