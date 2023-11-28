@@ -1,8 +1,6 @@
 import warnings
-
 import numpy as np
 import scipy.signal as sig
-import matplotlib.pyplot as plt
 
 
 def calc_filter_taps(fir=None, exponential=None, high_pass=None, bounce=None, delay=None, Ts=1):
@@ -18,8 +16,12 @@ def calc_filter_taps(fir=None, exponential=None, high_pass=None, bounce=None, de
     if fir is not None:
         feedforward_taps = np.convolve(feedforward_taps, fir)
 
-    if bounce is not None:
-        feedforward_taps = np.convolve(feedforward_taps, bounce_correction(bounce))
+    if bounce is not None or delay is not None:
+        if delay is None:
+            delay = 0
+        if bounce is None:
+            bounce = []
+        feedforward_taps = bounce_and_delay_correction(bounce, delay, feedforward_taps)
 
     max_value = max(np.abs(feedforward_taps))
 
@@ -73,16 +75,37 @@ def highpass_correction(tau, Ts=1):
     return feedforward_taps, feedback_tap
 
 
-def bounce_correction(values, feedforward_taps, n_taps=11, n_extra=10, Ts=1):
-    for i, (a, tau) in enumerate(values):
-        full_taps_x = np.linspace(0 - n_extra, n_taps + n_extra, n_taps + 1 + 2 * n_extra)[0:-1]
-        full_taps = np.sinc(full_taps_x - tau / Ts)
-        extra_taps = np.abs(np.concatenate((full_taps[:n_extra], full_taps[-n_extra:])))
-        if np.any(extra_taps > 0.02):  # Contribution is more than 2%
-            warnings.warn(f"Contribution from missing taps is not negligible. {max(extra_taps)}")
-        bounce_taps = a * full_taps[n_extra:-n_extra]
-        bounce_taps[np.abs(bounce_taps) < 1e-6] = 0
-        bounce_taps[0] += 1
-        bounce_taps = bounce_taps[0:np.nonzero(bounce_taps)[0][-1] + 1]
+def bounce_and_delay_correction(bounce_values, delay, feedforward_taps, Ts=1):
+    n_extra = 10
+    n_taps = 101
+    long_taps_x = np.linspace((0 - n_extra)/Ts, (n_taps + n_extra)/Ts, n_taps + 1 + 2 * n_extra)[0:-1]
+    feedforward_taps_x = np.linspace(0, (len(feedforward_taps)-1)/Ts, len(feedforward_taps))
+
+    delay_taps = get_coefficients_for_delay(delay, long_taps_x, Ts)
+
+    feedforward_taps = np.convolve(feedforward_taps, delay_taps)
+    feedforward_taps_x = np.linspace(min(feedforward_taps_x) + min(long_taps_x), max(feedforward_taps_x) + max(long_taps_x), len(feedforward_taps))
+    for i, (a, tau) in enumerate(bounce_values):
+        bounce_taps = a * get_coefficients_for_delay(tau, long_taps_x, Ts)
+        bounce_taps[n_extra] += 1
         feedforward_taps = np.convolve(feedforward_taps, bounce_taps)
-    return feedforward_taps
+        feedforward_taps_x = np.linspace(min(feedforward_taps_x) + min(long_taps_x), max(feedforward_taps_x) + max(long_taps_x), len(feedforward_taps))
+
+    feedforward_taps = _round_taps_close_to_zero(feedforward_taps)
+    index_start = np.nonzero(feedforward_taps_x == 0)[0][0]
+    index_end = np.nonzero(feedforward_taps)[0][-1] + 1
+    extra_taps = np.abs(np.concatenate((feedforward_taps[:index_start], feedforward_taps[-index_end:])))
+    if np.any(extra_taps > 0.02):  # Contribution is more than 2%
+        warnings.warn(f"Contribution from missing taps is not negligible. {max(extra_taps)}")  # todo: improve message
+    return feedforward_taps[index_start:index_end]
+
+
+def get_coefficients_for_delay(tau, full_taps_x, Ts=1):
+    full_taps = np.sinc(full_taps_x - tau / Ts)
+    full_taps = _round_taps_close_to_zero(full_taps)
+    return full_taps
+
+
+def _round_taps_close_to_zero(taps, accuracy=1e-6):
+    taps[np.abs(taps) < accuracy] = 0
+    return taps
