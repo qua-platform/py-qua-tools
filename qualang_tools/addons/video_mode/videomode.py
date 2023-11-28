@@ -76,19 +76,15 @@ class ParameterTable:
                 exec(f"{parameter_name} = {parameter['declare_expression']}")
                 self.table[parameter_name]["var"] = eval(parameter_name)
 
-    def load_parameters(self, param_index_var: QuaVariableType, looping_var: Optional[QuaVariableType] = None,
-                        pause_program=False):
+    def load_parameters(self, pause_program=False):
         """ QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO 2.
         Args:
-            param_index_var: QUA int variable used to look for which parameter to load through IO 1.
-            looping_var: QUA int variable used to loop over array of parameter values through IO 2
-                (used only one of the parameters in the parameter table is an array/list).
             pause_program: Boolean indicating whether the program should be paused while waiting for user input.
         """
 
         if pause_program:
             pause()
-
+        param_index_var = declare(int)
         assign(param_index_var, IO1)
 
         with switch_(param_index_var):
@@ -262,10 +258,9 @@ class VideoMode:
     def variables(self):
         return self.parameter_table.variables
 
-    def load_parameters(self, param_index_var: QuaVariableType, looping_var: Optional[QuaVariableType] = None,
-                        pause_program=False):
+    def load_parameters(self, pause_program=False):
 
-        self.parameter_table.load_parameters(param_index_var, looping_var, pause_program)
+        self.parameter_table.load_parameters(pause_program)
 
     def declare_variables(self):
         self.parameter_table.declare_variables()
