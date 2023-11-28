@@ -49,8 +49,6 @@ def PID_derivation(
 
 def PID_prog(video_mode: VideoMode):
     with program() as prog:
-        n = declare(int)
-        test = declare(int, value=[0, 1])
         # Results variables
         I = declare(fixed)
         Q = declare(fixed)
@@ -59,10 +57,8 @@ def PID_prog(video_mode: VideoMode):
         # PID variables
         video_mode.declare_variables()
 
-        # param_var = declare(int)
 
         dc_offset_1 = declare(fixed)
-        param = declare(int)
         # Variance derivation parameters
         variance_vector = declare(fixed, value=[7 for _ in range(variance_window)])
         variance_index = declare(int, value=0)
@@ -161,7 +157,6 @@ if __name__ == "__main__":
     qm.set_io2_value(0.0)
 
     time.sleep(1)
-    # Send the QUA program to the OPX, which compiles and executes it - Execute does not block python!
     param_dict = {
         "bitshift_scale_factor": 9,
         "gain_P": -1e-4,
