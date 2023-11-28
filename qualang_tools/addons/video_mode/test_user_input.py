@@ -91,7 +91,7 @@ def PID_prog(video_mode: VideoMode):
                     demod.full("constant", Q, "out1"))
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, integrator_error, derivative_error = PID_derivation(single_shot_DC, *video_mode._parameter_table.variables)
+            correction, error, integrator_error, derivative_error = PID_derivation(single_shot_DC, *video_mode.variables)
 
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
