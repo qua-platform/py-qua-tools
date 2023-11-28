@@ -10,15 +10,21 @@ from configuration import *
 import warnings
 
 warnings.filterwarnings("ignore")
-from videomode import VideoMode, ParameterTable
+from videomode import VideoMode
 
 target = 0.0  # Set-point to which the PID should converge
 angle = 0.0  # Phase angle between the sideband and demodulation in units of 2pi
 N_shots = 1000000  # Total number of iterations - can be replaced by an infinite loop
 
 variance_window = 100  # Window to check the convergence of the lock
-variance_threshold = 0.0001  # Threshold below which the cavity is considered to be stable
-def PID_derivation(input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target):
+variance_threshold = (
+    0.0001  # Threshold below which the cavity is considered to be stable
+)
+
+
+def PID_derivation(
+    input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target
+):
     error = declare(fixed)
     integrator_error = declare(fixed)
     derivative_error = declare(fixed)
@@ -33,13 +39,18 @@ def PID_derivation(input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, 
     # save old error to be error
     assign(old_error, error)
 
-    return gain_P * error + gain_I * integrator_error + gain_D * derivative_error, error, integrator_error, derivative_error
+    return (
+        gain_P * error + gain_I * integrator_error + gain_D * derivative_error,
+        error,
+        integrator_error,
+        derivative_error,
+    )
 
 
 def PID_prog(video_mode: VideoMode):
     with program() as prog:
         n = declare(int)
-        test = declare(int, value=[0,1])
+        test = declare(int, value=[0, 1])
         # Results variables
         I = declare(fixed)
         Q = declare(fixed)
@@ -85,13 +96,25 @@ def PID_prog(video_mode: VideoMode):
             # Play the PDH sideband
             play("cw", "phase_modulator")
             # Measure and integrate the signal received by the detector --> DC measurement
-            measure("readout", "detector_DC", None, integration.full("constant", single_shot_DC, "out1"))
+            measure(
+                "readout",
+                "detector_DC",
+                None,
+                integration.full("constant", single_shot_DC, "out1"),
+            )
             # Measure and demodulate the signal received by the detector --> AC measurement sqrt(I**2 + Q**2)
-            measure("readout", "detector_AC", None, demod.full("constant", I, "out1"),
-                    demod.full("constant", Q, "out1"))
+            measure(
+                "readout",
+                "detector_AC",
+                None,
+                demod.full("constant", I, "out1"),
+                demod.full("constant", Q, "out1"),
+            )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, integrator_error, derivative_error = PID_derivation(single_shot_DC, *video_mode.variables)
+            correction, error, integrator_error, derivative_error = PID_derivation(
+                single_shot_DC, *video_mode.variables
+            )
 
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
@@ -139,22 +162,43 @@ if __name__ == "__main__":
 
     time.sleep(1)
     # Send the QUA program to the OPX, which compiles and executes it - Execute does not block python!
-    param_dict = {"bitshift_scale_factor": 9, "gain_P": -1e-4, "gain_I": 0.0, "gain_D": 0.0, "alpha": 0.0,
-                  "target": 0.0}
-    video_mode = VideoMode(qm, ParameterTable(param_dict))
+    param_dict = {
+        "bitshift_scale_factor": 9,
+        "gain_P": -1e-4,
+        "gain_I": 0.0,
+        "gain_D": 0.0,
+        "alpha": 0.0,
+        "target": 0.0,
+    }
+
+    video_mode = VideoMode(qm, param_dict)
     prog = PID_prog(video_mode)
-    # from qm import generate_qua_script
-    # print(generate_qua_script((prog)))
-    video_mode.start(prog)
-    job = video_mode.job
-    results = fetching_tool(job,
-                            ["error", "integration_error", "derivative_error", "single_shot", "offset", "variance"],
-                            mode="live")
+    job = video_mode.execute(prog)
+
+    results = fetching_tool(
+        job,
+        [
+            "error",
+            "integration_error",
+            "derivative_error",
+            "single_shot",
+            "offset",
+            "variance",
+        ],
+        mode="live",
+    )
     fig = plt.figure()
     interrupt_on_close(fig, job)
 
     while results.is_processing():
-        error, integration_error, derivative_error, single_shot, offset, variance = results.fetch_all()
+        (
+            error,
+            integration_error,
+            derivative_error,
+            single_shot,
+            offset,
+            variance,
+        ) = results.fetch_all()
 
         plt.subplot(231)
         plt.cla()
@@ -175,11 +219,11 @@ if __name__ == "__main__":
         plt.subplot(234)
         plt.cla()
         plt.plot(single_shot)
-        plt.title('Single shot measurement')
+        plt.title("Single shot measurement")
         plt.subplot(235)
         plt.cla()
         plt.plot(offset)
-        plt.title('Applied offset [V]')
+        plt.title("Applied offset [V]")
         plt.tight_layout()
         plt.pause(0.1)
         # print(np.abs(np.max(variance)) - np.abs(target))

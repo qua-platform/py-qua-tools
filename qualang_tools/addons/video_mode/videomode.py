@@ -19,52 +19,74 @@ class ParameterTable:
         parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
 
     """
+
     parameters_dict: Dict[str, float | int | bool]
 
     def __post_init__(self):
         self.table = {}
-        for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
+        for index, (parameter_name, parameter_value) in enumerate(
+            self.parameters_dict.items()
+        ):
             self.table[parameter_name] = {"index": index}
             if isinstance(parameter_value, float):
                 if float(parameter_value).is_integer() and parameter_value > 8:
-                    self.table[parameter_name]["declare_expression"] = f'declare(int, value=int({parameter_value}))'
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(int, value=int({parameter_value}))"
                     self.table[parameter_name]["type"] = int
                     self.table[parameter_name]["value"] = parameter_value
                 else:
-                    self.table[parameter_name]["declare_expression"] = f'declare(fixed, value={parameter_value})'
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(fixed, value={parameter_value})"
                     self.table[parameter_name]["type"] = float
                     self.table[parameter_name]["value"] = parameter_value
 
                 self.table[parameter_name]["length"] = 0
 
             elif isinstance(parameter_value, int):
-                self.table[parameter_name]["declare_expression"] = f'declare(int, value={parameter_value})'
+                self.table[parameter_name][
+                    "declare_expression"
+                ] = f"declare(int, value={parameter_value})"
                 self.table[parameter_name]["type"] = int
                 self.table[parameter_name]["length"] = 0
                 self.table[parameter_name]["value"] = parameter_value
 
             elif isinstance(parameter_value, bool):
-                self.table[parameter_name]["declare_expression"] = f'declare(bool, value={parameter_value})'
+                self.table[parameter_name][
+                    "declare_expression"
+                ] = f"declare(bool, value={parameter_value})"
                 self.table[parameter_name]["type"] = bool
                 self.table[parameter_name]["length"] = 0
                 self.table[parameter_name]["value"] = parameter_value
 
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
-                    assert parameter_value.ndim == 1, "Invalid parameter type, array must be 1D."
+                    assert (
+                        parameter_value.ndim == 1
+                    ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
-                assert all(isinstance(x, type(parameter_value[0])) for x in
-                           parameter_value), "Invalid parameter type, all elements must be of same type."
+                assert all(
+                    isinstance(x, type(parameter_value[0])) for x in parameter_value
+                ), "Invalid parameter type, all elements must be of same type."
                 if isinstance(parameter_value[0], bool):
-                    self.table[parameter_name]["declare_expression"] = f'declare(bool, value={parameter_value})'
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(bool, value={parameter_value})"
                 if isinstance(parameter_value[0], int):
-                    self.table[parameter_name]["declare_expression"] = f'declare(int, value={parameter_value})'
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(int, value={parameter_value})"
                 elif isinstance(parameter_value[0], float):
-                    self.table[parameter_name]["declare_expression"] = f'declare(fixed, value={parameter_value})'
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(fixed, value={parameter_value})"
                 self.table[parameter_name]["type"] = List
                 self.table[parameter_name]["length"] = len(parameter_value)
             else:
-                raise ValueError("Invalid parameter type. Please use float, int or bool or list.")
+                raise ValueError(
+                    "Invalid parameter type. Please use float, int or bool or list."
+                )
 
     def declare_variables(self):
         """
@@ -77,7 +99,7 @@ class ParameterTable:
                 self.table[parameter_name]["var"] = eval(parameter_name)
 
     def load_parameters(self, pause_program=False):
-        """ QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO 2.
+        """QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO 2.
         Args:
             pause_program: Boolean indicating whether the program should be paused while waiting for user input.
         """
@@ -94,29 +116,40 @@ class ParameterTable:
                         assign(parameter["var"], IO2)
                     else:
                         looping_var = declare(int)
-                        with for_(looping_var, 0, looping_var < parameter["var"].length(), looping_var + 1):
+                        with for_(
+                            looping_var,
+                            0,
+                            looping_var < parameter["var"].length(),
+                            looping_var + 1,
+                        ):
                             pause()
                             assign(parameter["var"][looping_var], IO2)
 
             with default_():
                 pass
 
-
     def get_parameters(self):
         text = ""
         for parameter_name, parameter in self.table.items():
             text += f"{parameter_name}: {parameter['value']}, "
         print(text)
+
     def __getitem__(self, item):
         return self.table[item]["var"]
 
     @property
     def variables(self):
-        return [var["var"] for var in self.table.values() if var["declare_expression"] is not None]
+        return [
+            var["var"]
+            for var in self.table.values()
+            if var["declare_expression"] is not None
+        ]
 
 
 class VideoMode:
-    def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None):  # TODO: optional[QmJob] returns an error
+    def __init__(
+        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
+    ):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify the
@@ -140,115 +173,163 @@ class VideoMode:
         """
         self.qm = qm
         self.job = job
-        self._parameter_table = parameters if isinstance(parameters, ParameterTable) else ParameterTable(parameters)
+        self._parameter_table = (
+            parameters
+            if isinstance(parameters, ParameterTable)
+            else ParameterTable(parameters)
+        )
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
-        # self.thread.start()
+        self.implemented_commands = "LIst of implemented commands: \n get: returns the current value of the parameters. \n stop: quit VideoMode. \n done: resume program. \n help: displays the list of available commands. \n 'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n"
 
     def update_parameters(self):
-        """Update parameters in the parameter table through user input.
-
-        """
+        """Update parameters in the parameter table through user input."""
         while self.active:
+            param_name = input(
+                "Enter a command (type help for getting the list of available commands): "
+            )
+            messages = param_name.split("=")
+            if len(messages) == 1:
+                if messages[0] == "stop":
+                    self.active = False
+                    break
 
-            param_name = input("Enter parameter name (or 'stop' to quit VideoMode or 'done' to resume program): ")
-
-            if param_name == 'stop':
-                self.active = False
-                break
-
-            elif param_name == 'done' and self.job is not None:
-                if self.job.is_paused():
-                    self.job.resume()
-                self.job.halt()
-
-            elif param_name in self.parameter_table.table.keys():
-                self.qm.set_io1_value(self.parameter_table.table[param_name]["index"])
-                param_value = input("Enter parameter value (if list: enter each value separated by a space): ")
-
-                if self.parameter_table.table[param_name]["type"] == List:
-                    param_value = param_value.split()
-                    if len(param_value) != self.parameter_table.table[param_name]["length"]:
-                        print(f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
-                              f"{self.parameter_table.table[param_name]['length']}.")
-                    elif param_value[0].isnumeric():
-                        try:
-                            param_value = list(map(int, param_value))
-                        except ValueError:
-                            print("One of the values could not be cast to int ("
-                                  "casting done according to type of first value): ")
-                    elif param_value[0].replace('.', '', 1).isdigit():
-                        try:
-                            param_value = list(map(float, param_value))
-                        except ValueError:
-                            print("One of the values could not be cast to float ("
-                                  "casting done based on type of first value): ")
-                    elif param_value[0] in ['True', 'False']:
-                        try:
-                            param_value = list(map(bool, param_value))
-                        except ValueError:
-                            print("One of the values could not be cast to bool (casting done based on type of "
-                                  "first value): ")
-
-                    assert all(isinstance(x, type(param_value[0])) for x in
-                               param_value), f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the same type."
-
-                    for value in param_value:
-                        while not (self.job.is_paused()):
-                            time.sleep(0.001)
-                        self.qm.set_io2_value(value)
-                        self.parameter_table.table[param_name]["value"] = value
+                elif messages[0] == "done" and self.job is not None:
+                    if self.job.is_paused():
                         self.job.resume()
+                    break
+
+                elif messages[0] == "get":
+                    self.parameter_table.get_parameters()
+
+                elif messages[0] == "help":
+                    print(self.implemented_commands)
 
                 else:
-                    if self.parameter_table.table[param_name]["type"] == int:
-                        if not param_value.isnumeric():
-                            print(f"Invalid input. {self.parameter_table[param_name]} should be an integer.")
-                        else:
+                    print(f"Invalid input. {messages[0]} is not a valid command.")
+
+            elif len(messages) == 2:
+                param_name = messages[0]
+                param_value = messages[1]
+                if param_name in self.parameter_table.table.keys():
+                    self.qm.set_io1_value(
+                        self.parameter_table.table[param_name]["index"]
+                    )
+
+                    if self.parameter_table.table[param_name]["type"] == List:
+                        param_value = param_value.split()
+                        if (
+                            len(param_value)
+                            != self.parameter_table.table[param_name]["length"]
+                        ):
+                            print(
+                                f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
+                                f"{self.parameter_table.table[param_name]['length']}."
+                            )
+                        elif param_value[0].isnumeric():
                             try:
-                                param_value = int(param_value)
+                                param_value = list(map(int, param_value))
                             except ValueError:
-                                print(f"Invalid input. {self.parameter_table[param_name]} could not be "
-                                      f"converted to int.")
+                                print(
+                                    "One of the values could not be cast to int ("
+                                    "casting done according to type of first value): "
+                                )
+                        elif param_value[0].replace(".", "", 1).isdigit():
+                            try:
+                                param_value = list(map(float, param_value))
+                            except ValueError:
+                                print(
+                                    "One of the values could not be cast to float ("
+                                    "casting done based on type of first value): "
+                                )
+                        elif param_value[0] in ["True", "False"]:
+                            try:
+                                param_value = list(map(bool, param_value))
+                            except ValueError:
+                                print(
+                                    "One of the values could not be cast to bool (casting done based on type of "
+                                    "first value): "
+                                )
+
+                        assert all(
+                            isinstance(x, type(param_value[0])) for x in param_value
+                        ), f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the same type."
+
+                        for value in param_value:
+                            while not (self.job.is_paused()):
+                                time.sleep(0.001)
+                            self.qm.set_io2_value(value)
+                            self.parameter_table.table[param_name]["value"] = value
+                            self.job.resume()
+
+                    else:
+                        if self.parameter_table.table[param_name]["type"] == int:
+                            if not param_value.isnumeric():
+                                print(
+                                    f"Invalid input. {self.parameter_table[param_name]} should be an integer."
+                                )
+                            else:
+                                try:
+                                    param_value = int(param_value)
+                                except ValueError:
+                                    print(
+                                        f"Invalid input. {self.parameter_table[param_name]} could not be "
+                                        f"converted to int."
+                                    )
+                                    continue
+
+                        elif self.parameter_table.table[param_name]["type"] == float:
+                            try:
+                                param_value = float(param_value)
+                            except ValueError:
+                                print(
+                                    f"Invalid input. {self.parameter_table[param_name]} should be a float."
+                                )
                                 continue
 
-                    elif self.parameter_table.table[param_name]["type"] == float:
-                        try:
-                            param_value = float(param_value)
-                        except ValueError:
-                            print(f"Invalid input. {self.parameter_table[param_name]} should be a float.")
-                            continue
-
-                    elif self.parameter_table.table[param_name]["type"] == bool:
-                        if param_value not in ['True', 'False', '0', '1']:
-                            print(f"Invalid input. {self.parameter_table[param_name]} should be a boolean.")
-                        elif param_value in ['0', '1']:
-                            param_value = bool(int(param_value))
+                        elif self.parameter_table.table[param_name]["type"] == bool:
+                            if param_value not in ["True", "False", "0", "1"]:
+                                print(
+                                    f"Invalid input. {self.parameter_table[param_name]} should be a boolean."
+                                )
+                            elif param_value in ["0", "1"]:
+                                param_value = bool(int(param_value))
+                            else:
+                                try:
+                                    param_value = bool(param_value)
+                                except ValueError:
+                                    print(
+                                        f"Invalid input. {self.parameter_table[param_name]} could not be cast to bool"
+                                    )
                         else:
-                            try:
-                                param_value = bool(param_value)
-                            except ValueError:
-                                print(f"Invalid input. {self.parameter_table[param_name]} could not be cast to bool")
-                    self.qm.set_io2_value(param_value)
-                    self.parameter_table.table[param_name]["value"] = param_value
-            elif param_name == 'get':
-                self.parameter_table.get_parameters()
-            else:
-                print(f"Invalid input. {param_name} is not a valid parameter name.")
+                            print(
+                                f"Invalid input. {param_value} is not a valid parameter value."
+                            )
+
+                        self.qm.set_io2_value(param_value)
+                        self.parameter_table.table[param_name]["value"] = param_value
+
+                else:
+                    print(f"Invalid input. {param_name} is not a valid parameter name.")
 
         print("VideoMode stopped.")
 
-    def start(self, prog: Optional[Program] = None, *execute_args) -> None:
+    def execute(self, prog: Optional[Program] = None, *execute_args) -> QmJob:
         """Start the video mode.
         Args:
             prog: QUA program to be executed. If None, the video mode will be started without executing a QUA program
             (program assumed to be running)
             execute_args: Arguments to be passed to the execute method of the QuantumMachine for executing the program.
-            """
+        Returns:
+            the QM job
+
+        """
         if self.job is None:
             self.job = self.qm.execute(prog, *execute_args)
         print("start")
         self.thread.start()
+
+        return self.job
 
     @property
     def parameter_table(self):
@@ -259,7 +340,6 @@ class VideoMode:
         return self.parameter_table.variables
 
     def load_parameters(self, pause_program=False):
-
         self.parameter_table.load_parameters(pause_program)
 
     def declare_variables(self):
