@@ -192,6 +192,7 @@ class VideoMode:
             if len(messages) == 1:
                 if messages[0] == "stop":
                     self.active = False
+                    self.job.halt()
                     break
 
                 elif messages[0] == "done" and self.job is not None:
