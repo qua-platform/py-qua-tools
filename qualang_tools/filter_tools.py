@@ -135,7 +135,7 @@ def bounce_and_delay_correction(bounce_values=[], delay=0, feedforward_taps=[1.0
     feedforward_taps_x = np.linspace(min(feedforward_taps_x) + min(long_taps_x),
                                      max(feedforward_taps_x) + max(long_taps_x), len(feedforward_taps))
     for i, (a, tau) in enumerate(bounce_values):
-        bounce_taps = a * _get_coefficients_for_delay(tau, long_taps_x, Ts)
+        bounce_taps = -a * _get_coefficients_for_delay(tau, long_taps_x, Ts)
         bounce_taps[n_extra] += 1
         feedforward_taps = np.convolve(feedforward_taps, bounce_taps)
         feedforward_taps_x = np.linspace(min(feedforward_taps_x) + min(long_taps_x),
