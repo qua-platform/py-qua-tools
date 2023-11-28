@@ -17,28 +17,25 @@ def PID_prog(video_mode: VideoMode):
     with program() as prog:
         # Results variables
         single_shot_DC = declare(fixed)
-        # PID variables
-        video_mode.declare_variables()
+        # Get the parameters from the video mode
+        dc_offset_1 = video_mode.declare_variables()
+        # Streams
         signal_st = declare_stream()
 
-
         with infinite_loop_():
-            # Update the PID parameters based on the user input.
-            dc_offset_1 = video_mode.__getitem__("dc_offset")
-
+            # Update the parameters
             video_mode.load_parameters()
-            # Measure and integrate the signal received by the detector --> DC measurement
+            # Update the dc_offset of the channel connected to the OPX analog input 1
+            set_dc_offset("filter_cavity_1", "single", dc_offset_1)
+            # Measure and integrate the signal received by the OPX
             measure(
                 "readout",
                 "detector_DC",
                 None,
                 integration.full("constant", single_shot_DC, "out1"),
             )
-
-
-            set_dc_offset("filter_cavity_1", "single", dc_offset_1)
+            # Save the measured value to its stream
             save(single_shot_DC, signal_st)
-
             # Wait between each iteration
             wait(1000)
 
@@ -58,12 +55,13 @@ if __name__ == "__main__":
     video_mode = VideoMode(qm, param_dict)
     prog = PID_prog(video_mode)
     job = video_mode.execute(prog)
+
     results = fetching_tool(job, ["signal"], mode="live")
     fig = plt.figure()
     interrupt_on_close(fig, job)
 
     while results.is_processing():
-        signal = -results.fetch_all()[0]*2**12/readout_len
+        signal = -results.fetch_all()[0] * 2**12 / readout_len
 
         plt.cla()
         plt.plot(signal, "-")

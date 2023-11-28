@@ -21,7 +21,7 @@ class ParameterTable:
     """
 
     parameters_dict: Dict[str, float | int | bool]
-    initialize: bool=True
+    initialize: bool = True
 
     def __post_init__(self):
         self.table = {}
@@ -97,6 +97,11 @@ class ParameterTable:
             if parameter["declare_expression"] is not None:
                 exec(f"{parameter_name} = {parameter['declare_expression']}")
                 self.table[parameter_name]["var"] = eval(parameter_name)
+
+        if len(self.variables) == 1:
+            return self.variables[0]
+        else:
+            return self.variables
 
     def load_parameters(self, pause_program=False):
         """QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO 2.
@@ -187,7 +192,15 @@ class VideoMode:
         )
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
-        self.implemented_commands = "List of implemented commands: \n get: returns the current value of the parameters. \n stop: quit VideoMode. \n done: resume program. \n help: displays the list of available commands. \n 'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n"
+        self.implemented_commands = (
+            "List of implemented commands: \n "
+            "get: returns the current value of the parameters. \n "
+            "stop: quit VideoMode. \n "
+            "done: resume program. \n "
+            "help: displays the list of available commands. \n "
+            "'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n "
+            "'param_name': returns the value of the parameter.\n"
+        )
 
     def update_parameters(self):
         """Update parameters in the parameter table through user input."""
@@ -212,6 +225,9 @@ class VideoMode:
 
                 elif messages[0] == "help":
                     print(self.implemented_commands)
+
+                elif messages[0] in self.parameter_table.table.keys():
+                    print(self.parameter_table.table[messages[0]]["value"])
 
                 else:
                     print(f"Invalid input. {messages[0]} is not a valid command.")
@@ -354,7 +370,7 @@ class VideoMode:
         self.parameter_table.load_parameters(pause_program)
 
     def declare_variables(self):
-        self.parameter_table.declare_variables()
+        return self.parameter_table.declare_variables()
 
     def __getitem__(self, item):
         return self._parameter_table[item]
