@@ -58,7 +58,7 @@ config = {
                 10: {},
             },
             "analog_inputs": {
-                1: {"offset": 0},
+                1: {"offset": -0.003175},
             },
         }
     },
