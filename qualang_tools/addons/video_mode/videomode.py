@@ -18,12 +18,10 @@ class ParameterTable:
     and its associated Python initial value.
     Args:
         parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
-        initialize: Boolean indicating whether the parameters should be initialized to their initial value within
         the QUA program.
     """
 
     parameters_dict: Dict[str, float | int | bool | List | np.ndarray]
-    initialize: bool = True
 
     def __post_init__(self):
         self.table = {}
@@ -94,7 +92,7 @@ class ParameterTable:
             if parameter["declare_expression"] is not None:
                 exec(f"{parameter_name} = {parameter['declare_expression']}")
                 self.table[parameter_name]["var"] = eval(parameter_name)
-
+        pause()
         if len(self.variables) == 1:
             return self.variables[0]
         else:
@@ -108,13 +106,6 @@ class ParameterTable:
 
         if pause_program:
             pause()
-
-        if self.initialize:
-            for parameter in self.table.values():
-                if parameter["length"] == 0:
-                    assign(parameter["var"], parameter["value"])
-
-            self.initialize = False
 
         param_index_var = declare(int)
         assign(param_index_var, IO1)
@@ -350,9 +341,11 @@ class VideoMode:
         """
         if self.job is None:
             self.job = self.qm.execute(prog, *execute_args)
-            # Initialize the IO values
+            # Reinitialize the IO values
             self.qm.set_io1_value(666)
             self.qm.set_io2_value(0.0)
+            time.sleep(1)
+            self.job.resume()
         print("start")
         self.thread.start()
 
