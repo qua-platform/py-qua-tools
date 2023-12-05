@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import warnings
 
 from dash import dcc
 import dash_bootstrap_components as dbc
@@ -89,6 +90,11 @@ def open_browser():
 
 
 if __name__ == "__main__":
+    warnings.warn(
+        "ConfigGUI is no longer being actively developed and may not support all config functionality",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     global port_number
 
     parser = argparse.ArgumentParser()

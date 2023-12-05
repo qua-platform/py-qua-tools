@@ -1,4 +1,5 @@
 import copy
+import warnings
 from typing import Union, List
 
 from qualang_tools.config.components import (
@@ -28,6 +29,11 @@ from qualang_tools.config.primitive_components import (
 class ConfigBuilder:
     def __init__(self) -> None:
         """A class used to build the configuration of an experiment with QUA"""
+        warnings.warn(
+            "ConfigBuilder is no longer being actively developed and may not support all config functionality",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.objects = []
         self.configuration = QMConfiguration([])
         self.controllers = []
