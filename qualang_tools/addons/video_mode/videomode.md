@@ -21,7 +21,7 @@ parameters_dict = {
     ...
 }
 ```
-The values of the dictionary can be Python variables for which a QUA variable can be declared. The possible types are:
+The values of the dictionary can be initial Python variables for which a QUA variable can be declared. The possible types are:
 - ```bool```, ```ìnt``` ,```float```(the latter would be cast to QUA ```fixed```)
 - ```list``` or 1D ```ndarray``` (to be cast to QUA ```array```)
 
@@ -42,17 +42,20 @@ It contains two methods that should be used as QUA macros to enable the dynamic 
         This method should ideally be called at the beginning of the QUA program scope.
   - ```load_parameters```: handles the dynamic assignment of the parameters declared in the QUA program scope through the IO variables.
 
-For convenience, those macros can be accessed directly through the ```VideoMode``` object. The QUA program should therefore 
-start look like this:
+For convenience, those macros can be accessed directly through the ```VideoMode``` object. The QUA program should therefore look like this:
 
 ```
 with program() as video_mode_prog:
+    # Declare the QUA variables associated to the parameters
     video_mode.declare_variables()
     
     with infinite_loop():
+        # Load the parameters from the Python environment
         video_mode.load_parameters()
         
-        play("my_pulse"*amp(video_mode["amp_param"]), "qe1")
+        # Use the parameters as QUA variables
+        play("my_pulse"*amp(video_mode["parameter_name_1"]), "qe1")
+        shift_phase(video_mode["parameter_name_2"], "qe1")
         
        
 ```
@@ -65,7 +68,7 @@ original parameter list by operating an appropriate casting for all parameters t
 
 To be able to access those newly created QUA variables later in the design of the program, we can use 
 ```video_mode["param_name"]``` for each parameter loaded initially in the dictionary. We can then use those variables 
-as we please within the program, as shown above with the custom amplitude parameter ```"amp_param"```.
+as we please within the program, as shown above with the custom parameters used for the QUA statements.
 
 ### Updating variables dynamically
 
@@ -89,6 +92,7 @@ to pass the following information:
 For updating a QUA array, a loop over the elements of the array is performed to update dynamically each element 
 with a successive back and forth interaction between the program and the Python (through interleaved ```pause()``` within QUA and ```job.resume()``` in Python).
 
+As everything happens behind the scenes, the user does not need to worry about the details of the implementation.
 The only thing that the user should implement in the QUA program on top of the declaration of variables shown above is the following macro:
 ```
 with program() as video_mode_prog:
@@ -113,14 +117,44 @@ with program() as video_mode_prog:
         play("my_other_pulse"*amp(video_mode["amp_param"]), "qe2")
 ```
 
+Note that you can also access to the full list of QUA variables declared in the program through the ```video_mode.variables``` attribute.
 ## Outside the QUA program
 The ```VideoMode``` class has only one ```execute```method to be called outside the QUA program scope, which takes the same arguments as the 
 ```qm.execute()``` method. It will start the video mode execution by starting a new thread launching the QUA program and a continuous query of input parameters from the user.
 Note that the QUA program runs in the background and the user can still interact with the Python environment while the program is running.
 
+## Example
+Let us consider the following example where we want to update dynamically the amplitude and phase of a pulse.
+We first declare the ```VideoMode``` instance and the parameters dictionary:
+```
+parameters_dict = {
+    'amp': 0.5,
+    'phase': 0.0
+}
+video_mode = VideoMode(qm, parameters_dict)
+```
+We then declare the QUA program as follows:
+```
+with program() as video_mode_prog:
+    video_mode.declare_variables()
+    
+    with infinite_loop():
+        video_mode.load_parameters()
+        
+        play("my_pulse"*amp(video_mode["amp"]), "qe1")
+        shift_phase(video_mode["phase"], "qe1")
+```
+Finally, we start the video mode execution:
+```
+video_mode.execute(video_mode_prog)
+```
+The user can then interact with the program by typing the following in the Python console:
+```
+amp=0.8
+phase=0.5
+```
+The program will then update the amplitude and phase of the pulse accordingly.
 
-To start the VideoMode, The user just has to call the ```start()``` method of the ```VideoMode``` object. The user can choose to call it
-either before or after the QUA program execution. If before, the user should provide the QUA program and the VideoMode object will automatically execute the program while launching a new thread.
 
 
   
