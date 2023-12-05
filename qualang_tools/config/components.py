@@ -449,7 +449,9 @@ class Element(ConfigBuilderElement):
         )
 
         assert len(self.element_analog_inputs) <= 2
-        self.type = "singleInput" if len(self.element_analog_inputs) == 1 else "mixInputs"
+        self.type = (
+            "singleInput" if len(self.element_analog_inputs) == 1 else "mixInputs"
+        )
         self.mixer: Mixer = mixer
 
         if len(self.element_analog_inputs) > 0:
