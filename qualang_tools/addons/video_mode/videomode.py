@@ -5,6 +5,7 @@ from qm import QuantumMachine, QmJob, Program
 import time
 from typing import Optional, List, Dict
 from dataclasses import dataclass
+import numpy as np
 
 
 @dataclass
@@ -17,32 +18,38 @@ class ParameterTable:
     and its associated Python initial value.
     Args:
         parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
-
+        initialize: Boolean indicating whether the parameters should be initialized to their initial value within
+        the QUA program.
     """
 
-    parameters_dict: Dict[str, float | int | bool]
+    parameters_dict: Dict[str, float | int | bool | List | np.ndarray]
     initialize: bool = True
 
     def __post_init__(self):
         self.table = {}
         for index, (parameter_name, parameter_value) in enumerate(
-            self.parameters_dict.items()
+                self.parameters_dict.items()
         ):
-            self.table[parameter_name] = {"index": index}
+            self.table[parameter_name] = {"index": index, 'value': parameter_value}
             if isinstance(parameter_value, float):
                 if float(parameter_value).is_integer() and parameter_value > 8:
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(int, value=int({parameter_value}))"
                     self.table[parameter_name]["type"] = int
-                    self.table[parameter_name]["value"] = parameter_value
                 else:
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(fixed, value={parameter_value})"
                     self.table[parameter_name]["type"] = float
-                    self.table[parameter_name]["value"] = parameter_value
 
+                self.table[parameter_name]["length"] = 0
+
+            elif isinstance(parameter_value, bool):
+                self.table[parameter_name][
+                    "declare_expression"
+                ] = f"declare(bool, value={parameter_value})"
+                self.table[parameter_name]["type"] = bool
                 self.table[parameter_name]["length"] = 0
 
             elif isinstance(parameter_value, int):
@@ -51,30 +58,19 @@ class ParameterTable:
                 ] = f"declare(int, value={parameter_value})"
                 self.table[parameter_name]["type"] = int
                 self.table[parameter_name]["length"] = 0
-                self.table[parameter_name]["value"] = parameter_value
-
-            elif isinstance(parameter_value, bool):
-                self.table[parameter_name][
-                    "declare_expression"
-                ] = f"declare(bool, value={parameter_value})"
-                self.table[parameter_name]["type"] = bool
-                self.table[parameter_name]["length"] = 0
-                self.table[parameter_name]["value"] = parameter_value
 
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
                     assert (
-                        parameter_value.ndim == 1
+                            parameter_value.ndim == 1
                     ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
                 assert all(
                     isinstance(x, type(parameter_value[0])) for x in parameter_value
                 ), "Invalid parameter type, all elements must be of same type."
                 if isinstance(parameter_value[0], bool):
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(bool, value={parameter_value})"
-                if isinstance(parameter_value[0], int):
+                    self.table[parameter_name]["declare_expression"] = f"declare(bool, value={parameter_value})"
+                elif isinstance(parameter_value[0], int):
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(int, value={parameter_value})"
@@ -84,6 +80,7 @@ class ParameterTable:
                     ] = f"declare(fixed, value={parameter_value})"
                 self.table[parameter_name]["type"] = List
                 self.table[parameter_name]["length"] = len(parameter_value)
+
             else:
                 raise ValueError(
                     "Invalid parameter type. Please use float, int or bool or list."
@@ -104,7 +101,7 @@ class ParameterTable:
             return self.variables
 
     def load_parameters(self, pause_program=False):
-        """QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO 2.
+        """QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO2.
         Args:
             pause_program: Boolean indicating whether the program should be paused while waiting for user input.
         """
@@ -116,6 +113,7 @@ class ParameterTable:
             for parameter in self.table.values():
                 if parameter["length"] == 0:
                     assign(parameter["var"], parameter["value"])
+
             self.initialize = False
 
         param_index_var = declare(int)
@@ -128,12 +126,10 @@ class ParameterTable:
                         assign(parameter["var"], IO2)
                     else:
                         looping_var = declare(int)
-                        with for_(
-                            looping_var,
-                            0,
-                            looping_var < parameter["var"].length(),
-                            looping_var + 1,
-                        ):
+                        with for_(looping_var, 0,
+                                  looping_var < parameter["var"].length(),
+                                  looping_var + 1,
+                                  ):
                             pause()
                             assign(parameter["var"][looping_var], IO2)
 
@@ -160,7 +156,7 @@ class ParameterTable:
 
 class VideoMode:
     def __init__(
-        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
+            self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
     ):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
@@ -196,7 +192,7 @@ class VideoMode:
             "List of implemented commands: \n "
             "get: returns the current value of the parameters. \n "
             "stop: quit VideoMode. \n "
-            "done: resume program. \n "
+            "done: resume program (if pause_program==True). \n "
             "help: displays the list of available commands. \n "
             "'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n "
             "'param_name': returns the value of the parameter.\n"
@@ -243,8 +239,8 @@ class VideoMode:
                     if self.parameter_table.table[param_name]["type"] == List:
                         param_value = param_value.split()
                         if (
-                            len(param_value)
-                            != self.parameter_table.table[param_name]["length"]
+                                len(param_value)
+                                != self.parameter_table.table[param_name]["length"]
                         ):
                             print(
                                 f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
@@ -279,6 +275,10 @@ class VideoMode:
                             isinstance(x, type(param_value[0])) for x in param_value
                         ), f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the same type."
 
+                        if self.job.is_paused():
+                            # If the program is paused before param loading,
+                            # update the parameters directly (no wait through done)
+                            self.job.resume()
                         for value in param_value:
                             while not (self.job.is_paused()):
                                 time.sleep(0.001)
