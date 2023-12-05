@@ -15,7 +15,7 @@ def qua_prog(video_mode: VideoMode):
         # Results variables
         single_shot_DC = declare(fixed)
         # Get the parameters from the video mode
-        dc_offset_1 = video_mode.declare_variables()
+        dc_offset = video_mode.declare_variables()
         # Streams
         signal_st = declare_stream()
 
@@ -23,7 +23,7 @@ def qua_prog(video_mode: VideoMode):
             # Update the parameters
             video_mode.load_parameters()
             # Update the dc_offset of the channel connected to the OPX analog input 1
-            set_dc_offset("filter_cavity_1", "single", dc_offset_1)
+            set_dc_offset("filter_cavity_1", "single", dc_offset)
             # Measure and integrate the signal received by the OPX
             measure(
                 "readout",
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     qm = qmm.open_qm(config)
     # Define the parameters to be updated in video mode with their initial value
     param_dict = {
-        "dc_offset": 0.0,
+        "dc_offset": 0.45,
     }
     # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)
