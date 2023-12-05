@@ -50,7 +50,7 @@ interplot = ["dill", "pypiwin32", "ipython"]
 configbuilder = ["pandas", "dash", "dash-html-components", "dash-core-components", "dash-bootstrap-components", "dash-cytoscape", "dash-table", "dash-dangerously-set-inner-html", "docutils", "waitress"]
 
 [tool.black]
-line-length = 88  # Defaults
+line-length = 120
 exclude = "qualang_tools/bakery/randomized_benchmark_c1.py"
 
 [tool.poe.tasks]

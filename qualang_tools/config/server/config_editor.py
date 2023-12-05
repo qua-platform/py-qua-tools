@@ -23,16 +23,12 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 try:
     # try updating config schema
     print("\tDownloading latest config schema...")
-    with urllib.request.urlopen(
-        "https://qm-docs.qualang.io/qm_config_spec.json"
-    ) as url:
+    with urllib.request.urlopen("https://qm-docs.qualang.io/qm_config_spec.json") as url:
         config_structure = json.loads(url.read().decode())
     print("\tDONE")
 except Exception:
     print("Cannot download. Using the local copy of the schema.")
-    with open(
-        os.path.join(os.path.dirname(os.path.realpath(__file__)), "qua1_openapi.json")
-    ) as file:
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "qua1_openapi.json")) as file:
         config_structure = json.load(file)
 
 
@@ -80,41 +76,27 @@ def config_editor(pathname, updated_value=None, configuration=None):
             # print(l)
             # print(a)
 
-            if isinstance(a[l], dict) or (
-                isinstance(a[l], list) and len(a[l]) > 0 and isinstance(a[l][0], dict)
-            ):
+            if isinstance(a[l], dict) or (isinstance(a[l], list) and len(a[l]) > 0 and isinstance(a[l][0], dict)):
                 a = a[l]
                 if l in documentation:
                     documentation = documentation[l]
                 else:
-                    if (
-                        "properties" in documentation
-                        and l in documentation["properties"]
-                    ):
+                    if "properties" in documentation and l in documentation["properties"]:
                         documentation = documentation["properties"][l]
                         if "$ref" in documentation:
                             documentation = getDefinition(documentation["$ref"])
                     elif "additionalProperties" in documentation:
                         if "$ref" in documentation["additionalProperties"]:
-                            documentation = getDefinition(
-                                documentation["additionalProperties"]["$ref"]
-                            )
+                            documentation = getDefinition(documentation["additionalProperties"]["$ref"])
                             # print(documentation)
                         elif "oneOf" in documentation["additionalProperties"]:
-                            for option in documentation["additionalProperties"][
-                                "oneOf"
-                            ]:
+                            for option in documentation["additionalProperties"]["oneOf"]:
                                 # print("\n")
                                 option = getDefinition(option["$ref"])
                                 try:
                                     # print(option)
                                     # print(a["type"])
-                                    if (
-                                        option["properties"]["type"][
-                                            "description"
-                                        ].find(a["type"])
-                                        != -1
-                                    ):
+                                    if option["properties"]["type"]["description"].find(a["type"]) != -1:
                                         documentation = option
                                 except KeyError:
                                     pass
@@ -217,9 +199,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
 
     # show selected values
     if selected != "":
-        if isinstance(input_dict[selected], list) or isinstance(
-            input_dict[selected], np.ndarray
-        ):
+        if isinstance(input_dict[selected], list) or isinstance(input_dict[selected], np.ndarray):
             if isinstance(input_dict[selected], np.ndarray):
                 input_dict[selected] = input_dict[selected].tolist()
 
@@ -231,9 +211,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                 return "OK"
             if controlArguments.find("view=list") != -1:
 
-                details.append(
-                    dcc.Link("view as plot", href=url + f"/{selected}/[view=plot]")
-                )
+                details.append(dcc.Link("view as plot", href=url + f"/{selected}/[view=plot]"))
                 # show list
                 details.append(
                     dbc.InputGroup(
@@ -242,9 +220,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                                 id="input-field",
                                 className="mb-3",
                                 placeholder="array",
-                                value=htmlpy.escape(
-                                    pprint.pformat(input_dict[selected])
-                                ),
+                                value=htmlpy.escape(pprint.pformat(input_dict[selected])),
                             ),
                             dbc.Button("Update", id="update-button", n_clicks=0),
                         ]
@@ -252,16 +228,12 @@ def config_editor(pathname, updated_value=None, configuration=None):
                 )
                 details.append(html.Div(id="update-success"))
             else:
-                details.append(
-                    dcc.Link("view as list", href=url + f"/{selected}/[view=list]")
-                )
+                details.append(dcc.Link("view as list", href=url + f"/{selected}/[view=list]"))
                 # show plot
                 data = pandas.DataFrame(input_dict[selected])
                 fig = px.line(data, markers=True)
                 fig.update_layout(showlegend=False)
-                details.append(
-                    dcc.Graph(id="graph", config={"displayModeBar": False}, figure=fig)
-                )
+                details.append(dcc.Graph(id="graph", config={"displayModeBar": False}, figure=fig))
         else:
             if isinstance(input_dict[selected], float):
                 if updated_value is not None:
@@ -297,9 +269,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                             clearable=False,
                         )
                     )
-                    details.append(
-                        html.Span(input_dict[selected], id="wf-initial", hidden=True)
-                    )
+                    details.append(html.Span(input_dict[selected], id="wf-initial", hidden=True))
                     if updated_value is not None:
                         input_dict[selected] = updated_value
                         return "OK"
@@ -310,11 +280,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                         data = pandas.DataFrame([wf["sample"]])
                     fig = px.line(data, markers=True)
                     fig.update_layout(showlegend=False)
-                    details.append(
-                        dcc.Graph(
-                            id="wf-view", config={"displayModeBar": False}, figure=fig
-                        )
-                    )
+                    details.append(dcc.Graph(id="wf-view", config={"displayModeBar": False}, figure=fig))
 
                     details.append(
                         dcc.Link(
@@ -325,9 +291,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                     )
                 else:
                     if isinstance(input_dict[selected], tuple):
-                        if updated_value is not None and isinstance(
-                            updated_value, tuple
-                        ):
+                        if updated_value is not None and isinstance(updated_value, tuple):
                             input_dict[selected] = updated_value
                             return "OK"
                         details.append(
@@ -348,16 +312,12 @@ def config_editor(pathname, updated_value=None, configuration=None):
                                         value=("%s" % input_dict[selected][1]),
                                     ),
                                     dbc.InputGroupText(")"),
-                                    dbc.Button(
-                                        "Update", id="update-tuple-button", n_clicks=0
-                                    ),
+                                    dbc.Button("Update", id="update-tuple-button", n_clicks=0),
                                 ],
                                 className="mb-3",
                             )
                         )
-                        details.append(
-                            details.append(html.Div(id="update-success-tuple"))
-                        )
+                        details.append(details.append(html.Div(id="update-success-tuple")))
                     else:
                         if updated_value is not None:
                             # do checks
@@ -372,9 +332,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
                                         type="text",
                                         value=("%s" % input_dict[selected]),
                                     ),
-                                    dbc.Button(
-                                        "Update", id="update-button", n_clicks=0
-                                    ),
+                                    dbc.Button("Update", id="update-button", n_clicks=0),
                                 ]
                             )
                         )

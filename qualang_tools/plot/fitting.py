@@ -84,11 +84,7 @@ class Fit:
                     )
         # Print the initial guess if verbose=True
         if verbose:
-            print(
-                f"Initial guess:\n"
-                f" a = {a0 * y_normal / x_normal:.3f}, \n"
-                f" b = {b0 * y_normal:.3f}"
-            )
+            print(f"Initial guess:\n" f" a = {a0 * y_normal / x_normal:.3f}, \n" f" b = {b0 * y_normal:.3f}")
 
         # Fitting function
         def func(x_var, c0, c1):
@@ -181,9 +177,7 @@ class Fit:
         # Finding a guess for the offsets
         final_offset = np.mean(y[np.min((int(len(y) * 0.9), len(y) - 3)) :])
         # Finding a guess for the decay
-        guess_T1 = (
-            1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
-        )
+        guess_T1 = 1 / (np.abs(np.polyfit(x, np.log(np.abs(y - final_offset)), 1)[0])) / 2
 
         # Check user guess
         if guess is not None:
@@ -322,9 +316,7 @@ class Fit:
         f = f[1 : len(f) // 2]
         # Remove the DC peak if there is one
         if (np.abs(fft)[1:] - np.abs(fft)[:-1] > 0).any():
-            first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][
-                0
-            ]  # away from the DC peak
+            first_read_data_ind = np.where(np.abs(fft)[1:] - np.abs(fft)[:-1] > 0)[0][0]  # away from the DC peak
             fft = fft[first_read_data_ind:]
             f = f[first_read_data_ind:]
 
@@ -335,23 +327,12 @@ class Fit:
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T2
         period = int(np.ceil(1 / out_freq))
         peaks = (
-            np.array(
-                [
-                    np.std(y[i * period : (i + 1) * period])
-                    for i in range(round(len(y) / period))
-                ]
-            )
-            * np.sqrt(2)
-            * 2
+            np.array([np.std(y[i * period : (i + 1) * period]) for i in range(round(len(y) / period))]) * np.sqrt(2) * 2
         )
 
         # Finding a guess for the decay (slope of log(peaks))
         if len(peaks) > 1:
-            guess_T2 = (
-                -1
-                / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
-                * (x[1] - x[0])
-            )
+            guess_T2 = -1 / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1))) * (x[1] - x[0])
         else:
             guess_T2 = 100 / x_normal
 
@@ -360,9 +341,7 @@ class Fit:
         final_offset = np.mean(y[-period:])
 
         # Finding a guess for the phase
-        guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
-        )
+        guess_phase = np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
 
         # Check user guess
         if guess is not None:
@@ -398,14 +377,9 @@ class Fit:
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3, a4, a5):
-            return final_offset * a4 * (1 - np.exp(-x_var / (guess_T2 * a1))) + peaks[
-                0
-            ] / 2 * a2 * (
+            return final_offset * a4 * (1 - np.exp(-x_var / (guess_T2 * a1))) + peaks[0] / 2 * a2 * (
                 np.exp(-x_var / (guess_T2 * a1))
-                * (
-                    a5 * initial_offset / peaks[0] * 2
-                    + np.cos(2 * np.pi * a0 * guess_freq * x + a3)
-                )
+                * (a5 * initial_offset / peaks[0] * 2 + np.cos(2 * np.pi * a0 * guess_freq * x + a3))
             )
 
         def fit_type(x_var, a):
@@ -557,10 +531,7 @@ class Fit:
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3):
-            return (
-                ((peak - v0) * a0)
-                / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
-            ) + (v0 * a3)
+            return (((peak - v0) * a0) / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))) + (v0 * a3)
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3])
@@ -577,10 +548,8 @@ class Fit:
                 (peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal,
             ],
             "ki": [
-                (popt[1] * width0 * x_normal)
-                - ((peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
-                (perr[1] * width0 * x_normal)
-                - ((peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
+                (popt[1] * width0 * x_normal) - ((peak - v0) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
+                (perr[1] * width0 * x_normal) - ((peak - v0) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
             ],
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
             "offset": [v0 * popt[3] * y_normal, v0 * perr[3] * y_normal],
@@ -691,12 +660,8 @@ class Fit:
         v0 = (np.mean(y[-10:-1]) + np.mean(y[0:10])) / 2
 
         # Finding a guess to the slope
-        m = (
-            np.mean(y[int(width0_arg_right + width0) : -1])
-            - np.mean(y[0 : int(width0_arg_left - width0)])
-        ) / (
-            np.mean(x[int(width0_arg_right + width0) : -1])
-            - np.mean(x[0 : int(width0_arg_left - width0)])
+        m = (np.mean(y[int(width0_arg_right + width0) : -1]) - np.mean(y[0 : int(width0_arg_left - width0)])) / (
+            np.mean(x[int(width0_arg_right + width0) : -1]) - np.mean(x[0 : int(width0_arg_left - width0)])
         )
 
         # Check user guess
@@ -729,10 +694,7 @@ class Fit:
         def func(x_var, a0, a1, a2, a3, a4):
             return (
                 ((v0 - peak) * a3)
-                - (
-                    ((v0 - peak) * a0)
-                    / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2)))
-                )
+                - (((v0 - peak) * a0) / (1 + (4 * ((x_var - (f0 * a2)) ** 2) / ((width0 * a1) ** 2))))
                 + m * a4 * x_var
             )
 
@@ -751,10 +713,8 @@ class Fit:
                 (v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal,
             ],
             "ki": [
-                (popt[1] * width0 * x_normal)
-                - ((v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
-                (perr[1] * width0 * x_normal)
-                - ((v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
+                (popt[1] * width0 * x_normal) - ((v0 - peak) * popt[0] * (width0 * popt[1] * x_normal) * y_normal),
+                (perr[1] * width0 * x_normal) - ((v0 - peak) * perr[0] * (width0 * perr[1] * x_normal) * y_normal),
             ],
             "k": [popt[1] * width0 * x_normal, perr[1] * width0 * x_normal],
             "offset": [
@@ -862,46 +822,22 @@ class Fit:
         # If not enough oscillations
         if np.argmax(np.abs(fft)) < 1:
             # If at least 1 oscillation
-            if (
-                np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y)))))
-                > 1
-            ):
-                guess_freq = 1 / (
-                    np.max(
-                        np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))
-                    )
-                    * (x[1] - x[0])
-                )
+            if np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))) > 1:
+                guess_freq = 1 / (np.max(np.diff(np.where(y < min(y) + 0.1 * np.abs(max(y) - min(y))))) * (x[1] - x[0]))
             # If less than 1 oscillation
             else:
                 guess_freq = 1 / (
-                    (
-                        np.argmin(y[len(y) // 2 :])
-                        + len(y) // 2
-                        - np.argmin(y[: len(y) // 2])
-                    )
-                    * (x[1] - x[0])
+                    (np.argmin(y[len(y) // 2 :]) + len(y) // 2 - np.argmin(y[: len(y) // 2])) * (x[1] - x[0])
                 )
         # The period is 1 / guess_freq --> number of oscillations --> peaks decay to get guess_T
         period = int(np.ceil(1 / out_freq))
         peaks = (
-            np.array(
-                [
-                    np.std(y[i * period : (i + 1) * period])
-                    for i in range(round(len(y) / period))
-                ]
-            )
-            * np.sqrt(2)
-            * 2
+            np.array([np.std(y[i * period : (i + 1) * period]) for i in range(round(len(y) / period))]) * np.sqrt(2) * 2
         )
 
         # Finding a guess for the decay (slope of log(peaks))
         if len(peaks) > 1:
-            guess_T = (
-                -1
-                / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1)))
-                * (x[1] - x[0])
-            )
+            guess_T = -1 / ((np.log(peaks)[-1] - np.log(peaks)[0]) / (period * (len(peaks) - 1))) * (x[1] - x[0])
         else:
             guess_T = 100 / x_normal
 
@@ -912,9 +848,7 @@ class Fit:
         guess_amp = np.abs(np.max(y) - np.min(y))
 
         # Finding a guess for the phase
-        guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
-        )
+        guess_phase = np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
 
         # Check user guess
         if guess is not None:
@@ -947,9 +881,9 @@ class Fit:
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3, a4):
-            return (guess_amp * a0) * (
-                np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)
-            ) ** 2 * np.exp(-x_var / np.abs(guess_T * a2)) + offset * a4
+            return (guess_amp * a0) * (np.sin(0.5 * (2 * np.pi * guess_freq * a1) * x_var + a3)) ** 2 * np.exp(
+                -x_var / np.abs(guess_T * a2)
+            ) + offset * a4
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3], a[4])
@@ -1088,9 +1022,7 @@ class Fit:
         offset = np.mean(y)
 
         # Finding a guess for the phase
-        guess_phase = (
-            np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
-        )
+        guess_phase = np.angle(fft[np.argmax(np.abs(fft))]) - guess_freq * 2 * np.pi * x[0]
 
         guess_amp = np.max(y) - np.min(y)
         # Check user guess
@@ -1121,9 +1053,7 @@ class Fit:
 
         # Fitting function
         def func(x_var, a0, a1, a2, a3):
-            return (guess_amp * a0) * np.sin(
-                (2 * np.pi * guess_freq * a1) * x_var + a2
-            ) + offset * a3
+            return (guess_amp * a0) * np.sin((2 * np.pi * guess_freq * a1) * x_var + a2) + offset * a3
 
         def fit_type(x_var, a):
             return func(x_var, a[0], a[1], a[2], a[3])

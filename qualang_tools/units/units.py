@@ -21,12 +21,8 @@ class _nanosecond:
     def _get_value(self) -> float:
         for frameinfo in stack():
             for var in frameinfo.frame.f_locals.values():
-                if isinstance(
-                    var, Program
-                ):  # we have a qua program being declared somewhere
-                    if (
-                        var._is_in_scope  # this is set by __enter__ and unset by __exit__ of Program
-                    ):
+                if isinstance(var, Program):  # we have a qua program being declared somewhere
+                    if var._is_in_scope:  # this is set by __enter__ and unset by __exit__ of Program
                         return 0.25  # now it is in clock cycles
         else:
             return 1.0  # this is in nanoseconds

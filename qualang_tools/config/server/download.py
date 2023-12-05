@@ -21,9 +21,7 @@ def generate_download_page():
                 [
                     dbc.Button("config_initial.py", id="download-config-inital"),
                     dcc.Download(id="config-initial-data"),
-                    html.Span(
-                        " + ", style={"fontSize": "3rem", "verticalAlign": "middle"}
-                    ),
+                    html.Span(" + ", style={"fontSize": "3rem", "verticalAlign": "middle"}),
                     dbc.Button("config_edits.py", id="download-config-edits"),
                     dcc.Download(id="config-edits-data"),
                 ]
