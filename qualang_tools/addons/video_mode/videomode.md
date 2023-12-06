@@ -118,9 +118,21 @@ with program() as video_mode_prog:
 ```
 
 Note that you can also access to the full list of QUA variables declared in the program through the ```video_mode.variables``` attribute.
+
+Alternatively, you can also access the QUA variables later in the code as follows:
+```
+with program() as video_mode_prog:
+    amp_param1, amp_param2, ... = video_mode.declare_variables()
+    
+    with infinite_loop():
+        video_mode.load_parameters()
+        
+        play("my_pulse"*amp(amp_param1, "qe1")
+        play("my_other_pulse"*amp(amp_param2), "qe2")
+```
 ## Outside the QUA program
-The ```VideoMode``` class has only one ```execute```method to be called outside the QUA program scope, which takes the same arguments as the 
-```qm.execute()``` method. It will start the video mode execution by starting a new thread launching the QUA program and a continuous query of input parameters from the user.
+The ```VideoMode``` class has only one ```execute```method to be called outside the QUA program scope, which is a simple wrapper of ```qm.execute()``` method.
+It will start the video mode execution by creating a new thread doing a continuous query of input parameters from the user, while the program is executed and possible live data plotting is on.
 Note that the QUA program runs in the background and the user can still interact with the Python environment while the program is running.
 
 ## Example
@@ -143,6 +155,18 @@ with program() as video_mode_prog:
         
         play("my_pulse"*amp(video_mode["amp"]), "qe1")
         shift_phase(video_mode["phase"], "qe1")
+```
+
+Or an equivalent version:
+```
+with program() as video_mode_prog:
+    amp_, phase = video_mode.declare_variables()
+    
+    with infinite_loop():
+        video_mode.load_parameters()
+        
+        play("my_pulse"*amp(amp_), "qe1")
+        shift_phase(phase, "qe1")
 ```
 Finally, we start the video mode execution:
 ```
