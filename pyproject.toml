@@ -23,16 +23,16 @@ matplotlib = "^3.4.2"
 numpy = "^1.17.0"
 qm-qua = ">=1.1.0"
 scipy = "^1.7.1"
-dash = "^2.0.0"
 pandas = { version = ">=1.2.4", optional = true }
+dash = { version = "^2.0.0", optional = true }
 dash-html-components = { version = "^2.0.0", optional = true }
 dash-core-components = { version = "^2.0.0", optional = true }
 dash-bootstrap-components = { version = "^1.0.0", optional = true }
 dash-cytoscape = { version = "^0.3.0", optional = true }
 dash-table = { version = "^5.0.0", optional = true }
 dash-dangerously-set-inner-html = { version = "^0.0.2", optional = true }
-docutils = ">=0.14.0"
-waitress = "^2.0.0"
+docutils = { version = ">=0.14.0", optional = true }
+waitress = { version = "^2.0.0", optional = true }
 dill = { version = "^0.3.4", optional = true }
 pypiwin32 = { version = "^223", optional = true }
 ipython = { version = "^7.31.1", optional = true }
