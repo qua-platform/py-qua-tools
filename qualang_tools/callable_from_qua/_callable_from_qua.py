@@ -2,19 +2,15 @@ import dataclasses
 from time import sleep
 from typing import List, Any, Dict
 from functools import wraps
-from contextlib import contextmanager
 from qm.QmJob import QmJob
-from qm.QuantumMachine import QuantumMachine
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
-from qm.qua import program as qua_program
+from qm.QuantumMachine import QuantumMachine
 from qm.qua._dsl import _ResultSource, _Variable, align
 
+from ._qua_patches import ProgramAddon
 
-__all__ = [
-    "callable_from_qua",
-    "program",
-]
+__all__ = ["callable_from_qua"]
 
 
 @dataclasses.dataclass
@@ -88,8 +84,8 @@ class LocalRun:
         return self._fn(*args, **kwargs)
 
 
-class LocalRunManager:
-    active_manager = None
+class QuaCallableEventManager(ProgramAddon):
+    _active_program_manager = None
 
     def __init__(self):
         """Framework allowing the user to call Python functions directly from the core of a QUA program.
@@ -102,6 +98,15 @@ class LocalRunManager:
         self._local_run_stream = None
         self._last_local_run = -1
         self._qm = None  # TODO needed to transfer data from python to QUA with iovalues
+
+    def enter_program(self, program: Program):
+        QuaCallableEventManager._active_program_manager = self
+        self.program = program
+        self.declare_all()
+
+    def exit_program(self, exc_type, exc_val, exc_tb):
+        self.do_stream_processing()
+        QuaCallableEventManager._active_program_manager = None
 
     def register_local_run(self, fn: callable, *args, **kwargs):
         lr = LocalRun(
@@ -128,7 +133,7 @@ class LocalRunManager:
                 job
             )  # TODO needed to transfer data from python to QUA with iovalues
             if out is not None:
-                if type(out) == list or type(out) == tuple:
+                if isinstance(out, list) or isinstance(out, tuple):
                     if len(out) == 2:
                         self._qm.set_io1_value(out[0])
                         self._qm.set_io2_value(out[1])
@@ -136,46 +141,23 @@ class LocalRunManager:
                     self._qm.set_io1_value(out[0])
             job.resume()
 
-    @contextmanager
-    def local_run(
-        self, quantum_machine: QuantumMachine, funcs: list[callable] = ()
-    ) -> None:
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
         """
         Executes the program using the given quantum machine and set of local run functions called in the QUA program.
 
         Args:
+            program: The program object.
             quantum_machine: The quantum machine object.
-            funcs: Optional functions to be executed at each callback.
         """
-        yield
         self._qm = quantum_machine  # TODO needed to transfer data from python to QUA with iovalues
         job = quantum_machine.get_running_job()
         result_handles = job.result_handles
 
         while result_handles.is_processing():
             self.attempt_local_run(job)
-            for func in funcs:
+
+            for func in self.callables:
                 func(result_handles)
-
-
-class ProgramScopeLocalRun:
-    def __init__(self):
-        self.local_run_manager = LocalRunManager()
-        self.program_scope = qua_program()
-        self.program = None
-
-    def __enter__(self) -> Program:
-        LocalRunManager.active_manager = self.local_run_manager
-        self.program = self.program_scope.__enter__()
-        self.local_run_manager.declare_all()
-        return self.program
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.local_run_manager.do_stream_processing()
-        self.program_scope.__exit__(exc_type, exc_val, exc_tb)
-
-        # TODO this attribute setting should not be necessary
-        self.program.local_run = self.local_run_manager.local_run
 
 
 def callable_from_qua(func: callable):
@@ -187,7 +169,7 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        local_run_manager = LocalRunManager.active_manager
+        local_run_manager = QuaCallableEventManager.active_manager
         local_run_manager.register_local_run(func, *args, **kwargs)
 
     return wrapper
