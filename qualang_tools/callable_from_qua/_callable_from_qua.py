@@ -10,7 +10,7 @@ from qm.qua._dsl import _ResultSource, _Variable, align
 
 from ._qua_patches import ProgramAddon
 
-__all__ = ["callable_from_qua"]
+__all__ = ["callable_from_qua", "enable_callable_from_qua"]
 
 
 @dataclasses.dataclass
@@ -176,10 +176,11 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if QuaCallableEventManager._active_program_manager is None:
-            QuaCallableEventManager._active_program_manager = QuaCallableEventManager()
-
         active_program_manager = QuaCallableEventManager._active_program_manager
         active_program_manager.register_qua_callable(func, *args, **kwargs)
 
     return wrapper
+
+
+def enable_callable_from_qua():
+    Program.addons["callable_from_qua"] = QuaCallableEventManager()
