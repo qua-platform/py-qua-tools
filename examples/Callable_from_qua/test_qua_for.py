@@ -1,7 +1,11 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
+
+from qualang_tools.callable_from_qua import *
+
+patch_callable_from_qua()
+enable_callable_from_qua()
 
 
 # Define your callable_from_qua functions

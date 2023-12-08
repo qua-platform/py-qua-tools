@@ -4,8 +4,11 @@ from configuration_octave import *
 import matplotlib.pyplot as plt
 import warnings
 from qualang_tools.loops import from_array
+from qualang_tools.callable_from_qua import *
 
-from qualang_tools.callable_from_qua import program, callable_from_qua
+patch_callable_from_qua()
+enable_callable_from_qua()
+
 
 warnings.filterwarnings("ignore")
 

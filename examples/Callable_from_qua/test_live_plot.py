@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 import warnings
 from qm import generate_qua_script
 
-from qualang_tools.callable_from_qua import callable_from_qua
+from qualang_tools.callable_from_qua import *
+
+patch_callable_from_qua()
+enable_callable_from_qua()
 
 
 warnings.filterwarnings("ignore")

@@ -3,8 +3,11 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 import matplotlib.pyplot as plt
 from time import sleep
 
-from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
+from qualang_tools.callable_from_qua import *
+
+patch_callable_from_qua()
+enable_callable_from_qua()
 
 
 @callable_from_qua
@@ -19,7 +22,23 @@ def update_offset(QM, channel: str, signal: float):
 
 
 qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
+from qm.simulate.credentials import create_credentials
+from qm.QuantumMachinesManager import QuantumMachinesManager
+
+qmm = QuantumMachinesManager(
+    host="serwan-dd85ae55.dev.quantum-machines.co",
+    port=443,
+    credentials=create_credentials(),
+)
+
 qm = qmm.open_qm(config)
+
+from qcodes.instrument_drivers.qdac import QDAC
+
+qdac = QDAC("qdac", "ASRL4::INSTR")
+qdac = convert_qcodes_to_qua(qdac)
+
+qdac.ch17.voltage(0.05)
 
 
 with program() as prog:
@@ -47,5 +66,4 @@ def live_plot(res_handles):
 
 
 # Execute the QUA program using the local_run context manager
-with prog.local_run(qm, [live_plot]):
-    job = qm.execute(prog)
+job = qm.execute(prog)

@@ -1,8 +1,11 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 
-from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
+from qualang_tools.callable_from_qua import *
+
+patch_callable_from_qua()
+enable_callable_from_qua()
 
 
 # Define your callable_from_qua functions
@@ -12,13 +15,22 @@ def qua_print(*args):
     for i in range(0, len(args) - 1, 2):
         text += f"{args[i]} = {args[i+1]} | "
     print(text)
+    print("HELLOOOO")
 
 
 #####################################
 #  Open Communication with the QOP  #
 #####################################
 # Open the quantum machine manager
-qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
+# qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
+from qm.simulate.credentials import create_credentials
+from qm.QuantumMachinesManager import QuantumMachinesManager
+
+qmm = QuantumMachinesManager(
+    host="serwan-dd85ae55.dev.quantum-machines.co",
+    port=443,
+    credentials=create_credentials(),
+)
 # Open a quantum machine
 qm = qmm.open_qm(config)
 
@@ -47,5 +59,4 @@ with program() as prog:
         I_st.save_all("I")
 
 # Execute the QUA program using the local_run context manager
-with prog.local_run(qm):
-    job = qm.execute(prog)
+job = qm.execute(prog)
