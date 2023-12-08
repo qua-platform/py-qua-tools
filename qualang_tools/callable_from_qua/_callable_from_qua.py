@@ -169,7 +169,10 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        local_run_manager = QuaCallableEventManager.active_manager
-        local_run_manager.register_local_run(func, *args, **kwargs)
+        if QuaCallableEventManager._active_program_manager is None:
+            QuaCallableEventManager._active_program_manager = QuaCallableEventManager()
+
+        active_program_manager = QuaCallableEventManager._active_program_manager
+        active_program_manager.register_local_run(func, *args, **kwargs)
 
     return wrapper
