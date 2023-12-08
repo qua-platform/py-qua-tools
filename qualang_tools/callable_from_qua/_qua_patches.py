@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Dict, Optional
 from qm.api.models.compiler import CompilerOptionArguments
 from qm.jobs.running_qm_job import RunningQmJob
@@ -11,17 +11,21 @@ from qm.simulate.interface import SimulationConfig
 
 
 __all__ = [
+    "ProgramAddon",
     "patch_callable_from_qua",
 ]
 
 
 class ProgramAddon(ABC):
+    @abstractmethod
     def enter_program(self, program: Program):
         ...
 
+    @abstractmethod
     def exit_program(self, exc_type, exc_val, exc_tb):
         ...
 
+    @abstractmethod
     def execute_program(self, program: Program, quantum_machine: _QuantumMachine_qua):
         ...
 
