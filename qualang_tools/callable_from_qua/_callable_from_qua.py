@@ -103,14 +103,18 @@ class QuaCallableEventManager(ProgramAddon):
         self.callables: List[callable] = []  # TODO maybe merge with QuaCallable?
         self._qm = None  # TODO needed to transfer data from python to QUA with iovalues
 
-    def enter_program(self, program: Program):
-        QuaCallableEventManager._active_program_manager = self
-        self.program = program
-        self.declare_all()
+    @classmethod
+    def enter_program(cls, program: Program):
+        event_manager = cls()
+        cls._active_program_manager = event_manager
+        event_manager.program = program
+        event_manager.declare_all()
 
-    def exit_program(self, exc_type, exc_val, exc_tb):
-        self.do_stream_processing()
-        QuaCallableEventManager._active_program_manager = None
+    @classmethod
+    def exit_program(cls, exc_type, exc_val, exc_tb):
+        event_manager = cls._active_program_manager
+        event_manager.do_stream_processing()
+        cls._active_program_manager = None
 
     def register_qua_callable(self, fn: callable, *args, **kwargs):
         lr = QuaCallable(
@@ -183,4 +187,4 @@ def callable_from_qua(func: callable):
 
 
 def enable_callable_from_qua():
-    Program.addons["callable_from_qua"] = QuaCallableEventManager()
+    Program.addons["callable_from_qua"] = QuaCallableEventManager

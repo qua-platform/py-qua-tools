@@ -21,12 +21,14 @@ class ProgramAddon(ABC):
     def enter_program(self, program: Program):
         ...
 
+    @classmethod
     @abstractmethod
-    def exit_program(self, exc_type, exc_val, exc_tb):
+    def exit_program(cls, exc_type, exc_val, exc_tb):
         ...
 
+    @classmethod
     @abstractmethod
-    def execute_program(self, program: Program, quantum_machine: _QuantumMachine_qua):
+    def execute_program(cls, program: Program, quantum_machine: _QuantumMachine_qua):
         ...
 
 
@@ -93,7 +95,7 @@ def patch_callable_from_qua():
     else:
         qm.qua._dsl._ProgramScope = _ProgramScope
 
-    if qm.QuantumMachine.QuantumMachine is QuantumMachine:
-        print("qm.QuantumMachineQuantumMachine already patched, not patching")
+    if qm.QuantumMachine is QuantumMachine:
+        print("qm.QuantumMachine.QuantumMachine already patched, not patching")
     else:
-        qm.QuantumMachine.QuantumMachine = QuantumMachine
+        qm.QuantumMachine = QuantumMachine
