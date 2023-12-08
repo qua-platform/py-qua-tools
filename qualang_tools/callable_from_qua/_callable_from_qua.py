@@ -178,10 +178,6 @@ class ProgramScopeLocalRun:
         self.program.local_run = self.local_run_manager.local_run
 
 
-def program():
-    return ProgramScopeLocalRun()
-
-
 def callable_from_qua(func: callable):
     """Decorator that allows the call of functions, to be executed in locally Python (on the control PC), directly from a QUA program.
 

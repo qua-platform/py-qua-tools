@@ -10,6 +10,11 @@ from qm.QuantumMachine import QuantumMachine as _QuantumMachine_qua
 from qm.simulate.interface import SimulationConfig
 
 
+__all__ = [
+    "patch_callable_from_qua",
+]
+
+
 class ProgramAddon(ABC):
     def enter_program(self, program: Program):
         ...
