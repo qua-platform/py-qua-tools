@@ -14,28 +14,31 @@ __all__ = ["callable_from_qua"]
 
 
 @dataclasses.dataclass
-class LocalRunQuaArgument:
+class QuaCallableArgument:
     tag: str
     stream: _ResultSource
 
 
-class LocalRun:
+class QuaCallable:
     def __init__(
         self,
         fn: callable,
-        local_run_stream: _ResultSource,
-        local_run_id: int,
+        qua_callable_stream: _ResultSource,
+        qua_callable_id: int,
         args: List[Any],
         kwargs: Dict[str, Any],
     ):
         self._fn = fn
-        self._local_run_id = local_run_id
+        self._qua_callable_id = qua_callable_id
         self._streams: Dict[str, _ResultSource] = {}
-        self._declare(local_run_stream, args, kwargs)
+        self._declare(qua_callable_stream, args, kwargs)
         self._last_arg_fetch: Dict[str, int] = {}
 
     def _declare(
-        self, local_run_stream: _ResultSource, args: List[Any], kwargs: Dict[str, Any]
+        self,
+        qua_callable_stream: _ResultSource,
+        args: List[Any],
+        kwargs: Dict[str, Any],
     ):
         align()
         self._args = [
@@ -44,17 +47,17 @@ class LocalRun:
         self._kwargs = {
             name: self._convert_to_qua_arg(name, arg) for name, arg in kwargs.items()
         }
-        save(self._local_run_id, local_run_stream)
+        save(self._qua_callable_id, qua_callable_stream)
         pause()
         align()
 
     def _convert_to_qua_arg(self, arg_id: str, arg):
         if isinstance(arg, _Variable):
-            tag = f"__local_run__{self._local_run_id}__{arg_id}"
+            tag = f"__qua_callable__{self._qua_callable_id}__{arg_id}"
             stream = declare_stream()
             save(arg, stream)
             self._streams[tag] = stream
-            return LocalRunQuaArgument(tag, stream)
+            return QuaCallableArgument(tag, stream)
         else:
             return arg
 
@@ -63,7 +66,7 @@ class LocalRun:
             stream.with_timestamps().save(tag)
 
     def _convert_to_value_arg(self, job: QmJob, arg):
-        if not isinstance(arg, LocalRunQuaArgument):
+        if not isinstance(arg, QuaCallableArgument):
             return arg
         while True:
             value = job.result_handles.get(arg.tag).fetch_all()
@@ -94,9 +97,9 @@ class QuaCallableEventManager(ProgramAddon):
         It can also be used to post-process data in Python (machine learning, fitting, ...) and update the running QUA program seamlessly.
         It can also be used to quickly print the values of QUA variables for debugging purposes.
         """
-        self._local_runs: List[LocalRun] = []
-        self._local_run_stream = None
-        self._last_local_run = -1
+        self._qua_callables: List[QuaCallable] = []
+        self._qua_callable_stream = None
+        self._last_qua_callable = -1
         self._qm = None  # TODO needed to transfer data from python to QUA with iovalues
 
     def enter_program(self, program: Program):
@@ -108,28 +111,31 @@ class QuaCallableEventManager(ProgramAddon):
         self.do_stream_processing()
         QuaCallableEventManager._active_program_manager = None
 
-    def register_local_run(self, fn: callable, *args, **kwargs):
-        lr = LocalRun(
-            fn, self._local_run_stream, len(self._local_runs), list(args), kwargs
+    def register_qua_callable(self, fn: callable, *args, **kwargs):
+        lr = QuaCallable(
+            fn, self._qua_callable_stream, len(self._qua_callables), list(args), kwargs
         )
-        self._local_runs.append(lr)
+        self._qua_callables.append(lr)
 
     def declare_all(self):
-        self._local_run_stream = declare_stream()
+        self._qua_callable_stream = declare_stream()
 
     def do_stream_processing(self):
-        for local_run in self._local_runs:
-            local_run.do_stream_processing()
-        if len(self._local_runs) > 0:
-            self._local_run_stream.with_timestamps().save("__local_run")
+        for qua_callable in self._qua_callables:
+            qua_callable.do_stream_processing()
+        if len(self._qua_callables) > 0:
+            self._qua_callable_stream.with_timestamps().save("__qua_callable")
 
-    def attempt_local_run(self, job: QmJob):
+    def attempt_qua_callable(self, job: QmJob):
         if not job.is_paused():
             return
-        local_run_id = job.result_handles.get("__local_run").fetch_all()
-        if local_run_id is not None and local_run_id[1] != self._last_local_run:
-            self._last_local_run = local_run_id[1]
-            out = self._local_runs[local_run_id[0]].run(
+        qua_callable_id = job.result_handles.get("__qua_callable").fetch_all()
+        if (
+            qua_callable_id is not None
+            and qua_callable_id[1] != self._last_qua_callable
+        ):
+            self._last_qua_callable = qua_callable_id[1]
+            out = self._qua_callables[qua_callable_id[0]].run(
                 job
             )  # TODO needed to transfer data from python to QUA with iovalues
             if out is not None:
@@ -154,7 +160,7 @@ class QuaCallableEventManager(ProgramAddon):
         result_handles = job.result_handles
 
         while result_handles.is_processing():
-            self.attempt_local_run(job)
+            self.attempt_qua_callable(job)
 
             for func in self.callables:
                 func(result_handles)
@@ -173,6 +179,6 @@ def callable_from_qua(func: callable):
             QuaCallableEventManager._active_program_manager = QuaCallableEventManager()
 
         active_program_manager = QuaCallableEventManager._active_program_manager
-        active_program_manager.register_local_run(func, *args, **kwargs)
+        active_program_manager.register_qua_callable(func, *args, **kwargs)
 
     return wrapper
