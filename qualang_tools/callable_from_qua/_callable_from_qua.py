@@ -11,6 +11,12 @@ from qm.qua import program as qua_program
 from qm.qua._dsl import _ResultSource, _Variable, align
 
 
+__all__ = [
+    "callable_from_qua",
+    "program",
+]
+
+
 @dataclasses.dataclass
 class LocalRunQuaArgument:
     tag: str
@@ -176,7 +182,7 @@ def program():
     return ProgramScopeLocalRun()
 
 
-def run_local(func: callable):
+def callable_from_qua(func: callable):
     """Decorator that allows the call of functions, to be executed in locally Python (on the control PC), directly from a QUA program.
 
     :param func: The function to be executed from a QUA program.

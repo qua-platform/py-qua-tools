@@ -10,4 +10,5 @@ __all__ = [
     "multi_user",
     "units",
     "external_frameworks",
+    "callable_from_qua",
 ]
