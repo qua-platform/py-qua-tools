@@ -1,8 +1,9 @@
 import threading
-
+import sys
 from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
 import time
+import signal
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 import numpy as np
@@ -179,6 +180,7 @@ class VideoMode:
         )
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
+        self.stop_event = threading.Event()
         self.implemented_commands = (
             "List of implemented commands: \n "
             "get: returns the current value of the parameters. \n "
@@ -189,9 +191,22 @@ class VideoMode:
             "'param_name': returns the value of the parameter.\n"
         )
 
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
+
+    def signal_handler(self, signum, frame):
+        """Signal handler for SIGTERM and SIGINT signals."""
+        print(f"Received signal {signum}, stopping VideoMode...")
+        self.qm.set_io1_value(666)
+        self.qm.set_io2_value(0.)
+        self.job.halt()
+        self.stop_event.set()
+        # For shutting down the entire program
+        # sys.exit(0)
+
     def update_parameters(self):
         """Update parameters in the parameter table through user input."""
-        while self.active:
+        while not self.stop_event.is_set() and self.active:
             param_name = input(
                 "Enter a command (type help for getting the list of available commands): "
             )
