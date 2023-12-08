@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import warnings
 from qualang_tools.loops import from_array
 
-# from callable_from_qua import program, run_local  # TODO
-from qualang_tools.addons.callable_from_qua.callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import program, callable_from_qua
 
 warnings.filterwarnings("ignore")
 
@@ -44,7 +43,7 @@ def calibrate_several_LOs(element, lo_frequencies, central_if_frequency):
         qm.calibrate_element(element, {lo: (central_if_frequency,)})
 
 
-@run_local
+@callable_from_qua
 def set_lo_freq(QM, lo_freq_kHz):
     lo_freq_Hz = lo_freq_kHz * u.kHz
     print(f"setting LO to {lo_freq_Hz / u.GHz} GHz")

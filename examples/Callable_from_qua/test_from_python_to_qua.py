@@ -1,11 +1,11 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
 
 
-# Define your run_local functions
-@run_local
+# Define your callable_from_qua functions
+@callable_from_qua
 def update_from_python(qm, value, n):
     out = value * 100 + 0.1
     f = np.random.randint(1e6, 300e6)
@@ -13,7 +13,7 @@ def update_from_python(qm, value, n):
     return out, f
 
 
-@run_local
+@callable_from_qua
 def qua_print(*args):
     text = ""
     for i in range(0, len(args) - 1, 2):
@@ -25,7 +25,7 @@ def qua_print(*args):
 qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
 # Open a quantum machine
 qm = qmm.open_qm(config)
-# Define your QUA program with the run_local functions
+# Define your QUA program with the callable_from_qua functions
 with program() as prog:
     n = declare(int)
     f = declare(int)

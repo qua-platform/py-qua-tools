@@ -3,12 +3,11 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 import matplotlib.pyplot as plt
 from time import sleep
 
-# from callable_from_qua import program, run_local  # TODO
-from qualang_tools.addons.callable_from_qua.callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
 
 
-@run_local
+@callable_from_qua
 def update_offset(QM, channel: str, signal: float):
     target = 0.05  # Target voltage in V
     signal = -signal * 2**12 / readout_len

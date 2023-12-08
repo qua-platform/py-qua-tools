@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 import warnings
 from qm import generate_qua_script
 
-from callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import callable_from_qua
 
 
 warnings.filterwarnings("ignore")
 
 
-@run_local
+@callable_from_qua
 def set_lo_freq(q: str, qm, value):
     qm.set_output_dc_offset_by_element("AOM", "single", float(value) / 10)
     print(f"setting LO to {value} Hz to qubit {q}")
 
 
-@run_local
+@callable_from_qua
 def set_lo_power(q: str, qm, value):
     qm.set_output_dc_offset_by_element("AOM", "single", float(value) / 10)
     print(f"setting POWER to {value} Hz to qubit {q}")

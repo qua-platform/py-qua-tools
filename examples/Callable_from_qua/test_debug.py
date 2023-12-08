@@ -1,13 +1,12 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 
-# from callable_from_qua import program, run_local  # TODO
-from qualang_tools.addons.callable_from_qua.callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import program, callable_from_qua
 from configuration import *
 
 
-# Define your run_local functions
-@run_local
+# Define your callable_from_qua functions
+@callable_from_qua
 def qua_print(*args):
     text = ""
     for i in range(0, len(args) - 1, 2):
@@ -27,7 +26,7 @@ qm = qmm.open_qm(config)
 ###################
 # The QUA program #
 ###################
-# Define your QUA program with the run_local functions
+# Define your QUA program with the callable_from_qua functions
 with program() as prog:
     n1 = declare(int)
     n2 = declare(int)
