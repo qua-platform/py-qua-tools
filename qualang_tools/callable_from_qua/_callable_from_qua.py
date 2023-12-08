@@ -103,18 +103,33 @@ class QuaCallableEventManager(ProgramAddon):
         self.callables: List[callable] = []  # TODO maybe merge with QuaCallable?
         self._qm = None  # TODO needed to transfer data from python to QUA with iovalues
 
-    @classmethod
-    def enter_program(cls, program: Program):
-        event_manager = cls()
-        cls._active_program_manager = event_manager
-        event_manager.program = program
-        event_manager.declare_all()
+    def enter_program(self, program: Program):
+        self.__class__._active_program_manager = self
+        self.program = program
+        self.declare_all()
 
-    @classmethod
-    def exit_program(cls, exc_type, exc_val, exc_tb):
-        event_manager = cls._active_program_manager
-        event_manager.do_stream_processing()
-        cls._active_program_manager = None
+    def exit_program(self, exc_type, exc_val, exc_tb):
+        self = self._active_program_manager
+        self.do_stream_processing()
+        self.__class__._active_program_manager = None
+
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
+        """
+        Executes the program using the given quantum machine and set of local run functions called in the QUA program.
+
+        Args:
+            program: The program object.
+            quantum_machine: The quantum machine object.
+        """
+        self._qm = quantum_machine  # TODO needed to transfer data from python to QUA with iovalues
+        job = quantum_machine.get_running_job()
+        result_handles = job.result_handles
+
+        while result_handles.is_processing():
+            self.attempt_qua_callable(job)
+
+            for func in self.callables:
+                func(result_handles)
 
     def register_qua_callable(self, fn: callable, *args, **kwargs):
         lr = QuaCallable(
@@ -151,24 +166,6 @@ class QuaCallableEventManager(ProgramAddon):
                 else:
                     self._qm.set_io1_value(out[0])
             job.resume()
-
-    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
-        """
-        Executes the program using the given quantum machine and set of local run functions called in the QUA program.
-
-        Args:
-            program: The program object.
-            quantum_machine: The quantum machine object.
-        """
-        self._qm = quantum_machine  # TODO needed to transfer data from python to QUA with iovalues
-        job = quantum_machine.get_running_job()
-        result_handles = job.result_handles
-
-        while result_handles.is_processing():
-            self.attempt_qua_callable(job)
-
-            for func in self.callables:
-                func(result_handles)
 
 
 def callable_from_qua(func: callable):

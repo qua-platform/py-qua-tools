@@ -21,20 +21,21 @@ class ProgramAddon(ABC):
     def enter_program(self, program: Program):
         ...
 
-    @classmethod
     @abstractmethod
-    def exit_program(cls, exc_type, exc_val, exc_tb):
+    def exit_program(self, exc_type, exc_val, exc_tb):
         ...
 
-    @classmethod
     @abstractmethod
-    def execute_program(cls, program: Program, quantum_machine: _QuantumMachine_qua):
+    def execute_program(self, program: Program, quantum_machine: _QuantumMachine_qua):
         ...
 
 
 class _ProgramScope(_ProgramScope_qua):
     def __enter__(self) -> Program:
         program = super().__enter__()
+
+        # Instantiate all addons
+        program.addons = {name: addon() for name, addon in Program.addons.items()}
 
         # TODO Should we add exception handling?
         for addon in self.program.addons.values():
@@ -95,7 +96,7 @@ def patch_callable_from_qua():
     else:
         qm.qua._dsl._ProgramScope = _ProgramScope
 
-    if qm.QuantumMachine is QuantumMachine:
+    if qm.QuantumMachine.execute is QuantumMachine.execute:
         print("qm.QuantumMachine.QuantumMachine already patched, not patching")
     else:
-        qm.QuantumMachine = QuantumMachine
+        qm.QuantumMachine.execute = QuantumMachine.execute
