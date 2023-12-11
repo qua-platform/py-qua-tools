@@ -220,7 +220,6 @@ class VideoMode:
                 elif messages[0] == "done" and self.job is not None:
                     if self.job.is_paused():
                         self.job.resume()
-                    break
 
                 elif messages[0] == "get":
                     self.parameter_table.get_parameters()
