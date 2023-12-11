@@ -1,5 +1,4 @@
 import threading
-import sys
 from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
 import time
@@ -27,9 +26,9 @@ class ParameterTable:
     def __post_init__(self):
         self.table = {}
         for index, (parameter_name, parameter_value) in enumerate(
-                self.parameters_dict.items()
+            self.parameters_dict.items()
         ):
-            self.table[parameter_name] = {"index": index, 'value': parameter_value}
+            self.table[parameter_name] = {"index": index, "value": parameter_value}
             if isinstance(parameter_value, float):
                 if float(parameter_value).is_integer() and parameter_value > 8:
                     self.table[parameter_name][
@@ -61,14 +60,16 @@ class ParameterTable:
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
                     assert (
-                            parameter_value.ndim == 1
+                        parameter_value.ndim == 1
                     ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
                 assert all(
                     isinstance(x, type(parameter_value[0])) for x in parameter_value
                 ), "Invalid parameter type, all elements must be of same type."
                 if isinstance(parameter_value[0], bool):
-                    self.table[parameter_name]["declare_expression"] = f"declare(bool, value={parameter_value})"
+                    self.table[parameter_name][
+                        "declare_expression"
+                    ] = f"declare(bool, value={parameter_value})"
                 elif isinstance(parameter_value[0], int):
                     self.table[parameter_name][
                         "declare_expression"
@@ -118,10 +119,12 @@ class ParameterTable:
                         assign(parameter["var"], IO2)
                     else:
                         looping_var = declare(int)
-                        with for_(looping_var, 0,
-                                  looping_var < parameter["var"].length(),
-                                  looping_var + 1,
-                                  ):
+                        with for_(
+                            looping_var,
+                            0,
+                            looping_var < parameter["var"].length(),
+                            looping_var + 1,
+                        ):
                             pause()
                             assign(parameter["var"][looping_var], IO2)
 
@@ -148,19 +151,19 @@ class ParameterTable:
 
 class VideoMode:
     def __init__(
-            self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
+        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
     ):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify the
-        parameters to be updated and their initial values in the parameters dictionary. The video mode will then
+        parameters to be updated and their initial values in the parameter dictionary called ```param_dict```. The video mode will then
         automatically create the corresponding QUA variables and update them through user input.
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 
         - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be updated.
-        - ```load_parameters```: This method will load the updated values for the parameters through IO 1 and IO 2.
-        The user can then start the video mode outside the QUA program by calling the ```start``` method of this class.
+        - ```load_parameters```: This method will load the updated values for the parameters through IO variables  1 and 2.
+        The user can then start the video mode outside the QUA program by calling the ```execute``` method of this class.
         This will start a new parallel thread in charge of updating the parameters in the parameter table through user input.
         The user can stop the video mode by entering 'stop' in the terminal.
         The user can also resume a paused program by entering 'done' again in the terminal.
@@ -168,8 +171,8 @@ class VideoMode:
         Args:
             qm: Quantum Machine object.
             parameters: Parameter table containing the parameters to be updated and their initial values.
-            job: QM job already executed. If None, the video mode will start the execution of the QUA program through the start method
-            of this class.
+            job: QM job already executed. If None, the video mode will start the execution of the QUA program through the
+            ```execute``` method of this class.
         """
         self.qm = qm
         self.job = job
@@ -198,7 +201,7 @@ class VideoMode:
         """Signal handler for SIGTERM and SIGINT signals."""
         print(f"Received signal {signum}, stopping VideoMode...")
         self.qm.set_io1_value(666)
-        self.qm.set_io2_value(0.)
+        self.qm.set_io2_value(0.0)
         self.job.halt()
         self.stop_event.set()
         # For shutting down the entire program
@@ -244,8 +247,8 @@ class VideoMode:
                     if self.parameter_table.table[param_name]["type"] == List:
                         param_value = param_value.split()
                         if (
-                                len(param_value)
-                                != self.parameter_table.table[param_name]["length"]
+                            len(param_value)
+                            != self.parameter_table.table[param_name]["length"]
                         ):
                             print(
                                 f"Invalid input. {self.parameter_table[param_name]} should be a list of length "

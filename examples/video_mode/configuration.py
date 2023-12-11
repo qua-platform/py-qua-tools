@@ -51,6 +51,7 @@ config = {
         "con1": {
             "analog_outputs": {
                 9: {"offset": setpoint_filter_cavity_1},
+                10: {"offset": 0.0},
                 7: {"offset": 0.0},
                 8: {"offset": 0.0},
             },
@@ -58,7 +59,8 @@ config = {
                 10: {},
             },
             "analog_inputs": {
-                1: {"offset": -0.003175},
+                1: {"offset": 0.0},
+                2: {"offset": 0.0},
             },
         }
     },
@@ -81,24 +83,15 @@ config = {
             },
             "sticky": {"analog": True, "duration": 60},
         },
-        # "filter_cavity_2": {
-        #     "singleInput": {
-        #         "port": ("con1", 7),
-        #     },
-        # "operations": {
-        #     "offset": "offset_pulse",
-        # },
-        # 'sticky': {'analog': True, 'duration': 60}
-        # },
-        # "filter_cavity_3": {
-        #     "singleInput": {
-        #         "port": ("con1", 8),
-        #     },
-        # "operations": {
-        #     "offset": "offset_pulse",
-        # },
-        # 'sticky': {'analog': True, 'duration': 60}
-        # },
+        "filter_cavity_2": {
+            "singleInput": {
+                "port": ("con1", 10),
+            },
+        "operations": {
+            "offset": "offset_pulse",
+        },
+        'sticky': {'analog': True, 'duration': 60}
+        },
         "detector_DC": {
             "singleInput": {
                 "port": ("con1", 9),
@@ -108,6 +101,7 @@ config = {
             },
             "outputs": {
                 "out1": ("con1", 1),
+                "out2": ("con1", 2),
             },
             "time_of_flight": time_of_flight,
             "smearing": 0,
