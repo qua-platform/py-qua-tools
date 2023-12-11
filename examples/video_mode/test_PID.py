@@ -1,30 +1,29 @@
-import time
-
 from matplotlib import pyplot as plt
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qualang_tools.addons.variables import assign_variables_to_element
-from qualang_tools.plot import interrupt_on_close
 from qualang_tools.results import fetching_tool
 from configuration import *
-import warnings
-
-warnings.filterwarnings("ignore")
-from videomode import VideoMode
-
-target = 0.0  # Set-point to which the PID should converge
-angle = 0.0  # Phase angle between the sideband and demodulation in units of 2pi
-N_shots = 1000000  # Total number of iterations - can be replaced by an infinite loop
-
-variance_window = 100  # Window to check the convergence of the lock
-variance_threshold = (
-    0.0001  # Threshold below which the cavity is considered to be stable
-)
+from qualang_tools.video_mode.videomode import VideoMode
 
 
+####################
+# Helper functions #
+####################
 def PID_derivation(
     input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target
 ):
+    """
+
+    :param input_signal: Result of the demodulation
+    :param bitshift_scale_factor: Scale factor as 2**bitshift_scale_factor that multiplies the error signal to avoid resolution issues with QUA fixed (2.28)
+    :param gain_P: Proportional gain.
+    :param gain_I: Integral gain.
+    :param gain_D: Derivative gain.
+    :param alpha: Ratio between proportional and integral error: integrator_error = (1.0 - alpha) * integrator_error + alpha * error)
+    :param target: Setpoint to which the input signal should stabilize.
+    :return: The total, proportional, integral and derivative errors.
+    """
     error = declare(fixed)
     integrator_error = declare(fixed)
     derivative_error = declare(fixed)
@@ -47,7 +46,10 @@ def PID_derivation(
     )
 
 
-def PID_prog(video_mode: VideoMode):
+###################
+# The QUA program #
+###################
+def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
     with program() as prog:
         # Results variables
         I = declare(fixed)
@@ -57,16 +59,12 @@ def PID_prog(video_mode: VideoMode):
         dc_offset_1 = declare(fixed)
         # PID variables
         video_mode.declare_variables()
-        # Variance derivation parameters
-        variance_vector = declare(fixed, value=[7 for _ in range(variance_window)])
-        variance_index = declare(int, value=0)
         # Streams
         single_shot_st = declare_stream()
         error_st = declare_stream()
         integrator_error_st = declare_stream()
         derivative_error_st = declare_stream()
         offset_st = declare_stream()
-        variance_st = declare_stream()
 
         # Ensure that the results variables are assigned to the measurement elements
         assign_variables_to_element("detector_DC", single_shot_DC)
@@ -76,13 +74,11 @@ def PID_prog(video_mode: VideoMode):
             # with for_(n, 0, n < N_shots, n + 1):
             # Update the PID parameters based on the user input.
             video_mode.load_parameters()
-            # Once the parameters are set, this can be used to stop the lock once the cavity is considered stable
-            # with while_((Math.abs(Math.max(variance_vector)) - np.abs(target) > variance_threshold) | (Math.abs(Math.min(variance_vector)) - np.abs(target) > variance_threshold)):
             # Ensure that the two digital oscillators will start with the same phase
             reset_phase("phase_modulator")
             reset_phase("detector_AC")
-            # Adjust the phase delay between the two
-            frame_rotation_2pi(angle, "detector_AC")
+            # Phase angle between the sideband and demodulation in units of 2pi
+            frame_rotation_2pi(PDH_angle, "phase_modulator")
             # Sync all the elements
             align()
             # Play the PDH sideband
@@ -104,13 +100,10 @@ def PID_prog(video_mode: VideoMode):
             )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, integrator_error, derivative_error = PID_derivation(
-                single_shot_DC, *video_mode.variables
-            )
-
+            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *video_mode.variables)
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
-            # Handle saturation - Make sure that channel 6 won't be asked to output more than 0.5V
+            # Handle saturation - Make sure that the DAC won't be asked to output more than 0.5V
             with if_(dc_offset_1 > 0.5 - phase_mod_amplitude):
                 assign(dc_offset_1, 0.5 - phase_mod_amplitude)
             with if_(dc_offset_1 < -0.5 + phase_mod_amplitude):
@@ -119,19 +112,12 @@ def PID_prog(video_mode: VideoMode):
             # play("offset" * amp(correction * 4), "filter_cavity_1")
             set_dc_offset("filter_cavity_1", "single", dc_offset_1)
 
-            # Estimate variance (actually simply max distance from target)
-            with if_(variance_index == variance_window):
-                assign(variance_index, 0)
-            assign(variance_vector[variance_index], single_shot_DC)
-            save(variance_vector[variance_index], variance_st)
-            assign(variance_index, variance_index + 1)
-
             # Save the desired variables
             save(single_shot_DC, single_shot_st)
             save(dc_offset_1, offset_st)
             save(error, error_st)
-            save(derivative_error, derivative_error_st)
-            save(integrator_error, integrator_error_st)
+            save(der_error, derivative_error_st)
+            save(int_error, integrator_error_st)
 
             # Wait between each iteration
             wait(1000)
@@ -139,55 +125,38 @@ def PID_prog(video_mode: VideoMode):
         with stream_processing():
             single_shot_st.buffer(1000).save("single_shot")
             offset_st.buffer(1000).save("offset")
-            variance_st.buffer(variance_window).save("variance")
             error_st.buffer(1000).save("error")
-            integrator_error_st.buffer(1000).save("integration_error")
-            derivative_error_st.buffer(1000).save("derivative_error")
+            integrator_error_st.buffer(1000).save("int_err")
+            derivative_error_st.buffer(1000).save("der_err")
     return prog
 
 
 if __name__ == "__main__":
-    qmm = QuantumMachinesManager(qop_ip, cluster_name="Cluster_83")
+    # Open the Quantum Machine Manager
+    qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
+    # Open the Quantum Machine
     qm = qmm.open_qm(config)
-
+    # Define the parameters to be updated in video mode with their initial value
     param_dict = {
-        "bitshift_scale_factor": 9,
-        "gain_P": -1e-4,
-        "gain_I": 0.0,
-        "gain_D": 0.0,
-        "alpha": 0.0,
-        "target": 0.0,
+        "bitshift_scale_factor": 3,
+        "gain_P": -1e-4,  # The proportional gain
+        "gain_I": 0.0,  # The integration gain
+        "gain_D": 0.0,  # The derivative gain
+        "alpha": 0.0,  # The ratio between integration and proportional error
+        "target": 0.0,  # The target value
     }
-
+    # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)
+    # Get the QUA program
     prog = PID_prog(video_mode)
     job = video_mode.execute(prog)
-
-    results = fetching_tool(
-        job,
-        [
-            "error",
-            "integration_error",
-            "derivative_error",
-            "single_shot",
-            "offset",
-            "variance",
-        ],
-        mode="live",
-    )
+    # Get the results from the OPX in live mode
+    data_list = ["error", "int_err", "der_err", "single_shot", "offset"]
+    results = fetching_tool(job, data_list, mode="live")
+    # Live plotting
     fig = plt.figure()
-    interrupt_on_close(fig, job)
-
     while results.is_processing():
-        (
-            error,
-            integration_error,
-            derivative_error,
-            single_shot,
-            offset,
-            variance,
-        ) = results.fetch_all()
-
+        error, int_err, der_err, single_shot, offset = results.fetch_all()
         plt.subplot(231)
         plt.cla()
         plt.plot(error, "-")
@@ -196,12 +165,12 @@ if __name__ == "__main__":
         plt.ylabel("Amplitude Error [arb. units]")
         plt.subplot(232)
         plt.cla()
-        plt.plot(integration_error, "-")
+        plt.plot(int_err, "-")
         plt.title("integration_error signal [a.u.]")
         plt.xlabel("Time [μs]")
         plt.subplot(233)
         plt.cla()
-        plt.plot(derivative_error, "-")
+        plt.plot(der_err, "-")
         plt.title("derivative_error signal [a.u.]")
         plt.xlabel("Time [μs]")
         plt.subplot(234)
@@ -214,4 +183,3 @@ if __name__ == "__main__":
         plt.title("Applied offset [V]")
         plt.tight_layout()
         plt.pause(0.1)
-        # print(np.abs(np.max(variance)) - np.abs(target))
