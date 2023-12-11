@@ -87,10 +87,10 @@ config = {
             "singleInput": {
                 "port": ("con1", 10),
             },
-            "operations": {
-                "offset": "offset_pulse",
-            },
-            "sticky": {"analog": True, "duration": 60},
+        "operations": {
+            "offset": "offset_pulse",
+        },
+        'sticky': {'analog': True, 'duration': 60}
         },
         "detector_DC": {
             "singleInput": {
