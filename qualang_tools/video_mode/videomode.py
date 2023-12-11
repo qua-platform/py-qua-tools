@@ -364,6 +364,8 @@ class VideoMode:
             time.sleep(1)
             self.job.resume()
         print("start")
+        print(self.implemented_commands)
+        self.parameter_table.get_parameters()
         self.thread.start()
 
         return self.job

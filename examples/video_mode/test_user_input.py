@@ -12,7 +12,7 @@ def qua_prog(video_mode: VideoMode):
         single_shot_1 = declare(fixed)
         single_shot_2 = declare(fixed)
         # Get the parameters from the video mode
-        dc_offset_1, dc_offset_2  = video_mode.declare_variables()
+        dc_offset_1, dc_offset_2 = video_mode.declare_variables()
         # Streams
         signal1_st = declare_stream()
         signal2_st = declare_stream()
@@ -45,7 +45,7 @@ def qua_prog(video_mode: VideoMode):
 
 if __name__ == "__main__":
     # Open the Quantum Machine Manager
-    qmm = QuantumMachinesManager(qop_ip, cluster_name="Cluster_83")
+    qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
     # Open the Quantum Machine
     qm = qmm.open_qm(config)
     # Define the parameters to be updated in video mode with their initial value
@@ -66,8 +66,9 @@ if __name__ == "__main__":
     while results.is_processing():
         # Fetch data from the OPX
         signal1, signal2 = results.fetch_all()
-        signal1 =  - signal1 * 2 ** 12 / readout_len
-        signal2 =  - signal2 * 2 ** 12 / readout_len
+        # Convert the data into Volt
+        signal1 = -signal1 * 2**12 / readout_len
+        signal2 = -signal2 * 2**12 / readout_len
         # Plot the data
         plt.cla()
         plt.plot(signal1, "b-")
