@@ -55,7 +55,7 @@ with program() as video_mode_prog:
         
         # Use the parameters as QUA variables
         play("my_pulse"*amp(video_mode["parameter_name_1"]), "qe1")
-        shift_phase(video_mode["parameter_name_2"], "qe1")
+        frame_rotation(video_mode["parameter_name_2"], "qe1")
         
        
 ```
@@ -154,7 +154,7 @@ with program() as video_mode_prog:
         video_mode.load_parameters()
         
         play("my_pulse"*amp(video_mode["amp"]), "qe1")
-        shift_phase(video_mode["phase"], "qe1")
+        frame_rotation(video_mode["phase"], "qe1")
 ```
 
 Or an equivalent version:
@@ -166,7 +166,7 @@ with program() as video_mode_prog:
         video_mode.load_parameters()
         
         play("my_pulse"*amp(amp_), "qe1")
-        shift_phase(phase, "qe1")
+        frame_rotation(phase, "qe1")
 ```
 Finally, we start the video mode execution:
 ```
