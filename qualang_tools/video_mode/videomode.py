@@ -148,7 +148,7 @@ class ParameterTable:
 
     @property
     def variables(self):
-        return [self[item] for item in self.table.keys() if self[item]["var"] is not None]
+        return [self[item] for item in self.table.keys()]
 
 
 class VideoMode:
@@ -173,7 +173,7 @@ class VideoMode:
             parameters: Parameter table containing the parameters to be updated and their initial values.
         """
         self.qm = qm
-        self.job = job
+        self.job = None
         self._parameter_table = (
             parameters
             if isinstance(parameters, ParameterTable)
