@@ -5,7 +5,7 @@ import pytest
 from qm.qua import *
 from qm import QuantumMachinesManager, QuantumMachine
 import numpy as np
-from qualang_tools.addons.video_mode import VideoMode, ParameterTable
+from qualang_tools.video_mode import ParameterTable
 
 
 def gauss(amplitude, mu, sigma, length):
@@ -133,7 +133,7 @@ def test_is_parameter_table_valid(param_dict):
     for i, (param_name, param) in enumerate(param_table.table.items()):
         assert param["index"] == i
         assert param["type"] == type(param["value"])
-        
+
         with pytest.raises(ValueError):
             var = param_table[param_name]
 
