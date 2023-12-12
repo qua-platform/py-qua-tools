@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(0, '/Users/arthurostrauss/Library/CloudStorage/OneDrive-QMMachinesLTD/GitHub/py-qua-tools')
 import pytest
 from qm.qua import *
@@ -128,7 +129,12 @@ def param_dict():
 
 
 def test_is_parameter_table_valid(param_dict):
-    print(type(param_dict["amp_array"]))
     param_table = ParameterTable(param_dict)
-    print(param_table.table)
-    print(param_table.get_parameters())
+    for i, (param_name, param) in enumerate(param_table.table.items()):
+        assert param["index"] == i
+        assert param["type"] == type(param["value"])
+        
+        with pytest.raises(ValueError):
+            var = param_table[param_name]
+
+

@@ -64,6 +64,7 @@ class ParameterTable:
                             parameter_value.ndim == 1
                     ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
+                    self.table[parameter_name]["value"] = parameter_value
                 assert all(
                     isinstance(x, type(parameter_value[0])) for x in parameter_value
                 ), "Invalid parameter type, all elements must be of same type."
@@ -77,7 +78,7 @@ class ParameterTable:
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(fixed, value={parameter_value})"
-                self.table[parameter_name]["type"] = List
+                self.table[parameter_name]["type"] = list
                 self.table[parameter_name]["length"] = len(parameter_value)
 
             else:
@@ -135,21 +136,20 @@ class ParameterTable:
         print(text)
 
     def __getitem__(self, item):
+        if item not in self.table.keys():
+            raise KeyError(f"{item} not found in ParameterTable.")
+        var = self.table[item].get("var", None)
+        if var is None:
+            raise ValueError("QUA variable not found, please declare variables first using declare_variables() method.")
         return self.table[item]["var"]
 
     @property
     def variables(self):
-        return [
-            var["var"]
-            for var in self.table.values()
-            if var["declare_expression"] is not None
-        ]
+        return [self[item] for item in self.table.keys() if self[item]["var"] is not None]
 
 
 class VideoMode:
-    def __init__(
-            self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
-    ):  # TODO: optional[QmJob] returns an error
+    def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable):
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify the
@@ -168,8 +168,6 @@ class VideoMode:
         Args:
             qm: Quantum Machine object.
             parameters: Parameter table containing the parameters to be updated and their initial values.
-            job: QM job already executed. If None, the video mode will start the execution of the QUA program through the start method
-            of this class.
         """
         self.qm = qm
         self.job = job
