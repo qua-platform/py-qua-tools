@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- Unit - `dBm2volts` and `volts2dBm`.
+
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
 - Unit - `demod2volts` now has a `single_demod` flag to correctly convert the data from single demodulation.
