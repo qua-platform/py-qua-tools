@@ -11,7 +11,7 @@ from qm import Program
 from inspect import stack
 from warnings import warn
 from typing import Union
-from numpy import round
+from numpy import round, ndarray
 
 
 class _nanosecond:
@@ -188,16 +188,25 @@ class unit:
             t = int(t * self.ns)
         return t // 4
 
-    def demod2volts(self, data, duration):
+    def demod2volts(
+        self,
+        data: Union[float, ndarray],
+        duration: Union[float, int],
+        single_demod: bool = False,
+    ):
         """Converts the demodulated data to volts.
 
         :param data: demodulated data. Must be a python variable or array.
         :param duration: demodulation duration in ns.
+        :param single_demod: Flag to add the additional factor of 2 needed for single demod.
         :return: the demodulated data in volts.
         """
-        return 4096 * data * self.V / duration
+        if single_demod:
+            return 2 * 4096 * data * self.V / duration
+        else:
+            return 4096 * data * self.V / duration
 
-    def raw2volts(self, data):
+    def raw2volts(self, data: Union[float, ndarray]):
         """Converts the raw data to volts.
 
         :param data: raw data. Must be a python variable or array.

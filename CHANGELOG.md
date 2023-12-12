@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
+- Unit - `demod2volts` now has a `single_demod` flag to correctly convert the data from single demodulation.
 ### Added
 - External_frameworks/qcodes - Added ``update_readout_length()`` to update locally the readout length of a given readout element and operation.
 - External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
