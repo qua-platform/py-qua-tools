@@ -142,11 +142,7 @@ class ParameterTable:
 
     @property
     def variables(self):
-        return [
-            var["var"]
-            for var in self.table.values()
-            if var["declare_expression"] is not None
-        ]
+        return [self[item] for item in self.table.keys()]
 
 
 class VideoMode:
@@ -175,7 +171,7 @@ class VideoMode:
             ```execute``` method of this class.
         """
         self.qm = qm
-        self.job = job
+        self.job = None
         self._parameter_table = (
             parameters
             if isinstance(parameters, ParameterTable)
