@@ -175,7 +175,7 @@ class VideoMode:
             ```execute``` method of this class.
         """
         self.qm = qm
-        self.job = job
+        self.job = None
         self._parameter_table = (
             parameters
             if isinstance(parameters, ParameterTable)
