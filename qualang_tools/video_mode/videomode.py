@@ -63,7 +63,6 @@ class ParameterTable:
                         parameter_value.ndim == 1
                     ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
-                    self.table[parameter_name]["value"] = parameter_value
                 assert all(
                     isinstance(x, type(parameter_value[0])) for x in parameter_value
                 ), "Invalid parameter type, all elements must be of same type."
@@ -79,7 +78,7 @@ class ParameterTable:
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(fixed, value={parameter_value})"
-                self.table[parameter_name]["type"] = list
+                self.table[parameter_name]["type"] = List
                 self.table[parameter_name]["length"] = len(parameter_value)
 
             else:
@@ -135,19 +134,17 @@ class ParameterTable:
     def get_parameters(self):
         """Print the current values of the parameters in the parameter table
         Returns: Dictionary of the form { "parameter_name": parameter_value }.
-            """
+        """
         text = ""
         for parameter_name, parameter in self.table.items():
             text += f"{parameter_name}: {parameter['value']}, "
         print(text)
-        return {parameter_name: parameter["value"] for parameter_name, parameter in self.table.items()}
+        return {
+            parameter_name: parameter["value"]
+            for parameter_name, parameter in self.table.items()
+        }
 
     def __getitem__(self, item):
-        if item not in self.table.keys():
-            raise KeyError(f"{item} not found in ParameterTable.")
-        var = self.table[item].get("var", None)
-        if var is None:
-            raise ValueError("QUA variable not found, please declare variables first using declare_variables() method.")
         return self.table[item]["var"]
 
     @property
@@ -157,7 +154,9 @@ class ParameterTable:
 
 
 class VideoMode:
-    def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable):
+    def __init__(
+        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
+    ):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify
@@ -400,6 +399,7 @@ class VideoMode:
     def declare_variables(self):
         """
         QUA Macro to create the QUA variables associated with the parameter table.
+        :returns : The list of declared QUA variables or the declared variable if there is only one item.
         """
         return self.parameter_table.declare_variables()
 

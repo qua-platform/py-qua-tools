@@ -16,11 +16,11 @@ def PID_derivation(
     """
 
     :param input_signal: Result of the demodulation
-    :param bitshift_scale_factor: Scale factor as 2**bitshift_scale_factor that multiplies the error signal to avoid resolution issues with QUA fixed (2.28)
+    :param bitshift_scale_factor: Scale factor as 2**bitshift_scale_factor that multiplies the error signal to avoid resolution issues with QUA fixed (3.28)
     :param gain_P: Proportional gain.
     :param gain_I: Integral gain.
     :param gain_D: Derivative gain.
-    :param alpha: Ratio between proportional and integral error: integrator_error = (1.0 - alpha) * integrator_error + alpha * error)
+    :param alpha: Ratio between proportional and integral error: integrator_error = (1.0 - alpha) * integrator_error + alpha * error
     :param target: Setpoint to which the input signal should stabilize.
     :return: The total, proportional, integral and derivative errors.
     """
@@ -49,7 +49,7 @@ def PID_derivation(
 ###################
 # The QUA program #
 ###################
-def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
+def PID_prog(vm: VideoMode, PDH_angle: float = 0.0):
     with program() as prog:
         # Results variables
         I = declare(fixed)
@@ -58,7 +58,7 @@ def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
         single_shot_AC = declare(fixed)
         dc_offset_1 = declare(fixed)
         # PID variables
-        video_mode.declare_variables()
+        vm.declare_variables()
         # Streams
         single_shot_st = declare_stream()
         error_st = declare_stream()
@@ -73,7 +73,7 @@ def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
         with infinite_loop_():
             # with for_(n, 0, n < N_shots, n + 1):
             # Update the PID parameters based on the user input.
-            video_mode.load_parameters()
+            vm.load_parameters()
             # Ensure that the two digital oscillators will start with the same phase
             reset_phase("phase_modulator")
             reset_phase("detector_AC")
@@ -100,7 +100,7 @@ def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
             )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *video_mode.variables)
+            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *vm.variables)
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
             # Handle saturation - Make sure that the DAC won't be asked to output more than 0.5V
@@ -109,7 +109,6 @@ def PID_prog(video_mode: VideoMode, PDH_angle: float = 0.0):
             with if_(dc_offset_1 < -0.5 + phase_mod_amplitude):
                 assign(dc_offset_1, -0.5 + phase_mod_amplitude)
             # Apply the correction
-            # play("offset" * amp(correction * 4), "filter_cavity_1")
             set_dc_offset("filter_cavity_1", "single", dc_offset_1)
 
             # Save the desired variables
@@ -148,8 +147,8 @@ if __name__ == "__main__":
     # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)
     # Get the QUA program
-    prog = PID_prog(video_mode)
-    job = video_mode.execute(prog)
+    qua_prog = PID_prog(video_mode)
+    job = video_mode.execute(qua_prog)
     # Get the results from the OPX in live mode
     data_list = ["error", "int_err", "der_err", "single_shot", "offset"]
     results = fetching_tool(job, data_list, mode="live")
