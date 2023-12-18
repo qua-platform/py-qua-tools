@@ -137,6 +137,7 @@ class ParameterTable:
         for parameter_name, parameter in self.table.items():
             text += f"{parameter_name}: {parameter['value']}, "
         print(text)
+        return {parameter_name: parameter["value"] for parameter_name, parameter in self.table.items()}
 
     def __getitem__(self, item):
         if item not in self.table.keys():
@@ -148,6 +149,7 @@ class ParameterTable:
 
     @property
     def variables(self):
+        """List of the QUA variables corresponding to the parameters in the parameter table."""
         return [self[item] for item in self.table.keys()]
 
 
@@ -170,7 +172,10 @@ class VideoMode:
 
         Args:
             qm: Quantum Machine object.
-            parameters: Parameter table containing the parameters to be updated and their initial values.
+            parameters: Dictionary or ParameterTable containing the parameters to be updated and their initial values.
+
+                        Dictionary should be of the form {"parameter_name": initial_parameter_value }. The type of the
+                        QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
         """
         self.qm = qm
         self.job = None
@@ -374,12 +379,21 @@ class VideoMode:
 
     @property
     def variables(self):
+        """List of the QUA variables corresponding to the parameters in the parameter table."""
         return self.parameter_table.variables
 
     def load_parameters(self, pause_program=False):
+        """
+        QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO2.
+        Args:
+        pause_program: Boolean indicating whether the program should be paused while waiting for user input.
+        """
         self.parameter_table.load_parameters(pause_program)
 
     def declare_variables(self):
+        """
+        QUA Macro to create the QUA variables associated with the parameter table.
+        """
         return self.parameter_table.declare_variables()
 
     def __getitem__(self, item):
