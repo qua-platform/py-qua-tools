@@ -133,6 +133,9 @@ class ParameterTable:
                 pass
 
     def get_parameters(self):
+        """Print the current values of the parameters in the parameter table
+        Returns: Dictionary of the form { "parameter_name": parameter_value }.
+            """
         text = ""
         for parameter_name, parameter in self.table.items():
             text += f"{parameter_name}: {parameter['value']}, "
@@ -376,6 +379,9 @@ class VideoMode:
 
     @property
     def parameter_table(self):
+        """
+        ParameterTable containing the parameters to be updated and their initial values.
+        """
         return self._parameter_table
 
     @property
