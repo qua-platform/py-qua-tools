@@ -157,9 +157,12 @@ class VideoMode:
     def __init__(self, qm: QuantumMachine, parameters: Dict | ParameterTable):
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
-        program is running. It is particularly useful for calibrating parameters in real time. The user can specify the
-        parameters to be updated and their initial values in the parameter dictionary called ```param_dict```. The video mode will then
-        automatically create the corresponding QUA variables and update them through user input.
+        program is running. It is particularly useful for calibrating parameters in real time. The user can specify
+        the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
+        The video mode will then automatically create the corresponding QUA variables and update them through user
+        input.
+
+        Parameters dictionary should be of the form {"parameter_name": initial_parameter_value }.
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 
@@ -173,9 +176,6 @@ class VideoMode:
         Args:
             qm: Quantum Machine object.
             parameters: Dictionary or ParameterTable containing the parameters to be updated and their initial values.
-
-                        Dictionary should be of the form {"parameter_name": initial_parameter_value }. The type of the
-                        QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
         """
         self.qm = qm
         self.job = None
