@@ -158,7 +158,8 @@ class VideoMode:
         The video mode will then automatically create the corresponding QUA variables and update them through user
         input.
 
-        Parameters dictionary should be of the form {"parameter_name": initial_parameter_value }.
+        Parameters dictionary should be of the form:
+         ```{"parameter_name": initial_parameter_value }```.
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 
