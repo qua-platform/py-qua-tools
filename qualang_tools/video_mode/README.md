@@ -179,6 +179,6 @@ phase=0.5
 ```
 The program will then update the amplitude and phase of the pulse accordingly.
 
-
+More detailed examples can be found under in [examples](https://github.com/qua-platform/py-qua-tools/tree/main/examples/Qcodes_drivers/video_mode) section.
 
   

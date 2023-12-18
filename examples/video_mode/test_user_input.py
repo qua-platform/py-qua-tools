@@ -6,20 +6,20 @@ from configuration import *
 from qualang_tools.video_mode.videomode import VideoMode
 
 
-def qua_prog(video_mode: VideoMode):
+def qua_prog(vm: VideoMode):
     with program() as prog:
         # Results variables
         single_shot_1 = declare(fixed)
         single_shot_2 = declare(fixed)
         # Get the parameters from the video mode
-        dc_offset_1, dc_offset_2 = video_mode.declare_variables()
+        dc_offset_1, dc_offset_2 = vm.declare_variables()
         # Streams
         signal1_st = declare_stream()
         signal2_st = declare_stream()
 
         with infinite_loop_():
             # Update the parameters
-            video_mode.load_parameters()
+            vm.load_parameters()
             # Update the dc_offset of the channel connected to the OPX analog input 1
             set_dc_offset("filter_cavity_1", "single", dc_offset_1)
             set_dc_offset("filter_cavity_2", "single", dc_offset_2)
@@ -56,9 +56,9 @@ if __name__ == "__main__":
     # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)
     # Get the QUA program
-    prog = qua_prog(video_mode)
+    qua_prog = qua_prog(video_mode)
     # Execute the QUA program in video mode
-    job = video_mode.execute(prog)
+    job = video_mode.execute(qua_prog)
     # Get the results from the OPX in live mode
     results = fetching_tool(job, ["signal1", "signal2"], mode="live")
     # Live plotting
@@ -67,8 +67,8 @@ if __name__ == "__main__":
         # Fetch data from the OPX
         signal1, signal2 = results.fetch_all()
         # Convert the data into Volt
-        signal1 = -signal1 * 2**12 / readout_len
-        signal2 = -signal2 * 2**12 / readout_len
+        signal1 = -u.demod2volts(signal1, readout_len)
+        signal2 = -u.demod2volts(signal2, readout_len)
         # Plot the data
         plt.cla()
         plt.plot(signal1, "b-")
