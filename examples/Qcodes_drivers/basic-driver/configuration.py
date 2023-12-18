@@ -54,6 +54,7 @@ config = {
             "operations": {
                 "readout": "readout_pulse",
             },
+            "intermediate_frequency": 0,
             "outputs": {
                 "out1": ("con1", 1),
                 "out2": ("con1", 2),

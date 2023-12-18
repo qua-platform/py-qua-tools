@@ -7,12 +7,17 @@ from qcodes import (
     MultiParameter,
 )
 from qcodes.utils.validators import Numbers, Arrays
-from qm import SimulationConfig
+from qm import SimulationConfig, generate_qua_script
 from qm.qua import program
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qualang_tools.results import wait_until_job_is_paused
+from qualang_tools.results import fetching_tool
+from qualang_tools.plot import interrupt_on_close
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 # noinspection PyAbstractClass
@@ -41,11 +46,14 @@ class OPX(Instrument):
         super().__init__(name)
 
         self.qm = None
+        self.qm_id = None
         self.qmm = None
+        self.close_other_machines = close_other_machines
         self.config = None
         self.result_handles = None
         self.job = None
         self.counter = 0
+        self.demod_factor = 1
         self.results = {"names": [], "types": [], "buffers": [], "units": []}
         self.prog_id = None
         self.simulated_wf = {}
@@ -226,7 +234,7 @@ class OPX(Instrument):
         """
         self.config = config
 
-    def open_qm(self, close_other_machines):
+    def open_qm(self, close_other_machines: bool):
         """
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
@@ -234,6 +242,15 @@ class OPX(Instrument):
         self.qm = self.qmm.open_qm(
             self.config, close_other_machines=close_other_machines
         )
+        self.qm_id = self.qm.id
+
+    def update_qm(self):
+        """
+        Close and re-open a new quantum machine so that it reloads the configuration in case it has been updated.
+        """
+        if self.qm_id in self.qmm.list_open_quantum_machines():
+            self.qm.close()
+        self.open_qm(self.close_other_machines)
 
     # Empty method that can be replaced by your pulse sequence in the main script
     # This can also be modified so that you can put the sequences here directly...
@@ -281,6 +298,7 @@ class OPX(Instrument):
                         )
                         * 4096
                         / self.readout_pulse_length()
+                        * self.demod_factor
                         * self.results["scale_factor"][i]
                     )
                 # raw adc traces
@@ -365,6 +383,8 @@ class OPX(Instrument):
                 pass
             if len(gene.values) > 2:
                 self._extend_result(gene.values[2].list_value, count, averaging_buffer)
+            elif gene.values[0].string_value == "average":
+                self._extend_result(gene.values[1].list_value, count, averaging_buffer)
 
     def _get_stream_processing(self, prog):
         """
@@ -390,7 +410,10 @@ class OPX(Instrument):
             self.axis1_full_list(setpoints)
             self.axis1_start(setpoints[0])
             self.axis1_stop(setpoints[-1])
-            self.axis1_step(setpoints[1] - setpoints[0])
+            if len(setpoints) > 1:
+                self.axis1_step(setpoints[1] - setpoints[0])
+            else:
+                self.axis1_step(0)
             self.axis1_npoints(len(setpoints))
             self.axis1_axis.unit = unit
             self.axis1_axis.label = label
@@ -398,7 +421,10 @@ class OPX(Instrument):
             self.axis2_full_list(setpoints)
             self.axis2_start(setpoints[0])
             self.axis2_stop(setpoints[-1])
-            self.axis2_step(setpoints[1] - setpoints[0])
+            if len(setpoints) > 1:
+                self.axis2_step(setpoints[1] - setpoints[0])
+            else:
+                self.axis2_step(0)
             self.axis2_npoints(len(setpoints))
             self.axis2_axis.unit = unit
             self.axis2_axis.label = label
@@ -433,6 +459,9 @@ class OPX(Instrument):
                 self.axis1_stop(int(self.readout_pulse_length()))
                 self.axis1_step(1)
                 self.axis1_npoints(int(self.readout_pulse_length()))
+                self.axis1_full_list(
+                    np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step())
+                )
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
         # Rescale the results if a scale factor is provided
@@ -507,11 +536,126 @@ class OPX(Instrument):
                 setpoint_labels=((),) * len(self.results["names"]),
             )
 
+    def update_readout_length(
+        self, readout_element: str, readout_operation: str, new_length: int
+    ):
+        """
+        Update the readout length of a given readout operation and readout element.
+        This only works if the corresponding integration weights are constant.
+
+        **Warning**: this function only updates the config in the current environment.
+        The configuration.py file needs to be modified manually if one wishes to permanently update the readout length.
+
+        :param readout_element: the readout element to update.
+        :param readout_operation: the operation to update.
+        :param new_length: the new readout length in ns - Must be a multiple of 4ns and larger than 16ns.
+        """
+        assert new_length % 4 == 0, "The readout length must be a multiple of 4ns."
+        assert new_length > 15, "The minimum readout length is 16ns."
+
+        config = self.config
+        pulse = config["elements"][readout_element]["operations"][readout_operation]
+
+        # Update length
+        config["pulses"][pulse]["length"] = new_length
+        # Update integration weights
+        for weight in config["pulses"][pulse]["integration_weights"].values():
+            iw = config["integration_weights"][weight]
+            if len(iw["cosine"]) == 1 and len(iw["sine"]) == 1:
+                value_cos = iw["cosine"][0][0]
+                value_sin = iw["sine"][0][0]
+                iw["cosine"] = [(value_cos, new_length)]
+                iw["sine"] = [(value_sin, new_length)]
+            else:
+                raise RuntimeError(
+                    "This method the update the readout length only works if the corresponding integration weights are constant."
+                )
+        # Update the quantum machine
+        self.update_qm()
+        print(
+            f"The duration of the operation '{readout_operation}' from element '{readout_element}' is now {new_length} ns"
+        )
+
+    def live_plotting(self, results_to_plot: list = (), number_of_runs: int = 0):
+        """
+        Fetch and plot the specified OPX results while the program is running.
+
+        **Warning:** This method will only work if used when no external parameters are being swept (no dond),
+        because it requires the averaging to be done on the most outer loop and with the *.average()* method in the
+        stream_processing as opposed to *.buffer(n_avg).map(FUNCTIONS.average())*.
+
+        :param results_to_plot: list of the streamed data to be plotted in real-time.
+        :param number_of_runs: Total number of averaging loops.
+        """
+        # Get the plotting grid
+        if len(results_to_plot) == 0:
+            raise ValueError("At least 1 result to plot must be provided")
+        elif len(results_to_plot) == 2:
+            grid = 1
+        elif len(results_to_plot) == 3:
+            grid = 121
+        elif len(results_to_plot) == 4 or len(results_to_plot) == 5:
+            grid = 221
+        else:
+            raise ValueError("Live plotting is limited to 4 parameters.")
+        # Get results from QUA program
+        results = fetching_tool(self.job, results_to_plot, "live")
+        progress = 0
+        # Live plotting
+        fig = plt.figure()
+        interrupt_on_close(fig, self.job)  # Interrupts the job when closing the figure
+        while results.is_processing():
+            # Fetch results
+            data_list = results.fetch_all()
+            # Subplot counter
+            i = 0
+            for data in data_list:
+                if results_to_plot[i] == "iteration":
+                    progress = data + 1
+                    if data + 1 == number_of_runs:
+                        self.job.halt()
+
+                else:
+                    # Convert the results into Volts
+                    data = (
+                        -data[-1]
+                        * 4096
+                        / int(self.readout_pulse_length())
+                        * self.demod_factor
+                    )
+                    # Plot results
+                    if len(data.shape) == 1:
+                        if len(results_to_plot) > 1:
+                            plt.subplot(grid + i)
+                        plt.cla()
+                        plt.plot(self.axis1_axis(), data)
+                        plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                        plt.ylabel(results_to_plot[i] + " [V]")
+                    elif len(data.shape) == 2:
+                        if len(results_to_plot) > 1:
+                            plt.subplot(grid + i)
+                        plt.cla()
+                        plt.pcolor(self.axis1_axis(), self.axis2_axis(), data)
+                        plt.xlabel(self.axis1_axis.label + f" [{self.axis1_axis.unit}]")
+                        plt.ylabel(self.axis2_axis.label + f" [{self.axis2_axis.unit}]")
+                        plt.title(results_to_plot[i] + " [V]")
+                i += 1
+
+            plt.suptitle(
+                f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %"
+            )
+            plt.pause(1)
+            plt.tight_layout()
+
     def run_exp(self):
         """
         Execute a given QUA program, initialize the counter to 0 and creates a result handle to fetch the results.
         """
         prog = self.get_prog()
+        if " demod" in generate_qua_script(prog, self.config):
+            self.demod_factor = 2
+        else:
+            self.demod_factor = 1
         self.job = self.qm.execute(prog)
         self.counter = 0
         self.result_handles = self.job.result_handles
@@ -596,7 +740,7 @@ class OPX(Instrument):
         """
         Close the quantum machine and tear down the OPX instrument.
         """
-        if self.qm is not None:
+        if self.qm_id in self.qmm.list_open_quantum_machines():
             self.qm.close()
         super().close()
 

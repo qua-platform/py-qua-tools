@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
+### Added
+- External_frameworks/qcodes - Added ``update_readout_length()`` to update locally the readout length of a given readout element and operation.
+- External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
+- External_frameworks/qcodes - Added ``live_plotting()`` to fetch and plot the OPX results while the program is running.
+
+### Fixed
+- External_frameworks/qcodes - Fix bug with the setpoints when streaming the raw adc traces.
+
 
 ## [0.15.2] - 2023-09-06
 ### Added

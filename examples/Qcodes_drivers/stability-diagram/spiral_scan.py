@@ -163,6 +163,9 @@ class OPXCustomSequence(OPX):
                 self.axis1_stop(int(self.readout_pulse_length()))
                 self.axis1_step(1)
                 self.axis1_npoints(int(self.readout_pulse_length()))
+                self.axis1_full_list(
+                    np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step())
+                )
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
 
