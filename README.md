@@ -21,7 +21,8 @@ It currently has a two-states discriminator for analyzing the ground and excited
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
 
-* [External Frameworks](qualang_tools/external_frameworks/qcodes/README.md) - This library introduces drivers for integrating the OPX within external frameworks such as QCoDeS. Please refer to the [examples](./examples) section for more details about how to use these drivers.
+* [External Frameworks](qualang_tools/external_frameworks/qcodes/README.md) - This library introduces drivers for integrating the OPX within external frameworks such as QCoDeS. Please refer to the [examples](./examples/Qcodes_drivers) section for more details about how to use these drivers.
+* [Video Mode](qualang_tools/video_mode/README.md) - This module allows the user to update some pre-defined parameters of a QUA program while fetching data from the OPX for dynamic tuning. Please refer to the [examples](./examples/video_mode) section for more details about how to implement this module.
 
 * Addons:
   * [Calibrations](qualang_tools/addons/calibration/README.md) - This module allows to easily perform most of the standard single qubit calibrations from a single python file.
@@ -61,5 +62,3 @@ Feel like contributing code to this library? We're thrilled! Please follow [this
 ## Usage
 
 Examples for using various tools can be found on the [QUA Libraries Repository](https://github.com/qua-platform/qua-libs).
-
-Examples for using the Baking toolbox, including 1-qubit randomized benchmarking, cross-entropy benchmark (XEB), high sampling rate baking and more can be found [here](https://github.com/qua-platform/qua-libs/tree/main/examples/bakery).
