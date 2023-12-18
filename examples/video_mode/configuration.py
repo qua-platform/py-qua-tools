@@ -1,24 +1,16 @@
-import numpy as np
 from qualang_tools.units import unit
 
-u = unit()
 
 ######################
 # AUXILIARY FUNCTIONS:
 ######################
-
-
-def gauss(amplitude, mu, sigma, length):
-    t = np.linspace(-length / 2, length / 2, length)
-    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma**2))
-    return [float(x) for x in gauss_wave]
-
+u = unit()
 
 ######################
 # Network parameters #
 ######################
-qop_ip = "172.16.33.101"  # Write the QM router IP address
-cluster_name = "Cluster_83"  # Write your cluster_name if version >= QOP220
+qop_ip = "127.0.0.1"  # Write the QM router IP address
+cluster_name = "my_cluster"  # Write your cluster_name if version >= QOP220
 qop_port = None  # Write the QOP port if version < QOP220
 
 
@@ -38,7 +30,6 @@ const_len = 100
 # Filter cavity
 offset_amplitude = 0.25  # Fixed do not change
 offset_len = 16  # Fixed do not change
-setpoint_filter_cavity_1 = 0.0
 
 # Photo-diode
 readout_len = phase_mod_len
@@ -50,13 +41,12 @@ config = {
     "controllers": {
         "con1": {
             "analog_outputs": {
-                9: {"offset": setpoint_filter_cavity_1},
-                10: {"offset": 0.0},
-                7: {"offset": 0.0},
                 8: {"offset": 0.0},
+                9: {"offset": 0.0},
+                10: {"offset": 0.0},
             },
             "digital_outputs": {
-                10: {},
+                1: {},
             },
             "analog_inputs": {
                 1: {"offset": 0.0},
