@@ -1,5 +1,7 @@
 from qm.octave.calibration_db import CalibrationDB
+from typing import Union
 from qm.QmJob import QmJob
+from qm.jobs.running_qm_job import RunningQmJob
 from qm.QuantumMachine import QuantumMachine
 
 
@@ -52,7 +54,7 @@ def set_correction_parameters(
     IF: float,
     gain: float,
     qm: QuantumMachine,
-    job: QmJob = None,
+    job: Union[QmJob, RunningQmJob] = None,
 ) -> None:
     """Look for the correction parameters in the database, located at the specified path, for the specified values of
     the Octave frequency, intermediate frequency and Octave gain and update the running job.
