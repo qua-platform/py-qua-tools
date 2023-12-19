@@ -259,7 +259,7 @@ class VideoMode:
                         self.job.resume()
 
                 elif messages[0] == "get":
-                    self.parameter_table.get_parameters()
+                    self.get_parameters()
 
                 elif messages[0] == "help":
                     print(self.implemented_commands)
