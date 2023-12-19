@@ -1,3 +1,7 @@
+# VideoMode script enabling the update of parameters in a QUA program through user input while the program is running.
+# Authors: Arthur Strauss, Théo Laudat
+# Date: 19/12/2023
+
 import threading
 from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
@@ -78,7 +82,7 @@ class ParameterTable:
                     self.table[parameter_name][
                         "declare_expression"
                     ] = f"declare(fixed, value={parameter_value})"
-                self.table[parameter_name]["type"] = List
+                self.table[parameter_name]["type"] = type(parameter_value)
                 self.table[parameter_name]["length"] = len(parameter_value)
 
             else:

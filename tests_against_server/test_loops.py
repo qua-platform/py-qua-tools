@@ -96,7 +96,6 @@ def config():
 
 
 def simulate_program_and_return(config, prog, duration=50000):
-
     qmm = QuantumMachinesManager()
     # qmm.close_all_quantum_machines()
     # job = qmm.simulate(

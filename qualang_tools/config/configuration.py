@@ -54,7 +54,7 @@ class QMConfiguration:
         if _is_callable(dic):
             if not _is_parametric(dic):
                 _dic = copy.deepcopy(dic)
-                for (k, v) in _dic.items():
+                for k, v in _dic.items():
                     if _is_callable(v):
                         if isinstance(v, dict):
                             _dic[k] = self._call_dict_parameters(v)
@@ -69,7 +69,7 @@ class QMConfiguration:
         if _is_callable(dic):
             if not _is_parametric(dic):
                 _dic = copy.deepcopy(dic)
-                for (k, v) in _dic.items():
+                for k, v in _dic.items():
                     if isinstance(_dic["cosine"][0], tuple):
                         val = _dic["cosine"][0][0]
                         if _is_callable(_dic["cosine"][0][0]):
