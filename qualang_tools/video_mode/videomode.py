@@ -149,6 +149,9 @@ class ParameterTable:
         }
 
     def __getitem__(self, item):
+        """
+        Returns the QUA variable corresponding to the parameter name.
+        """
         try:
             return self.table[item]["var"]
         except KeyError:
@@ -420,4 +423,7 @@ class VideoMode:
         return self.parameter_table.declare_variables()
 
     def __getitem__(self, item):
+        """
+        Returns the QUA variable corresponding to the parameter name.
+        """
         return self._parameter_table[item]
