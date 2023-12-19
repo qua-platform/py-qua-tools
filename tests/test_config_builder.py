@@ -113,7 +113,6 @@ def test_integration_weights(config_resonator):
 
 @pytest.fixture
 def config_transmon():
-
     cb = ConfigBuilder()
     cont = Controller("con1")
     cb.add(cont)
@@ -363,17 +362,17 @@ def test_parameter_algebra():
     assert (d**c)() == 10000
     assert (c**2)() == 16
 
-    e = c_vars.parameter("e", setter=lambda:[1, 2, 3])
+    e = c_vars.parameter("e", setter=lambda: [1, 2, 3])
     assert type(e) == Parameter
     assert e.len() == 3
+
 
 def test_deprecated_warning():
     with pytest.warns(None) as record:
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
-        elm = Element("elm", analog_input_ports=[cont.analog_output(1)]
-        )
+        elm = Element("elm", analog_input_ports=[cont.analog_output(1)])
 
         cb.add(elm)
         cb.build()
@@ -383,20 +382,23 @@ def test_deprecated_warning():
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
-        elm = Element("elm", element_analog_inputs=[cont.analog_output(1)]
-        )
+        elm = Element("elm", element_analog_inputs=[cont.analog_output(1)])
         cb.add(elm)
         cb.build()
     assert len(record.list) == 0
 
+
 def test_digital_input():
     cont = Controller("con1")
-    elm = Element("elm",
-             analog_input_ports=[cont.analog_output(1)],
-             digital_input_ports=[cont.digital_output(2)])
+    elm = Element(
+        "elm",
+        analog_input_ports=[cont.analog_output(1)],
+        digital_input_ports=[cont.digital_output(2)],
+    )
     elm.set_digital_input_delay(2, 20)
     assert "in2" in elm.dict["digitalInputs"].keys()
     assert elm.dict["digitalInputs"]["in2"]["delay"] == 20
+
 
 def test_element_none_arguments():
     cont = Controller("con1")

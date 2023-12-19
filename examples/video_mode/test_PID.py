@@ -100,7 +100,9 @@ def PID_prog(vm: VideoMode, PDH_angle: float = 0.0):
             )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *vm.variables)
+            correction, error, int_error, der_error = PID_derivation(
+                single_shot_DC, *vm.variables
+            )
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
             # Handle saturation - Make sure that the DAC won't be asked to output more than 0.5V

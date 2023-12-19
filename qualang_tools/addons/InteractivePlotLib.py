@@ -118,7 +118,6 @@ def extract_data_from_pcolor(obj):
 
 class InteractivePlotLibFigure:
     def __init__(self, fig, doc, master_obj):
-
         self.fig = fig
         self.ax = self.fig.axes[0]
         self.doc = doc
@@ -937,7 +936,6 @@ class InteractivePlotLibFigure:
             self_line.obj.set_color(key)
 
         def correct_order(self_line, change):
-
             sup_self = self_line.sup_self
             sup_self.check_zorder()
             local_order = sup_self.correct_order[self_line.line_index_selected]
@@ -1290,7 +1288,6 @@ class InteractivePlotLibFigure:
                 self_state.sup_self.refresh_figure()
 
         def convert_units(self, initial, final):
-
             if initial.lower() == "dbm":  # to Vp
 
                 def to_SI(x):
@@ -1547,17 +1544,14 @@ class InteractivePlotLibFigure:
             self_state.y = [None, None]
 
         def event(self_state, type, event):
-
             if type == "keyboard_click":
                 self_state.done = True  # any key will stop voronoi
 
             if type == "mouse_click":
-
                 self_state.x[0] = event.xdata
                 self_state.y[0] = event.ydata
 
             if type == "mouse_release":
-
                 self_state.x[1] = event.xdata
                 self_state.y[1] = event.ydata
                 if (
@@ -1589,7 +1583,6 @@ class InteractivePlotLibFigure:
             self_state.y = [None, None]
 
         def event(self_state, type, event):
-
             if type == "mouse_click":
                 self_state.x[0] = event.xdata
                 self_state.y[0] = event.ydata
@@ -1601,7 +1594,6 @@ class InteractivePlotLibFigure:
                     self_state.x[1] == self_state.x[0]
                     and self_state.y[1] == self_state.y[0]
                 ):
-
                     self_state.x = self_state.sup_self.ax.get_xlim()
                     if self_state.sup_self.plot_type == "pcolor":
                         _, _, _, _, _, _, y_ext = extract_data_from_pcolor(
@@ -1846,7 +1838,6 @@ class Document:
             att_list = dir(unfiltered_variables_module)
 
             for att in att_list:
-
                 if att[0] == "_":
                     continue
                 unfiltered_variables[att] = getattr(unfiltered_variables_module, att)
@@ -1907,7 +1898,6 @@ class Document:
         return scan_number
 
     def save(self, unfiltered_variables):
-
         Data_path = self.Data_path
         try:
             os.remove("./temp_code.txt")
@@ -1947,7 +1937,6 @@ class Document:
         Data_path = self.Data_path
 
         if load_figures:
-
             try:
                 if isinstance(n, int):
                     figures_path = glob.glob(Data_path + "\\scan" + str(n) + "_*.pkl")
@@ -1993,7 +1982,6 @@ class Document:
         h = plt.figure(fig_number)
         for t in h.axes[0].texts:
             if len(t.get_text()) > 5 and t.get_text()[:5] == "Scan ":
-
                 t.remove()
 
         plt.text(
@@ -2188,7 +2176,6 @@ class SingleFit:
         self.y_mid = (0,)
 
         if callable(fit_type):
-
             if fit_type.__code__.co_argcount == 1:
                 self.ok = self.fit_scaled_function(line, options)
 
@@ -2232,7 +2219,6 @@ class SingleFit:
             pass
 
     def get_xdata_ydata_from_axes(self, line):
-
         ax = self.ax
 
         xlim = ax.get_xlim()
@@ -2252,7 +2238,6 @@ class SingleFit:
         return x_data, y_data
 
     def plot_points_of_interest(self, points_of_interest_x, points_of_interest_y):
-
         xlim = plt.gca().get_xlim()
         ylim = plt.gca().get_ylim()
         self.fit_line_markers_obj = []

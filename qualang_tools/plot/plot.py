@@ -231,7 +231,6 @@ def get_simulated_samples_by_element(
     # Digital waveforms
     digital_samples = []
     if "digitalInputs" in element:
-
         for key in element["digitalInputs"].keys():
             port = element["digitalInputs"][key]["port"]
             digital_samples.append(

@@ -771,7 +771,6 @@ class QUA_calibrations:
 
                 with for_(n, 0, n < self.scan_var[calib]["averaging"], n + 1):
                     with for_(*from_array(var1, var1_scan)):
-
                         # Update the resonator frequency
                         if var1_name == "frequency":
                             update_frequency(self.qubit_elmt, var1)
@@ -944,7 +943,6 @@ class QUA_calibrations:
 
         elif scan_dimension == 2:
             with program() as prog_ramsey_2D:
-
                 # Get the QUA variables for the 2D scan + averaging
                 (
                     n,

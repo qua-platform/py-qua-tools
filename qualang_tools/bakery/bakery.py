@@ -141,7 +141,6 @@ class Baking:
         return sample_dict, qe_dict, digit_samples_dict
 
     def _update_config(self, qe, qe_samples) -> None:
-
         # Generates new Op, pulse, and waveform for each qe to be added in the original config file
         self._config["elements"][qe]["operations"][
             f"baked_Op_{self._ctr}"
@@ -797,7 +796,6 @@ class Baking:
             phi = self._qe_dict[qe]["phase"]
 
             if self._qe_dict[qe]["time_track"] == 0:
-
                 if "mixInputs" in self._local_config["elements"][qe]:
                     assert isinstance(
                         samples, list
