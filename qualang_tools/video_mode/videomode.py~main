@@ -135,18 +135,27 @@ class ParameterTable:
             with default_():
                 pass
 
-    def get_parameters(self):
+    def get_parameters(self, parameter_name: Optional[str] = None):
         """Print the current values of the parameters in the parameter table
-        Returns: Dictionary of the form { "parameter_name": parameter_value }.
+        Args: parameter_name: Name of the parameter to be returned. If None, all parameters are printed.
+        Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
+                else parameter_value associated to parameter_name.
         """
         text = ""
-        for parameter_name, parameter in self.table.items():
-            text += f"{parameter_name}: {parameter['value']}, "
-        print(text)
-        return {
-            parameter_name: parameter["value"]
-            for parameter_name, parameter in self.table.items()
-        }
+        if parameter_name is None:
+            for parameter_name, parameter in self.table.items():
+                text += f"{parameter_name}: {parameter['value']}, \n"
+            print(text)
+        else:
+            print(f"{parameter_name}: {self.table[parameter_name]['value']}")
+        return (
+            {
+                parameter_name: parameter["value"]
+                for parameter_name, parameter in self.table.items()
+            }
+            if parameter_name is None
+            else self.table[parameter_name]["value"]
+        )
 
     def __getitem__(self, item):
         """
@@ -406,6 +415,9 @@ class VideoMode:
     def variables(self):
         """List of the QUA variables corresponding to the parameters in the parameter table."""
         return self.parameter_table.variables
+
+    def get_parameters(self, param_name: Optional[str] = None):
+        self.parameter_table.get_parameters(param_name)
 
     def load_parameters(self, pause_program=False):
         """
