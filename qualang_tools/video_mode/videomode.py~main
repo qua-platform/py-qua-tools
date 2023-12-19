@@ -149,12 +149,24 @@ class ParameterTable:
         }
 
     def __getitem__(self, item):
-        return self.table[item]["var"]
+        try:
+            return self.table[item]["var"]
+        except KeyError:
+            raise KeyError(
+                f"No QUA variable found for parameter {item}. Please use "
+                f"VideoMode.declare_variables() within QUA program first."
+            )
 
     @property
     def variables(self):
         """List of the QUA variables corresponding to the parameters in the parameter table."""
-        return [self[item] for item in self.table.keys()]
+        try:
+            return [self[item] for item in self.table.keys()]
+        except KeyError:
+            raise KeyError(
+                "No QUA variables found for parameters. Please use "
+                "VideoMode.declare_variables() within QUA program first."
+            )
 
 
 class VideoMode:
