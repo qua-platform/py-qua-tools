@@ -417,6 +417,9 @@ class VideoMode:
         return self.parameter_table.variables
 
     def get_parameters(self, param_name: Optional[str] = None):
+        """Print the current values of the parameters in the parameter table
+        Returns: Dictionary of the form { "parameter_name": parameter_value }.
+        """
         self.parameter_table.get_parameters(param_name)
 
     def load_parameters(self, pause_program=False):
