@@ -7,7 +7,7 @@ from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
 import time
 import signal
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from dataclasses import dataclass
 import numpy as np
 
@@ -25,7 +25,7 @@ class ParameterTable:
         the QUA program.
     """
 
-    parameters_dict: Dict[str, float | int | bool | List | np.ndarray]
+    parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]
 
     def __post_init__(self):
         self.table = {}
@@ -189,12 +189,10 @@ class VideoMode:
     the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
     """
 
-    _default_io1 = 666
+    _default_io1 = 2**31 - 1
     _default_io2 = 0.0
 
-    def __init__(
-        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
-    ):  # TODO: optional[QmJob] returns an error
+    def __init__(self, qm: QuantumMachine, parameters: Union[Dict, ParameterTable]):
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify

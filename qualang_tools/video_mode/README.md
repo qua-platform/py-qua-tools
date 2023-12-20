@@ -7,10 +7,7 @@ We present here the ```VideoMode``` which enables such dynamic parameter tuning.
 ## How to use it
 
 The user can declare a ``VideoMode`` instance by passing in a ```QuantumMachine``` instance and a dictionary of
-parameters intended to be updated dynamically. Additionally, if a job is already started on the ```QuantumMachine```,
-it can also use this job to change dynamically some of its parameters (this assumes that the QUA program associated to this job
-was already designed to be compatible with the ```VideoMode```, which we will explain how to do below).
-
+parameters intended to be updated dynamically.
 
 The dictionary must be of the form:
 
@@ -133,8 +130,8 @@ with program() as video_mode_prog:
 ```
 ## Outside the QUA program
 The ```VideoMode``` class has only one ```execute```method to be called outside the QUA program scope, which is a simple wrapper of ```qm.execute()``` method.
-It will start the video mode execution by creating a new thread doing a continuous query of input parameters from the user, while the program is executed and possible live data plotting is on.
-Note that the QUA program runs in the background and the user can still interact with the Python environment while the program is running.
+It will start the video mode execution by creating a new thread that takes control of the console by doing a continuous query of input parameters from the user, while the QUA program is running in the background and possible live data plotting is done in the main script.
+This new thread releases access of the console to the user once  ```stop``` is typed in the console.
 
 ## Example
 Let us consider the following example where we want to update dynamically the amplitude and phase of a pulse.
@@ -173,7 +170,9 @@ Finally, we start the video mode execution:
 ```
 video_mode.execute(video_mode_prog)
 ```
-The user can then interact with the program by typing the following in the Python console:
+At this point, the python console accepts specific inputs, type `help` to see the full list. 
+For example, to change the variables, type:
+
 ```
 amp=0.8
 phase=0.5
