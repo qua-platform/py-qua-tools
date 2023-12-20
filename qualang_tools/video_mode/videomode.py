@@ -182,6 +182,16 @@ class ParameterTable:
 
 
 class VideoMode:
+    """
+    This class aims to provide an easy way to update parameters in a QUA program through user input while the
+    program is running. It is particularly useful for calibrating parameters dynamically and without deterministic
+    of the parameters values. The user can specify
+    the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
+    """
+
+    _default_io1 = 666
+    _default_io2 = 0.0
+
     def __init__(
         self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
     ):  # TODO: optional[QmJob] returns an error
@@ -234,8 +244,8 @@ class VideoMode:
     def signal_handler(self, signum, frame):
         """Signal handler for SIGTERM and SIGINT signals."""
         print(f"Received signal {signum}, stopping VideoMode...")
-        self.qm.set_io1_value(666)
-        self.qm.set_io2_value(0.0)
+        self.qm.set_io1_value(self._default_io1)
+        self.qm.set_io2_value(self._default_io2)
         self.job.halt()
         self.stop_event.set()
         # For shutting down the entire program

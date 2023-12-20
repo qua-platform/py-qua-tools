@@ -169,7 +169,6 @@ def test_override_waveform(config):
     assert b_new.get_op_length("qe3") == ref_length2
 
 
-
 def test_out_boolean(config):
     cfg = deepcopy(config)
     with baking(cfg) as b:
