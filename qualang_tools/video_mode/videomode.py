@@ -183,7 +183,7 @@ class ParameterTable:
 
 class VideoMode:
     def __init__(
-        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: Optional[QmJob] = None
+        self, qm: QuantumMachine, parameters: Dict | ParameterTable, job: QmJob = None
     ):  # TODO: optional[QmJob] returns an error
         """
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
@@ -209,7 +209,7 @@ class VideoMode:
             parameters: Dictionary or ParameterTable containing the parameters to be updated and their initial values.
         """
         self.qm = qm
-        self.job = job
+        self.job = None
         self._parameter_table = (
             parameters
             if isinstance(parameters, ParameterTable)
@@ -417,6 +417,9 @@ class VideoMode:
         return self.parameter_table.variables
 
     def get_parameters(self, param_name: Optional[str] = None):
+        """Print the current values of the parameters in the parameter table
+        Returns: Dictionary of the form { "parameter_name": parameter_value }.
+        """
         self.parameter_table.get_parameters(param_name)
 
     def load_parameters(self, pause_program=False):

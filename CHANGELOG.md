@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
 - External_frameworks/qcodes - Fix bug with the setpoints when streaming the raw adc traces.
+- bakery - add the `RF_inputs` key to be compatible with the Octave API from qm-qua>=1.1.5.
 
 ### Added
 - External_frameworks/qcodes - Added ``update_readout_length()`` to update locally the readout length of a given readout element and operation.
