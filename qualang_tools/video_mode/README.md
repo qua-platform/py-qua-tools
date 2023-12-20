@@ -119,7 +119,8 @@ with program() as video_mode_prog:
 
 Note that you can also access to the full list of QUA variables declared in the program through the ```video_mode.variables``` attribute.
 
-Alternatively, you can also access the QUA variables later in the code as follows:
+Alternatively, you can also access the QUA variables later in the code as follows 
+(note that the order of the variables is the same as the order of the parameters in the `parameters_dict` as of Python 3.7):
 ```
 with program() as video_mode_prog:
     amp_param1, amp_param2, ... = video_mode.declare_variables()
@@ -127,7 +128,7 @@ with program() as video_mode_prog:
     with infinite_loop():
         video_mode.load_parameters()
         
-        play("my_pulse"*amp(amp_param1, "qe1")
+        play("my_pulse"*amp(amp_param1), "qe1")
         play("my_other_pulse"*amp(amp_param2), "qe2")
 ```
 ## Outside the QUA program
