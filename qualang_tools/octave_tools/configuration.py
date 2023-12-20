@@ -44,7 +44,7 @@ octave_config = octave_declaration(octaves)
 #############################################
 #                  Qubits                   #
 #############################################
-qubit_LO = 7 * u.GHz
+qubit_LO = 5 * u.GHz
 qubit_IF = 50 * u.MHz
 
 qubit_T1 = int(10 * u.us)
@@ -149,8 +149,8 @@ minus_y90_Q_wf = minus_y90_wf
 #############################################
 #                Resonators                 #
 #############################################
-resonator_LO = 5.5 * u.GHz
-resonator_IF = 60 * u.MHz
+resonator_LO = 6 * u.GHz
+resonator_IF = -60 * u.MHz
 
 readout_len = 5000
 readout_amp = 0.2

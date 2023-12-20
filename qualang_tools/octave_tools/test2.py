@@ -20,11 +20,13 @@ from configuration import *
 from qualang_tools.results import progress_counter, wait_until_job_is_paused
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
-from qualang_tools.octave_tools import get_calibration_parameters, set_correction_parameters
+from qualang_tools.octave_tools import (
+    get_calibration_parameters,
+    set_correction_parameters,
+)
 import matplotlib.pyplot as plt
 from time import sleep
 from qm import generate_qua_script
-
 
 
 ###################
@@ -56,7 +58,7 @@ frequency = np.array(
 IFs = [
     frequencies[len(frequencies) // 4],
     frequencies[len(frequencies) // 2],
-    frequencies[3*len(frequencies) // 4],
+    frequencies[3 * len(frequencies) // 4],
 ]
 
 c00 = []
@@ -87,7 +89,6 @@ with program() as qubit_spec:
     c11_qua = declare(fixed, value=c11)  # QUA variable for the measured 'I' quadrature
     count = declare(int, value=0)  # QUA variable for the qubit frequency
 
-
     with for_(i, 0, i < len(freqs_external) + 1, i + 1):
         pause()  # This waits until it is resumed from python
         with for_(n, 0, n < n_avg, n + 1):
@@ -99,7 +100,13 @@ with program() as qubit_spec:
                     for idx, current_if in enumerate(IFs):
                         with case_(int(current_if)):
                             update_frequency("resonator", 0)
-                            update_correction("qubit", c00_qua[len(IFs)*i+idx], c01_qua[len(IFs)*i+idx], c10_qua[len(IFs)*i+idx], c11_qua[len(IFs)*i+idx])
+                            update_correction(
+                                "qubit",
+                                c00_qua[len(IFs) * i + idx],
+                                c01_qua[len(IFs) * i + idx],
+                                c10_qua[len(IFs) * i + idx],
+                                c11_qua[len(IFs) * i + idx],
+                            )
                 # Play the saturation pulse to put the qubit in a mixed state
                 play("saturation", "qubit")
                 # Align the two elements to measure after playing the qubit pulse.
@@ -138,7 +145,6 @@ with program() as qubit_spec:
 qmm = QuantumMachinesManager(
     host=qop_ip, port=qop_port, cluster_name=cluster_name, octave=octave_config
 )
-
 
 
 def calibrate_several_LOs(element, lo_frequencies, central_if_frequency):
@@ -184,7 +190,13 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     qm.octave.set_lo_frequency("qubit", freqs_external[i])
     print(job.get_element_correction("qubit"))
     set_correction_parameters(
-        "", config, "qubit", freqs_external[i], IFs[0], 0, qm,
+        "",
+        config,
+        "qubit",
+        freqs_external[i],
+        IFs[0],
+        0,
+        qm,
     )
     print(job.get_element_correction("qubit"))
     # qm.octave.set_element_parameters_from_calibration_db("qubit", job)

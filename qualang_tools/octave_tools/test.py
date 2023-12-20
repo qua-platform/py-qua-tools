@@ -20,11 +20,12 @@ from configuration import *
 from qualang_tools.results import progress_counter, wait_until_job_is_paused
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
-from qualang_tools.octave_tools import get_calibration_parameters, set_correction_parameters
+from qualang_tools.octave_tools import (
+    get_calibration_parameters,
+    set_correction_parameters,
+)
 import matplotlib.pyplot as plt
 from time import sleep
-
-
 
 
 ###################
@@ -110,7 +111,6 @@ qmm = QuantumMachinesManager(
 )
 
 
-
 def calibrate_several_LOs(element, lo_frequencies, central_if_frequency):
     """Calibrate a given element for a list of LO frequencies and a single intermediate frequency.
 
@@ -139,6 +139,9 @@ calibrate = False
 if calibrate:
     for lo in freqs_external:
         qm.calibrate_element("qubit", {lo: IFs})
+        qm.calibrate_element("resonator", {6e9: (-60e6,)})
+        qm.calibrate_element("qubit", {5e9: (50e6,)})
+        qm.octave.set_rf_output_gain("qubit", 0)
 
 # Send the QUA program to the OPX, which compiles and executes it. It will stop at the 'pause' statement.
 job = qm.execute(qubit_spec)
@@ -157,7 +160,7 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     # Set the frequency of the LO source
     qm.octave.set_lo_frequency("qubit", freqs_external[i])
     set_correction_parameters(
-        "", config, "qubit", freqs_external[i], IFs[1], 1, qm,
+        "", config, "qubit", freqs_external[i], IFs[1], 0, qm, verbose_level=1
     )
     print(job.get_element_correction("qubit"))
     # qm.octave.set_element_parameters_from_calibration_db("qubit", job)
