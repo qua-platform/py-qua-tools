@@ -99,13 +99,9 @@ def set_correction_parameters(
     :param verbose_level: set the type of messages printed in the Python console. Default is 2.
     :return: dictionary containing the 'I' and 'Q' offsets and the correction_matrix.
     """
-    param = get_calibration_parameters(
-        path_to_database, config, element, LO, IF, gain, verbose_level
-    )
+    param = get_calibration_parameters(path_to_database, config, element, LO, IF, gain, verbose_level)
     if "I" in param["offsets"] and "Q" in param["offsets"]:
-        qm.set_output_dc_offset_by_element(
-            element, ("I", "Q"), (param["offsets"]["I"], param["offsets"]["Q"])
-        )
+        qm.set_output_dc_offset_by_element(element, ("I", "Q"), (param["offsets"]["I"], param["offsets"]["Q"]))
     if job is None:
         job = qm.get_running_job()
     if len(param["correction_matrix"]) == 4:
@@ -167,9 +163,7 @@ def update_correction_for_each_IF(
                 "The opened Quantum Machine object must be provided if the flag ```calibrate``` is set to True."
             )
         for i in IFs:
-            param = get_calibration_parameters(
-                path_to_database, config, element, lo, i, gain
-            )
+            param = get_calibration_parameters(path_to_database, config, element, lo, i, gain)
             c00.append(param["correction_matrix"][0])
             c01.append(param["correction_matrix"][1])
             c10.append(param["correction_matrix"][2])
