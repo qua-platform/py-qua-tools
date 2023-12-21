@@ -1,3 +1,4 @@
+import numpy as np
 from qm.octave.calibration_db import CalibrationDB
 from typing import Union
 from qm.QmJob import QmJob
@@ -110,3 +111,84 @@ def set_correction_parameters(
     if len(param["correction_matrix"]) == 4:
         job.set_element_correction(element, param["correction_matrix"])
     return param
+
+
+def update_correction_for_each_IF(
+    path_to_database: str,
+    config: dict,
+    element: str,
+    gain: float,
+    LO_list: Union[list, np.ndarray],
+    IF_list: Union[list, np.ndarray],
+    nb_of_updates: int,
+    calibrate: bool = False,
+    qm: QuantumMachine = None,
+):
+    """Look in the calibration database for the calibration parameters corresponding to the provided set of LO
+    frequencies, intermediate frequencies and gain.
+    The intermediate frequencies considered here are only the ```nb_of_updates``` equally spaced frequencies from the
+    provided ```IF_list```.
+
+    The goal is to perform a wide frequency sweep (scan the LO frequency in Python and the IF in QUA) and update the
+    mixer correction parameters for each LO frequency and a few intermediate frequencies, given by ```nb_of_updates```,
+    in QUA.
+
+    If the flag ```calibrate``` is set to True (the opened Quantum Machine needs to be provided), then the specified element will be calibrated at the given frequencies
+    (all LO frequencies and only the ``nb_of_updates``` intermediate frequencies).
+
+    The function will return the list on intermediate frequencies at which the correction matrix will be updated in the
+    program and the four coefficients of the correction matrix with one element for each pair (LO, IF).
+
+    :param path_to_database: direct path to the calibration database (without '/calibration_db.json').
+    :param config: the OPX config dictionary.
+    :param element: the element to get the correction parameters for.
+    :param gain: the Octave gain.
+    :param LO_list: list of the LO frequencies involved in the scan, in Hz.
+    :param IF_list: list of the intermediate frequencies involved in the scan, in Hz.
+    :param nb_of_updates: number of intermediate frequencies to calibrate and for which the program will update the correction pmatrix.
+    :param calibrate: calibrate all the frequencies involved to the scan (LO and IF for the specified gain). Default is False.
+    :param qm: the quantum machine object. Default is None.
+    :return: the list on intermediate frequencies at which the correction matrix will be updated in the
+    program and the four coefficients of the correction matrix with one element for each pair (LO, IF):
+    IFs, c00, c01, c10, c11.
+    """
+    N = len(IF_list)
+    IFs = [IF_list[i * N // nb_of_updates] for i in range(nb_of_updates)]
+    c00 = []
+    c01 = []
+    c10 = []
+    c11 = []
+
+    for lo in LO_list:
+        if calibrate and qm is not None:
+            qm.calibrate_element(element, {lo: tuple(IFs)})
+        elif qm is None:
+            raise Exception(
+                "The opened Quantum Machine object must be provided if the flag ```calibrate``` is set to True."
+            )
+        for i in IFs:
+            param = get_calibration_parameters(
+                path_to_database, config, element, lo, i, gain
+            )
+            c00.append(param["correction_matrix"][0])
+            c01.append(param["correction_matrix"][1])
+            c10.append(param["correction_matrix"][2])
+            c11.append(param["correction_matrix"][3])
+    return IFs, c00, c01, c10, c11
+
+
+def calibrate_several_frequencies(
+    qm: QuantumMachine,
+    element: str,
+    lo_frequencies: Union[list, np.ndarray],
+    intermediate_frequencies: Union[list, np.ndarray],
+):
+    """Calibrate a given element for a list of LO and intermediate frequencies.
+
+    :param qm: the quantum machine object.
+    :param element: the element to calibrate.
+    :param lo_frequencies: list of LO frequencies to calibrate.
+    :param intermediate_frequencies: list of Intermediate frequencies to calibrate.
+    """
+    for lo in lo_frequencies:
+        qm.calibrate_element(element, {lo: tuple(intermediate_frequencies)})
