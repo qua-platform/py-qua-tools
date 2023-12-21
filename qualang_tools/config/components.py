@@ -420,23 +420,13 @@ class Element(ConfigBuilderElement):
         self.pulses = []
         if pulses is not None:
             self.pulses = pulses
-        self.element_analog_inputs = (
-            [] if element_analog_inputs is None else element_analog_inputs
-        )
-        self.element_analog_outputs = (
-            [] if element_analog_outputs is None else element_analog_outputs
-        )
-        self.element_digital_outputs = (
-            [] if element_digital_outputs is None else element_digital_outputs
-        )
-        self.element_digital_inputs = (
-            [] if element_digital_inputs is None else element_digital_inputs
-        )
+        self.element_analog_inputs = [] if element_analog_inputs is None else element_analog_inputs
+        self.element_analog_outputs = [] if element_analog_outputs is None else element_analog_outputs
+        self.element_digital_outputs = [] if element_digital_outputs is None else element_digital_outputs
+        self.element_digital_inputs = [] if element_digital_inputs is None else element_digital_inputs
 
         assert len(self.element_analog_inputs) <= 2
-        self.type = (
-            "singleInput" if len(self.element_analog_inputs) == 1 else "mixInputs"
-        )
+        self.type = "singleInput" if len(self.element_analog_inputs) == 1 else "mixInputs"
         self.mixer: Mixer = mixer
 
         if len(self.element_analog_inputs) > 0:

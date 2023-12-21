@@ -211,9 +211,7 @@ class unit:
         return data * self.V / 4096
 
     @staticmethod
-    def volts2dBm(
-        Vp: Union[float, ndarray], Z: Union[float, int] = 50
-    ) -> Union[float, ndarray]:
+    def volts2dBm(Vp: Union[float, ndarray], Z: Union[float, int] = 50) -> Union[float, ndarray]:
         """Converts the peak voltage (amplitude) from volts to dBm.
 
         :param Vp: the peak voltage (amplitude) in volts. Must be a python variable or array.
@@ -223,9 +221,7 @@ class unit:
         return 10 * log10(((Vp / sqrt(2)) ** 2 * 1000) / Z)
 
     @staticmethod
-    def dBm2volts(
-        P_dBm: Union[float, ndarray], Z: Union[float, int] = 50
-    ) -> Union[float, ndarray]:
+    def dBm2volts(P_dBm: Union[float, ndarray], Z: Union[float, int] = 50) -> Union[float, ndarray]:
         """Converts the power from dBm to volts (peak voltage or amplitude).
 
         :param P_dBm: the power in dBm. Must be a python variable or array.

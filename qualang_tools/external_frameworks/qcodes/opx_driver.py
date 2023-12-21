@@ -231,9 +231,7 @@ class OPX(Instrument):
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
         """
-        self.qm = self.qmm.open_qm(
-            self.config, close_other_machines=close_other_machines
-        )
+        self.qm = self.qmm.open_qm(self.config, close_other_machines=close_other_machines)
         self.qm_id = self.qm.id
 
     def update_qm(self):
@@ -423,9 +421,7 @@ class OPX(Instrument):
                 self.axis1_stop(int(self.readout_pulse_length()))
                 self.axis1_step(1)
                 self.axis1_npoints(int(self.readout_pulse_length()))
-                self.axis1_full_list(
-                    np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step())
-                )
+                self.axis1_full_list(np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step()))
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
         # Rescale the results if a scale factor is provided
@@ -487,9 +483,7 @@ class OPX(Instrument):
                 setpoint_labels=((),) * len(self.results["names"]),
             )
 
-    def update_readout_length(
-        self, readout_element: str, readout_operation: str, new_length: int
-    ):
+    def update_readout_length(self, readout_element: str, readout_operation: str, new_length: int):
         """
         Update the readout length of a given readout operation and readout element.
         This only works if the corresponding integration weights are constant.
@@ -568,12 +562,7 @@ class OPX(Instrument):
 
                 else:
                     # Convert the results into Volts
-                    data = (
-                        -data[-1]
-                        * 4096
-                        / int(self.readout_pulse_length())
-                        * self.demod_factor
-                    )
+                    data = -data[-1] * 4096 / int(self.readout_pulse_length()) * self.demod_factor
                     # Plot results
                     if len(data.shape) == 1:
                         if len(results_to_plot) > 1:
@@ -592,9 +581,7 @@ class OPX(Instrument):
                         plt.title(results_to_plot[i] + " [V]")
                 i += 1
 
-            plt.suptitle(
-                f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %"
-            )
+            plt.suptitle(f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %")
             plt.pause(1)
             plt.tight_layout()
 
