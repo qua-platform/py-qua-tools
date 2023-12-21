@@ -73,8 +73,7 @@ class Baking:
         self.override = override
         if override and sampling_rate < 1e9:
             raise ValueError(
-                "Waveform can not be simultaneously overridable and compressed with lower than 1e9"
-                "sampling rate"
+                "Waveform can not be simultaneously overridable and compressed with lower than 1e9" "sampling rate"
             )
         self.length_constraint = self._retrieve_constraint_length(baking_index)
         self.override_waveforms_dict = {"waveforms": {}}
@@ -131,10 +130,7 @@ class Baking:
                 "freq": 0,
                 "time_track": 0,  # Value used for negative waits, to know where to add the samples (negative int)
             }
-            if (
-                "mixInputs" in self._local_config["elements"][qe]
-                or "RF_inputs" in self._local_config["elements"][qe]
-            ):
+            if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
                 sample_dict[qe] = {"I": [], "Q": []}
 
             elif "singleInput" in self._local_config["elements"][qe]:
@@ -145,9 +141,7 @@ class Baking:
 
     def _update_config(self, qe, qe_samples) -> None:
         # Generates new Op, pulse, and waveform for each qe to be added in the original config file
-        self._config["elements"][qe]["operations"][
-            f"baked_Op_{self._ctr}"
-        ] = f"{qe}_baked_pulse_{self._ctr}"
+        self._config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"] = f"{qe}_baked_pulse_{self._ctr}"
         if "I" in qe_samples:
             self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
                 "operation": "control",
@@ -168,12 +162,8 @@ class Baking:
                 "is_overridable": self.override,
             }
             if self.sampling_rate < int(1e9):
-                self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
-                    "sampling_rate"
-                ] = self.sampling_rate
-                self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"][
-                    "sampling_rate"
-                ] = self.sampling_rate
+                self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["sampling_rate"] = self.sampling_rate
+                self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]["sampling_rate"] = self.sampling_rate
         elif "single" in qe_samples:
             self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
                 "operation": "control",
@@ -186,23 +176,21 @@ class Baking:
                 "is_overridable": self.override,
             }
             if self.sampling_rate < int(1e9):
-                self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
-                    "sampling_rate"
-                ] = self.sampling_rate
+                self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["sampling_rate"] = self.sampling_rate
 
         if len(self._digital_samples_dict[qe]) != 0:
             self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"][
                 "digital_marker"
             ] = f"{qe}_baked_digital_wf_{self._ctr}"
             if "digital_waveforms" in self._config:
-                self._config["digital_waveforms"][
-                    f"{qe}_baked_digital_wf_{self._ctr}"
-                ] = {"samples": self._digital_samples_dict[qe]}
+                self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {
+                    "samples": self._digital_samples_dict[qe]
+                }
             else:
                 self._config["digital_waveforms"] = {}
-                self._config["digital_waveforms"][
-                    f"{qe}_baked_digital_wf_{self._ctr}"
-                ] = {"samples": self._digital_samples_dict[qe]}
+                self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {
+                    "samples": self._digital_samples_dict[qe]
+                }
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """
@@ -216,9 +204,7 @@ class Baking:
             wait_duration = 0  # Stores the duration that has to be padded with 0s to make a valid sample for QUA
             # in original config file
 
-            if (
-                self._qe_dict[qe]["time"] > 0
-            ):  # Check if sample was added to the quantum element
+            if self._qe_dict[qe]["time"] > 0:  # Check if sample was added to the quantum element
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 qe_samples = self._samples_dict[qe]
@@ -252,14 +238,10 @@ class Baking:
                     )
                     wait_duration += self.length_constraint - self._qe_dict[qe]["time"]
                     self.wait(self.length_constraint - self._qe_dict[qe]["time"], qe)
-                if (
-                    self._qe_dict[qe]["time"] < 16
-                ):  # Sample length must be at least 16 ns long
+                if self._qe_dict[qe]["time"] < 16:  # Sample length must be at least 16 ns long
                     wait_duration += 16 - self._qe_dict[qe]["time"]
                     self.wait(16 - self._qe_dict[qe]["time"], qe)
-                if (
-                    not self._qe_dict[qe]["time"] % 4 == 0
-                ):  # Sample length must be a multiple of 4
+                if not self._qe_dict[qe]["time"] % 4 == 0:  # Sample length must be a multiple of 4
                     wait_duration += 4 - self._qe_dict[qe]["time"] % 4
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
 
@@ -284,19 +266,10 @@ class Baking:
 
                 elif self._padding_method == "left":
                     if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
-                        qe_samples["I"] = (
-                            qe_samples["I"][end_samples:]
-                            + qe_samples["I"][0:end_samples]
-                        )
-                        qe_samples["Q"] = (
-                            qe_samples["Q"][end_samples:]
-                            + qe_samples["Q"][0:end_samples]
-                        )
+                        qe_samples["I"] = qe_samples["I"][end_samples:] + qe_samples["I"][0:end_samples]
+                        qe_samples["Q"] = qe_samples["Q"][end_samples:] + qe_samples["Q"][0:end_samples]
                     elif "singleInput" in elements[qe]:
-                        qe_samples["single"] = (
-                            qe_samples["single"][end_samples:]
-                            + qe_samples["single"][0:end_samples]
-                        )
+                        qe_samples["single"] = qe_samples["single"][end_samples:] + qe_samples["single"][0:end_samples]
 
                 elif self._padding_method == "symmetric_l" or (
                     self._padding_method == "symmetric_r" and wait_duration % 2 == 0
@@ -331,26 +304,18 @@ class Baking:
                     elif "singleInput" in elements[qe]:
                         qe_samples["single"] = (
                             qe_samples["single"][end_samples + wait_duration // 2 + 1 :]
-                            + qe_samples["single"][
-                                0 : end_samples + wait_duration // 2 + 1
-                            ]
+                            + qe_samples["single"][0 : end_samples + wait_duration // 2 + 1]
                         )
 
                 if self.update_config:
                     self._update_config(qe, qe_samples)
 
                 if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
-                    self.override_waveforms_dict["waveforms"][
-                        f"{qe}_baked_wf_I_{self._ctr}"
-                    ] = qe_samples["I"]
-                    self.override_waveforms_dict["waveforms"][
-                        f"{qe}_baked_wf_Q_{self._ctr}"
-                    ] = qe_samples["Q"]
+                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = qe_samples["I"]
+                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = qe_samples["Q"]
 
                 elif "singleInput" in elements[qe]:
-                    self.override_waveforms_dict["waveforms"][
-                        f"{qe}_baked_wf_{self._ctr}"
-                    ] = qe_samples["single"]
+                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = qe_samples["single"]
 
     def is_out(self):
         return self._out
@@ -414,15 +379,11 @@ class Baking:
                     wf_I = pulses[pulse]["waveforms"]["I"]
                     wf_Q = pulses[pulse]["waveforms"]["Q"]
                     if waveforms[wf_I]["type"] == "constant":
-                        samples_I = [waveforms[wf_I]["sample"]] * pulses[pulse][
-                            "length"
-                        ]
+                        samples_I = [waveforms[wf_I]["sample"]] * pulses[pulse]["length"]
                     else:
                         samples_I = list(waveforms[wf_I]["samples"])
                     if waveforms[wf_Q]["type"] == "constant":
-                        samples_Q = [waveforms[wf_Q]["sample"]] * pulses[pulse][
-                            "length"
-                        ]
+                        samples_Q = [waveforms[wf_Q]["sample"]] * pulses[pulse]["length"]
                     else:
                         samples_Q = list(waveforms[wf_Q]["samples"])
                     return [samples_I, samples_Q]
@@ -451,17 +412,12 @@ class Baking:
                         max_length = length
             return max_length
         else:
-            if (
-                "mixInputs" in self._local_config["elements"][qe]
-                or "RF_inputs" in self._local_config["elements"][qe]
-            ):
+            if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
                 return len(self._samples_dict[qe]["I"])
             elif "singleInput" in self._local_config["elements"][qe]:
                 return len(self._samples_dict[qe]["single"])
             else:
-                raise KeyError(
-                    "Element not in the config or does not have any analog input."
-                )
+                raise KeyError("Element not in the config or does not have any analog input.")
 
     def _get_pulse_index(self, qe) -> int:
         index = 0
@@ -527,30 +483,20 @@ class Baking:
                         for i in input_type:
                             del self._samples_dict[qe_internal][i][t_start_internal:]
                     else:
-                        raise ValueError(
-                            "Desired deletion exceeds current waveform length"
-                        )
+                        raise ValueError("Desired deletion exceeds current waveform length")
                 else:
                     if t_stop_internal is None:
                         t_stop_internal = ref_length
                     if t_stop_internal > ref_length:
-                        raise ValueError(
-                            "Desired deletion exceeds current waveform length"
-                        )
+                        raise ValueError("Desired deletion exceeds current waveform length")
                     if t_start_internal > ref_length:
-                        raise ValueError(
-                            "t_start is higher than current waveform length"
-                        )
+                        raise ValueError("t_start is higher than current waveform length")
                     if t_start_internal > t_stop_internal:
                         raise ValueError("t_stop is smaller than t_start")
 
-                    self._update_qe_time(
-                        qe_internal, t_start_internal - t_stop_internal
-                    )
+                    self._update_qe_time(qe_internal, t_start_internal - t_stop_internal)
                     for i in input_type:
-                        del self._samples_dict[qe_internal][i][
-                            t_start_internal:t_stop_internal
-                        ]
+                        del self._samples_dict[qe_internal][i][t_start_internal:t_stop_internal]
 
         if not self._out:
             if qe is not None:
@@ -564,8 +510,7 @@ class Baking:
                     delete_for_el(q, t_start, t_stop)
         else:
             raise Warning(
-                "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op "
-                "instead"
+                "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op " "instead"
             )
 
     def delete_baked_op(self, *qe_set: str) -> None:
@@ -581,30 +526,17 @@ class Baking:
         def remove_op(q):
             if self.length_constraint is None:
                 if self._out:
-                    if (
-                        f"baked_Op_{self._ctr}"
-                        in self.config["elements"][q]["operations"]
-                    ):
-                        del self.config["elements"][q]["operations"][
-                            f"baked_Op_{self._ctr}"
-                        ]
+                    if f"baked_Op_{self._ctr}" in self.config["elements"][q]["operations"]:
+                        del self.config["elements"][q]["operations"][f"baked_Op_{self._ctr}"]
                         del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
-                        if (
-                            "mixInputs" in self.config["elements"][q]
-                            or "RF_inputs" in self.config["elements"][q]
-                        ):
+                        if "mixInputs" in self.config["elements"][q] or "RF_inputs" in self.config["elements"][q]:
                             del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
                             del self.config["waveforms"][f"{q}_baked_wf_Q_{self._ctr}"]
                         elif "singleInput" in self.config["elements"][q]:
                             del self.config["waveforms"][f"{q}_baked_wf_{self._ctr}"]
                         if "digital_waveforms" in self._config:
-                            if (
-                                f"{q}_baked_digital_wf_{self._ctr}"
-                                in self._config["digital_waveforms"]
-                            ):
-                                del self.config["digital_waveforms"][
-                                    f"{q}_baked_digital_wf_{self._ctr}"
-                                ]
+                            if f"{q}_baked_digital_wf_{self._ctr}" in self._config["digital_waveforms"]:
+                                del self.config["digital_waveforms"][f"{q}_baked_digital_wf_{self._ctr}"]
 
                 else:
                     raise KeyError(
@@ -612,9 +544,7 @@ class Baking:
                         "(config is updated at the exit)"
                     )
             else:
-                raise Warning(
-                    "Operation could not be deleted because baking object does not update the config"
-                )
+                raise Warning("Operation could not be deleted because baking object does not update the config")
 
         if len(qe_set) != 0:
             for qe in qe_set:
@@ -631,9 +561,7 @@ class Baking:
         :returns: Name of baked operation associated to element qe
         """
         if not (qe in self._qe_set):
-            raise KeyError(
-                f"{qe} is not in the set of quantum elements of the baking object "
-            )
+            raise KeyError(f"{qe} is not in the set of quantum elements of the baking object ")
         else:
             return f"baked_Op_{self._ctr}"
 
@@ -649,25 +577,12 @@ class Baking:
         if qe is not None:
             if self.update_config and self._out:
                 if not (qe in self._qe_set):
-                    raise KeyError(
-                        f"{qe} is not in the set of quantum elements of the baking object "
-                    )
+                    raise KeyError(f"{qe} is not in the set of quantum elements of the baking object ")
                 else:
-                    if (
-                        "mixInputs" in self._config["elements"][qe]
-                        or "RF_inputs" in self._config["elements"][qe]
-                    ):
-                        return len(
-                            self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"][
-                                "samples"
-                            ]
-                        )
+                    if "mixInputs" in self._config["elements"][qe] or "RF_inputs" in self._config["elements"][qe]:
+                        return len(self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["samples"])
                     else:
-                        return len(
-                            self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"][
-                                "samples"
-                            ]
-                        )
+                        return len(self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"])
             else:
                 return self.get_current_length(qe)
 
@@ -726,13 +641,8 @@ class Baking:
 
         index = self._get_pulse_index(qe)
         Op = {name: f"{qe}_baked_pulse_b{self._ctr}_{index}"}
-        if (
-            "mixInputs" in self._local_config["elements"][qe]
-            or "RF_inputs" in self._local_config["elements"][qe]
-        ):
-            assert (
-                len(samples) == 2
-            ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+        if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
+            assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
             assert len(samples[0]) == len(
                 samples[1]
             ), "Error : samples provided for I and Q do not have the same length"
@@ -748,9 +658,7 @@ class Baking:
                 }
             }
             if digital_marker is not None:
-                pulse[f"{qe}_baked_pulse_b{self._ctr}_{index}"][
-                    "digital_marker"
-                ] = digital_marker
+                pulse[f"{qe}_baked_pulse_b{self._ctr}_{index}"]["digital_marker"] = digital_marker
 
             waveform = {
                 f"{qe}_baked_b{self._ctr}_{index}_wf_I": {
@@ -778,9 +686,7 @@ class Baking:
             }
 
             if digital_marker is not None:
-                pulse[f"{qe}_baked_pulse_b{self._ctr}_{index}"][
-                    "digital_marker"
-                ] = digital_marker
+                pulse[f"{qe}_baked_pulse_b{self._ctr}_{index}"]["digital_marker"] = digital_marker
             waveform = {
                 f"{qe}_baked_b{self._ctr}_{index}_wf": {
                     "type": "arbitrary",
@@ -817,9 +723,7 @@ class Baking:
                     assert isinstance(
                         samples, list
                     ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
-                    assert (
-                        len(samples) == 2
-                    ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
                     assert type(samples[0] == list) and type(
                         samples[1] == list
                     ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
@@ -841,20 +745,12 @@ class Baking:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
                         elif len(amp) != 4 or type(amp) != tuple:
-                            raise IndexError(
-                                "Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)"
-                            )
+                            raise IndexError("Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)")
                         else:
                             I2[i] = amp[0] * I[i] + amp[1] * Q[i]
                             Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
-                        I3[i] = (
-                            np.cos(freq * i * 1e-9 + phi) * I2[i]
-                            - np.sin(freq * i * 1e-9 + phi) * Q2[i]
-                        )
-                        Q3[i] = (
-                            np.sin(freq * i * 1e-9 + phi) * I2[i]
-                            + np.cos(freq * i * 1e-9 + phi) * Q2[i]
-                        )
+                        I3[i] = np.cos(freq * i * 1e-9 + phi) * I2[i] - np.sin(freq * i * 1e-9 + phi) * Q2[i]
+                        Q3[i] = np.sin(freq * i * 1e-9 + phi) * I2[i] + np.cos(freq * i * 1e-9 + phi) * Q2[i]
                         self._samples_dict[qe]["I"].append(I3[i])
                         self._samples_dict[qe]["Q"].append(Q3[i])
                     self._update_qe_time(qe, len(I))
@@ -864,21 +760,15 @@ class Baking:
                         assert (
                             type(samples[i]) == float or type(samples[i]) == int
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
-                        self._samples_dict[qe]["single"].append(
-                            amp * np.cos(freq * i * 1e-9 + phi) * samples[i]
-                        )
+                        self._samples_dict[qe]["single"].append(amp * np.cos(freq * i * 1e-9 + phi) * samples[i])
                     self._update_qe_time(qe, len(samples))
 
                 else:
                     raise ValueError("Element provided does not have any analog input")
                 # Update of digital waveform
                 if "digital_marker" in self._local_config["pulses"][pulse]:
-                    digital_marker = self._local_config["pulses"][pulse][
-                        "digital_marker"
-                    ]
-                    digital_waveform = self._local_config["digital_waveforms"][
-                        digital_marker
-                    ]["samples"]
+                    digital_marker = self._local_config["pulses"][pulse]["digital_marker"]
+                    digital_waveform = self._local_config["digital_waveforms"][digital_marker]["samples"]
                     self._digital_samples_dict[qe] += digital_waveform
 
             else:
@@ -886,13 +776,9 @@ class Baking:
                 self._qe_dict[qe]["time_track"] = 0
 
         except KeyError:
-            raise KeyError(
-                f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)'
-            )
+            raise KeyError(f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)')
 
-    def play_at(
-        self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0
-    ) -> None:
+    def play_at(self, Op: str, qe: str, t: int, amp: Union[float, Tuple[float]] = 1.0) -> None:
         """
         Add a waveform to the sequence at the specified time index.
         If t is higher than pulse duration for the specified quantum element,
@@ -931,12 +817,9 @@ class Baking:
                     assert isinstance(
                         samples, list
                     ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
-                    assert (
-                        len(samples) == 2
-                    ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
                     assert type(samples[0] == list) and type(samples[1] == list), (
-                        f"{qe} is a mixInputs/RF_inputs element, "
-                        f"two lists should be provided"
+                        f"{qe} is a mixInputs/RF_inputs element, " f"two lists should be provided"
                     )
 
                     assert len(samples[0]) == len(
@@ -956,9 +839,7 @@ class Baking:
                             Q2[i] = amp * Q[i]
                         else:
                             if len(amp) != 4 or type(amp) != tuple:
-                                raise IndexError(
-                                    "Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)"
-                                )
+                                raise IndexError("Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)")
                             else:
                                 I2[i] = amp[0] * I[i] + amp[1] * Q[i]
                                 Q2[i] = amp[2] * I[i] + amp[3] * Q[i]
@@ -975,14 +856,8 @@ class Baking:
                             self._samples_dict[qe]["I"][t + i] += I3[i]
                             self._samples_dict[qe]["Q"][t + i] += Q3[i]
                         else:
-                            I3[i] = (
-                                np.cos(freq * i * 1e-9 + phi) * I2[i]
-                                - np.sin(freq * i * 1e-9 + phi) * Q2[i]
-                            )
-                            Q3[i] = (
-                                np.sin(freq * i * 1e-9 + phi) * I2[i]
-                                + np.cos(freq * i * 1e-9 + phi) * Q2[i]
-                            )
+                            I3[i] = np.cos(freq * i * 1e-9 + phi) * I2[i] - np.sin(freq * i * 1e-9 + phi) * Q2[i]
+                            Q3[i] = np.sin(freq * i * 1e-9 + phi) * I2[i] + np.cos(freq * i * 1e-9 + phi) * Q2[i]
 
                             self._samples_dict[qe]["I"].append(I3[i])
                             self._samples_dict[qe]["Q"].append(Q3[i])
@@ -1009,9 +884,7 @@ class Baking:
                 self._update_qe_time(qe, new_samples)
 
             except KeyError:
-                raise KeyError(
-                    f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)'
-                )
+                raise KeyError(f'Op:"{Op}" does not exist in configuration and not manually added (use add_pulse)')
 
     def frame_rotation(self, angle: float, qe: str) -> None:
         """
@@ -1072,10 +945,7 @@ class Baking:
         ramp_sample = [amp * t for t in range(duration)]
         if "singleInput" in self._local_config["elements"][qe]:
             self._samples_dict[qe]["single"] += ramp_sample
-        elif (
-            "mixInputs" in self._local_config["elements"][qe]
-            or "RF_inputs" in self._local_config["elements"][qe]
-        ):
+        elif "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
             self._samples_dict[qe]["Q"] += ramp_sample
             self._samples_dict[qe]["I"] += [0] * duration
         self._update_qe_time(qe, duration)
@@ -1186,9 +1056,7 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if type(amp) == list:
-                            raise TypeError(
-                                "Amplitude can only be a number (either Python or QUA variable)"
-                            )
+                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
 
         else:
@@ -1208,12 +1076,8 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if type(amp) == list:
-                            raise TypeError(
-                                "Amplitude can only be a number (either Python or QUA variable)"
-                            )
-                        qua.play(
-                            f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc
-                        )
+                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
+                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
 
         for qe in qe_set:
             if self._qe_dict[qe]["phase"] != 0:

@@ -92,12 +92,7 @@ def component_editor(selected_component, inputs=None):
 
     # objects that we can add through add method
     additional_add_docstring = ""
-    if (
-        hasattr(component_class, "add")
-        and callable(component_class.add)
-        and inputs[0] is None
-        and inputs[1] is None
-    ):
+    if hasattr(component_class, "add") and callable(component_class.add) and inputs[0] is None and inputs[1] is None:
 
         arugments = inspect.getfullargspec(component_class.add)
         argument_names = arugments[0][1:]
@@ -189,9 +184,7 @@ def component_editor(selected_component, inputs=None):
                             },
                         )
                     )
-                    possible_add_on_objects_gui.append(
-                        dbc.AccordionItem(gui2, title=option_name)
-                    )
+                    possible_add_on_objects_gui.append(dbc.AccordionItem(gui2, title=option_name))
 
         component_gui.append(
             dbc.InputGroup(
@@ -297,9 +290,7 @@ def class_editor_and_gui(
         elif argument_types[name] == float:
             if inputs[0] is not None:
                 value = float(inputs[0][input_index[0]])
-                python_command += (
-                    ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
-                ) + f"{value}"
+                python_command += (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "") + f"{value}"
             else:
                 component_gui.append(
                     dbc.InputGroup(
@@ -321,9 +312,7 @@ def class_editor_and_gui(
         elif argument_types[name] == int:
             if inputs[0] is not None:
                 value = int(inputs[0][input_index[0]])
-                python_command += (
-                    ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
-                ) + f"{value}"
+                python_command += (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "") + f"{value}"
             else:
                 component_gui.append(
                     dbc.InputGroup(
@@ -408,9 +397,7 @@ def class_editor_and_gui(
                     command += f".digital_output({port_id})"
                 elif argument_types[name] == primitive_components.DigitalInputPort:
                     command += f".digital_input({port_id})"
-                python_command += (
-                    ",\n" if (input_index[0] > 0 or input_index[1] > 0) else ""
-                ) + command
+                python_command += (",\n" if (input_index[0] > 0 or input_index[1] > 0) else "") + command
             else:
                 for index, c in enumerate(controllers):
                     controllerList.append({"label": c.name, "value": index})
@@ -418,9 +405,7 @@ def class_editor_and_gui(
                 component_gui.append(
                     dbc.InputGroup(
                         [
-                            dbc.InputGroupText(
-                                [html.I(className="bi bi-diagram-3-fill me-2"), name]
-                            ),
+                            dbc.InputGroupText([html.I(className="bi bi-diagram-3-fill me-2"), name]),
                             dcc.Dropdown(
                                 options=controllerList,
                                 placeholder="choose controller",
@@ -463,34 +448,21 @@ def class_editor_and_gui(
                     port = port.split(",")
                     controller_id = int(port[0])
                     port_id = int(port[1])
-                    if (
-                        argument_types[name]
-                        == typing.List[primitive_components.AnalogOutputPort]
-                    ):
+                    if argument_types[name] == typing.List[primitive_components.AnalogOutputPort]:
                         list += f"setup.find_instances(Controller)[{controller_id}].analog_output({port_id})"
-                    elif (
-                        argument_types[name]
-                        == typing.List[primitive_components.AnalogInputPort]
-                    ):
+                    elif argument_types[name] == typing.List[primitive_components.AnalogInputPort]:
                         list += f"setup.find_instances(Controller)[{controller_id}].analog_input({port_id})"
-                    elif (
-                        argument_types[name]
-                        == typing.List[primitive_components.DigitalOutputPort]
-                    ):
+                    elif argument_types[name] == typing.List[primitive_components.DigitalOutputPort]:
                         list += f"setup.find_instances(Controller)[{controller_id}].digital_output({port_id})"
                     else:
                         # it is (argument_types[name] == typing.List[quantum_machine.primitive_components.DigitalInputPort])
                         list += f"setup.find_instances(Controller)[{controller_id}].digital_input({port_id})"
 
                 list += "]"
-                python_command += (
-                    ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
-                ) + list
+                python_command += (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "") + list
             else:
                 for index, c in enumerate(controllers):
-                    controllerList.append(
-                        {"label": c.name, "value": "%s, %d" % (c.name, index)}
-                    )
+                    controllerList.append({"label": c.name, "value": "%s, %d" % (c.name, index)})
 
                 component_gui.append(
                     dbc.InputGroup(
@@ -563,9 +535,7 @@ def class_editor_and_gui(
                     list += f"setup.find_instances(Waveform)[{component_index}]"
 
                 list += "]"
-                python_command += (
-                    ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
-                ) + list
+                python_command += (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "") + list
             else:
                 for index, c in enumerate(waveforms):
                     waveformList.append({"label": c.name, "value": index})
@@ -633,9 +603,7 @@ def class_editor_and_gui(
                     list += f"setup.find_instances(Element)[{component_index}]"
 
                 list += "]"
-                python_command += (
-                    ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
-                ) + list
+                python_command += (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "") + list
             else:
                 for index, c in enumerate(elements):
                     elementList.append({"label": c.name, "value": index})
@@ -673,9 +641,8 @@ def class_editor_and_gui(
                 else:
                     # selection == 2
                     python_command += (
-                        (",\n  " if (input_index[1] > 0 or input_index[0] > 0) else "")
-                        + f"setup.find_instances(ArbitraryIntegrationWeights)[{index}]"
-                    )
+                        ",\n  " if (input_index[1] > 0 or input_index[0] > 0) else ""
+                    ) + f"setup.find_instances(ArbitraryIntegrationWeights)[{index}]"
             else:
                 options1 = setup.find_instances(components.ConstantIntegrationWeights)
                 options2 = setup.find_instances(components.ArbitraryIntegrationWeights)
@@ -778,10 +745,7 @@ def class_editor_and_gui(
 
 
 def get_docstring(selected_class):
-    if (
-        selected_class.__init__ is not None
-        and selected_class.__init__.__doc__ is not None
-    ):
+    if selected_class.__init__ is not None and selected_class.__init__.__doc__ is not None:
         docstring = publish_doctree(selected_class.__init__.__doc__)
         docstring = publish_from_doctree(docstring, writer_name="html").decode()
     else:
@@ -793,9 +757,7 @@ def get_component(selected_component):
     component_class = None
     if isinstance(selected_component, str):
         component = selected_component.split(".")[-1]
-        library = inspect.getmembers(
-            importlib.import_module(selected_component[0 : -len(component) - 1])
-        )
+        library = inspect.getmembers(importlib.import_module(selected_component[0 : -len(component) - 1]))
 
         for name, obj in library:
             if name == component:

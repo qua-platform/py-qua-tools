@@ -3,14 +3,7 @@ from scipy.signal.windows import gaussian, blackman
 
 
 def drag_gaussian_pulse_waveforms(
-    amplitude,
-    length,
-    sigma,
-    alpha,
-    anharmonicity,
-    detuning=0.0,
-    subtracted=True,
-    **kwargs
+    amplitude, length, sigma, alpha, anharmonicity, detuning=0.0, subtracted=True, **kwargs
 ):
     """
     Creates Gaussian based DRAG waveforms that compensate for the leakage and for the AC stark shift.
@@ -34,20 +27,14 @@ def drag_gaussian_pulse_waveforms(
     """
     delta = kwargs.get("delta", None)
     if delta is not None:
-        print(
-            "'delta' has been replaced by 'anharmonicity' and will be deprecated in the future. "
-        )
+        print("'delta' has been replaced by 'anharmonicity' and will be deprecated in the future. ")
         if alpha != 0 and delta == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, dtype=int)  # An array of size pulse length in ns
         center = (length - 1) / 2
-        gauss_wave = amplitude * np.exp(
-            -((t - center) ** 2) / (2 * sigma**2)
-        )  # The gaussian function
+        gauss_wave = amplitude * np.exp(-((t - center) ** 2) / (2 * sigma**2))  # The gaussian function
         gauss_der_wave = (
-            amplitude
-            * (-2 * 1e9 * (t - center) / (2 * sigma**2))
-            * np.exp(-((t - center) ** 2) / (2 * sigma**2))
+            amplitude * (-2 * 1e9 * (t - center) / (2 * sigma**2)) * np.exp(-((t - center) ** 2) / (2 * sigma**2))
         )  # The derivative of gaussian
         if subtracted:
             gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
@@ -58,44 +45,30 @@ def drag_gaussian_pulse_waveforms(
             # The complex detuned DRAG envelope:
             z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
         I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
-        Q_wf = (
-            z.imag.tolist()
-        )  # The `Q` component is the imaginary part of the waveform
+        Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     else:
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, dtype=int)  # An array of size pulse length in ns
         center = (length - 1) / 2
-        gauss_wave = amplitude * np.exp(
-            -((t - center) ** 2) / (2 * sigma**2)
-        )  # The gaussian function
+        gauss_wave = amplitude * np.exp(-((t - center) ** 2) / (2 * sigma**2))  # The gaussian function
         gauss_der_wave = (
-            amplitude
-            * (-2 * 1e9 * (t - center) / (2 * sigma**2))
-            * np.exp(-((t - center) ** 2) / (2 * sigma**2))
+            amplitude * (-2 * 1e9 * (t - center) / (2 * sigma**2)) * np.exp(-((t - center) ** 2) / (2 * sigma**2))
         )  # The derivative of gaussian
         if subtracted:
             gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
         z = gauss_wave + 1j * 0
         if alpha != 0:
             # The complex DRAG envelope:
-            z += (
-                1j
-                * gauss_der_wave
-                * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
-            )
+            z += 1j * gauss_der_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
             # The complex detuned DRAG envelope:
             z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
         I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
-        Q_wf = (
-            z.imag.tolist()
-        )  # The `Q` component is the imaginary part of the waveform
+        Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     return I_wf, Q_wf
 
 
-def drag_cosine_pulse_waveforms(
-    amplitude, length, alpha, anharmonicity, detuning=0.0, **kwargs
-):
+def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detuning=0.0, **kwargs):
     """
     Creates Cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.
 
@@ -115,21 +88,14 @@ def drag_cosine_pulse_waveforms(
     """
     delta = kwargs.get("delta", None)
     if delta is not None:
-        print(
-            "'delta' has been replaced by 'anharmonicity' and will be deprecated in the future."
-        )
+        print("'delta' has been replaced by 'anharmonicity' and will be deprecated in the future.")
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, dtype=int)  # An array of size pulse length in ns
         end_point = length - 1
-        cos_wave = (
-            0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))
-        )  # The cosine function
+        cos_wave = 0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))  # The cosine function
         sin_wave = (
-            0.5
-            * amplitude
-            * (2 * np.pi / end_point * 1e9)
-            * np.sin(t * 2 * np.pi / end_point)
+            0.5 * amplitude * (2 * np.pi / end_point * 1e9) * np.sin(t * 2 * np.pi / end_point)
         )  # The derivative of cosine function
         z = cos_wave + 1j * 0
         if alpha != 0:
@@ -138,43 +104,28 @@ def drag_cosine_pulse_waveforms(
             # The complex detuned DRAG envelope:
             z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
         I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
-        Q_wf = (
-            z.imag.tolist()
-        )  # The `Q` component is the imaginary part of the waveform
+        Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     else:
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, dtype=int)  # An array of size pulse length in ns
         end_point = length - 1
-        cos_wave = (
-            0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))
-        )  # The cosine function
+        cos_wave = 0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))  # The cosine function
         sin_wave = (
-            0.5
-            * amplitude
-            * (2 * np.pi / end_point * 1e9)
-            * np.sin(t * 2 * np.pi / end_point)
+            0.5 * amplitude * (2 * np.pi / end_point * 1e9) * np.sin(t * 2 * np.pi / end_point)
         )  # The derivative of cosine function
         z = cos_wave + 1j * 0
         if alpha != 0:
             # The complex DRAG envelope:
-            z += (
-                1j
-                * sin_wave
-                * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
-            )
+            z += 1j * sin_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
             # The complex detuned DRAG envelope:
             z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
         I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
-        Q_wf = (
-            z.imag.tolist()
-        )  # The `Q` component is the imaginary part of the waveform
+        Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     return I_wf, Q_wf
 
 
-def flattop_gaussian_waveform(
-    amplitude, flat_length, rise_fall_length, return_part="all"
-):
+def flattop_gaussian_waveform(amplitude, flat_length, rise_fall_length, return_part="all"):
     """
     Returns a flat top Gaussian waveform. This is a square pulse with a rise and fall of a Gaussian with the given
     sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
@@ -203,9 +154,7 @@ def flattop_gaussian_waveform(
         raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
 
 
-def flattop_cosine_waveform(
-    amplitude, flat_length, rise_fall_length, return_part="all"
-):
+def flattop_cosine_waveform(amplitude, flat_length, rise_fall_length, return_part="all"):
     """
     Returns a flat top cosine waveform. This is a square pulse with a rise and fall with cosine shape with the given
     sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
@@ -259,9 +208,7 @@ def flattop_tanh_waveform(amplitude, flat_length, rise_fall_length, return_part=
         raise Exception("'return_part' must be either 'all', 'rise' or 'fall'")
 
 
-def flattop_blackman_waveform(
-    amplitude, flat_length, rise_fall_length, return_part="all"
-):
+def flattop_blackman_waveform(amplitude, flat_length, rise_fall_length, return_part="all"):
     """
     Returns a flat top Blackman waveform. This is a square pulse with a rise and fall with Blackman shape with the given
     length. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.

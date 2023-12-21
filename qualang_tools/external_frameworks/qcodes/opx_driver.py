@@ -164,17 +164,13 @@ class OPX(Instrument):
             vals=Arrays(shape=(self.axis1_npoints.get_latest,)),
         )
         # Open QMM
-        self.connect_to_qmm(
-            host=host, port=port, cluster_name=cluster_name, octave=octave
-        )
+        self.connect_to_qmm(host=host, port=port, cluster_name=cluster_name, octave=octave)
         # Set config
         self.set_config(config=config)
         # Open QM
         self.open_qm(close_other_machines)
 
-    def connect_to_qmm(
-        self, host: str = None, port: int = None, cluster_name: str = None, octave=None
-    ):
+    def connect_to_qmm(self, host: str = None, port: int = None, cluster_name: str = None, octave=None):
         """
         Enable the connection with the OPX by creating the QuantumMachineManager.
         Displays the connection message with idn when the connection is established.
@@ -184,14 +180,10 @@ class OPX(Instrument):
         :param cluster_name: Name of the cluster as defined in the OPX admin panel (from version QOP220)
         :param octave: Octave configuration if an Octave is to be used in this experiment.
         """
-        self.qmm = QuantumMachinesManager(
-            host=host, port=port, cluster_name=cluster_name, octave=octave
-        )
+        self.qmm = QuantumMachinesManager(host=host, port=port, cluster_name=cluster_name, octave=octave)
         self.connect_message()
 
-    def connect_message(
-        self, idn_param: str = "IDN", begin_time: Optional[float] = None
-    ) -> None:
+    def connect_message(self, idn_param: str = "IDN", begin_time: Optional[float] = None) -> None:
         """
         Print a standard message on initial connection to an instrument.
 
@@ -239,9 +231,7 @@ class OPX(Instrument):
         Open a quantum machine with a given configuration ready to execute a program.
         Beware that each call will close the existing quantum machines and interrupt the running jobs.
         """
-        self.qm = self.qmm.open_qm(
-            self.config, close_other_machines=close_other_machines
-        )
+        self.qm = self.qmm.open_qm(self.config, close_other_machines=close_other_machines)
         self.qm_id = self.qm.id
 
     def update_qm(self):
@@ -286,16 +276,10 @@ class OPX(Instrument):
                 # Get data and convert to Volt
                 out = None
                 # demodulated or integrated data
-                self.result_handles.get(self.results["names"][i]).wait_for_values(
-                    self.counter
-                )
+                self.result_handles.get(self.results["names"][i]).wait_for_values(self.counter)
                 if self.results["types"][i] == "IQ":
                     out = (
-                        -(
-                            self.result_handles.get(self.results["names"][i]).fetch(
-                                self.counter - 1
-                            )["value"]
-                        )
+                        -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
                         * 4096
                         / self.readout_pulse_length()
                         * self.demod_factor
@@ -304,11 +288,7 @@ class OPX(Instrument):
                 # raw adc traces
                 elif self.results["types"][i] == "adc":
                     out = (
-                        -(
-                            self.result_handles.get(self.results["names"][i]).fetch(
-                                self.counter - 1
-                            )["value"]
-                        )
+                        -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
                         / 4096
                         * self.results["scale_factor"][i]
                     )
@@ -318,18 +298,14 @@ class OPX(Instrument):
                         self.results["buffers"][i][0], self.results["buffers"][i][1]
                     )
                 elif len(self.results["buffers"][i]) == 1:
-                    output[self.results["names"][i]] = out.reshape(
-                        self.results["buffers"][i][0]
-                    )
+                    output[self.results["names"][i]] = out.reshape(self.results["buffers"][i][0])
                 else:
                     output[self.results["names"][i]] = out
 
             # Add amplitude and phase if I and Q are in the SP
             if "I" in output.keys() and "Q" in output.keys():
                 output["R"] = np.sqrt(output["I"] ** 2 + output["Q"] ** 2)
-                output["Phi"] = (
-                    np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
-                )
+                output["Phi"] = np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
             return output
 
     def _extend_result(self, gene, count, averaging_buffer):
@@ -350,28 +326,14 @@ class OPX(Instrument):
                 self.results["scale_factor"].append(1)
                 # Check if next buffer is for averaging
                 if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                    if (
-                        gene.values[2]
-                        .list_value.values[1]
-                        .list_value.values[0]
-                        .string_value
-                        == "average"
-                    ):
+                    if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
                         averaging_buffer = True
             elif gene.values[0].string_value == "buffer":
                 if not averaging_buffer:
-                    self.results["buffers"][count].append(
-                        int(gene.values[1].string_value)
-                    )
+                    self.results["buffers"][count].append(int(gene.values[1].string_value))
                     # Check if next buffer is for averaging
                     if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                        if (
-                            gene.values[2]
-                            .list_value.values[1]
-                            .list_value.values[0]
-                            .string_value
-                            == "average"
-                        ):
+                        if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
                             averaging_buffer = True
                 else:
                     averaging_buffer = False
@@ -459,9 +421,7 @@ class OPX(Instrument):
                 self.axis1_stop(int(self.readout_pulse_length()))
                 self.axis1_step(1)
                 self.axis1_npoints(int(self.readout_pulse_length()))
-                self.axis1_full_list(
-                    np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step())
-                )
+                self.axis1_full_list(np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step()))
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
         # Rescale the results if a scale factor is provided
@@ -470,12 +430,8 @@ class OPX(Instrument):
                 if len(scale_factor[0]) == 3:
                     for param in scale_factor:
                         if param[0] in self.results["names"]:
-                            self.results["units"][
-                                self.results["names"].index(param[0])
-                            ] = param[2]
-                            self.results["scale_factor"][
-                                self.results["names"].index(param[0])
-                            ] = param[1]
+                            self.results["units"][self.results["names"].index(param[0])] = param[2]
+                            self.results["scale_factor"][self.results["names"].index(param[0])] = param[1]
                 else:
                     raise ValueError(
                         "scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ]."
@@ -488,16 +444,11 @@ class OPX(Instrument):
                     "OPX_results",
                     names=self.results["names"],
                     units=self.results["units"],
-                    shapes=(
-                        (self.results["buffers"][0][0], self.results["buffers"][0][1]),
-                    )
+                    shapes=((self.results["buffers"][0][0], self.results["buffers"][0][1]),)
                     * len(self.results["names"]),
-                    setpoints=((self.axis2_axis(), self.axis1_axis()),)
-                    * len(self.results["names"]),
-                    setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),)
-                    * len(self.results["names"]),
-                    setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
-                    * len(self.results["names"]),
+                    setpoints=((self.axis2_axis(), self.axis1_axis()),) * len(self.results["names"]),
+                    setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),) * len(self.results["names"]),
+                    setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),) * len(self.results["names"]),
                     setpoint_names=(
                         (
                             self.axis2_axis.label.replace(" ", "").lower(),
@@ -513,15 +464,11 @@ class OPX(Instrument):
                     "OPX_results",
                     names=self.results["names"],
                     units=self.results["units"],
-                    shapes=((self.results["buffers"][0][0],),)
-                    * len(self.results["names"]),
+                    shapes=((self.results["buffers"][0][0],),) * len(self.results["names"]),
                     setpoints=((self.axis1_axis(),),) * len(self.results["names"]),
-                    setpoint_units=((self.axis1_axis.unit,),)
-                    * len(self.results["names"]),
-                    setpoint_labels=((self.axis1_axis.label,),)
-                    * len(self.results["names"]),
-                    setpoint_names=((self.axis1_axis.label.replace(" ", "").lower(),),)
-                    * len(self.results["names"]),
+                    setpoint_units=((self.axis1_axis.unit,),) * len(self.results["names"]),
+                    setpoint_labels=((self.axis1_axis.label,),) * len(self.results["names"]),
+                    setpoint_names=((self.axis1_axis.label.replace(" ", "").lower(),),) * len(self.results["names"]),
                 )
         else:
             return ResultParameters(
@@ -536,9 +483,7 @@ class OPX(Instrument):
                 setpoint_labels=((),) * len(self.results["names"]),
             )
 
-    def update_readout_length(
-        self, readout_element: str, readout_operation: str, new_length: int
-    ):
+    def update_readout_length(self, readout_element: str, readout_operation: str, new_length: int):
         """
         Update the readout length of a given readout operation and readout element.
         This only works if the corresponding integration weights are constant.
@@ -617,12 +562,7 @@ class OPX(Instrument):
 
                 else:
                     # Convert the results into Volts
-                    data = (
-                        -data[-1]
-                        * 4096
-                        / int(self.readout_pulse_length())
-                        * self.demod_factor
-                    )
+                    data = -data[-1] * 4096 / int(self.readout_pulse_length()) * self.demod_factor
                     # Plot results
                     if len(data.shape) == 1:
                         if len(results_to_plot) > 1:
@@ -641,9 +581,7 @@ class OPX(Instrument):
                         plt.title(results_to_plot[i] + " [V]")
                 i += 1
 
-            plt.suptitle(
-                f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %"
-            )
+            plt.suptitle(f"Iteration: {progress}/{number_of_runs} = {progress / number_of_runs * 100:.1f} %")
             plt.pause(1)
             plt.tight_layout()
 
@@ -668,9 +606,7 @@ class OPX(Instrument):
         """
         wait_until_job_is_paused(self.job, timeout)
         if not self.job.is_paused():
-            raise RuntimeError(
-                f"The program has not reached the pause statement before {timeout} s."
-            )
+            raise RuntimeError(f"The program has not reached the pause statement before {timeout} s.")
         else:
             self.job.resume()
             self.counter += 1
@@ -697,19 +633,13 @@ class OPX(Instrument):
         Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
         """
         prog = self.get_prog()
-        self.job = self.qmm.simulate(
-            self.config, prog, SimulationConfig(self.sim_time() // 4)
-        )
+        self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
         simulated_samples = self.job.get_simulated_samples()
         for con in [f"con{i}" for i in range(1, 10)]:
             if hasattr(simulated_samples, con):
                 self.simulated_wf[con] = {}
-                self.simulated_wf[con]["analog"] = (
-                    self.job.get_simulated_samples().__dict__[con].analog
-                )
-                self.simulated_wf[con]["digital"] = (
-                    self.job.get_simulated_samples().__dict__[con].digital
-                )
+                self.simulated_wf[con]["analog"] = self.job.get_simulated_samples().__dict__[con].analog
+                self.simulated_wf[con]["digital"] = self.job.get_simulated_samples().__dict__[con].digital
         self.result_handles = self.job.result_handles
 
     def plot_simulated_wf(self):
@@ -722,9 +652,7 @@ class OPX(Instrument):
                 for port in self.simulated_wf[con][t].keys():
                     if not np.all(self.simulated_wf[con][t][port] == 0):
                         if len(self.simulated_wf.keys()) == 1:
-                            plt.plot(
-                                self.simulated_wf[con][t][port], label=f"{t} {port}"
-                            )
+                            plt.plot(self.simulated_wf[con][t][port], label=f"{t} {port}")
                         else:
                             plt.plot(
                                 self.simulated_wf[con][t][port],
@@ -806,9 +734,7 @@ class GeneratedSetPoints(Parameter):
         self._numpointsparam = numpointsparam
 
     def get_raw(self):
-        return np.linspace(
-            self._startparam(), self._stopparam(), self._numpointsparam()
-        )
+        return np.linspace(self._startparam(), self._stopparam(), self._numpointsparam())
 
 
 # noinspection PyAbstractClass

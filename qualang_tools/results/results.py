@@ -22,9 +22,7 @@ class fetching_tool:
         if not data_list:
             raise Exception("The provided data list is empty.")
         if mode not in ["live", "wait_for_all"]:
-            raise Exception(
-                f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']"
-            )
+            raise Exception(f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']")
         self.data_list = data_list
         self.mode = mode
         self.results = []
@@ -86,9 +84,7 @@ class fetching_tool:
             self.res_handles.wait_for_all_values()
             for data in self.data_list:
                 if hasattr(self.res_handles, data):
-                    self.results.append(
-                        self._format(self.res_handles.get(data).fetch_all())
-                    )
+                    self.results.append(self._format(self.res_handles.get(data).fetch_all()))
 
         elif self.mode == "live":
             self.results = []
@@ -97,9 +93,7 @@ class fetching_tool:
         return self.results
 
 
-def progress_counter(
-    iteration, total, progress_bar=True, percent=True, start_time=None
-):
+def progress_counter(iteration, total, progress_bar=True, percent=True, start_time=None):
     """Displays progress bar and prints remaining computation time.
 
     :param iteration: current iteration. Must be a python integer.

@@ -34,9 +34,9 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 * [Config Tools](qualang_tools/config/README.md) - This package includes tools related to the QOP configuration file, including:
   * [Integration Weights Tools](qualang_tools/config/README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
   * [Waveform Tools](qualang_tools/config/README_waveform_tools.md) - This package includes tools for creating waveforms useful for experiments with the QOP.
-  * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file.
-  * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files.
   * [Config Helper Tools](qualang_tools/config/README_helper_tools.md) - This package includes tools for writing and updating the configuration.
+  * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file - No longer being actively developed.
+  * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files - No longer being actively developed.
 
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
   * [ManualOutputControl](qualang_tools/control_panel/README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
@@ -47,8 +47,18 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 
 Install the current version using `pip`, the `--upgrade` flag ensures that you will get the latest version.
 
-```commandline
+```bash
 pip install --upgrade qualang-tools
+```
+
+Note that in order use the `Config GUI` or `Config Builder`, you need to install using
+```bash
+pip install --upgrade qualang-tools[configbuilder]
+```
+
+Note that in order use the `Interactive Plot Library`, you need to install using
+```bash
+pip install --upgrade qualang-tools[interplot]
 ```
 
 ## Support and Contribution

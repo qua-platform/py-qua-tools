@@ -28,9 +28,7 @@ def from_array(var, array):
     # Check QUA vs python variables
     if not isinstance(var, _Variable):
         raise Exception("The first argument must be a QUA variable.")
-    if (not isinstance(array[0], (np.generic, int, float))) or (
-        isinstance(array[0], bool)
-    ):
+    if (not isinstance(array[0], (np.generic, int, float))) or (isinstance(array[0], bool)):
         raise Exception("The array must be an array of python variables.")
     # Check array increment
     if np.isclose(np.std(np.diff(array)), 0):
@@ -51,14 +49,8 @@ def from_array(var, array):
 
         if var.is_int():
             # Check that the array is an array of int with integer increments
-            if (
-                not float(step).is_integer()
-                or not float(start).is_integer()
-                or not float(stop).is_integer()
-            ):
-                raise Exception(
-                    "When looping over a QUA int variable, the step and array elements must be integers."
-                )
+            if not float(step).is_integer() or not float(start).is_integer() or not float(stop).is_integer():
+                raise Exception("When looping over a QUA int variable, the step and array elements must be integers.")
             # Generate the loop parameters for positive and negative steps
             if step > 0:
                 return var, int(start), var <= int(stop), var + int(step)
@@ -170,9 +162,7 @@ def qua_arange(var, start, stop, step):
             stop_condition = stop
 
         if np.abs((stop - start) / step * 2**-28) >= np.abs(step):
-            raise Exception(
-                "The required accuracy is to large:N * (2 ** -28) > step/2, please contact a QM member."
-            )
+            raise Exception("The required accuracy is to large:N * (2 ** -28) > step/2, please contact a QM member.")
 
     if step > 0:
         return var, start, var < stop_condition, var + step

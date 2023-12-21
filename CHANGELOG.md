@@ -16,7 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Unit - Added `volts2dBm` and `dBm2volts`.
 
 ### Changed
+- Eased package dependencies, requires python 3.8 or above
 - Unit - `demod2volts` now has a `single_demod` flag to correctly convert the data from single demodulation.
+
+## Deprecated
+- ConfigBuilder and ConfigGUI are not being activity developed and may not have all config options
+
 
 ## [0.15.2] - 2023-09-06
 ### Added

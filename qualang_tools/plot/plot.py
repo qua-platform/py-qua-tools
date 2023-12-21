@@ -201,9 +201,7 @@ def plot_demodulated_data_1d(
     return fig, fit
 
 
-def get_simulated_samples_by_element(
-    element_name: str, job: QmJob, config: dict
-) -> Tuple:
+def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict) -> Tuple:
     """
     Extract the simulated samples (analog and digital) corresponding to a given element.
 
@@ -234,9 +232,7 @@ def get_simulated_samples_by_element(
 
         for key in element["digitalInputs"].keys():
             port = element["digitalInputs"][key]["port"]
-            digital_samples.append(
-                sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int)
-            )
+            digital_samples.append(sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int))
     else:
         digital_samples.append(None)
 
@@ -268,10 +264,7 @@ def plot_simulator_output(
             # Find the elements used in the program
             el_list = []
             for statement in qua_program.__dict__["_program"].script.body.statements:
-                if (
-                    statement.play.qe.name not in el_list
-                    and statement.play.qe.name != ""
-                ):
+                if statement.play.qe.name not in el_list and statement.play.qe.name != "":
                     el_list.append(statement.play.qe.name)
         else:
             raise Exception(
@@ -279,12 +272,8 @@ def plot_simulator_output(
             )
         plot_axes = [[element] for element in el_list]
     for plot_axis in plot_axes:
-        samples_struct.append(
-            [get_simulated_samples_by_element(pa, job, config)[0] for pa in plot_axis]
-        )
-        digital_samples_struct.append(
-            [get_simulated_samples_by_element(pa, job, config)[1] for pa in plot_axis]
-        )
+        samples_struct.append([get_simulated_samples_by_element(pa, job, config)[0] for pa in plot_axis])
+        digital_samples_struct.append([get_simulated_samples_by_element(pa, job, config)[1] for pa in plot_axis])
 
     fig = go.Figure().set_subplots(rows=len(plot_axes), cols=1, shared_xaxes=True)
 
@@ -294,9 +283,7 @@ def plot_simulator_output(
             if samples_struct[i][j] is not None:
                 if isinstance(samples_struct[i][j][0], float):
                     fig.add_trace(
-                        go.Scatter(
-                            x=time_vec, y=samples_struct[i][j], name=plot_item + " [V]"
-                        ),
+                        go.Scatter(x=time_vec, y=samples_struct[i][j], name=plot_item + " [V]"),
                         row=i + 1,
                         col=1,
                     )
@@ -328,9 +315,7 @@ def plot_simulator_output(
                             y=digital_samples_struct[i][j][k],
                             name=plot_item
                             + " - "
-                            + list(
-                                config["elements"][plot_item]["digitalInputs"].keys()
-                            )[k]
+                            + list(config["elements"][plot_item]["digitalInputs"].keys())[k]
                             + " [3.3V]",
                         ),
                         row=i + 1,

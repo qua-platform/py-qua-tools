@@ -55,9 +55,7 @@ class QuaConfig(_UserDict):
         with open(filename, "w") as fp:
             _json.dump(self.data, fp)
 
-    def add_control_operation_iq(
-        self, element: str, operation_name: str, wf_i: List[float], wf_q: List[float]
-    ):
+    def add_control_operation_iq(self, element: str, operation_name: str, wf_i: List[float], wf_q: List[float]):
         """
         Add or update a control operation to a mixed input element.
 
@@ -88,9 +86,7 @@ class QuaConfig(_UserDict):
         # Add waveform
         self.update_waveforms(element, operation_name, (wf_i, wf_q))
 
-    def add_control_operation_single(
-        self, element: str, operation_name: str, wf: List[float]
-    ):
+    def add_control_operation_single(self, element: str, operation_name: str, wf: List[float]):
         """
         Add or update a control operation to a single input element.
 
@@ -118,9 +114,7 @@ class QuaConfig(_UserDict):
         # Add waveform
         self.update_waveforms(element, operation_name, (wf,))
 
-    def get_waveforms_from_op(
-        self, element: str, operation_name: str
-    ) -> List or List[List]:
+    def get_waveforms_from_op(self, element: str, operation_name: str) -> List or List[List]:
         """
         Get the waveforms corresponding to the given element and operation.
 
@@ -177,13 +171,9 @@ class QuaConfig(_UserDict):
                 f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
 
-        return self.data["pulses"][
-            self.data["elements"][element]["operations"][operation_name]
-        ]
+        return self.data["pulses"][self.data["elements"][element]["operations"][operation_name]]
 
-    def update_op_amp(
-        self, element: str, operation_name: str, amp: float, force_update: bool = False
-    ):
+    def update_op_amp(self, element: str, operation_name: str, amp: float, force_update: bool = False):
         """
         Update the operation amplitude.
         Can only access amplitude for a constant pulse of a single element.
@@ -204,14 +194,10 @@ class QuaConfig(_UserDict):
                 f"The operation '{operation_name}' in not defined in the config for the element '{element}'."
             )
         if not -0.5 <= amp < 0.5:
-            raise ValueError(
-                "The amplitude must be within the range [-0.5, 0.5) Volts."
-            )
+            raise ValueError("The amplitude must be within the range [-0.5, 0.5) Volts.")
         pulse = self.get_pulse_from_op(element, operation_name)
         if "single" not in pulse["waveforms"].keys():
-            raise KeyError(
-                "Can only access amplitude for a constant pulse of a single element"
-            )
+            raise KeyError("Can only access amplitude for a constant pulse of a single element")
         wf = pulse["waveforms"]["single"]
         # Check if the waveform is used in another pulse
         count = 0
@@ -230,9 +216,7 @@ class QuaConfig(_UserDict):
                 "The updated waveform is used in other operations. To force the update, please set the force_update flag to True."
             )
         elif count == 0:
-            raise Exception(
-                f"The operation {operation_name} doesn't have a valid waveform."
-            )
+            raise Exception(f"The operation {operation_name} doesn't have a valid waveform.")
         # Update the waveform
         self.data["waveforms"][wf]["sample"] = amp
 
@@ -257,9 +241,7 @@ class QuaConfig(_UserDict):
         try:
             return self.data["waveforms"][pulse["waveforms"]["single"]]["sample"]
         except KeyError:
-            raise KeyError(
-                "Can only access amplitude for a constant pulse of a single element"
-            )
+            raise KeyError("Can only access amplitude for a constant pulse of a single element")
 
     def update_integration_weight(
         self,
@@ -289,9 +271,9 @@ class QuaConfig(_UserDict):
             )
         if (
             iw_op_name
-            not in self.data["pulses"][
-                self.data["elements"][element]["operations"][operation_name]
-            ]["integration_weights"].keys()
+            not in self.data["pulses"][self.data["elements"][element]["operations"][operation_name]][
+                "integration_weights"
+            ].keys()
         ):
             raise KeyError(
                 f"The integration weight '{iw_op_name}' in not associated to the pulse corresponding to the operation '{operation_name}'."
@@ -309,9 +291,7 @@ class QuaConfig(_UserDict):
                 "The updated integration weights are used in other operations. To force the update, please set the force_update flag to True."
             )
         elif count == 0:
-            raise Exception(
-                f"The integration weights {iw_op_name} are not listed in the config integration weights."
-            )
+            raise Exception(f"The integration weights {iw_op_name} are not listed in the config integration weights.")
 
         self.data["integration_weights"][iw_name] = {"cosine": iw_cos, "sine": iw_sin}
 
@@ -333,13 +313,9 @@ class QuaConfig(_UserDict):
             )
         # Copy operation
         pulse_name = self.data["elements"][element]["operations"][operation_name]
-        self.data["pulses"][element + "_" + new_name + self.pulse_suffix] = _deepcopy(
-            self.data["pulses"][pulse_name]
-        )
+        self.data["pulses"][element + "_" + new_name + self.pulse_suffix] = _deepcopy(self.data["pulses"][pulse_name])
         # Rename the copied operation
-        self.data["elements"][element]["operations"][new_name] = (
-            element + "_" + new_name + self.pulse_suffix
-        )
+        self.data["elements"][element]["operations"][new_name] = element + "_" + new_name + self.pulse_suffix
 
     def update_waveforms(
         self,

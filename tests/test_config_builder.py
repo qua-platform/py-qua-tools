@@ -377,7 +377,7 @@ def test_deprecated_warning():
 
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 1
+    assert len(record.list) == 2
 
     with pytest.warns(None) as record:
         cb = ConfigBuilder()
@@ -387,7 +387,7 @@ def test_deprecated_warning():
         )
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 0
+    assert len(record.list) == 1
 
 def test_digital_input():
     cont = Controller("con1")
