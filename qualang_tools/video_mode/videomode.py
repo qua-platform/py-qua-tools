@@ -12,7 +12,6 @@ from dataclasses import dataclass
 import numpy as np
 
 
-@dataclass
 class ParameterTable:
     """
     Data class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
@@ -25,12 +24,11 @@ class ParameterTable:
         the QUA program.
     """
 
-    parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]
-
-    def __post_init__(self):
+    def __init__(self, parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]):
+        self.parameters_dict = parameters_dict
         self.table = {}
         for index, (parameter_name, parameter_value) in enumerate(
-            self.parameters_dict.items()
+                self.parameters_dict.items()
         ):
             self.table[parameter_name] = {"index": index, "value": parameter_value}
             if isinstance(parameter_value, float):
@@ -64,7 +62,7 @@ class ParameterTable:
             elif isinstance(parameter_value, (List, np.ndarray)):
                 if isinstance(parameter_value, np.ndarray):
                     assert (
-                        parameter_value.ndim == 1
+                            parameter_value.ndim == 1
                     ), "Invalid parameter type, array must be 1D."
                     parameter_value = parameter_value.tolist()
                 assert all(
@@ -124,10 +122,10 @@ class ParameterTable:
                     else:
                         looping_var = declare(int)
                         with for_(
-                            looping_var,
-                            0,
-                            looping_var < parameter["var"].length(),
-                            looping_var + 1,
+                                looping_var,
+                                0,
+                                looping_var < parameter["var"].length(),
+                                looping_var + 1,
                         ):
                             pause()
                             assign(parameter["var"][looping_var], IO2)
@@ -135,27 +133,36 @@ class ParameterTable:
             with default_():
                 pass
 
-    def get_parameters(self, parameter_name: Optional[str] = None):
-        """Print the current values of the parameters in the parameter table
+    def print_parameters(self):
+        text = ""
+        for parameter_name, parameter in self.table.items():
+            text += f"{parameter_name}: {parameter['value']}, \n"
+        print(text)
+
+    def get_parameters(self):
+        """
+        Get dictionary of all parameters with latest updated values
         Args: parameter_name: Name of the parameter to be returned. If None, all parameters are printed.
         Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
                 else parameter_value associated to parameter_name.
         """
-        text = ""
-        if parameter_name is None:
-            for parameter_name, parameter in self.table.items():
-                text += f"{parameter_name}: {parameter['value']}, \n"
-            print(text)
-        else:
-            print(f"{parameter_name}: {self.table[parameter_name]['value']}")
         return (
             {
                 parameter_name: parameter["value"]
                 for parameter_name, parameter in self.table.items()
             }
-            if parameter_name is None
-            else self.table[parameter_name]["value"]
         )
+
+    def get_parameter(self, param_name: str):
+        """
+        Get the value of a specific arameter with latest updated value
+        Args: parameter_name: Name of the parameter to be returned. If None, all parameters are printed.
+        Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
+                else parameter_value associated to parameter_name.
+        """
+        if param_name not in self.table.keys():
+            raise KeyError(f"No parameter named {param_name} in the parameter table.")
+        return self.table[param_name]["value"]
 
     def __getitem__(self, item):
         """
@@ -189,7 +196,7 @@ class VideoMode:
     the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
     """
 
-    _default_io1 = 2**31 - 1
+    _default_io1 = 2 ** 31 - 1
     _default_io2 = 0.0
 
     def __init__(self, qm: QuantumMachine, parameters: Union[Dict, ParameterTable]):
@@ -267,7 +274,7 @@ class VideoMode:
                         self.job.resume()
 
                 elif messages[0] == "get":
-                    self.get_parameters()
+                    self.parameter_table.print_parameters()
 
                 elif messages[0] == "help":
                     print(self.implemented_commands)
@@ -289,8 +296,8 @@ class VideoMode:
                     if self.parameter_table.table[param_name]["type"] == List:
                         param_value = param_value.split()
                         if (
-                            len(param_value)
-                            != self.parameter_table.table[param_name]["length"]
+                                len(param_value)
+                                != self.parameter_table.table[param_name]["length"]
                         ):
                             print(
                                 f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
@@ -424,11 +431,18 @@ class VideoMode:
         """List of the QUA variables corresponding to the parameters in the parameter table."""
         return self.parameter_table.variables
 
-    def get_parameters(self, param_name: Optional[str] = None):
-        """Print the current values of the parameters in the parameter table
+    def get_parameters(self):
+        """
+        Get dictionary of parameters with latest updated values
         Returns: Dictionary of the form { "parameter_name": parameter_value }.
         """
-        self.parameter_table.get_parameters(param_name)
+        return self.parameter_table.get_parameters()
+
+    def get_parameter(self, param_name: Optional[str] = None):
+        """
+        Get the value of a parameter with latest updated values
+        """
+        return self.parameter_table.get_parameter(param_name)
 
     def load_parameters(self, pause_program=False):
         """
