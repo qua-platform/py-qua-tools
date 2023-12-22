@@ -12,9 +12,58 @@ from dataclasses import dataclass
 import numpy as np
 
 
+class ParameterValue:
+    def __init__(
+        self, name: str, value: Union[int, float, List, np.ndarray], index: int
+    ):
+        """ """
+        self.name = name
+        self.value = value
+        self.index = index
+        self.var = None
+
+        if isinstance(value, float):
+            if float(value).is_integer() and value > 8:
+                self.type = int
+            else:
+                self.type = fixed
+
+            self.length = 0
+
+        elif isinstance(value, bool):
+            self.type = bool
+            self.length = 0
+
+        elif isinstance(value, int):
+            self.type = int
+            self.length = 0
+
+        elif isinstance(value, (List, np.ndarray)):
+            if isinstance(value, np.ndarray):
+                assert value.ndim == 1, "Invalid parameter type, array must be 1D."
+                value = value.tolist()
+            assert all(
+                isinstance(x, type(value[0])) for x in value
+            ), "Invalid parameter type, all elements must be of same type."
+            if isinstance(value[0], bool):
+                self.type, self.length = bool, len(value)
+            elif isinstance(value[0], int):
+                self.type, self.length = int, len(value)
+            elif isinstance(value[0], float):
+                self.type, self.length = fixed, len(value)
+            self.value = value
+        else:
+            raise ValueError(
+                "Invalid parameter type. Please use float, int or bool or list."
+            )
+
+    def __repr__(self):
+        print(self.name, f"({self.value})")
+
+
 class ParameterTable:
     """
-    Data class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
+    Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
     The type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
     Each parameter in the dictionary should be given a name that the user can then easily access through the table with
     table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
@@ -24,78 +73,34 @@ class ParameterTable:
         the QUA program.
     """
 
-    def __init__(self, parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]):
+    def __init__(
+        self, parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]
+    ):
+        """
+        Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
+        The type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
+        Each parameter in the dictionary should be given a name that the user can then easily access through the table with
+        table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
+        and its associated Python initial value.
+        Args:
+            parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
+
+        """
         self.parameters_dict = parameters_dict
         self.table = {}
         for index, (parameter_name, parameter_value) in enumerate(
-                self.parameters_dict.items()
+            self.parameters_dict.items()
         ):
-            self.table[parameter_name] = {"index": index, "value": parameter_value}
-            if isinstance(parameter_value, float):
-                if float(parameter_value).is_integer() and parameter_value > 8:
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(int, value=int({parameter_value}))"
-                    self.table[parameter_name]["type"] = int
-                else:
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(fixed, value={parameter_value})"
-                    self.table[parameter_name]["type"] = float
-
-                self.table[parameter_name]["length"] = 0
-
-            elif isinstance(parameter_value, bool):
-                self.table[parameter_name][
-                    "declare_expression"
-                ] = f"declare(bool, value={parameter_value})"
-                self.table[parameter_name]["type"] = bool
-                self.table[parameter_name]["length"] = 0
-
-            elif isinstance(parameter_value, int):
-                self.table[parameter_name][
-                    "declare_expression"
-                ] = f"declare(int, value={parameter_value})"
-                self.table[parameter_name]["type"] = int
-                self.table[parameter_name]["length"] = 0
-
-            elif isinstance(parameter_value, (List, np.ndarray)):
-                if isinstance(parameter_value, np.ndarray):
-                    assert (
-                            parameter_value.ndim == 1
-                    ), "Invalid parameter type, array must be 1D."
-                    parameter_value = parameter_value.tolist()
-                assert all(
-                    isinstance(x, type(parameter_value[0])) for x in parameter_value
-                ), "Invalid parameter type, all elements must be of same type."
-                if isinstance(parameter_value[0], bool):
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(bool, value={parameter_value})"
-                elif isinstance(parameter_value[0], int):
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(int, value={parameter_value})"
-                elif isinstance(parameter_value[0], float):
-                    self.table[parameter_name][
-                        "declare_expression"
-                    ] = f"declare(fixed, value={parameter_value})"
-                self.table[parameter_name]["type"] = type(parameter_value)
-                self.table[parameter_name]["length"] = len(parameter_value)
-
-            else:
-                raise ValueError(
-                    "Invalid parameter type. Please use float, int or bool or list."
-                )
+            self.table[parameter_name] = ParameterValue(
+                parameter_name, parameter_value, index
+            )
 
     def declare_variables(self):
         """
         QUA Macro to create the QUA variables associated with the parameter table.
         """
         for parameter_name, parameter in self.table.items():
-            if parameter["declare_expression"] is not None:
-                exec(f"{parameter_name} = {parameter['declare_expression']}")
-                self.table[parameter_name]["var"] = eval(parameter_name)
+            parameter.var = declare(t=parameter.type, value=parameter.value)
         pause()
         if len(self.variables) == 1:
             return self.variables[0]
@@ -116,19 +121,19 @@ class ParameterTable:
 
         with switch_(param_index_var):
             for parameter in self.table.values():
-                with case_(parameter["index"]):
-                    if parameter["length"] == 0:
-                        assign(parameter["var"], IO2)
+                with case_(parameter.index):
+                    if parameter.length == 0:
+                        assign(parameter.var, IO2)
                     else:
                         looping_var = declare(int)
                         with for_(
-                                looping_var,
-                                0,
-                                looping_var < parameter["var"].length(),
-                                looping_var + 1,
+                            looping_var,
+                            0,
+                            looping_var < parameter.var.length(),
+                            looping_var + 1,
                         ):
                             pause()
-                            assign(parameter["var"][looping_var], IO2)
+                            assign(parameter.var[looping_var], IO2)
 
             with default_():
                 pass
@@ -136,7 +141,7 @@ class ParameterTable:
     def print_parameters(self):
         text = ""
         for parameter_name, parameter in self.table.items():
-            text += f"{parameter_name}: {parameter['value']}, \n"
+            text += f"{parameter_name}: {parameter.value}, \n"
         print(text)
 
     def get_parameters(self):
@@ -146,12 +151,10 @@ class ParameterTable:
         Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
                 else parameter_value associated to parameter_name.
         """
-        return (
-            {
-                parameter_name: parameter["value"]
-                for parameter_name, parameter in self.table.items()
-            }
-        )
+        return {
+            parameter_name: parameter.value
+            for parameter_name, parameter in self.table.items()
+        }
 
     def get_parameter(self, param_name: str):
         """
@@ -162,14 +165,14 @@ class ParameterTable:
         """
         if param_name not in self.table.keys():
             raise KeyError(f"No parameter named {param_name} in the parameter table.")
-        return self.table[param_name]["value"]
+        return self.table[param_name].value
 
     def __getitem__(self, item):
         """
         Returns the QUA variable corresponding to the parameter name.
         """
         try:
-            return self.table[item]["var"]
+            return self.table[item].var
         except KeyError:
             raise KeyError(
                 f"No QUA variable found for parameter {item}. Please use "
@@ -196,7 +199,7 @@ class VideoMode:
     the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
     """
 
-    _default_io1 = 2 ** 31 - 1
+    _default_io1 = 2**31 - 1
     _default_io2 = 0.0
 
     def __init__(self, qm: QuantumMachine, parameters: Union[Dict, ParameterTable]):
@@ -280,7 +283,7 @@ class VideoMode:
                     print(self.implemented_commands)
 
                 elif messages[0] in self.parameter_table.table.keys():
-                    print(self.parameter_table.table[messages[0]]["value"])
+                    print(self.parameter_table.table[messages[0]].value)
 
                 else:
                     print(f"Invalid input. {messages[0]} is not a valid command.")
@@ -289,19 +292,17 @@ class VideoMode:
                 param_name = messages[0]
                 param_value = messages[1]
                 if param_name in self.parameter_table.table.keys():
-                    self.qm.set_io1_value(
-                        self.parameter_table.table[param_name]["index"]
-                    )
+                    self.qm.set_io1_value(self.parameter_table.table[param_name].index)
 
-                    if self.parameter_table.table[param_name]["type"] == List:
+                    if isinstance(self.parameter_table.table[param_name].value, list):
                         param_value = param_value.split()
                         if (
-                                len(param_value)
-                                != self.parameter_table.table[param_name]["length"]
+                            len(param_value)
+                            != self.parameter_table.table[param_name].length
                         ):
                             print(
                                 f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
-                                f"{self.parameter_table.table[param_name]['length']}."
+                                f"{self.parameter_table.table[param_name].length}."
                             )
                         elif param_value[0].isnumeric():
                             try:
@@ -340,11 +341,11 @@ class VideoMode:
                             while not (self.job.is_paused()):
                                 time.sleep(0.001)
                             self.qm.set_io2_value(value)
-                            self.parameter_table.table[param_name]["value"] = value
+                            self.parameter_table.table[param_name].value = value
                             self.job.resume()
 
                     else:
-                        if self.parameter_table.table[param_name]["type"] == int:
+                        if self.parameter_table.table[param_name].type == int:
                             if not param_value.isnumeric():
                                 print(
                                     f"Invalid input. {self.parameter_table[param_name]} should be an integer."
@@ -359,7 +360,7 @@ class VideoMode:
                                     )
                                     continue
 
-                        elif self.parameter_table.table[param_name]["type"] == float:
+                        elif self.parameter_table.table[param_name].type == fixed:
                             try:
                                 param_value = float(param_value)
                             except ValueError:
@@ -368,7 +369,7 @@ class VideoMode:
                                 )
                                 continue
 
-                        elif self.parameter_table.table[param_name]["type"] == bool:
+                        elif self.parameter_table.table[param_name].type == bool:
                             if param_value not in ["True", "False", "0", "1"]:
                                 print(
                                     f"Invalid input. {self.parameter_table[param_name]} should be a boolean."
@@ -388,7 +389,7 @@ class VideoMode:
                             )
 
                         self.qm.set_io2_value(param_value)
-                        self.parameter_table.table[param_name]["value"] = param_value
+                        self.parameter_table.table[param_name].value = param_value
 
                 else:
                     print(f"Invalid input. {param_name} is not a valid parameter name.")
