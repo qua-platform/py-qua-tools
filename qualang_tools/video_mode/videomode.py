@@ -8,7 +8,6 @@ from qm import QuantumMachine, QmJob, Program
 import time
 import signal
 from typing import Optional, List, Dict, Union
-from dataclasses import dataclass
 import numpy as np
 
 
@@ -23,7 +22,7 @@ class ParameterValue:
         self.var = None
 
         if isinstance(value, float):
-            if float(value).is_integer() and value > 8:
+            if value.is_integer() and value > 8:
                 self.type = int
             else:
                 self.type = fixed
@@ -171,13 +170,12 @@ class ParameterTable:
         """
         Returns the QUA variable corresponding to the parameter name.
         """
-        try:
+
+        if self.table[item].var is not None:
             return self.table[item].var
-        except KeyError:
-            raise KeyError(
-                f"No QUA variable found for parameter {item}. Please use "
-                f"VideoMode.declare_variables() within QUA program first."
-            )
+        else:
+            raise ValueError(f"No QUA variable found for parameter {item}. Please use "
+            f"VideoMode.declare_variables() within QUA program first.")
 
     @property
     def variables(self):

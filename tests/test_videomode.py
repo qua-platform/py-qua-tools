@@ -8,7 +8,7 @@ from qualang_tools.video_mode import ParameterTable
 
 def gauss(amplitude, mu, sigma, length):
     t = np.linspace(-length / 2, length / 2, length)
-    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma**2))
+    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
     return [float(x) for x in gauss_wave]
 
 
@@ -17,7 +17,7 @@ def config():
     def IQ_imbalance(g, phi):
         c = np.cos(phi)
         s = np.sin(phi)
-        N = 1 / ((1 - g**2) * (2 * c**2 - 1))
+        N = 1 / ((1 - g ** 2) * (2 * c ** 2 - 1))
         return [
             float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
         ]
@@ -129,12 +129,13 @@ def param_dict():
 def test_is_parameter_table_valid(param_dict):
     param_table = ParameterTable(param_dict)
     for i, (param_name, param) in enumerate(param_table.table.items()):
-        assert param["index"] == i
+        assert param.index == i
         assert (
-            param["type"] == type(param["value"])
-            if not isinstance(param["value"], np.ndarray)
-            else list
-        )
+            param.type == type(param.value) if isinstance(param.value, (bool, int)) else fixed
 
-        with pytest.raises(KeyError):
+        )
+        if isinstance(param.value, List):
+            assert param.length == len(param.value)
+
+        with pytest.raises(ValueError):
             var = param_table[param_name]
