@@ -111,9 +111,8 @@ class ParameterTable:
         table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
         and its associated Python initial value.
         Args:
-            parameters_dict: Dictionary can be of the form { "parameter_name": (initial_value, qua_type) }
+            parameters_dict: Dictionary should be of the form { "parameter_name": (initial_value, qua_type) }
             where qua_type is the type of the QUA variable to be declared (int, fixed, bool).
-            or {"parameter_name": initial_value}. If latter format is chosen, QUA type is automatically inferred from the type of the initial_value.
 
 
         """
@@ -255,9 +254,8 @@ class VideoMode:
         The video mode will then automatically create the corresponding QUA variables and update them through user
         input.
 
-        Parameters dictionary can be of the form:
-         ```{"parameter_name": initial_parameter_value }```.
-         or ```{"parameter_name": (initial_parameter_value, qua_type) }```
+        Parameters dictionary should be of the form:
+         ```{"parameter_name": (initial_parameter_value, qua_type) }```
             where ```qua_type``` is the type of the QUA variable to be declared (int, fixed, bool).
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
