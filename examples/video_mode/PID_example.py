@@ -139,12 +139,12 @@ if __name__ == "__main__":
     qm = qmm.open_qm(config)
     # Define the parameters to be updated in video mode with their initial value
     param_dict = {
-        "bitshift_scale_factor": 3,
-        "gain_P": -1e-4,  # The proportional gain
-        "gain_I": 0.0,  # The integration gain
-        "gain_D": 0.0,  # The derivative gain
-        "alpha": 0.0,  # The ratio between integration and proportional error
-        "target": 0.0,  # The target value
+        "bitshift_scale_factor": (3, int),
+        "gain_P": (-1e-4, fixed),  # The proportional gain
+        "gain_I": (0.0, fixed),  # The integration gain
+        "gain_D": (0.0, fixed),  # The derivative gain
+        "alpha": (0.0, fixed),  # The ratio between integration and proportional error
+        "target": (0.0, fixed),  # The target value
     }
     # Initialize the video mode
     video_mode = VideoMode(qm, param_dict)

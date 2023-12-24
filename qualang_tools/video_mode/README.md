@@ -9,20 +9,8 @@ We present here the ```VideoMode``` which enables such dynamic parameter tuning.
 The user can declare a ``VideoMode`` instance by passing in a ```QuantumMachine``` instance and a dictionary of
 parameters intended to be updated dynamically.
 
-The dictionary can be of the form:
+The dictionary should be of the form:
 
-```
-parameters_dict = {
-    'parameter_name_1': parameter_value_1,
-    'parameter_name_2': parameter_value_2,
-    ...
-}
-```
-The values of the dictionary can be initial Python variables for which a QUA variable can be declared. The possible types are:
-- ```bool```, ```ìnt``` ,```float```(the latter would be cast to QUA ```fixed```)
-- ```list``` or 1D ```ndarray``` (to be cast to QUA ```array```)
-
-Alternatively, the user can also specify directly which type should be used for the QUA variable by defining the dictionary as follows:
 
 ```
 parameters_dict = {
@@ -33,6 +21,7 @@ parameters_dict = {
 ```
 where ```qua_type``` can be ```bool```, ```ìnt``` or ```fixed```.
 If a list of values is provided, the subsequent QUA variable will be a QUA array of specified type.
+
 
 The simplest declaration of the VideoMode can be done as follows:
 ```
