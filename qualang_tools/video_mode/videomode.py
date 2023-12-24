@@ -11,53 +11,75 @@ from typing import Optional, List, Dict, Union
 import numpy as np
 
 
+def set_type(qua_type: Union[str, type]):
+    """
+    Set the type of the QUA variable to be declared.
+    Args: qua_type: Type of the QUA variable to be declared (int, fixed, bool).
+    """
+
+    if qua_type == "fixed" or qua_type == fixed:
+        return fixed
+    elif qua_type == "bool" or qua_type == bool:
+        return bool
+    elif qua_type == "int" or qua_type == int:
+        return int
+    else:
+        raise ValueError("Invalid QUA type. Please use 'fixed', 'int' or 'bool'.")
+
+
+def infer_type(value: Union[int, float, List, np.ndarray] = None):
+    """
+    Infer automatically the type of the QUA variable to be declared from the type of the initial parameter value.
+    """
+    if isinstance(value, float):
+        if value.is_integer() and value > 8:
+            return int
+        else:
+            return fixed
+
+    elif isinstance(value, bool):
+        return bool
+
+    elif isinstance(value, int):
+        return int
+
+    elif isinstance(value, (List, np.ndarray)):
+        if isinstance(value, np.ndarray):
+            assert value.ndim == 1, "Invalid parameter type, array must be 1D."
+            value = value.tolist()
+        assert all(
+            isinstance(x, type(value[0])) for x in value
+        ), "Invalid parameter type, all elements must be of same type."
+        if isinstance(value[0], bool):
+            return bool
+        elif isinstance(value[0], int):
+            return int
+        elif isinstance(value[0], float):
+            return fixed
+    else:
+        raise ValueError(
+            "Invalid parameter type. Please use float, int or bool or list."
+        )
+
+
 class ParameterValue:
     def __init__(
-        self, name: str, value: Union[int, float, List, np.ndarray], index: int
+        self,
+        name: str,
+        value: Union[int, float, List, np.ndarray],
+        index: int,
+        qua_type: Optional[Union[str, type]] = None,
     ):
         """ """
         self.name = name
         self.value = value
         self.index = index
         self.var = None
-
-        if isinstance(value, float):
-            if value.is_integer() and value > 8:
-                self.type = int
-            else:
-                self.type = fixed
-
-            self.length = 0
-
-        elif isinstance(value, bool):
-            self.type = bool
-            self.length = 0
-
-        elif isinstance(value, int):
-            self.type = int
-            self.length = 0
-
-        elif isinstance(value, (List, np.ndarray)):
-            if isinstance(value, np.ndarray):
-                assert value.ndim == 1, "Invalid parameter type, array must be 1D."
-                value = value.tolist()
-            assert all(
-                isinstance(x, type(value[0])) for x in value
-            ), "Invalid parameter type, all elements must be of same type."
-            if isinstance(value[0], bool):
-                self.type, self.length = bool, len(value)
-            elif isinstance(value[0], int):
-                self.type, self.length = int, len(value)
-            elif isinstance(value[0], float):
-                self.type, self.length = fixed, len(value)
-            self.value = value
-        else:
-            raise ValueError(
-                "Invalid parameter type. Please use float, int or bool or list."
-            )
+        self.type = set_type(qua_type) if qua_type is not None else infer_type(value)
+        self.length = 0 if not isinstance(value, (List, np.ndarray)) else len(value)
 
     def __repr__(self):
-        print(self.name, f"({self.value})")
+        print(self.name, f"({self.value}, {self.type}) \n")
 
 
 class ParameterTable:
@@ -73,16 +95,26 @@ class ParameterTable:
     """
 
     def __init__(
-        self, parameters_dict: Dict[str, Union[float, int, bool, List, np.ndarray]]
+        self,
+        parameters_dict: Dict[
+            str,
+            Union[
+                Tuple[Union[float, int, bool, List, np.ndarray], Optional[str]],
+                Union[float, int, bool, List, np.ndarray],
+            ],
+        ],
     ):
         """
         Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
-        The type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
+        The type of the QUA variable to be adjusted can be specified or either be automatically inferred from the type of the initial_parameter_value.
         Each parameter in the dictionary should be given a name that the user can then easily access through the table with
         table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
         and its associated Python initial value.
         Args:
-            parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
+            parameters_dict: Dictionary can be of the form { "parameter_name": (initial_value, qua_type) }
+            where qua_type is the type of the QUA variable to be declared (int, fixed, bool).
+            or {"parameter_name": initial_value}. If latter format is chosen, QUA type is automatically inferred from the type of the initial_value.
+
 
         """
         self.parameters_dict = parameters_dict
@@ -90,9 +122,18 @@ class ParameterTable:
         for index, (parameter_name, parameter_value) in enumerate(
             self.parameters_dict.items()
         ):
-            self.table[parameter_name] = ParameterValue(
-                parameter_name, parameter_value, index
-            )
+            if isinstance(parameter_value, tuple):
+                if len(parameter_value) != 2:
+                    raise ValueError(
+                        "Invalid format for parameter value. Please use (initial_value, qua_type) or initial_value."
+                    )
+                self.table[parameter_name] = ParameterValue(
+                    parameter_name, parameter_value[0], index, parameter_value[1]
+                )
+            else:
+                self.table[parameter_name] = ParameterValue(
+                    parameter_name, parameter_value, index
+                )
 
     def declare_variables(self):
         """
@@ -174,8 +215,10 @@ class ParameterTable:
         if self.table[item].var is not None:
             return self.table[item].var
         else:
-            raise ValueError(f"No QUA variable found for parameter {item}. Please use "
-            f"VideoMode.declare_variables() within QUA program first.")
+            raise ValueError(
+                f"No QUA variable found for parameter {item}. Please use "
+                f"VideoMode.declare_variables() within QUA program first."
+            )
 
     @property
     def variables(self):
@@ -187,6 +230,10 @@ class ParameterTable:
                 "No QUA variables found for parameters. Please use "
                 "VideoMode.declare_variables() within QUA program first."
             )
+
+    def __repr__(self):
+        for parameter in self.table.values():
+            print(parameter)
 
 
 class VideoMode:
@@ -208,8 +255,10 @@ class VideoMode:
         The video mode will then automatically create the corresponding QUA variables and update them through user
         input.
 
-        Parameters dictionary should be of the form:
+        Parameters dictionary can be of the form:
          ```{"parameter_name": initial_parameter_value }```.
+         or ```{"parameter_name": (initial_parameter_value, qua_type) }```
+            where ```qua_type``` is the type of the QUA variable to be declared (int, fixed, bool).
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 

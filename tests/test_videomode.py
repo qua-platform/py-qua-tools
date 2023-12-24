@@ -8,7 +8,7 @@ from qualang_tools.video_mode import ParameterTable
 
 def gauss(amplitude, mu, sigma, length):
     t = np.linspace(-length / 2, length / 2, length)
-    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma ** 2))
+    gauss_wave = amplitude * np.exp(-((t - mu) ** 2) / (2 * sigma**2))
     return [float(x) for x in gauss_wave]
 
 
@@ -17,7 +17,7 @@ def config():
     def IQ_imbalance(g, phi):
         c = np.cos(phi)
         s = np.sin(phi)
-        N = 1 / ((1 - g ** 2) * (2 * c ** 2 - 1))
+        N = 1 / ((1 - g**2) * (2 * c**2 - 1))
         return [
             float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
         ]
@@ -115,14 +115,14 @@ def config():
 @pytest.fixture
 def param_dict():
     return {
-        "amp": 0.1,
-        "gauss_amp": 0.2,
-        "amp_array": np.arange(0.1, 0.3, 0.1),
-        "gauss_amp_array": [0.2, 0.3, 0.4],
-        "bool_param": True,
-        "bool_param_array": [True, False],
-        "int_param": 1,
-        "int_param_array": [1, 2, 3],
+        "amp": (0.1, fixed),
+        "gauss_amp": 0.2,  # qua_type will be inferred
+        "amp_array": (np.arange(0.1, 0.3, 0.1), "fixed"),
+        "gauss_amp_array": [0.2, 0.3, 0.4],  # qua_type will be inferred
+        "bool_param": (True, "bool"),
+        "bool_param_array": [True, False],  # qua_type will be inferred
+        "int_param": 1,  # qua_type will be inferred
+        "int_param_array": ([1, 2, 3], "int"),
     }
 
 
@@ -130,10 +130,17 @@ def test_is_parameter_table_valid(param_dict):
     param_table = ParameterTable(param_dict)
     for i, (param_name, param) in enumerate(param_table.table.items()):
         assert param.index == i
-        assert (
-            param.type == type(param.value) if isinstance(param.value, (bool, int)) else fixed
-
-        )
+        if isinstance(param_dict[param_name], tuple):
+            if isinstance(param_dict[param_name][1], str):
+                assert param.type is eval(param_dict[param_name][1])
+            else:
+                assert param.type is param_dict[param_name][1]
+        else:
+            assert (
+                param.type is type(param.value)
+                if isinstance(param.value, (bool, int))
+                else fixed
+            )
         if isinstance(param.value, List):
             assert param.length == len(param.value)
 
