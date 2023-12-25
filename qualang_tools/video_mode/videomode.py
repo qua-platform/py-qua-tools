@@ -84,14 +84,12 @@ class ParameterValue:
 
 class ParameterTable:
     """
-    Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
-    The type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
-    Each parameter in the dictionary should be given a name that the user can then easily access through the table with
-    table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
-    and its associated Python initial value.
-    Args:
-        parameters_dict: Dictionary of the form { "parameter_name": initial_parameter_value }.
-        the QUA program.
+    Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables. The
+    type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
+    Each parameter in the dictionary should be given a name that the user can then easily access through the table
+    with table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding
+    to the parameter name and its associated Python initial value. Args: parameters_dict: Dictionary of the form {
+    "parameter_name": initial_parameter_value }. the QUA program.
     """
 
     def __init__(
@@ -106,13 +104,12 @@ class ParameterTable:
     ):
         """
         Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
-        The type of the QUA variable to be adjusted can be specified or either be automatically inferred from the type of the initial_parameter_value.
-        Each parameter in the dictionary should be given a name that the user can then easily access through the table with
-        table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding to the parameter name
-        and its associated Python initial value.
-        Args:
-            parameters_dict: Dictionary should be of the form { "parameter_name": (initial_value, qua_type) }
-            where qua_type is the type of the QUA variable to be declared (int, fixed, bool).
+        The type of the QUA variable to be adjusted can be specified or either be automatically inferred from the
+        type of the initial_parameter_value. Each parameter in the dictionary should be given a name that the user
+        can then easily access through the table with table[parameter_name]. Calling this will return the QUA
+        variable built within the QUA program corresponding to the parameter name and its associated Python initial
+        value. Args: parameters_dict: Dictionary should be of the form { "parameter_name": (initial_value,
+        qua_type) } where qua_type is the type of the QUA variable to be declared (int, fixed, bool).
 
 
         """
@@ -260,12 +257,12 @@ class VideoMode:
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 
-        - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be updated.
-        - ```load_parameters```: This method will load the updated values for the parameters through IO variables  1 and 2.
-        The user can then start the video mode outside the QUA program by calling the ```execute``` method of this class.
-        This will start a new parallel thread in charge of updating the parameters in the parameter table through user input.
-        The user can stop the video mode by entering 'stop' in the terminal.
-        The user can also resume a paused program by entering 'done' again in the terminal.
+        - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be
+        updated. - ```load_parameters```: This method will load the updated values for the parameters through IO
+        variables  1 and 2. The user can then start the video mode outside the QUA program by calling the
+        ```execute``` method of this class. This will start a new parallel thread in charge of updating the
+        parameters in the parameter table through user input. The user can stop the video mode by entering 'stop' in
+        the terminal. The user can also resume a paused program by entering 'done' again in the terminal.
 
         Args:
             qm: Quantum Machine object.
@@ -376,7 +373,10 @@ class VideoMode:
 
                         assert all(
                             isinstance(x, type(param_value[0])) for x in param_value
-                        ), f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the same type."
+                        ), (
+                            f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the "
+                            f"same type."
+                        )
 
                         if self.job.is_paused():
                             # If the program is paused before param loading,
