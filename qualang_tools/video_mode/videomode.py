@@ -257,16 +257,17 @@ class VideoMode:
 
         The way this is done is by adding two methods of this class at the beginning of the QUA program declaration:
 
-        - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be
-        updated. - ```load_parameters```: This method will load the updated values for the parameters through IO
-        variables  1 and 2. The user can then start the video mode outside the QUA program by calling the
-        ```execute``` method of this class. This will start a new parallel thread in charge of updating the
+        - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be updated.
+        - ```load_parameters```: This method will load the updated values for the parameters through IO variables  1 and 2.
+
+        The user can then start the video mode outside the QUA program by calling the ```execute``` method of this class.
+        This will start a new parallel thread in charge of updating the
         parameters in the parameter table through user input. The user can stop the video mode by entering 'stop' in
         the terminal. The user can also resume a paused program by entering 'done' again in the terminal.
 
         Args:
             qm: Quantum Machine object.
-            parameters: Dictionary or ParameterTable containing the parameters to be updated and their initial values.
+            parameters: Dictionary or ParameterTable containing the parameters to be updated and their initial values and types.
         """
         self.qm = qm
         self.job = None
@@ -280,12 +281,12 @@ class VideoMode:
         self.stop_event = threading.Event()
         self.implemented_commands = (
             "List of implemented commands: \n "
-            "get: returns the current value of the parameters. \n "
+            "get: return the current value of the parameters. \n "
             "stop: quit VideoMode. \n "
             "done: resume program (if pause_program==True). \n "
-            "help: displays the list of available commands. \n "
-            "'param_name'='param_value': sets the parameter to the specified value (ex: V1=0.152).\n "
-            "'param_name': returns the value of the parameter.\n"
+            "help: display the list of available commands. \n "
+            "'param_name'='param_value': set the parameter to the specified value (ex: V1=0.152).\n "
+            "'param_name': return the value of the parameter.\n"
         )
 
         signal.signal(signal.SIGINT, self.signal_handler)
