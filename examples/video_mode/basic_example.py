@@ -48,7 +48,7 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
     # Open the Quantum Machine
     qm = qmm.open_qm(config)
-    # Define the parameters to be updated in video mode with their initial value
+    # Define the parameters to be updated in video mode with their initial value and QUA type
     param_dict = {
         "dc_offset_1": (0.0, fixed),
         "dc_offset_2": (0.0, fixed),

@@ -137,7 +137,7 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
     # Open the Quantum Machine
     qm = qmm.open_qm(config)
-    # Define the parameters to be updated in video mode with their initial value
+    # Define the parameters to be updated in video mode with their initial value and QUA type
     param_dict = {
         "bitshift_scale_factor": (3, int),
         "gain_P": (-1e-4, fixed),  # The proportional gain
