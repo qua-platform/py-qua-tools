@@ -171,18 +171,23 @@ def update_correction_for_each_IF(
     return IFs, c00, c01, c10, c11
 
 
-def calibrate_several_frequencies(
+def octave_calibration(
     qm: QuantumMachine,
     element: str,
-    lo_frequencies: Union[list, np.ndarray],
-    intermediate_frequencies: Union[list, np.ndarray],
+    lo_frequencies: Union[int, float, list, np.ndarray],
+    intermediate_frequencies: Union[int, float, list, np.ndarray],
 ):
     """Calibrate a given element for a list of LO and intermediate frequencies.
-
     :param qm: the quantum machine object.
     :param element: the element to calibrate.
-    :param lo_frequencies: list of LO frequencies to calibrate.
-    :param intermediate_frequencies: list of Intermediate frequencies to calibrate.
+    :param lo_frequencies: single value or list of LO frequencies to calibrate in Hz.
+    :param intermediate_frequencies: single value or list of Intermediate frequencies to calibrate in Hz.
     """
+    if not isinstance(lo_frequencies, Union[list, np.ndarray]):
+        lo_frequencies = [lo_frequencies]
+
+    if not isinstance(intermediate_frequencies, Union[list, np.ndarray]):
+        intermediate_frequencies = [intermediate_frequencies]
+
     for lo in lo_frequencies:
         qm.calibrate_element(element, {lo: tuple(intermediate_frequencies)})
