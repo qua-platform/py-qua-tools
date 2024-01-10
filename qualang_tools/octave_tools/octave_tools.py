@@ -133,7 +133,7 @@ def update_correction_for_each_IF(
     (all LO frequencies and only the ``nb_of_updates``` intermediate frequencies).
 
     The function will return the list on intermediate frequencies at which the correction matrix will be updated in the
-    program and the four coefficients of the correction matrix with one element for each pair (LO, IF).
+    program, the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair (LO, IF).
 
     :param path_to_database: direct path to the calibration database (without '/calibration_db.json').
     :param config: the OPX config dictionary.
@@ -145,8 +145,8 @@ def update_correction_for_each_IF(
     :param calibrate: calibrate all the frequencies involved to the scan (LO and IF for the specified gain). Default is False.
     :param qm: the quantum machine object. Default is None.
     :return: the list on intermediate frequencies at which the correction matrix will be updated in the
-    program and the four coefficients of the correction matrix with one element for each pair (LO, IF):
-    IFs, c00, c01, c10, c11.
+    program, the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair
+    (LO, IF): IFs, c00, c01, c10, c11, offset_I, offset_Q.
     """
     N = len(IF_list)
     IFs = [IF_list[i * N // nb_of_updates] for i in range(nb_of_updates)]
@@ -154,6 +154,8 @@ def update_correction_for_each_IF(
     c01 = []
     c10 = []
     c11 = []
+    offset_I = []
+    offset_Q = []
 
     for lo in LO_list:
         if calibrate and qm is not None:
@@ -162,13 +164,17 @@ def update_correction_for_each_IF(
             raise Exception(
                 "The opened Quantum Machine object must be provided if the flag ```calibrate``` is set to True."
             )
+
         for i in IFs:
             param = get_calibration_parameters(path_to_database, config, element, lo, i, gain)
             c00.append(param["correction_matrix"][0])
             c01.append(param["correction_matrix"][1])
             c10.append(param["correction_matrix"][2])
             c11.append(param["correction_matrix"][3])
-    return IFs, c00, c01, c10, c11
+            if i == IFs[0]:
+                offset_I.append(param["offsets"]["I"])
+                offset_Q.append(param["offsets"]["Q"])
+    return IFs, c00, c01, c10, c11, offset_I, offset_Q
 
 
 def octave_calibration(
