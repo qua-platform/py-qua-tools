@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
 
 ## [0.16.0] - 2024-01-25
 ### Fixed
