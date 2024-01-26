@@ -32,7 +32,7 @@ def drag_gaussian_pulse_waveforms(
         if alpha != 0 and delta == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, step=1e9 / sampling_rate)  # An array of size pulse length in ns
-        center = (length - 1) / 2
+        center = (length - 1e9 / sampling_rate) / 2
         gauss_wave = amplitude * np.exp(-((t - center) ** 2) / (2 * sigma**2))  # The gaussian function
         gauss_der_wave = (
             amplitude * (-2 * 1e9 * (t - center) / (2 * sigma**2)) * np.exp(-((t - center) ** 2) / (2 * sigma**2))
@@ -51,7 +51,7 @@ def drag_gaussian_pulse_waveforms(
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, step=1e9 / sampling_rate)  # An array of size pulse length in ns
-        center = (length - 1) / 2
+        center = (length - 1e9 / sampling_rate) / 2
         gauss_wave = amplitude * np.exp(-((t - center) ** 2) / (2 * sigma**2))  # The gaussian function
         gauss_der_wave = (
             amplitude * (-2 * 1e9 * (t - center) / (2 * sigma**2)) * np.exp(-((t - center) ** 2) / (2 * sigma**2))
@@ -94,7 +94,7 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detunin
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, step=1e9 / sampling_rate)  # An array of size pulse length in ns
-        end_point = length - 1
+        end_point = length - 1e9 / sampling_rate
         cos_wave = 0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))  # The cosine function
         sin_wave = (
             0.5 * amplitude * (2 * np.pi / end_point * 1e9) * np.sin(t * 2 * np.pi / end_point)
@@ -111,7 +111,7 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detunin
         if alpha != 0 and anharmonicity == 0:
             raise Exception("Cannot create a DRAG pulse with `anharmonicity=0`")
         t = np.arange(length, step=1e9 / sampling_rate)  # An array of size pulse length in ns
-        end_point = length - 1
+        end_point = length - 1e9 / sampling_rate
         cos_wave = 0.5 * amplitude * (1 - np.cos(t * 2 * np.pi / end_point))  # The cosine function
         sin_wave = (
             0.5 * amplitude * (2 * np.pi / end_point * 1e9) * np.sin(t * 2 * np.pi / end_point)

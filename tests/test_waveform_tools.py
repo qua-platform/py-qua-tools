@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from matplotlib import pyplot as plt
 from scipy.signal.windows import gaussian, blackman
 
 from qualang_tools.config import (
@@ -16,8 +15,8 @@ from qualang_tools.config.waveform_tools import (
 )
 
 
-@pytest.mark.parametrize("length", [16, 21, 60])
-def test_drag_no_drag_gaussian_to_scipy(length):
+@pytest.mark.parametrize("length, sampling_rate", list(zip([16, 21, 60] * 2, [1e9, 1e9, 1e9, 2e9, 2e9, 2e9])))
+def test_drag_no_drag_gaussian_to_scipy(length, sampling_rate):
     amp = 0.1
     sigma = length // 5
     I_wf, Q_wf = drag_gaussian_pulse_waveforms(
@@ -28,6 +27,7 @@ def test_drag_no_drag_gaussian_to_scipy(length):
         anharmonicity=0,
         detuning=0,
         subtracted=False,
+        sampling_rate=sampling_rate
     )
     I_sub_wf, Q_sub_wf = drag_gaussian_pulse_waveforms(
         amplitude=amp,
@@ -37,15 +37,16 @@ def test_drag_no_drag_gaussian_to_scipy(length):
         anharmonicity=0,
         detuning=0,
         subtracted=True,
+        sampling_rate=sampling_rate
     )
-    gauss = amp * gaussian(length, sigma)
+    gauss = amp * gaussian(int(length * sampling_rate/1e9), sigma * sampling_rate / 1e9)
     sub_gauss = gauss - gauss[0]
     assert (I_wf == gauss).all()
     assert (I_sub_wf == sub_gauss).all()
 
 
-@pytest.mark.parametrize("length", [16, 21, 60])
-def test_drag_no_detune_symmetric(length):
+@pytest.mark.parametrize("length, sampling_rate", list(zip([16, 21, 60] * 2, [1e9, 1e9, 1e9, 2e9, 2e9, 2e9])))
+def test_drag_no_detune_symmetric(length, sampling_rate):
     amp = 0.1
     sigma = length // 5
     I_gauss_wf, Q_gauss_wf = drag_gaussian_pulse_waveforms(
@@ -56,28 +57,29 @@ def test_drag_no_detune_symmetric(length):
         anharmonicity=10e6,
         detuning=0,
         subtracted=False,
+        sampling_rate=sampling_rate
     )
     I_cos_wf, Q_cos_wf = drag_cosine_pulse_waveforms(
-        amplitude=amp, length=length, alpha=0.1, anharmonicity=10e6, detuning=0
+        amplitude=amp, length=length, alpha=0.1, anharmonicity=10e6, detuning=0, sampling_rate=sampling_rate
     )
 
-    I_gauss_first_half = I_gauss_wf[: length // 2]
-    Q_gauss_first_half = Q_gauss_wf[: length // 2]
-    if length % 2 == 0:
-        I_gauss_second_half = I_gauss_wf[length // 2 :]
-        Q_gauss_second_half = Q_gauss_wf[length // 2 :]
+    I_gauss_first_half = I_gauss_wf[: int(length * sampling_rate / 1e9) // 2]
+    Q_gauss_first_half = Q_gauss_wf[: int(length * sampling_rate / 1e9) // 2]
+    if int(length * sampling_rate / 1e9) % 2 == 0:
+        I_gauss_second_half = I_gauss_wf[int(length * sampling_rate / 1e9) // 2 :]
+        Q_gauss_second_half = Q_gauss_wf[int(length * sampling_rate / 1e9) // 2 :]
     else:
-        I_gauss_second_half = I_gauss_wf[length // 2 + 1 :]
-        Q_gauss_second_half = Q_gauss_wf[length // 2 + 1 :]
+        I_gauss_second_half = I_gauss_wf[int(length * sampling_rate / 1e9) // 2 + 1 :]
+        Q_gauss_second_half = Q_gauss_wf[int(length * sampling_rate / 1e9) // 2 + 1 :]
 
-    I_cos_first_half = I_cos_wf[: length // 2]
-    Q_cos_first_half = Q_cos_wf[: length // 2]
-    if length % 2 == 0:
-        I_cos_second_half = I_cos_wf[length // 2 :]
-        Q_cos_second_half = Q_cos_wf[length // 2 :]
+    I_cos_first_half = I_cos_wf[: int(length * sampling_rate / 1e9) // 2]
+    Q_cos_first_half = Q_cos_wf[: int(length * sampling_rate / 1e9) // 2]
+    if int(length * sampling_rate / 1e9) % 2 == 0:
+        I_cos_second_half = I_cos_wf[int(length * sampling_rate / 1e9) // 2 :]
+        Q_cos_second_half = Q_cos_wf[int(length * sampling_rate / 1e9) // 2 :]
     else:
-        I_cos_second_half = I_cos_wf[length // 2 + 1 :]
-        Q_cos_second_half = Q_cos_wf[length // 2 + 1 :]
+        I_cos_second_half = I_cos_wf[int(length * sampling_rate / 1e9) // 2 + 1 :]
+        Q_cos_second_half = Q_cos_wf[int(length * sampling_rate / 1e9) // 2 + 1 :]
 
     assert (np.array(I_gauss_first_half) == np.flip(I_gauss_second_half)).all()
     assert (np.array(Q_gauss_first_half) == -np.flip(Q_gauss_second_half)).all()
@@ -230,17 +232,18 @@ def test_flattop_flat_length(flat_length, rise_fall_length, sampling_rate):
 
 
 @pytest.mark.parametrize(
-    "pulse_length, v_start, v_end",
+    "pulse_length, v_start, v_end, sampling_rate",
     list(
         zip(
-            np.linspace(2, 31, 30).astype(int).tolist() + [10],
-            np.linspace(0, 0.5, 30).tolist() + [-0.2],
-            np.linspace(0.5, 0, 30).tolist() + [-0.2],
+            np.linspace(2, 31, 30).astype(int).tolist(),
+            np.linspace(-0.5, 0.5, 30).tolist(),
+            np.linspace(0.5, -0.5, 30).tolist(),
+            [1e9]*15 + [2e9]*15,
         )
     ),
 )
-def test_blackman_integral_waveform(pulse_length, v_start, v_end):
-    waveform = blackman_integral_waveform(pulse_length, v_start, v_end)
-    assert len(waveform) == pulse_length
+def test_blackman_integral_waveform(pulse_length, v_start, v_end, sampling_rate):
+    waveform = blackman_integral_waveform(pulse_length, v_start, v_end, sampling_rate)
+    assert len(waveform) == int(pulse_length * sampling_rate / 1e9)
     assert np.isclose(waveform[0], v_start, rtol=1e-10)
     assert np.isclose(waveform[-1], v_end, rtol=1e-10)
