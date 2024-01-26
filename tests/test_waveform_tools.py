@@ -145,69 +145,69 @@ def test_drag_zero_delta():
 
 
 @pytest.mark.parametrize(
-    "flat_length, rise_fall_length",
-    list(zip([0, 16, 16, 21, 21, 60, 60], [8, 5, 10, 5, 10, 0, 10])),
+    "flat_length, rise_fall_length, sampling_rate",
+    list(zip([0, 16, 16, 21, 21, 60, 60, 0, 16, 16, 21, 21, 60, 60], [8, 5, 10, 5, 10, 0, 10, 8, 5, 10, 5, 10, 0, 10], [1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9])),
 )
-def test_flattop_flat_length(flat_length, rise_fall_length):
+def test_flattop_flat_length(flat_length, rise_fall_length, sampling_rate):
     amp = 0.1
 
-    flattop_gaussian = flattop_gaussian_waveform(amp, flat_length, rise_fall_length)
-    flattop_cosine = flattop_cosine_waveform(amp, flat_length, rise_fall_length)
-    flattop_tanh = flattop_tanh_waveform(amp, flat_length, rise_fall_length)
-    flattop_blackman = flattop_blackman_waveform(amp, flat_length, rise_fall_length)
+    flattop_gaussian = flattop_gaussian_waveform(amp, flat_length, rise_fall_length, sampling_rate=sampling_rate)
+    flattop_cosine = flattop_cosine_waveform(amp, flat_length, rise_fall_length, sampling_rate=sampling_rate)
+    flattop_tanh = flattop_tanh_waveform(amp, flat_length, rise_fall_length, sampling_rate=sampling_rate)
+    flattop_blackman = flattop_blackman_waveform(amp, flat_length, rise_fall_length, sampling_rate=sampling_rate)
     flattop_gaussian_rise = flattop_gaussian_waveform(
-        amp, flat_length, rise_fall_length, return_part="rise"
+        amp, flat_length, rise_fall_length, return_part="rise", sampling_rate=sampling_rate
     )
     flattop_cosine_rise = flattop_cosine_waveform(
-        amp, flat_length, rise_fall_length, return_part="rise"
+        amp, flat_length, rise_fall_length, return_part="rise", sampling_rate=sampling_rate
     )
     flattop_tanh_rise = flattop_tanh_waveform(
-        amp, flat_length, rise_fall_length, return_part="rise"
+        amp, flat_length, rise_fall_length, return_part="rise", sampling_rate=sampling_rate
     )
     flattop_blackman_rise = flattop_blackman_waveform(
-        amp, flat_length, rise_fall_length, return_part="rise"
+        amp, flat_length, rise_fall_length, return_part="rise", sampling_rate=sampling_rate
     )
     flattop_gaussian_fall = flattop_gaussian_waveform(
-        amp, flat_length, rise_fall_length, return_part="fall"
+        amp, flat_length, rise_fall_length, return_part="fall", sampling_rate=sampling_rate
     )
     flattop_cosine_fall = flattop_cosine_waveform(
-        amp, flat_length, rise_fall_length, return_part="fall"
+        amp, flat_length, rise_fall_length, return_part="fall", sampling_rate=sampling_rate
     )
     flattop_tanh_fall = flattop_tanh_waveform(
-        amp, flat_length, rise_fall_length, return_part="fall"
+        amp, flat_length, rise_fall_length, return_part="fall", sampling_rate=sampling_rate
     )
     flattop_blackman_fall = flattop_blackman_waveform(
-        amp, flat_length, rise_fall_length, return_part="fall"
+        amp, flat_length, rise_fall_length, return_part="fall", sampling_rate=sampling_rate
     )
 
     assert np.allclose(
         flattop_gaussian,
-        flattop_gaussian_rise + [amp] * flat_length + flattop_gaussian_fall,
+        flattop_gaussian_rise + [amp] * int(flat_length * sampling_rate / 1e9) + flattop_gaussian_fall,
         rtol=1e-10,
     )
     assert np.allclose(
         flattop_cosine,
-        flattop_cosine_rise + [amp] * flat_length + flattop_cosine_fall,
+        flattop_cosine_rise + [amp] * int(flat_length * sampling_rate / 1e9) + flattop_cosine_fall,
         rtol=1e-10,
     )
     assert np.allclose(
         flattop_tanh,
-        flattop_tanh_rise + [amp] * flat_length + flattop_tanh_fall,
+        flattop_tanh_rise + [amp] * int(flat_length * sampling_rate / 1e9) + flattop_tanh_fall,
         rtol=1e-10,
     )
     assert np.allclose(
         flattop_blackman,
-        flattop_blackman_rise + [amp] * flat_length + flattop_blackman_fall,
+        flattop_blackman_rise + [amp] * int(flat_length * sampling_rate / 1e9) + flattop_blackman_fall,
         rtol=1e-10,
     )
 
     assert np.allclose(
         flattop_gaussian_rise + flattop_gaussian_fall,
-        (amp * gaussian(2 * rise_fall_length, rise_fall_length / 5)).tolist(),
+        (amp * gaussian(int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / 5 * sampling_rate / 1e9)).tolist(),
         rtol=1e-10,
     )
     cosine_rise_part = (
-        amp * 0.5 * (1 - np.cos(np.linspace(0, np.pi, rise_fall_length)))
+        amp * 0.5 * (1 - np.cos(np.linspace(0, np.pi, int(rise_fall_length * sampling_rate / 1e9))))
     ).tolist()
     assert np.allclose(
         flattop_cosine_rise + flattop_cosine_fall,
@@ -215,7 +215,7 @@ def test_flattop_flat_length(flat_length, rise_fall_length):
         rtol=1e-10,
     )
     tanh_rise_part = (
-        amp * 0.5 * (1 + np.tanh(np.linspace(-4, 4, rise_fall_length)))
+        amp * 0.5 * (1 + np.tanh(np.linspace(-4, 4, int(rise_fall_length * sampling_rate / 1e9))))
     ).tolist()
     assert np.allclose(
         flattop_tanh_rise + flattop_tanh_fall,
@@ -224,7 +224,7 @@ def test_flattop_flat_length(flat_length, rise_fall_length):
     )
     assert np.allclose(
         flattop_blackman_rise + flattop_blackman_fall,
-        (amp * blackman(2 * rise_fall_length)).tolist(),
+        (amp * blackman(2 * int(rise_fall_length * sampling_rate / 1e9))).tolist(),
         rtol=1e-10,
     )
 
