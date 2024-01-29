@@ -140,9 +140,12 @@ def flattop_gaussian_waveform(amplitude, flat_length, rise_fall_length, return_p
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
     the three parts which allows scanning the duration of the flat part is to scanned from QUA
-    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Default is 1G samples/s.
+    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Must be an integer multiple of 1e9 samples per seconds. Default is 1G samples/s.
     :return: Returns the waveform as a list of values with 1ns spacing
     """
+
+    assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
+
     gauss_wave = amplitude * gaussian(
         int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / 5 * sampling_rate / 1e9
     )
@@ -171,9 +174,10 @@ def flattop_cosine_waveform(amplitude, flat_length, rise_fall_length, return_par
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
     the three parts which allows scanning the duration of the flat part is to scanned from QUA
-    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Default is 1G samples/s.
+    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Must be an integer multiple of 1e9 samples per seconds. Default is 1G samples/s.
     :return: Returns the waveform as a list of values with 1ns spacing
     """
+    assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
     rise_part = amplitude * 0.5 * (1 - np.cos(np.linspace(0, np.pi, int(rise_fall_length * sampling_rate / 1e9))))
     rise_part = rise_part.tolist()
     if return_part == "all":
@@ -199,9 +203,10 @@ def flattop_tanh_waveform(amplitude, flat_length, rise_fall_length, return_part=
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
     the three parts which allows scanning the duration of the flat part is to scanned from QUA
-    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Default is 1G samples/s.
+    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Must be an integer multiple of 1e9 samples per seconds. Default is 1G samples/s.
     :return: Returns the waveform as a list of values with 1ns spacing
     """
+    assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
     rise_part = amplitude * 0.5 * (1 + np.tanh(np.linspace(-4, 4, int(rise_fall_length * sampling_rate / 1e9))))
     rise_part = rise_part.tolist()
     if return_part == "all":
@@ -226,9 +231,10 @@ def flattop_blackman_waveform(amplitude, flat_length, rise_fall_length, return_p
     :param str return_part: When set to 'all', returns the complete waveform. Default is 'all'. When set to 'rise',
     returns only the rising part. When set to 'fall', returns only the falling part. This is useful for separating
     the three parts which allows scanning the duration of the  flat part is to scanned from QUA
-    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Default is 1G samples/s.
+    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Must be an integer multiple of 1e9 samples per seconds. Default is 1G samples/s.
     :return: Returns the waveform as a list
     """
+    assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
     backman_wave = amplitude * blackman(2 * int(rise_fall_length * sampling_rate / 1e9))
     rise_part = backman_wave[: int(rise_fall_length * sampling_rate / 1e9)]
     rise_part = rise_part.tolist()
@@ -250,9 +256,10 @@ def blackman_integral_waveform(pulse_length, v_start, v_end, sampling_rate=1e9):
     :param int pulse_length: The pulse length in ns.
     :param float v_start: The starting amplitude in volts.
     :param float v_end: The ending amplitude in volts.
-    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Default is 1G samples/s.
+    :param float sampling_rate: The sampling rate used to describe the waveform, in samples/s. Must be an integer multiple of 1e9 samples per seconds. Default is 1G samples/s.
     :return: Returns the waveform as a list
     """
+    assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
     time = np.linspace(0, pulse_length - 1, int(pulse_length * sampling_rate / 1e9))
     black_wave = v_start + (
         time / (pulse_length - 1)
