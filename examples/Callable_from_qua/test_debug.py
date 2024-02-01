@@ -22,15 +22,15 @@ def qua_print(*args):
 #  Open Communication with the QOP  #
 #####################################
 # Open the quantum machine manager
-# qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
-from qm.simulate.credentials import create_credentials
-from qm.QuantumMachinesManager import QuantumMachinesManager
-
-qmm = QuantumMachinesManager(
-    host="serwan-dd85ae55.dev.quantum-machines.co",
-    port=443,
-    credentials=create_credentials(),
-)
+qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
+# from qm.simulate.credentials import create_credentials
+# from qm.QuantumMachinesManager import QuantumMachinesManager
+#
+# qmm = QuantumMachinesManager(
+#     host="serwan-dd85ae55.dev.quantum-machines.co",
+#     port=443,
+#     credentials=create_credentials(),
+# )
 # Open a quantum machine
 qm = qmm.open_qm(config)
 

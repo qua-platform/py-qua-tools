@@ -52,7 +52,7 @@ class _ProgramScope(_ProgramScope_qua):
 
         return exit_result
 
-
+QM_execute = _QuantumMachine_qua.execute
 class QuantumMachine(_QuantumMachine_qua):
     def execute(
         self,
@@ -64,7 +64,8 @@ class QuantumMachine(_QuantumMachine_qua):
         simulate: Optional[SimulationConfig] = None,
         compiler_options: Optional[CompilerOptionArguments] = None,
     ) -> RunningQmJob:
-        return_val = super().execute(
+        return_val = QM_execute(
+            self,
             program,
             duration_limit,
             data_limit,
