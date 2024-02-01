@@ -43,7 +43,7 @@ class QuaCallable:
         align()
         self._args = [
             self._convert_to_qua_arg(f"__pos__{i}", arg) for i, arg in enumerate(args)
-        ]      
+        ]
         self._kwargs = {
             name: self._convert_to_qua_arg(name, arg) for name, arg in kwargs.items()
         }
