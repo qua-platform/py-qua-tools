@@ -15,7 +15,6 @@ def qua_print(*args):
     for i in range(0, len(args) - 1, 2):
         text += f"{args[i]} = {args[i+1]} | "
     print(text)
-    print("HELLOOOO")
 
 
 #####################################

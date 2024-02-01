@@ -7,7 +7,7 @@ from qm.QmJob import QmJob
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
 from qm.QuantumMachine import QuantumMachine
-from qm.qua._dsl import _ResultSource, _Variable, align
+from qm.qua._dsl import _ResultSource, _Variable, align, _get_scope_as_program
 
 __all__ = ["ProgramAddon", "callable_from_qua", "enable_callable_from_qua"]
 
@@ -190,6 +190,9 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        program = _get_scope_as_program()
+        if "callable_from_qua" not in program.addons:
+            program.addons["callable_from_qua"] = QuaCallableEventManager
         active_program_manager = QuaCallableEventManager._active_program_manager
         active_program_manager.register_qua_callable(func, *args, **kwargs)
 
