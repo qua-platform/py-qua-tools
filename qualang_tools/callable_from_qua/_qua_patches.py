@@ -64,10 +64,7 @@ class QuantumMachine(_QuantumMachine_qua):
         simulate: Optional[SimulationConfig] = None,
         compiler_options: Optional[CompilerOptionArguments] = None,
     ) -> RunningQmJob:
-        for program_addon in program.addons.values():
-            program_addon.execute_program(program=program, quantum_machine=self)
-
-        return super().execute(
+        return_val = super().execute(
             program,
             duration_limit,
             data_limit,
@@ -76,6 +73,11 @@ class QuantumMachine(_QuantumMachine_qua):
             simulate,
             compiler_options,
         )
+
+        for program_addon in program.addons.values():
+            program_addon.execute_program(program=program, quantum_machine=self)
+
+        return return_val
 
 
 def patch_callable_from_qua():
