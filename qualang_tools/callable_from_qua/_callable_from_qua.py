@@ -6,10 +6,11 @@ from functools import wraps
 from qm.QmJob import QmJob
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
+from qm.exceptions import QmQuaException
 from qm.QuantumMachine import QuantumMachine
 from qm.qua._dsl import _ResultSource, _Variable, align, _get_scope_as_program
 
-__all__ = ["ProgramAddon", "callable_from_qua", "enable_callable_from_qua"]
+__all__ = ["ProgramAddon", "callable_from_qua"]
 
 
 @dataclasses.dataclass
@@ -101,8 +102,6 @@ class ProgramAddon(ABC):
 
 
 class QuaCallableEventManager(ProgramAddon):
-    _active_program_manager = None
-
     def __init__(self):
         """Framework allowing the user to call Python functions directly from the core of a QUA program.
         The Python function can be wrapped under a Python or QUA for loop and variables can be passed to and from this function (Python or QUA variables).
@@ -116,15 +115,18 @@ class QuaCallableEventManager(ProgramAddon):
         self.callables: List[callable] = []  # TODO maybe merge with QuaCallable?
         self._qm = None  # TODO needed to transfer data from python to QUA with iovalues
 
+        try:
+            # Check if we are already inside a program
+            _get_scope_as_program()
+            self.declare_all()
+        except QmQuaException:
+            ...
+
     def enter_program(self, program: Program):
-        self.__class__._active_program_manager = self
-        self.program = program
         self.declare_all()
 
     def exit_program(self, exc_type, exc_val, exc_tb):
-        self = self._active_program_manager
         self.do_stream_processing()
-        self.__class__._active_program_manager = None
 
     def execute_program(self, program: Program, quantum_machine: QuantumMachine):
         """
@@ -192,12 +194,10 @@ def callable_from_qua(func: callable):
     def wrapper(*args, **kwargs):
         program = _get_scope_as_program()
         if "callable_from_qua" not in program.addons:
-            program.addons["callable_from_qua"] = QuaCallableEventManager
-        active_program_manager = QuaCallableEventManager._active_program_manager
-        active_program_manager.register_qua_callable(func, *args, **kwargs)
+            program.addons["callable_from_qua"] = QuaCallableEventManager()
+
+        event_manager = program.addons["callable_from_qua"]
+        # active_program_manager = QuaCallableEventManager._active_program_manager
+        event_manager.register_qua_callable(func, *args, **kwargs)
 
     return wrapper
-
-
-def enable_callable_from_qua():
-    Program.addons["callable_from_qua"] = QuaCallableEventManager
