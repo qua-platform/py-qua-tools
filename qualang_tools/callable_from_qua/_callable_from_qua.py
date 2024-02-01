@@ -8,7 +8,7 @@ from qm.program import Program
 from qm.qua import declare_stream, save, pause
 from qm.exceptions import QmQuaException
 from qm.QuantumMachine import QuantumMachine
-from qm.qua._dsl import _ResultSource, _Variable, align, _get_scope_as_program
+from qm.qua._dsl import _ResultSource, _Variable, align, _get_root_program_scope
 
 __all__ = ["ProgramAddon", "callable_from_qua"]
 
@@ -192,7 +192,7 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        program = _get_scope_as_program()
+        program = _get_root_program_scope._program
         if "callable_from_qua" not in program.addons:
             program.addons["callable_from_qua"] = QuaCallableEventManager()
 
