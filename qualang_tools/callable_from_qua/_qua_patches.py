@@ -36,7 +36,10 @@ class _ProgramScope(_ProgramScope_qua):
 
         return exit_result
 
+
 QM_execute = _QuantumMachine_qua.execute
+
+
 class QuantumMachine(_QuantumMachine_qua):
     def execute(
         self,
@@ -77,6 +80,7 @@ def patch_callable_from_qua():
         print("qm.program.Program already has 'addons' attribute, not patching")
     else:
         from qualang_tools.callable_from_qua import ProgramAddon
+
         Program.addons: Dict[str, ProgramAddon] = {}
 
     if qm.qua._dsl._ProgramScope is _ProgramScope:

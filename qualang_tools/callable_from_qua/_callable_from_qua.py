@@ -117,7 +117,7 @@ class QuaCallableEventManager(ProgramAddon):
 
         try:
             # Check if we are already inside a program
-            _get_scope_as_program()
+            _get_root_program_scope()
             self.declare_all()
         except QmQuaException:
             ...
@@ -192,7 +192,7 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        program = _get_root_program_scope._program
+        program = _get_root_program_scope()._program
         if "callable_from_qua" not in program.addons:
             program.addons["callable_from_qua"] = QuaCallableEventManager()
 
