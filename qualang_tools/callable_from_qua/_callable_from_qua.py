@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import dataclasses
 from time import sleep
 from typing import List, Any, Dict
@@ -8,9 +9,7 @@ from qm.qua import declare_stream, save, pause
 from qm.QuantumMachine import QuantumMachine
 from qm.qua._dsl import _ResultSource, _Variable, align
 
-from ._qua_patches import ProgramAddon
-
-__all__ = ["callable_from_qua", "enable_callable_from_qua"]
+__all__ = ["ProgramAddon", "callable_from_qua", "enable_callable_from_qua"]
 
 
 @dataclasses.dataclass
@@ -85,6 +84,20 @@ class QuaCallable:
             for name, arg in self._kwargs.items()
         }
         return self._fn(*args, **kwargs)
+
+
+class ProgramAddon(ABC):
+    @abstractmethod
+    def enter_program(self, program: Program):
+        ...
+
+    @abstractmethod
+    def exit_program(self, exc_type, exc_val, exc_tb):
+        ...
+
+    @abstractmethod
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
+        ...
 
 
 class QuaCallableEventManager(ProgramAddon):

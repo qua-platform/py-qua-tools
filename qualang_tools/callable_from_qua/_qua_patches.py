@@ -1,33 +1,17 @@
-from abc import ABC, abstractmethod
 from typing import Dict, Optional
 from qm.api.models.compiler import CompilerOptionArguments
 from qm.jobs.running_qm_job import RunningQmJob
 
 
-from qm.program import Program  # as _Program_qua
+from qm.program import Program
 from qm.qua._dsl import _ProgramScope as _ProgramScope_qua
 from qm.QuantumMachine import QuantumMachine as _QuantumMachine_qua
 from qm.simulate.interface import SimulationConfig
 
 
 __all__ = [
-    "ProgramAddon",
     "patch_callable_from_qua",
 ]
-
-
-class ProgramAddon(ABC):
-    @abstractmethod
-    def enter_program(self, program: Program):
-        ...
-
-    @abstractmethod
-    def exit_program(self, exc_type, exc_val, exc_tb):
-        ...
-
-    @abstractmethod
-    def execute_program(self, program: Program, quantum_machine: _QuantumMachine_qua):
-        ...
 
 
 class _ProgramScope(_ProgramScope_qua):
@@ -92,6 +76,7 @@ def patch_callable_from_qua():
     if hasattr(Program, "addons"):
         print("qm.program.Program already has 'addons' attribute, not patching")
     else:
+        from qualang_tools.callable_from_qua import ProgramAddon
         Program.addons: Dict[str, ProgramAddon] = {}
 
     if qm.qua._dsl._ProgramScope is _ProgramScope:
