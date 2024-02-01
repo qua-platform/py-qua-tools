@@ -21,11 +21,11 @@ All these use-cases can be found in the [example](../../../examples/Callable_fro
 
 ## Usage Example
 Very minor modifications of the standard scripts are needed.
-1. First the `run_local` functions need to be defined using the `@run_local` decorator. There is no limit in the number of `@run_local` functions.
+1. First the `callable_from_qua` functions need to be defined using the `@callable_from_qua` decorator. There is no limit in the number of `@callable_from_qua` functions.
 ```python
-from callable_from_qua import program, run_local
+from qualang_tools.callable_from_qua import program, callable_from_qua
 
-@run_local
+@callable_from_qua
 def set_lo_freq(qm, element, frequency):
     # Here the LO frequency must be passed in kHz instead of Hz, 
     # because the maximum QUA integer is 2**32 ~ 4.29e9
@@ -33,14 +33,14 @@ def set_lo_freq(qm, element, frequency):
     qm.octave.set_lo_frequency(element, frequency * 1e3)
     qm.octave.set_element_parameters_from_calibration_db(element, qm.get_running_job())
 
-@run_local
+@callable_from_qua
 def qua_print(*args):
     text = ""
     for i in range(0, len(args)-1, 2):
         text += f"{args[i]} = {args[i+1]} | "
     print(text)
 ```
-2. The run_local functions can be inserted directly in the standard QUA program.
+2. The callable_from_qua functions can be inserted directly in the standard QUA program.
 ```python
 qmm = QuantumMachinesManager()
 qm = qmm.open_qm(config)

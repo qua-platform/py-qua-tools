@@ -2,13 +2,15 @@ from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qualang_tools.loops import from_array
 
-# from callable_from_qua import program, run_local  # TODO
-from qualang_tools.addons.callable_from_qua.callable_from_qua import program, run_local
 from configuration import *
+from qualang_tools.callable_from_qua import *
+
+patch_callable_from_qua()
+enable_callable_from_qua()
 
 
-# Define your run_local functions
-@run_local
+# Define your callable_from_qua functions
+@callable_from_qua
 def update_from_python(qm, value, n):
     out = float(value * 10000)
     f = np.random.randint(1e6, 300e6)
@@ -17,7 +19,7 @@ def update_from_python(qm, value, n):
     print(f"Got {value}, sent {out} and {f}")
 
 
-@run_local
+@callable_from_qua
 def qua_print(*args):
     text = ""
     for i in range(0, len(args) - 1, 2):
@@ -38,7 +40,7 @@ qm = qmm.open_qm(config)
 # The QUA program #
 ###################
 frequencies = np.arange(15, 250, 0.1) * u.MHz
-# Define your QUA program with the run_local functions
+# Define your QUA program with the callable_from_qua functions
 with program() as prog:
     n = declare(int)
     f = declare(int)

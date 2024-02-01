@@ -1,17 +1,21 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from callable_from_qua import program, run_local
 from configuration import *
 
+from qualang_tools.callable_from_qua import *
 
-# Define your run_local functions
-@run_local
+patch_callable_from_qua()
+enable_callable_from_qua()
+
+
+# Define your callable_from_qua functions
+@callable_from_qua
 def set_lo_freq(q: str, qm, value):
     qm.set_output_dc_offset_by_element("AOM", "single", float(value) / 10)
     print(f"setting LO to {value} Hz to qubit {q}")
 
 
-@run_local
+@callable_from_qua
 def set_lo_power(q: str, qm, value):
     qm.set_output_dc_offset_by_element("AOM", "single", float(value) / 10)
     print(f"setting POWER to {value} Hz to qubit {q}")
@@ -21,7 +25,7 @@ def set_lo_power(q: str, qm, value):
 qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
 # Open a quantum machine
 qm = qmm.open_qm(config)
-# Define your QUA program with the run_local functions
+# Define your QUA program with the callable_from_qua functions
 with program() as prog:
     n = declare(int)
     n2 = declare(int)
