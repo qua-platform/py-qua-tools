@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
 
+### Fixed
+- loops - An error will be raised when the logarithmic step is too small (from_array & qua_logspace with integers).
+
 ## [0.16.0] - 2024-01-25
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
