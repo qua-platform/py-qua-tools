@@ -11,9 +11,7 @@ def config():
         c = np.cos(phi)
         s = np.sin(phi)
         N = 1 / ((1 - g**2) * (2 * c**2 - 1))
-        return [
-            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
-        ]
+        return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
         "version": 1,
@@ -93,7 +91,6 @@ def config():
 
 
 def simulate_program_and_return(config, prog):
-
     qmm = QuantumMachinesManager()
     qm = qmm.open_qm(config)
     job = qm.execute(prog)
@@ -106,9 +103,7 @@ def test_qua_arange(config):
             with program() as prog:
                 a = declare(int)
                 a_st = declare_stream()
-                with for_(
-                    *qua_arange(a, arange_param[0], arange_param[1], arange_param[2])
-                ):
+                with for_(*qua_arange(a, arange_param[0], arange_param[1], arange_param[2])):
                     update_frequency("resonator", a)
                     play("readout", "resonator")
                     save(a, a_st)
@@ -119,9 +114,7 @@ def test_qua_arange(config):
             with program() as prog:
                 a = declare(fixed)
                 a_st = declare_stream()
-                with for_(
-                    *qua_arange(a, arange_param[0], arange_param[1], arange_param[2])
-                ):
+                with for_(*qua_arange(a, arange_param[0], arange_param[1], arange_param[2])):
                     play("readout" * amp(a), "resonator")
                     save(a, a_st)
                 with stream_processing():
@@ -216,9 +209,7 @@ def test_from_array(config):
         a_qua = job.result_handles.get("a").fetch_all()["value"]
         a_list = param[0]
         print(a_qua)
-        if (param[1] == "int") and (
-            np.isclose(a_list[1] / a_list[0], a_list[-1] / a_list[-2])
-        ):
+        if (param[1] == "int") and (np.isclose(a_list[1] / a_list[0], a_list[-1] / a_list[-2])):
             a_list = get_equivalent_log_array(a_list)
 
         assert len(a_list) == len(a_qua)
@@ -271,11 +262,7 @@ def test_qua_linspace(config):
         with program() as prog:
             a = declare(fixed)
             a_st = declare_stream()
-            with for_(
-                *qua_linspace(
-                    a, linspace_param[0], linspace_param[1], linspace_param[2]
-                )
-            ):
+            with for_(*qua_linspace(a, linspace_param[0], linspace_param[1], linspace_param[2])):
                 play("readout" * amp(a), "resonator")
                 save(a, a_st)
             with stream_processing():
@@ -312,11 +299,7 @@ def test_qua_logspace_fixed(config):
         with program() as prog:
             a = declare(fixed)
             a_st = declare_stream()
-            with for_(
-                *qua_logspace(
-                    a, logspace_param[0], logspace_param[1], logspace_param[2]
-                )
-            ):
+            with for_(*qua_logspace(a, logspace_param[0], logspace_param[1], logspace_param[2])):
                 play("readout" * amp(a), "resonator")
                 save(a, a_st)
             with stream_processing():
@@ -347,11 +330,7 @@ def test_qua_logspace_int(config):
         with program() as prog:
             t = declare(int)
             t_st = declare_stream()
-            with for_(
-                *qua_logspace(
-                    t, logspace_param[0], logspace_param[1], logspace_param[2]
-                )
-            ):
+            with for_(*qua_logspace(t, logspace_param[0], logspace_param[1], logspace_param[2])):
                 play("readout", "resonator", duration=t)
                 save(t, t_st)
             with stream_processing():
@@ -370,9 +349,7 @@ def test_qua_logspace_int(config):
         job = simulate_program_and_return(cfg, prog_maker(param))
         job.result_handles.wait_for_all_values()
         a_qua = job.result_handles.get("a").fetch_all()["value"]
-        a_list = get_equivalent_log_array(
-            np.round(np.logspace(param[0], param[1], param[2]))
-        )
+        a_list = get_equivalent_log_array(np.round(np.logspace(param[0], param[1], param[2])))
         assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
 
@@ -382,11 +359,7 @@ def test_qua_logspace_error(config):
         with program() as prog:
             t = declare(int)
             t_st = declare_stream()
-            with for_(
-                *qua_logspace(
-                    t, logspace_param[0], logspace_param[1], logspace_param[2]
-                )
-            ):
+            with for_(*qua_logspace(t, logspace_param[0], logspace_param[1], logspace_param[2])):
                 play("readout", "resonator", duration=t)
                 save(t, t_st)
             with stream_processing():
@@ -407,4 +380,3 @@ def test_qua_logspace_error(config):
                 pass
             else:
                 raise Exception from e
-
