@@ -91,12 +91,16 @@ def from_array(var, array):
                 "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
             )
             if step > 1:
-                return (
-                    var,
-                    round(start),
-                    var < round(stop) * np.sqrt(float(step)),
-                    Cast.mul_int_by_fixed(var, float(step)),
-                )
+                if int(round(start) * float(step)) == int(round(start)):
+                    raise ValueError(
+                        "Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each.")
+                else:
+                    return (
+                        var,
+                        round(start),
+                        var < round(stop) * np.sqrt(float(step)),
+                        Cast.mul_int_by_fixed(var, float(step)),
+                    )
             else:
                 return (
                     var,
@@ -250,12 +254,15 @@ def qua_logspace(var, start, stop, num):
             "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
         )
         if step > 1:
-            return (
-                var,
-                round(10**start),
-                var < round(10**stop * np.sqrt(step)),
-                Cast.mul_int_by_fixed(var, float(step)),
-            )
+            if int(round(10**start) * float(step)) == int(round(10**start)):
+                raise ValueError("Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each.")
+            else:
+                return (
+                    var,
+                    round(10**start),
+                    var < round(10**stop * np.sqrt(step)),
+                    Cast.mul_int_by_fixed(var, float(step)),
+                )
         else:
             return (
                 var,
@@ -300,10 +307,16 @@ def get_equivalent_log_array(log_array):
         end = log_array[-1] * np.sqrt(step)
         while aprev < end:
             a_log.append(aprev)
-            aprev = int(aprev * step)
+            if aprev == int(aprev * step):
+                raise ValueError("Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each.")
+            else:
+                aprev = int(aprev * step)
     else:
         end = log_array[-1] / np.sqrt(step)
         while aprev > end:
             a_log.append(aprev)
-            aprev = int(aprev * step)
+            if aprev == int(aprev * step):
+                raise ValueError("Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each.")
+            else:
+                aprev = int(aprev * step)
     return np.array(a_log)
