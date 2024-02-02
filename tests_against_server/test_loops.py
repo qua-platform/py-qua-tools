@@ -1,11 +1,8 @@
-import numpy as np
 import pytest
 from qualang_tools.loops import *
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm import SimulationConfig, LoopbackInterface
 from copy import deepcopy
-import matplotlib.pyplot as plt
 
 
 @pytest.fixture
@@ -95,20 +92,9 @@ def config():
     }
 
 
-def simulate_program_and_return(config, prog, duration=50000):
+def simulate_program_and_return(config, prog):
 
     qmm = QuantumMachinesManager()
-    # qmm.close_all_quantum_machines()
-    # job = qmm.simulate(
-    #     config,
-    #     prog,
-    #     SimulationConfig(
-    #         duration,
-    #         simulation_interface=LoopbackInterface([("con1", 1, "con1", 1)]),
-    #         include_analog_waveforms=True,
-    #     ),
-    # )
-
     qm = qmm.open_qm(config)
     job = qm.execute(prog)
     return job
@@ -197,6 +183,7 @@ def test_from_array(config):
 
     cfg = deepcopy(config)
     arange_param_list = [
+        [np.logspace(np.log10(10000), np.log10(4), 100), "int"],
         [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
         [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
         [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
@@ -228,7 +215,7 @@ def test_from_array(config):
         job.result_handles.wait_for_all_values()
         a_qua = job.result_handles.get("a").fetch_all()["value"]
         a_list = param[0]
-
+        print(a_qua)
         if (param[1] == "int") and (
             np.isclose(a_list[1] / a_list[0], a_list[-1] / a_list[-2])
         ):
@@ -237,6 +224,46 @@ def test_from_array(config):
         assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
     print("PASSED !")
+
+
+def test_from_array_log_error(config):
+    def prog_maker(list_param):
+        if list_param[1] == "int":
+            with program() as prog:
+                a = declare(int)
+                a_st = declare_stream()
+                with for_(*from_array(a, list_param[0])):
+                    update_frequency("resonator", a)
+                    play("readout", "resonator")
+                    save(a, a_st)
+                with stream_processing():
+                    a_st.save_all("a")
+            return prog
+        else:
+            with program() as prog:
+                a = declare(fixed)
+                a_st = declare_stream()
+                with for_(*from_array(a, list_param[0])):
+                    play("readout" * amp(a), "resonator")
+                    save(a, a_st)
+                with stream_processing():
+                    a_st.save_all("a")
+            return prog
+
+    cfg = deepcopy(config)
+    arange_param_list = [
+        [np.logspace(np.log10(4), np.log10(10000), 60), "int"],
+    ]
+    for param in arange_param_list:
+        print(f"Test qua_list with {param}:")
+        try:
+            simulate_program_and_return(cfg, prog_maker(param))
+            raise Exception("Didn't catch error!")
+        except Exception as e:
+            if e.__class__.__name__ == "ValueError":
+                pass
+            else:
+                raise Exception from e
 
 
 def test_qua_linspace(config):
@@ -348,3 +375,36 @@ def test_qua_logspace_int(config):
         )
         assert len(a_list) == len(a_qua)
         assert np.allclose(a_list, a_qua, atol=1e-4)
+
+
+def test_qua_logspace_error(config):
+    def prog_maker(logspace_param):
+        with program() as prog:
+            t = declare(int)
+            t_st = declare_stream()
+            with for_(
+                *qua_logspace(
+                    t, logspace_param[0], logspace_param[1], logspace_param[2]
+                )
+            ):
+                play("readout", "resonator", duration=t)
+                save(t, t_st)
+            with stream_processing():
+                t_st.save_all("a")
+        return prog
+
+    cfg = deepcopy(config)
+    arange_param_list = [
+        [np.log10(4), np.log10(10000), 60],
+    ]
+    for param in arange_param_list:
+        print(f"Test qua_list with {param}:")
+        try:
+            simulate_program_and_return(cfg, prog_maker(param))
+            raise Exception("Didn't catch error!")
+        except Exception as e:
+            if e.__class__.__name__ == "ValueError":
+                pass
+            else:
+                raise Exception from e
+
