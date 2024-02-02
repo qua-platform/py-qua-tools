@@ -93,7 +93,7 @@ def from_array(var, array):
             if step > 1:
                 if int(round(start) * float(step)) == int(round(start)):
                     raise ValueError(
-                        "Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+                        "Two successive values in the scan are equal after being cast to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
                     )
                 else:
                     return (
@@ -257,7 +257,7 @@ def qua_logspace(var, start, stop, num):
         if step > 1:
             if int(round(10**start) * float(step)) == int(round(10**start)):
                 raise ValueError(
-                    "Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+                    "Two successive values in the scan are equal after being cast to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
                 )
             else:
                 return (
@@ -312,7 +312,7 @@ def get_equivalent_log_array(log_array):
             a_log.append(aprev)
             if aprev == int(aprev * step):
                 raise ValueError(
-                    "Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+                    "Two successive values in the scan are equal after being cast to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
                 )
             else:
                 aprev = int(aprev * step)
@@ -322,7 +322,7 @@ def get_equivalent_log_array(log_array):
             a_log.append(aprev)
             if aprev == int(aprev * step):
                 raise ValueError(
-                    "Two successive values in the scan are equal after being casted to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+                    "Two successive values in the scan are equal after being cast to integers which will make the QUA for_ loop fail. \nEither increase the logarithmic step or use for_each_() instead of from_array(): https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
                 )
             else:
                 aprev = int(aprev * step)
