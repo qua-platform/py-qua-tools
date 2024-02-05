@@ -17,10 +17,10 @@ Then the results can be fetched with the `.fetch_all()` method while the program
 from qualang_tools.results import fetching_tool
 
 n_avg = 1000
-with program as prog:
+with program() as prog:
     # QUA program with n_avg averaging iterations
 
-qmm = QuantumMachinesManager(host="127.0.0.1", port="80")
+qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 qm = qmm.open_qm(config)
 job = qm.execute(prog)
 

@@ -1,5 +1,5 @@
 __all__ = [
-    "simulator_tools",
+    "simulator",
     "bakery",
     "config",
     "control_panel",

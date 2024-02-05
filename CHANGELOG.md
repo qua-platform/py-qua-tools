@@ -4,8 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
+
 ### Changed
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
+- simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
+- simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
+
+### Deprecated
+- simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
 
 ## [0.16.0] - 2024-01-25
 ### Fixed

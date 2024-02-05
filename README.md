@@ -17,6 +17,7 @@ It includes:
 * [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tools for analyzing data from experiments. 
 It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
 * [Multi-user tools](qualang_tools/multi_user/README.md) - This library includes tools for working with the QOP in a multi-user or multi-process setting.
+* [Simulator tools](qualang_tools/simulator/README.md) - This library includes tools for creating simulations.
 
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
