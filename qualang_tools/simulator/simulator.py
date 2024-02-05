@@ -7,12 +7,12 @@ def create_simulator_controller_connections(
 ):
     """
     Creates a list of :class:`~qm.simulate.interface.ControllerConnection` objects with the Inter-controllers
-    connections between controllers in a way which maximizes the optical links connectivity
+    connections between controllers in a way which maximizes the optical links connectivity.
     For use inside the :class:`~qm.simulate.interface.SimulationConfig` for simulating the controllers` behavior.
 
     :param n_controllers: The number of controllers
     :type n_controllers: int
-    :param actual_controllers: A list of the controllers actually being used in the simulation
+    :param actual_controllers: A list of the controllers actually being used in the simulation. For `con1` & `con2` use [1,2].
     :type actual_controllers: List[int]
     :param n_connections: The number of optical connectors each controller has, default is 12
     :type n_connections: int
@@ -21,6 +21,8 @@ def create_simulator_controller_connections(
     :returns: The ControllerConnection object
 
     """
+    if n_controllers == 1:
+        return []
     if not actual_controllers:
         actual_controllers = [i + 1 for i in range(n_controllers)]
     controller_connections = []

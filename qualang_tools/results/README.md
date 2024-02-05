@@ -20,7 +20,7 @@ n_avg = 1000
 with program() as prog:
     # QUA program with n_avg averaging iterations
 
-qmm = QuantumMachinesManager(qop_ip, cluster_name)
+qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 qm = qmm.open_qm(config)
 job = qm.execute(prog)
 
