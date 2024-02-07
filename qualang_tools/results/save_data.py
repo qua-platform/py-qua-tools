@@ -78,7 +78,7 @@ def save_files_and_get_dir_data(
     Example usage:
         # Suppose base_dir and save_dir are defined in configuration.py
         #   from pathlib import Path
-        #   base_dir = Path(__file__).resolve().parent
+        #   base_dir = Path().absolute()
         #   save_dir = base_dir / 'QM' / 'Data'
 
         from configuration import *
@@ -111,7 +111,7 @@ def save_files_and_get_dir_data(
             + "Here, the base directory means the parent directory of configuration.py\n"
             + "Add, for example, the following code to configuration.py\n"
             + "from pathlib import Path\n"
-            + "base_dir = Path(__file__).resolve().parent\n"
+            + "base_dir = Path().absolute()\n"
             + "save_dir = base_dir / 'QM' / 'Data'"
         )
 
