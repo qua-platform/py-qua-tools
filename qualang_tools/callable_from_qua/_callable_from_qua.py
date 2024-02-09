@@ -192,7 +192,17 @@ def callable_from_qua(func: callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        program = _get_root_program_scope()._program
+        try:
+            program = _get_root_program_scope()._program
+        except IndexError:
+            return func(*args, **kwargs)
+
+        if not hasattr(program, "addons"):
+            raise RuntimeError(
+                "Cannot execute callable_from_qua function in a program until program is patched. "
+                "Please first run qualang_tools.callable_from_qua.patch_qua_program_addons()"
+            )
+
         if "callable_from_qua" not in program.addons:
             program.addons["callable_from_qua"] = QuaCallableEventManager()
 

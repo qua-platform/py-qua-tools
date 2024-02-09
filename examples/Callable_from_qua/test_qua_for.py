@@ -4,7 +4,7 @@ from configuration import *
 
 from qualang_tools.callable_from_qua import *
 
-patch_callable_from_qua()
+patch_qua_program_addons()
 enable_callable_from_qua()
 
 

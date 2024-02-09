@@ -4,7 +4,7 @@ from qm.QuantumMachinesManager import QuantumMachinesManager
 from configuration import *
 from qualang_tools.callable_from_qua import *
 
-patch_callable_from_qua()
+patch_qua_program_addons()
 
 
 # Define your callable_from_qua functions
@@ -14,7 +14,6 @@ def qua_print(*args):
     for i in range(0, len(args) - 1, 2):
         text += f"{args[i]} = {args[i+1]} | "
     print(text)
-
 
 #####################################
 #  Open Communication with the QOP  #
