@@ -36,7 +36,7 @@ def extract_data_folder_properties(
         - idx: The index of the data folder.
         - name: The name of the data folder.
         - datetime attributes "year", "month", "day", "hour", "minute", "second".
-        - absolute_path: The absolute path of the data folder.
+        - path: The absolute path of the data folder.
         - relative_path: The relative path of the data folder w.r.t the root_data_folder.
     """
     pattern = pattern.replace("{idx}", r"(?P<idx>\d+)")
@@ -58,7 +58,7 @@ def extract_data_folder_properties(
         return None
     properties = regex_match.groupdict()
     properties = {key: int(value) if value.isdigit() else value for key, value in properties.items()}
-    properties["absolute_path"] = str(data_folder)
+    properties["path"] = str(data_folder)
     if root_data_folder is not None:
         properties["relative_path"] = str(data_folder.relative_to(root_data_folder))
     return properties
@@ -83,7 +83,7 @@ def get_latest_data_folder(
         - idx: The index of the data folder.
         - name: The name of the data folder.
         - datetime attributes "year", "month", "day", "hour", "minute", "second".
-        - absolute_path: The absolute path of the data folder.
+        - path: The absolute path of the data folder.
         - relative_path: The relative path of the data folder w.r.t the root_data_folder.
     """
     if isinstance(root_data_folder, str):
@@ -167,17 +167,18 @@ def create_data_folder(
     if not root_data_folder.exists():
         raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
 
-    # Determine the latest folder index and increment by one
-    latest_folder_properties = get_latest_data_folder(root_data_folder, folder_pattern=folder_pattern)
-
     if use_datetime is None:
         use_datetime = datetime.now()
 
-    if latest_folder_properties is None:
-        # Create new folder with index 1
-        idx = 1
-    else:
-        idx = latest_folder_properties["idx"] + 1
+    if idx is None:
+        # Determine the latest folder index and increment by one
+        latest_folder_properties = get_latest_data_folder(root_data_folder, folder_pattern=folder_pattern)
+
+        if latest_folder_properties is None:
+            # Create new folder with index 1
+            idx = 1
+        else:
+            idx = latest_folder_properties["idx"] + 1
 
     relative_folder_name = folder_pattern.format(idx=idx, name=name)
     relative_folder_name = use_datetime.strftime(relative_folder_name)
