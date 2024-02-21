@@ -1,4 +1,4 @@
-from qualang_tools.results.data_handler import _validate_datetime
+from qualang_tools.results.data_handler.data_folder_tools import _validate_datetime
 
 
 def test_validate_datetime_empty():

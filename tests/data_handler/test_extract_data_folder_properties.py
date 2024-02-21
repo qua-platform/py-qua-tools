@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from qualang_tools.results.data_handler import extract_data_folder_properties
+from qualang_tools.results.data_handler.data_folder_tools import extract_data_folder_properties
 
 
 def test_extract_data_folder_properties():
