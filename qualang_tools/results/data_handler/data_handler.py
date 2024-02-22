@@ -66,6 +66,7 @@ class DataHandler:
         data_processors: Optional[Sequence[DataProcessor]] = None,
         root_data_folder: Optional[Union[str, Path]] = None,
         folder_pattern: Optional[str] = None,
+        path: Optional[Path] = None,
     ):
         if data_processors is not None:
             self.data_processors = data_processors
@@ -77,20 +78,30 @@ class DataHandler:
         if folder_pattern is not None:
             self.folder_pattern = folder_pattern
 
-    def create_data_folder(self, name, idx=None, use_datetime: Optional[datetime] = None, create=True):
+        self.path = path
+        self.path_properties = None
+
+    def create_data_folder(
+        self, name: str, idx: Optional[int] = None, use_datetime: Optional[datetime] = None, create: bool = True
+    ) -> Dict[str, Union[str, int]]:
         """Create a new data folder in the root data folder"""
-        return create_data_folder(
+        self.path_properties = create_data_folder(
             root_data_folder=self.root_data_folder,
             folder_pattern=self.folder_pattern,
+            use_datetime=use_datetime,
             name=name,
             idx=idx,
+            create=create,
         )
+        self.path = self.path_properties["path"]
+        return self.path_properties
 
     def save_data(self, name, data, metadata=None, idx=None, use_datetime: Optional[datetime] = None):
-        data_folder_properties = self.create_data_folder(name, idx=idx, use_datetime=use_datetime)
+        if self.path is None:
+            self.create_data_folder(name, idx=idx, use_datetime=use_datetime)
 
         return save_data(
-            data_folder=data_folder_properties["path"],
+            data_folder=self.path,
             data=data,
             metadata=metadata,
             data_filename=self.data_filename,
