@@ -82,7 +82,6 @@ DEFAULT_DATA_PROCESSORS.append(MatplotlibPlotSaver)
 
 
 class NumpyArraySaver(DataProcessor):
-    min_size: int = 100
     merge_arrays: bool = True
     merged_array_name: str = "arrays.npz"
 
@@ -102,8 +101,6 @@ class NumpyArraySaver(DataProcessor):
         for keys, val in iterate_nested_dict(data):
             if not isinstance(val, np.ndarray):
                 continue
-            elif self.min_size is not False and val.size < self.min_size:
-                continue
 
             path = Path("/".join(keys))
             self.data_arrays[path] = val
@@ -120,6 +117,9 @@ class NumpyArraySaver(DataProcessor):
         else:
             for path, arr in self.data_arrays.items():
                 np.save(data_folder / path.with_suffix(".npy"), arr)
+
+
+DEFAULT_DATA_PROCESSORS.append(NumpyArraySaver)
 
 
 class XarraySaver(DataProcessor):
@@ -185,3 +185,6 @@ class XarraySaver(DataProcessor):
         else:
             for path, array in self.data_arrays.items():
                 array.to_netcdf(data_folder / path.with_suffix(self.file_suffix))
+
+
+DEFAULT_DATA_PROCESSORS.append(XarraySaver)

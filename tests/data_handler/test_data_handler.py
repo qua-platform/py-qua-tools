@@ -96,3 +96,18 @@ def test_data_handler_matplotlib_processor(tmp_path):
     assert file_data == {"a": 1, "b": 2, "c": 3, "my_fig": "./my_fig.png"}
 
     assert (tmp_path / expected_data_folder / "my_fig.png").exists()
+
+
+def test_custom(tmp_path):
+    from matplotlib import pyplot as plt
+    import numpy as np
+
+    data = {"T1": 5e-6, "T1_figure": plt.figure(), "IQ_array": np.array([[1, 2, 3], [4, 5, 6]])}
+
+    # Initialize the DataHandler
+    data_handler = DataHandler(root_data_folder=tmp_path)
+
+    # Save results
+    data_folder = data_handler.save_data("T1_measurement", data=data)
+
+    print(list(data_folder.iterdir()))

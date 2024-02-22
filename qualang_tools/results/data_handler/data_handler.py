@@ -17,7 +17,7 @@ def save_data(
     data_filename: str = "data.json",
     metadata_filename: str = "metadata.json",
     data_processors: Sequence[DataProcessor] = (),
-) -> None:
+) -> Path:
     """Save data to a folder
 
     :param data_folder: The folder where the data will be saved
@@ -52,6 +52,8 @@ def save_data(
 
     for data_processor in data_processors:
         data_processor.post_process(data_folder=data_folder)
+
+    return data_folder
 
 
 class DataHandler:

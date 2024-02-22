@@ -156,3 +156,56 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     # Process and plot the results
     ...
 ```
+
+
+## Data handler
+The `DataHandler` is used to easily save data once a measurement has been performed.
+It saves data into an automatically generated folder with folder structure:
+`{root_data_folder}/%Y-%m-%d/#{idx}_{name}_%H%M%S`.  
+- `root_data_folder` is the root folder for all data, defined once at the start
+- `%Y-%m-%d`: All datasets are first ordered by date
+- `{idx}`: Datasets are identified by an incrementer (starting at `#1`).  
+  Whenever a save is performed, the index of the last saved dataset is determined and
+  increased by 1.
+- `name`: Each data folder has a name
+- `%H%M%S`: The time is also specified.
+This structure can be changed in `DataHandler.folder_structure`.
+
+Data is generally saved using the command `data_handler.save_data("msmt_name", data)`, 
+where `data` is a dictionary.
+The data is saved to the json file `data.json` in the data folder, but nonserialisable 
+types are saved into separate files. The following nonserialisable types are currently
+supported:
+- Matplotlib figures
+- Numpy arrays
+- Xarrays
+
+### Usage example
+```python
+# Assume a measurement has been performed, and all results are collected here
+data = {
+    "T1": 5e-6,
+    "T1_figure": plt.figure(),
+    "IQ_array": np.array([[1, 2, 3], [4, 5, 6]])
+}
+
+# Initialize the DataHandler
+data_handler = DataHandler(root_data_folder="C:/data")
+
+# Save results
+data_folder = data_handler.save_data("T1_measurement", data=data)
+print(data_folder)
+# C:/data/2024-02-24/#152_T1_measurement_095214
+# This assumes the save was performed at 2024-02-24 at 09:52:14
+```
+After calling `data_handler.save_data()`, three files are created in `data_folder`:
+- `T1_figure.png`
+- `arrays.npz` containing all the numpy arrays
+- `data.json` which contains:  
+    ```
+    {
+        "T1": 5e-06,
+        "T1_figure": "./T1_figure.png",
+        "IQ_array": "./arrays.npz#IQ_array"
+    }
+    ```
