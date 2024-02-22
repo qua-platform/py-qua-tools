@@ -1,8 +1,8 @@
 from pathlib import Path
 from abc import ABC
 from typing import Dict, Any, Generator, List, Tuple, Optional
-
 from matplotlib import pyplot as plt
+import numpy as np
 
 DEFAULT_DATA_PROCESSORS = []
 
@@ -44,8 +44,11 @@ class DataProcessor(ABC):
 
 
 class MatplotlibPlotSaver(DataProcessor):
-    def __init__(self, file_format="png"):
-        self.file_format = file_format
+    file_format: str = "png"
+
+    def __init__(self, file_format=None):
+        if file_format is not None:
+            self.file_format = file_format
         self.data_figures = {}
 
     @property
@@ -73,3 +76,44 @@ class MatplotlibPlotSaver(DataProcessor):
 
 
 DEFAULT_DATA_PROCESSORS.append(MatplotlibPlotSaver)
+
+
+class NumpyArraySaver(DataProcessor):
+    min_size: int = 100
+    merge_arrays: bool = True
+    merged_array_name: str = "arrays.npz"
+
+    def __init__(self, min_size=None, merge_arrays=None, merged_array_name=None):
+        if min_size is not None:
+            self.min_size = min_size
+        if merge_arrays is not None:
+            self.merge_arrays = merge_arrays
+        if merged_array_name is not None:
+            self.merged_array_name = merged_array_name
+
+        self.data_arrays = {}
+
+    def process(self, data):
+        self.data_arrays = {}
+
+        for keys, val in iterate_nested_dict(data):
+            if not isinstance(val, np.ndarray):
+                continue
+            elif self.min_size is not False and val.size < self.min_size:
+                continue
+
+            path = Path("/".join(keys))
+            self.data_arrays[path] = val
+            if self.merge_arrays:
+                update_nested_dict(data, keys, f"./{self.merged_array_name}#{path}")
+            else:
+                update_nested_dict(data, keys, f"./{path.with_suffix('.npy')}")
+        return data
+
+    def post_process(self, data_folder: Path):
+        if self.merge_arrays:
+            arrays = {str(path): arr for path, arr in self.data_arrays.items()}
+            np.savez(data_folder / self.merged_array_name, **arrays)
+        else:
+            for path, arr in self.data_arrays.items():
+                np.save(data_folder / path.with_suffix(".npy"), arr)
