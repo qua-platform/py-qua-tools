@@ -1,7 +1,7 @@
 import pytest
 import json
 
-from qualang_tools.results.data_handler.data_storage import save_data
+from qualang_tools.results.data_handler.data_handler import save_data
 from qualang_tools.results.data_handler.data_processors import MatplotlibPlotSaver
 
 

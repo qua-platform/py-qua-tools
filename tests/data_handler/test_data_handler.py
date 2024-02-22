@@ -1,7 +1,9 @@
+import json
 import pytest
 from datetime import datetime
 
-from qualang_tools.results.data_handler.data_handler import *
+from qualang_tools.results.data_handler.data_folder_tools import DEFAULT_FOLDER_PATTERN
+from qualang_tools.results.data_handler.data_handler import DataHandler
 from qualang_tools.results.data_handler.data_processors import DataProcessor
 
 

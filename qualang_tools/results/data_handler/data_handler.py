@@ -7,6 +7,9 @@ from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
 from .data_folder_tools import DEFAULT_FOLDER_PATTERN, create_data_folder
 
 
+__all__ = ["save_data", "DataHandler"]
+
+
 def save_data(
     data_folder: Path,
     data: Dict[str, Any],

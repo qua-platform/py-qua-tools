@@ -1,4 +1,14 @@
+import pytest
+import sys
 from qualang_tools.results.data_handler.data_processors import XarraySaver
+
+
+def netcdf4_installed():
+    try:
+        import netCDF4
+    except ImportError:
+        return False
+    return True
 
 
 def test_xarray_saver_no_xarrays():
@@ -25,13 +35,8 @@ def test_xarray_data_saver_suffixes():
     assert xarray_saver.file_suffix == ".zarr"
 
 
+@pytest.mark.skipif(not netcdf4_installed(), reason="netCDF4 not installed")
 def test_xarray_saver_merge_netcdf(tmp_path):
-    try:
-        # Test won't work if netCDF4 is not installed
-        import netCDF4
-    except ImportError:
-        return
-
     import xarray as xr
 
     data = {"a": 1, "b": 2, "c": xr.Dataset(), "d": xr.Dataset()}
@@ -49,13 +54,8 @@ def test_xarray_saver_merge_netcdf(tmp_path):
     xr.load_dataset(tmp_path / "xarrays.nc", group="d")
 
 
+@pytest.mark.skipif(not netcdf4_installed(), reason="netCDF4 not installed")
 def test_xarray_saver_merge_hdf5(tmp_path):
-    try:
-        # Test won't work if netCDF4 is not installed
-        import netCDF4
-    except ImportError:
-        return
-
     import xarray as xr
 
     data = {"a": 1, "b": 2, "c": xr.Dataset(), "d": xr.Dataset()}

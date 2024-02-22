@@ -1,7 +1,6 @@
 import pytest
 from datetime import datetime
-from pathlib import Path
-from qualang_tools.results.data_handler import create_data_folder, DEFAULT_FOLDER_PATTERN
+from qualang_tools.results.data_handler.data_folder_tools import create_data_folder, DEFAULT_FOLDER_PATTERN
 
 
 def test_create_data_folder(tmp_path):
@@ -26,7 +25,7 @@ def test_create_data_folder_empty(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "absolute_path": str(tmp_path / path),
+        "path": str(tmp_path / path),
         "relative_path": path,
     }
 
@@ -49,7 +48,7 @@ def test_create_successive_data_folder(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "absolute_path": str(tmp_path / path),
+        "path": str(tmp_path / path),
         "relative_path": path,
     }
 
@@ -69,7 +68,7 @@ def test_create_successive_data_folder(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "absolute_path": str(tmp_path / path),
+        "path": str(tmp_path / path),
         "relative_path": path,
     }
 
