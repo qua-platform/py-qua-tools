@@ -65,15 +65,19 @@ class DataHandler:
 
     def __init__(
         self,
+        name: Optional[str] = None,
         data_processors: Optional[Sequence[DataProcessor]] = None,
         root_data_folder: Optional[Union[str, Path]] = None,
         folder_pattern: Optional[str] = None,
         path: Optional[Path] = None,
     ):
+        self.name = name
         if data_processors is not None:
             self.data_processors = data_processors
         else:
-            self.data_processors = [processor() for processor in self.default_data_processors]
+            self.data_processors = [
+                processor() for processor in self.default_data_processors
+            ]
 
         if root_data_folder is not None:
             self.root_data_folder = root_data_folder
@@ -84,23 +88,43 @@ class DataHandler:
         self.path_properties = None
 
     def create_data_folder(
-        self, name: str, idx: Optional[int] = None, use_datetime: Optional[datetime] = None, create: bool = True
+        self,
+        name: Optional[str] = None,
+        idx: Optional[int] = None,
+        use_datetime: Optional[datetime] = None,
+        create: bool = True,
     ) -> Dict[str, Union[str, int]]:
         """Create a new data folder in the root data folder"""
+        if name is not None:
+            self.name = name
+        if self.name is None:
+            raise ValueError("DataHandler: name must be specified")
+
         self.path_properties = create_data_folder(
             root_data_folder=self.root_data_folder,
             folder_pattern=self.folder_pattern,
             use_datetime=use_datetime,
-            name=name,
+            name=self.name,
             idx=idx,
             create=create,
         )
         self.path = self.path_properties["path"]
         return self.path_properties
 
-    def save_data(self, name, data, metadata=None, idx=None, use_datetime: Optional[datetime] = None):
+    def save_data(
+        self,
+        data,
+        name=None,
+        metadata=None,
+        idx=None,
+        use_datetime: Optional[datetime] = None,
+    ):
+        if name is not None:
+            self.name = name
+        if self.name is None:
+            raise ValueError("DataHandler: name must be specified")
         if self.path is None:
-            self.create_data_folder(name, idx=idx, use_datetime=use_datetime)
+            self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
 
         return save_data(
             data_folder=self.path,

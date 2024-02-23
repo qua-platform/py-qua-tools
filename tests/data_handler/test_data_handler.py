@@ -14,7 +14,7 @@ def test_data_handler_basic(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data("my_data", data, use_datetime=now)
+    data_handler.save_data(data, "my_data", use_datetime=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -34,7 +34,7 @@ def test_data_handler_metadata(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data("my_data", data, metadata=metadata, use_datetime=now)
+    data_handler.save_data(data, "my_data", metadata=metadata, use_datetime=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -43,7 +43,9 @@ def test_data_handler_metadata(tmp_path):
     assert (tmp_path / expected_data_folder / "metadata.json").exists()
 
     file_data = json.loads((tmp_path / expected_data_folder / "data.json").read_text())
-    file_metadata = json.loads((tmp_path / expected_data_folder / "metadata.json").read_text())
+    file_metadata = json.loads(
+        (tmp_path / expected_data_folder / "metadata.json").read_text()
+    )
 
     assert file_data == data
     assert file_metadata == metadata
@@ -55,13 +57,15 @@ def test_data_handler_custom_processors(tmp_path):
             data["a"] = 42
             return data
 
-    data_handler = DataHandler(root_data_folder=tmp_path, data_processors=[TestProcessor()])
+    data_handler = DataHandler(
+        root_data_folder=tmp_path, data_processors=[TestProcessor()]
+    )
 
     data = {"a": 1, "b": 2, "c": 3}
 
     now = datetime.now()
 
-    data_handler.save_data("my_data", data, use_datetime=now)
+    data_handler.save_data(data, "my_data", use_datetime=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -84,7 +88,7 @@ def test_data_handler_matplotlib_processor(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data("my_data", data, use_datetime=now)
+    data_handler.save_data(data, "my_data", use_datetime=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -98,16 +102,79 @@ def test_data_handler_matplotlib_processor(tmp_path):
     assert (tmp_path / expected_data_folder / "my_fig.png").exists()
 
 
-def test_custom(tmp_path):
-    from matplotlib import pyplot as plt
-    import numpy as np
-
-    data = {"T1": 5e-6, "T1_figure": plt.figure(), "IQ_array": np.array([[1, 2, 3], [4, 5, 6]])}
-
-    # Initialize the DataHandler
+def test_data_handler_no_name_create_folder(tmp_path):
     data_handler = DataHandler(root_data_folder=tmp_path)
+    assert data_handler.name is None
 
-    # Save results
-    data_folder = data_handler.save_data("T1_measurement", data=data)
+    now = datetime.now()
 
-    print(list(data_folder.iterdir()))
+    with pytest.raises(ValueError):
+        data_handler.create_data_folder(use_datetime=now)
+
+
+def test_data_handler_initialized_name_create_folder(tmp_path):
+    data_handler = DataHandler(name="my_data", root_data_folder=tmp_path)
+    assert data_handler.name == "my_data"
+
+    now = datetime.now()
+
+    data_handler.create_data_folder(use_datetime=now)
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert (tmp_path / expected_data_folder).exists()
+
+
+def test_data_handler_overwrite_initialized_name_create_folder(tmp_path):
+    data_handler = DataHandler(name="my_data", root_data_folder=tmp_path)
+    assert data_handler.name == "my_data"
+
+    now = datetime.now()
+
+    data_handler.create_data_folder(name="my_new_data", use_datetime=now)
+    assert data_handler.name == "my_new_data"
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_new_data", idx=1)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert (tmp_path / expected_data_folder).exists()
+
+
+def test_data_handler_no_name_save_data(tmp_path):
+    data_handler = DataHandler(root_data_folder=tmp_path)
+    assert data_handler.name is None
+
+    with pytest.raises(ValueError):
+        data_handler.save_data({"a": 1, "b": 2, "c": 3})
+
+
+def test_data_handler_initialized_name_save_data(tmp_path):
+    data_handler = DataHandler(name="my_data", root_data_folder=tmp_path)
+    assert data_handler.name == "my_data"
+
+    now = datetime.now()
+
+    data_handler.save_data({"a": 1, "b": 2, "c": 3}, use_datetime=now)
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert (tmp_path / expected_data_folder / "data.json").exists()
+
+
+def test_data_handler_overwrite_initialized_name_save_data(tmp_path):
+    data_handler = DataHandler(name="my_data", root_data_folder=tmp_path)
+    assert data_handler.name == "my_data"
+
+    now = datetime.now()
+
+    data_handler.save_data(
+        {"a": 1, "b": 2, "c": 3}, name="my_new_data", use_datetime=now
+    )
+    assert data_handler.name == "my_new_data"
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_new_data", idx=1)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert (tmp_path / expected_data_folder / "data.json").exists()
