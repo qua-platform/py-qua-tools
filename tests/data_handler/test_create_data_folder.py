@@ -1,6 +1,9 @@
 import pytest
 from datetime import datetime
-from qualang_tools.results.data_handler.data_folder_tools import create_data_folder, DEFAULT_FOLDER_PATTERN
+from qualang_tools.results.data_handler.data_folder_tools import (
+    create_data_folder,
+    DEFAULT_FOLDER_PATTERN,
+)
 
 
 def test_create_data_folder(tmp_path):
@@ -73,3 +76,17 @@ def test_create_successive_data_folder(tmp_path):
     }
 
     assert properties == properties_expected
+
+
+def test_performance_get_idxs(tmp_path):
+    from qualang_tools.results.data_handler.data_folder_tools import (
+        get_latest_data_folder,
+    )
+
+    now = datetime.now()
+
+    for k in range(1, 1000):
+        properties = create_data_folder(tmp_path, name="my_test", use_datetime=now)
+        properties_latest = get_latest_data_folder(tmp_path)
+
+        assert properties["idx"] == properties_latest["idx"] == k

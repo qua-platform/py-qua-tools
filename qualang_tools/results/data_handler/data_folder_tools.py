@@ -29,7 +29,7 @@ def extract_data_folder_properties(
 ) -> Optional[Dict[str, Union[str, int]]]:
     """Extract properties from a data folder.
 
-    :param data_folder: The data folder to extract properties from.
+    :param data_folder: The data folder to extract properties from. Should be an absolute path.
     :param pattern: The pattern to extract the properties from, e.g. "#{idx}_{name}_%H%M%S".
     :param root_data_folder: The root data folder to extract the relative path from.
         If not provided, "relative_path" is not included in the properties.
@@ -51,6 +51,7 @@ def extract_data_folder_properties(
     pattern = pattern.replace("%M", r"(?P<minute>\d{2})")
     pattern = pattern.replace("%S", r"(?P<second>\d{2})")
 
+    data_folder = Path(data_folder)
     if root_data_folder is not None:
         folder_path_str = str(data_folder.relative_to(root_data_folder))
     else:
@@ -105,19 +106,21 @@ def get_latest_data_folder(
     if not remaining_folder_pattern:
         if "{idx}" not in current_folder_pattern:
             raise ValueError("The folder pattern must contain '{idx}' at the end.")
-        # Get the latest idx
-        folders = [f for f in folder_path.iterdir() if f.is_dir()]
-        folders = [
-            f for f in folders if extract_data_folder_properties(f, folder_pattern, root_data_folder=root_data_folder)
-        ]
 
+        folders = {}
+        for f in folder_path.iterdir():
+            if not f.is_dir():
+                continue
+            properties = extract_data_folder_properties(f, folder_pattern, root_data_folder=root_data_folder)
+            if properties is None:
+                continue
+
+            folders[f] = properties
         if not folders:
             return None
 
-        latest_folder = max(folders, key=lambda f: f.name)
-        return extract_data_folder_properties(
-            data_folder=latest_folder, pattern=folder_pattern, root_data_folder=root_data_folder
-        )
+        latest_folder, latest_properties = max(folders.items(), key=lambda f: f[1]["idx"])
+        return latest_properties
     elif "{idx}" in current_folder_pattern:
         raise ValueError("The folder pattern must only contain '{idx}' in the last part.")
     else:
