@@ -1963,9 +1963,10 @@ viz = ["matplotlib", "nc-time-axis", "seaborn"]
 
 [extras]
 configbuilder = ["dash", "dash-bootstrap-components", "dash-core-components", "dash-cytoscape", "dash-dangerously-set-inner-html", "dash-html-components", "dash-table", "docutils", "pandas", "waitress"]
+datahandler = ["xarray"]
 interplot = ["dill", "ipython", "pypiwin32"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "747d53032388a16c4b1d9f0c64149a99ce79cc86b37136a21471ce266d934314"
+content-hash = "e5b4865de8ce5e3f72f199425eb6459646164c5b3aa7de6fd5c1dae170aaa8ee"
