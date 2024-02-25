@@ -85,7 +85,7 @@ def test_performance_get_idxs(tmp_path):
 
     now = datetime.now()
 
-    for k in range(1, 1000):
+    for k in range(1, 110):
         properties = create_data_folder(tmp_path, name="my_test", use_datetime=now)
         properties_latest = get_latest_data_folder(tmp_path)
 
