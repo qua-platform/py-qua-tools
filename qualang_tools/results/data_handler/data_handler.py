@@ -18,7 +18,19 @@ def save_data(
     metadata_filename: str = "metadata.json",
     data_processors: Sequence[DataProcessor] = (),
 ) -> Path:
-    """Save data to a folder
+    """
+    Save data to a folder
+
+    The data (assumed to be a dict) is saved as a json file to "{data_folder}/{data_filename}", which typically
+    follows the format "%Y-%m-%d/#{idx}_{name}_%H%M%S/data.json".
+    Non-serialisable contents in data such as figures and arrays are saved into separate files and the paths are
+    referenced from the data dictionary.
+    The optional metadata (assumed to be a dict) is saved as a json file to "{data_folder}/{metadata_filename}".
+
+    This function also applies a list of data processors to the data before saving it. The data processors are
+    applied in the order they are provided.
+
+    This function is used by the DataHandler class to save data to a folder.
 
     :param data_folder: The folder where the data will be saved
     :param data: The data to be saved
@@ -26,6 +38,7 @@ def save_data(
     :param data_filename: The filename of the data
     :param metadata_filename: The filename of the metadata
     :param data_processors: A list of data processors to be applied to the data
+    :return: The path of the saved data folder
     """
     if isinstance(data_folder, str):
         data_folder = Path(data_folder)
@@ -57,6 +70,32 @@ def save_data(
 
 
 class DataHandler:
+    """A class to handle data saving.
+
+    This class provides functionality to save data to a specified data folder.
+    It allows for the creation of a new data folder, saving data to the folder,
+    and applying data processors to the saved data.
+
+    :param name: The name of the data handler.
+    :type name: str, optional
+    :param data_processors: The data processors to be applied to the saved data.
+    :type data_processors: Sequence[DataProcessor], optional
+    :param root_data_folder: The root folder where the data will be saved.
+    :type root_data_folder: str or Path, optional
+    :param folder_pattern: The pattern used to create the data folder.
+    :type folder_pattern: str, optional
+    :param path: The path to the data folder.
+    :type path: Path, optional
+
+    Example usage:
+
+    .. code-block:: python
+
+        data_handler = DataHandler("T1_experiment")
+        data = {"T1": 1e-6, "T1_arr": np.array([1, 2, 3]), "T1_fig": plt.figure()}
+        data_handler.save_data(data)
+    """
+
     default_data_processors = DEFAULT_DATA_PROCESSORS
     root_data_folder: Path = None
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
@@ -75,9 +114,7 @@ class DataHandler:
         if data_processors is not None:
             self.data_processors = data_processors
         else:
-            self.data_processors = [
-                processor() for processor in self.default_data_processors
-            ]
+            self.data_processors = [processor() for processor in self.default_data_processors]
 
         if root_data_folder is not None:
             self.root_data_folder = root_data_folder
@@ -94,7 +131,33 @@ class DataHandler:
         use_datetime: Optional[datetime] = None,
         create: bool = True,
     ) -> Dict[str, Union[str, int]]:
-        """Create a new data folder in the root data folder"""
+        """Create a new data folder in the root data folder.
+
+        This method creates a new data folder in the root data folder specified
+        in the `root_data_folder` attribute. The name of the data folder can be
+        specified using the `name` parameter. An index can also be provided using
+        the `idx` parameter. If a datetime object is provided using the `use_datetime`
+        parameter, it will be used in the folder name. By default, the data folder
+        is created.
+
+        :param name: The name of the data folder.
+        :type name: str, optional
+        :param idx: The index of the data folder.
+        :type idx: int, optional
+        :param use_datetime: The datetime to be used in the folder name.
+        :type use_datetime: datetime, optional
+        :param create: Whether to create the data folder or not.
+        :type create: bool, optional
+        :return: The properties of the created data folder.
+        :rtype: dict
+        :raises ValueError: If the name is not specified.
+
+        Example usage:
+
+        .. code-block:: python
+
+            data_handler.create_data_folder(name="T1_experiment", idx=1, use_datetime=datetime.now())
+        """
         if name is not None:
             self.name = name
         if self.name is None:
@@ -119,6 +182,35 @@ class DataHandler:
         idx=None,
         use_datetime: Optional[datetime] = None,
     ):
+        """Save the data to the data folder.
+
+        This method saves the provided data to the data folder specified in the
+        `path` attribute. The name of the data folder can be specified using the
+        `name` parameter. The metadata associated with the data can be provided
+        using the `metadata` parameter. An index can also be provided using the
+        `idx` parameter. If a datetime object is provided using the `use_datetime`
+        parameter, it will be used in the folder name.
+
+        :param data: The data to be saved.
+        :type data: any
+        :param name: The name of the data folder.
+        :type name: str, optional
+        :param metadata: The metadata associated with the data.
+        :type metadata: any, optional
+        :param idx: The index of the data folder.
+        :type idx: int, optional
+        :param use_datetime: The datetime to be used in the folder name.
+        :type use_datetime: datetime, optional
+        :raises ValueError: If the name is not specified.
+        :return: The result of saving the data.
+        :rtype: any
+
+        Example usage:
+
+        .. code-block:: python
+
+            data_handler.save_data(data, name="T1_experiment", metadata=metadata, idx=1, use_datetime=datetime.now())
+        """
         if name is not None:
             self.name = name
         if self.name is None:

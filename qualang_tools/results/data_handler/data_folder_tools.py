@@ -1,3 +1,5 @@
+"""Tools for handling data folders."""
+
 from pathlib import Path
 from typing import Dict, Union, Optional
 import re
