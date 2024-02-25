@@ -218,7 +218,7 @@ A data folder can be created in two ways:
 data_folder_properties = data_handler.create_data_folder(name="new_data_folder")
 
 # Method 2: Create when saving results
-data_folder = data_handler.save_data("T1_measurement", data=T1_data)
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
 ```
 Note that the methods return different results. 
 The method `DataHandler.save_data` simply returns the path to the newly-created data folder, whereas `DataHandler.create_data_folder` returns a dict with additional information on the data folder such as the `idx`.
@@ -247,3 +247,12 @@ DataHandler.additional_files = {
 Each key is a path from the current working directory, and the corresponding value is the target filepath w.r.t. the data folder. 
 The key does not have to be a relative filepath, it can also be an absolute path. 
 This can be useful if you want to autosave a specific file on a fixed location somewhere on your hard drive.
+
+### Use filename as name
+Instead of manually specifying the name for a data folder, often the current filename is a good choice.
+This can be done by creating the data handler as such:
+
+```python
+from pathlib import Path
+data_handler = DataHandler(name=Path(__file__).stem)
+```
