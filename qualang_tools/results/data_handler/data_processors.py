@@ -85,9 +85,7 @@ class NumpyArraySaver(DataProcessor):
     merge_arrays: bool = True
     merged_array_name: str = "arrays.npz"
 
-    def __init__(self, min_size=None, merge_arrays=None, merged_array_name=None):
-        if min_size is not None:
-            self.min_size = min_size
+    def __init__(self, merge_arrays=None, merged_array_name=None):
         if merge_arrays is not None:
             self.merge_arrays = merge_arrays
         if merged_array_name is not None:
