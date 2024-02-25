@@ -49,7 +49,7 @@ setuptools = "^69.0.2"
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]
 configbuilder = ["pandas", "dash", "dash-html-components", "dash-core-components", "dash-bootstrap-components", "dash-cytoscape", "dash-table", "dash-dangerously-set-inner-html", "docutils", "waitress"]
-data_handler = ["xarray", "netCDF4"]
+data_handler = ["xarray"]
 
 [tool.black]
 line-length = 120
