@@ -35,7 +35,7 @@ jobs:
             poetry-
 
       - name: Set up the project
-        run: poetry install --extras "configbuilder data_handler" 
+        run: poetry install --extras "configbuilder datahandler" 
         
       - name: Check formatting
         run: poetry run poe check-format
