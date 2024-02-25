@@ -1,6 +1,7 @@
 import json
 import pytest
 from datetime import datetime
+import warnings
 
 from qualang_tools.results.data_handler.data_folder_tools import DEFAULT_FOLDER_PATTERN
 from qualang_tools.results.data_handler.data_handler import DataHandler
@@ -178,3 +179,30 @@ def test_data_handler_overwrite_initialized_name_save_data(tmp_path):
     expected_data_folder = now.strftime(expected_data_folder)
 
     assert (tmp_path / expected_data_folder / "data.json").exists()
+
+
+def test_data_handler_additional_file(tmp_path):
+    root_data_folder = tmp_path / "my_data"
+    root_data_folder.mkdir()
+
+    data_handler = DataHandler(
+        "my_data", root_data_folder=root_data_folder, additional_files={tmp_path / "test.txt": "test.txt"}
+    )
+    data = {"test": 1}
+    metadata = {"test": 2}
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        data_handler.save_data(data, metadata=metadata)
+
+    assert any(str(w_elem.message).endswith("does not exist, not copying") for w_elem in w)
+
+    (tmp_path / "test.txt").write_text("test_contents")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        data_folder = data_handler.save_data(data, metadata=metadata)
+
+    assert not any(str(w_elem.message).endswith("does not exist, not copying") for w_elem in w)
+
+    assert (data_folder / "test.txt").read_text() == "test_contents"

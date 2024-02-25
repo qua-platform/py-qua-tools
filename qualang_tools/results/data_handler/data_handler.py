@@ -1,7 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 import json
+import shutil
 from typing import Any, Dict, Optional, Sequence, Union
+import warnings
 
 from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
 from .data_folder_tools import DEFAULT_FOLDER_PATTERN, create_data_folder
@@ -101,6 +103,7 @@ class DataHandler:
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
     data_filename: str = "data.json"
     metadata_filename: str = "metadata.json"
+    additional_files: Dict[str, str] = {}
 
     def __init__(
         self,
@@ -108,6 +111,7 @@ class DataHandler:
         data_processors: Optional[Sequence[DataProcessor]] = None,
         root_data_folder: Optional[Union[str, Path]] = None,
         folder_pattern: Optional[str] = None,
+        additional_files: Optional[Dict[str, str]] = None,
         path: Optional[Path] = None,
     ):
         self.name = name
@@ -120,6 +124,8 @@ class DataHandler:
             self.root_data_folder = root_data_folder
         if folder_pattern is not None:
             self.folder_pattern = folder_pattern
+        if additional_files is not None:
+            self.additional_files = additional_files
 
         self.path = path
         self.path_properties = None
@@ -162,6 +168,8 @@ class DataHandler:
             self.name = name
         if self.name is None:
             raise ValueError("DataHandler: name must be specified")
+        if self.root_data_folder is None:
+            raise ValueError("DataHandler: root_data_folder must be specified")
 
         self.path_properties = create_data_folder(
             root_data_folder=self.root_data_folder,
@@ -218,7 +226,7 @@ class DataHandler:
         if self.path is None:
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
 
-        return save_data(
+        data_folder = save_data(
             data_folder=self.path,
             data=data,
             metadata=metadata,
@@ -226,3 +234,12 @@ class DataHandler:
             metadata_filename=self.metadata_filename,
             data_processors=self.data_processors,
         )
+
+        for source_name, destination_name in self.additional_files.items():
+            if not Path(source_name).exists():
+                warnings.warn(f"Additional file {source_name} does not exist, not copying", UserWarning)
+                continue
+
+            shutil.copy(source_name, data_folder / destination_name)
+
+        return data_folder

@@ -180,10 +180,11 @@ supported:
 - Numpy arrays
 - Xarrays
 
-### Usage example
+
+### Basic example
 ```python
 # Assume a measurement has been performed, and all results are collected here
-data = {
+T1_data = {
     "T1": 5e-6,
     "T1_figure": plt.figure(),
     "IQ_array": np.array([[1, 2, 3], [4, 5, 6]])
@@ -193,7 +194,7 @@ data = {
 data_handler = DataHandler(root_data_folder="C:/data")
 
 # Save results
-data_folder = data_handler.save_data("T1_measurement", data=data)
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
 print(data_folder)
 # C:/data/2024-02-24/#152_T1_measurement_095214
 # This assumes the save was performed at 2024-02-24 at 09:52:14
@@ -209,3 +210,40 @@ After calling `data_handler.save_data()`, three files are created in `data_folde
         "IQ_array": "./arrays.npz#IQ_array"
     }
     ```
+
+### Creating a data folder
+A data folder can be created in two ways:
+```python
+# Method 1: explicitly creating data folder
+data_folder_properties = data_handler.create_data_folder(name="new_data_folder")
+
+# Method 2: Create when saving results
+data_folder = data_handler.save_data("T1_measurement", data=T1_data)
+```
+Note that the methods return different results. 
+The method `DataHandler.save_data` simply returns the path to the newly-created data folder, whereas `DataHandler.create_data_folder` returns a dict with additional information on the data folder such as the `idx`.
+This additional information can also be accessed after calling `DataHandler.save_data` through the attribute `DataHandler.path_properties`.
+
+### Manually adding additional files to data folder
+After a data folder has been created, its path can be accessed from `DataHandler.path`.  
+This allows you to add additional files:
+
+```python
+data_folder = data_handler.save_data(data)
+assert data_folder == data_handler.path  # data_folder is added to data_handler.path
+
+(data_handler.path / "test_file.txt").write_text("I'm adding a file to the data folder")
+```
+
+### Auto-saving additional files to data folder
+In many cases certain files need to be added every time a data folder is created.
+Instead of having to manually add these files each time, they can be specified beforehand:
+
+```python
+DataHandler.additional_files = {
+    "configuration.py": "configuration.py
+}
+```
+Each key is a path from the current working directory, and the corresponding value is the target filepath w.r.t. the data folder. 
+The key does not have to be a relative filepath, it can also be an absolute path. 
+This can be useful if you want to autosave a specific file on a fixed location somewhere on your hard drive.
