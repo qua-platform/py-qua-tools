@@ -3,20 +3,22 @@ import sys
 from qualang_tools.results.data_handler.data_processors import XarraySaver
 
 
-def netcdf4_installed():
+def module_installed(module_name):
     try:
-        import netCDF4
+        exec(f"import {module_name}")
     except ImportError:
         return False
     return True
 
 
+@pytest.mark.skipif(not module_installed("xarray"), reason="xarray not installed")
 def test_xarray_saver_no_xarrays():
     xarray_saver = XarraySaver()
     data = {"a": 1, "b": 2, "c": 3}
     assert xarray_saver.process(data) == data
 
 
+@pytest.mark.skipif(not module_installed("xarray"), reason="xarray not installed")
 def test_xarray_data_saver_suffixes():
     xarray_saver = XarraySaver()
     assert xarray_saver.file_format == "hdf5"
@@ -35,7 +37,7 @@ def test_xarray_data_saver_suffixes():
     assert xarray_saver.file_suffix == ".zarr"
 
 
-@pytest.mark.skipif(not netcdf4_installed(), reason="netCDF4 not installed")
+@pytest.mark.skipif(not (module_installed("xarray") and module_installed("netCDF4")), reason="xarray not installed")
 def test_xarray_saver_merge_netcdf(tmp_path):
     import xarray as xr
 
@@ -54,7 +56,7 @@ def test_xarray_saver_merge_netcdf(tmp_path):
     xr.load_dataset(tmp_path / "xarrays.nc", group="d")
 
 
-@pytest.mark.skipif(not netcdf4_installed(), reason="netCDF4 not installed")
+@pytest.mark.skipif(not (module_installed("xarray") and module_installed("netCDF4")), reason="xarray not installed")
 def test_xarray_saver_merge_hdf5(tmp_path):
     import xarray as xr
 
@@ -73,6 +75,7 @@ def test_xarray_saver_merge_hdf5(tmp_path):
     xr.load_dataset(tmp_path / "xarrays.h5", group="d")
 
 
+@pytest.mark.skipif(not module_installed("xarray"), reason="xarray not installed")
 def test_xarray_saver_no_merge_netcdf(tmp_path):
     import xarray as xr
 
