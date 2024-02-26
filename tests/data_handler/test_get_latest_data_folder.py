@@ -26,8 +26,8 @@ def test_get_latest_data_folder_default_structure(tmp_path):
         "hour": 12,
         "minute": 34,
         "second": 56,
-        "path": str(date_folder / "#123_test_123456"),
-        "relative_path": f"{date_folder.name}/#123_test_123456",
+        "path": date_folder / "#123_test_123456",
+        "relative_path": Path(f"{date_folder.name}/#123_test_123456"),
     }
 
     assert properties == expected_properties
@@ -49,8 +49,8 @@ def test_get_latest_data_folder_two_items(tmp_path):
         "hour": 12,
         "minute": 34,
         "second": 57,
-        "path": str(date_folder / "#124_test_123457"),
-        "relative_path": f"{date_folder.name}/#124_test_123457",
+        "path": date_folder / "#124_test_123457",
+        "relative_path": Path(f"{date_folder.name}/#124_test_123457"),
     }
 
     assert properties == expected_properties
@@ -75,8 +75,8 @@ def test_get_latest_data_folder_two_items_different_date(tmp_path):
         "hour": 12,
         "minute": 34,
         "second": 57,
-        "path": str(date_folder / "#124_test_123457"),
-        "relative_path": f"{date_folder.name}/#124_test_123457",
+        "path": date_folder / "#124_test_123457",
+        "relative_path": Path(f"{date_folder.name}/#124_test_123457"),
     }
 
     assert properties == expected_properties
@@ -100,8 +100,8 @@ def test_get_latest_data_folder_different_date_empty_last_folder(tmp_path):
         "hour": 12,
         "minute": 34,
         "second": 56,
-        "path": str(tmp_path / "2021-01-05/#123_test_123456"),
-        "relative_path": "2021-01-05/#123_test_123456",
+        "path": tmp_path / "2021-01-05/#123_test_123456",
+        "relative_path": Path("2021-01-05/#123_test_123456"),
     }
 
     assert properties == expected_properties
@@ -124,8 +124,8 @@ def test_get_latest_data_folder_switched_idxs(tmp_path):
         "hour": 12,
         "minute": 34,
         "second": 57,
-        "path": str(date_folder / "#123_test_123457"),
-        "relative_path": f"{date_folder.name}/#123_test_123457",
+        "path": date_folder / "#123_test_123457",
+        "relative_path": Path(f"{date_folder.name}/#123_test_123457"),
     }
 
     assert properties == expected_properties

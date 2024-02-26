@@ -199,6 +199,10 @@ class DataHandler:
         `idx` parameter. If a datetime object is provided using the `use_datetime`
         parameter, it will be used in the folder name.
 
+        A new data folder is created if
+        - the `path` attribute is not set
+        - the `path` attribute is set and the data folder already contains data
+
         :param data: The data to be saved.
         :type data: any
         :param name: The name of the data folder.
@@ -224,6 +228,8 @@ class DataHandler:
         if self.name is None:
             raise ValueError("DataHandler: name must be specified")
         if self.path is None:
+            self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
+        elif self.path is not None and (self.path / self.data_filename).exists():
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
 
         data_folder = save_data(

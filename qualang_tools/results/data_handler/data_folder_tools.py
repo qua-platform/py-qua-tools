@@ -28,7 +28,7 @@ def _validate_datetime(datetime_str: str, datetime_format: str) -> bool:
 
 def extract_data_folder_properties(
     data_folder: Path, pattern: str = DEFAULT_FOLDER_PATTERN, root_data_folder: Path = None
-) -> Optional[Dict[str, Union[str, int]]]:
+) -> Optional[Dict[str, Union[str, int, Path]]]:
     """Extract properties from a data folder.
 
     :param data_folder: The data folder to extract properties from. Should be an absolute path.
@@ -66,9 +66,9 @@ def extract_data_folder_properties(
         return None
     properties = regex_match.groupdict()
     properties = {key: int(value) if value.isdigit() else value for key, value in properties.items()}
-    properties["path"] = str(data_folder)
+    properties["path"] = data_folder
     if root_data_folder is not None:
-        properties["relative_path"] = str(data_folder.relative_to(root_data_folder))
+        properties["relative_path"] = data_folder.relative_to(root_data_folder)
     return properties
 
 
@@ -141,14 +141,14 @@ def get_latest_data_folder(
 
         # Iterate over the folders, recursively call determine_latest_data_folder_idx
         for folder in sorted_folders:
-            sub_folder_idx = get_latest_data_folder(
+            sub_folder_properties = get_latest_data_folder(
                 root_data_folder,
                 folder_pattern=folder_pattern,
                 current_folder_pattern=remaining_folder_pattern[0],
                 relative_path=relative_path / folder.name,
             )
-            if sub_folder_idx is not None:
-                return sub_folder_idx
+            if sub_folder_properties is not None:
+                return sub_folder_properties
         return None
 
 
@@ -159,7 +159,7 @@ def create_data_folder(
     folder_pattern: str = DEFAULT_FOLDER_PATTERN,
     use_datetime: Optional[datetime] = None,
     create: bool = True,
-) -> Dict[str, Union[str, int]]:
+) -> Dict[str, Union[str, int, Path]]:
     """Create a new data folder in a given root data folder.
 
     First checks the index of the latest data folder and increments by one.

@@ -29,8 +29,8 @@ def test_create_data_folder_empty(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "path": str(tmp_path / path),
-        "relative_path": path,
+        "path": tmp_path / path,
+        "relative_path": Path(path),
     }
 
     assert properties == properties_expected
@@ -52,8 +52,8 @@ def test_create_successive_data_folder(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "path": str(tmp_path / path),
-        "relative_path": path,
+        "path": tmp_path / path,
+        "relative_path": Path(path),
     }
 
     assert properties == properties_expected
@@ -72,8 +72,8 @@ def test_create_successive_data_folder(tmp_path):
         "hour": now.hour,
         "minute": now.minute,
         "second": now.second,
-        "path": str(tmp_path / path),
-        "relative_path": path,
+        "path": tmp_path / path,
+        "relative_path": Path(path),
     }
 
     assert properties == properties_expected

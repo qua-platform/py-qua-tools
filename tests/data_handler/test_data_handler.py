@@ -44,9 +44,7 @@ def test_data_handler_metadata(tmp_path):
     assert (tmp_path / expected_data_folder / "metadata.json").exists()
 
     file_data = json.loads((tmp_path / expected_data_folder / "data.json").read_text())
-    file_metadata = json.loads(
-        (tmp_path / expected_data_folder / "metadata.json").read_text()
-    )
+    file_metadata = json.loads((tmp_path / expected_data_folder / "metadata.json").read_text())
 
     assert file_data == data
     assert file_metadata == metadata
@@ -58,9 +56,7 @@ def test_data_handler_custom_processors(tmp_path):
             data["a"] = 42
             return data
 
-    data_handler = DataHandler(
-        root_data_folder=tmp_path, data_processors=[TestProcessor()]
-    )
+    data_handler = DataHandler(root_data_folder=tmp_path, data_processors=[TestProcessor()])
 
     data = {"a": 1, "b": 2, "c": 3}
 
@@ -170,9 +166,7 @@ def test_data_handler_overwrite_initialized_name_save_data(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data(
-        {"a": 1, "b": 2, "c": 3}, name="my_new_data", use_datetime=now
-    )
+    data_handler.save_data({"a": 1, "b": 2, "c": 3}, name="my_new_data", use_datetime=now)
     assert data_handler.name == "my_new_data"
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_new_data", idx=1)
@@ -206,3 +200,24 @@ def test_data_handler_additional_file(tmp_path):
     assert not any(str(w_elem.message).endswith("does not exist, not copying") for w_elem in w)
 
     assert (data_folder / "test.txt").read_text() == "test_contents"
+
+
+def test_data_handler_multiple_saves(tmp_path):
+    data_handler = DataHandler(root_data_folder=tmp_path)
+
+    data = {"a": 1, "b": 2, "c": 3}
+    now = datetime.now()
+
+    data_handler.save_data(data, "my_data", use_datetime=now)
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert data_handler.path == (tmp_path / expected_data_folder)
+
+    data_handler.save_data(data, "my_data", use_datetime=now)
+
+    expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=2)
+    expected_data_folder = now.strftime(expected_data_folder)
+
+    assert data_handler.path == (tmp_path / expected_data_folder)

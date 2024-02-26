@@ -224,6 +224,25 @@ Note that the methods return different results.
 The method `DataHandler.save_data` simply returns the path to the newly-created data folder, whereas `DataHandler.create_data_folder` returns a dict with additional information on the data folder such as the `idx`.
 This additional information can also be accessed after calling `DataHandler.save_data` through the attribute `DataHandler.path_properties`.
 
+### Saving multiple times
+A `DataHandler` object can be used to save multiple times to different data folders:
+```python
+
+data_handler = DataHandler(root_data_folder="C:/data")
+
+T1_data = {...}
+
+# Save results
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
+# C:/data/2024-02-24/#1_T1_measurement_095214
+
+T1_modified_data = {...}
+
+data_folder = data_handler.save_data(data=T1_modified_data, name="T1_measurement")
+# C:/data/2024-02-24/#2_T1_measurement_095217
+```
+The save second call to `DataHandler.save_data` creates a new data folder where the incrementer is increased by 1.
+
 ### Manually adding additional files to data folder
 After a data folder has been created, its path can be accessed from `DataHandler.path`.  
 This allows you to add additional files:

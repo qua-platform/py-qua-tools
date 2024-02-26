@@ -11,11 +11,11 @@ def test_extract_data_folder_properties():
         "hour": 12,
         "minute": 34,
         "second": 56,
-        "path": "#123_test_123456",
+        "path": Path("#123_test_123456"),
     }
     assert properties == expected_properties
 
     properties = extract_data_folder_properties(Path("#123_my_test_123456"), "#{idx}_{name}_%H%M%S")
     expected_properties["name"] = "my_test"
-    expected_properties["path"] = "#123_my_test_123456"
+    expected_properties["path"] = Path("#123_my_test_123456")
     assert properties == expected_properties
