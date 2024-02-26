@@ -59,6 +59,8 @@ def extract_data_folder_properties(
     else:
         folder_path_str = data_folder.name
 
+    folder_path_str = folder_path_str.replace("\\", "/")
+
     regex_match = re.match(pattern, folder_path_str)
     if regex_match is None:
         return None
