@@ -198,7 +198,19 @@ def create_data_folder(
     if data_folder.exists():
         raise FileExistsError(f"Data folder {data_folder} already exists.")
 
-    if create:
-        data_folder.mkdir(parents=True)
+    if not create:
+        return {
+            "idx": idx,
+            "name": name,
+            "path": data_folder,
+            "relative_path": data_folder.relative_to(root_data_folder),
+            **{attr: getattr(use_datetime, attr) for attr in ["year", "month", "day", "hour", "minute", "second"]},
+        }
 
-    return extract_data_folder_properties(data_folder, folder_pattern, root_data_folder)
+    data_folder.mkdir(parents=True)
+
+    properties = extract_data_folder_properties(data_folder, folder_pattern, root_data_folder)
+    if properties is None:
+        raise ValueError(f"Could not extract properties from data folder {data_folder}.")
+
+    return properties

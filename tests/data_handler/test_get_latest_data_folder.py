@@ -1,6 +1,8 @@
 from datetime import datetime
+from pathlib import Path
 from qualang_tools.results.data_handler.data_folder_tools import (
     get_latest_data_folder,
+    create_data_folder,
     DEFAULT_FOLDER_PATTERN,
 )
 
@@ -129,7 +131,7 @@ def test_get_latest_data_folder_switched_idxs(tmp_path):
     assert properties == expected_properties
 
 
-def test_create_data_folders_correct_order(tmp_path):
+def test_get_latest_data_folder_correct_order(tmp_path):
     from qualang_tools.results.data_handler.data_folder_tools import (
         get_latest_data_folder,
     )
