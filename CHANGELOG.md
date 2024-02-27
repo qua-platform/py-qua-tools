@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
+- results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
 
 ### Changed
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.

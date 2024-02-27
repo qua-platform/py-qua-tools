@@ -12,7 +12,7 @@ It includes:
 
 * [QUA Loops Tools](qualang_tools/loops/README.md) - This library includes tools for parametrizing QUA for_ loops using the numpy (linspace, arange, logspace) methods or by directly inputting a numpy array.
 * [Plotting Tools](qualang_tools/plot/README.md) - This library includes tools to help handling plots from QUA programs.
-* [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs.
+* [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs, and saving them to the local file storage.
 * [Units Tools](qualang_tools/units/README.md) - This library includes tools for using units (MHz, us, mV...) and converting data to other units (demodulated data to volts for instance).
 * [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tools for analyzing data from experiments. 
 It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
