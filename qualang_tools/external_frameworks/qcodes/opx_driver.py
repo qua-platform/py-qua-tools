@@ -31,7 +31,7 @@ class OPX(Instrument):
         cluster_name: str = None,
         octave=None,
         close_other_machines: bool = True,
-
+        unwrap_phase: bool = True:
     ) -> None:
         """
         QCoDeS driver for the OPX.
@@ -58,6 +58,7 @@ class OPX(Instrument):
         self.results = {"names": [], "types": [], "buffers": [], "units": []}
         self.prog_id = None
         self.simulated_wf = {}
+        self.unwrap_phase = unwrap_phase
         # Parameter for simulation duration
         self.add_parameter(
             "sim_time",
@@ -306,7 +307,10 @@ class OPX(Instrument):
             # Add amplitude and phase if I and Q are in the SP
             if "I" in output.keys() and "Q" in output.keys():
                 output["R"] = np.sqrt(output["I"] ** 2 + output["Q"] ** 2)
-                output["Phi"] = np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
+                if self.unwrap_phase is True:
+                    output["Phi"] = np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
+                else:
+                    output["Phi"] = np.angle(output["I"] + 1j * output["Q"]) * 180 / np.pi
             return output
 
     def _extend_result(self, gene, count, averaging_buffer):
