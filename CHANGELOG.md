@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
 - simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
 - simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
+- External_frameworks/qcodes - Fixed the unit of phase
+- External_frameworks/qcodes - Added a flag to allow for the phase to remain wrapped 
 
 ### Deprecated
 - simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
