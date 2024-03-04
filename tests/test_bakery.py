@@ -27,9 +27,7 @@ def config():
         c = np.cos(phi)
         s = np.sin(phi)
         N = 1 / ((1 - g**2) * (2 * c**2 - 1))
-        return [
-            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
-        ]
+        return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
         "version": 1,
@@ -218,37 +216,13 @@ def test_indices_behavior(config):
         b1.play("gaussOp", "qe2")
         b1.play("gaussOp", "qe3")
 
-    assert all(
-        [
-            cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i]
-            == gauss(0.2, 0, 15, 80)[i]
-            for i in range(80)
-        ]
-    )
-    assert all(
-        [
-            cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i]
-            == gauss(0.2, 0, 15, 80)[i]
-            for i in range(80)
-        ]
-    )
+    assert all([cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
+    assert all([cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
     with b1:
         b1.play("gaussOp", "qe2", amp=2)
         b1.play("gaussOp", "qe3", amp=2)
-    assert all(
-        [
-            cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i]
-            == gauss(0.4, 0, 15, 80)[i]
-            for i in range(80)
-        ]
-    )
-    assert all(
-        [
-            cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i]
-            == gauss(0.4, 0, 15, 80)[i]
-            for i in range(80)
-        ]
-    )
+    assert all([cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
+    assert all([cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
 
 
 def test_play_at_negative_t(config):
@@ -266,12 +240,8 @@ def test_play_at_negative_t(config):
         b.play("Op1", "qe3")
         # The baked waveform is at this point I: [0.3, 0.3, 0.3, 0.3, 0.3]
         #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
-        b.play_at(
-            "Op2", "qe2", t=-2
-        )  # t indicates the time index where these new samples should be added
-        b.play_at(
-            "Op2", "qe3", t=-2
-        )  # t indicates the time index where these new samples should be added
+        b.play_at("Op2", "qe2", t=-2)  # t indicates the time index where these new samples should be added
+        b.play_at("Op2", "qe3", t=-2)  # t indicates the time index where these new samples should be added
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     assert np.array_equal(
@@ -301,12 +271,8 @@ def test_negative_wait(config):
         #                                     Q: [0.2, 0.2, 0.2, 0.3, 0.3]
         b.wait(-3, "qe2")
         b.wait(-3, "qe3")
-        b.play(
-            "Op2", "qe2"
-        )  # t indicates the time index where these new samples should be added
-        b.play(
-            "Op2", "qe3"
-        )  # t indicates the time index where these new samples should be added
+        b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+        b.play("Op2", "qe3")  # t indicates the time index where these new samples should be added
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
     assert np.array_equal(
@@ -338,12 +304,8 @@ def test_play_at_negative_t_too_large(config):
             Exception,
             match="too large for current baked samples length",
         ):
-            b.play_at(
-                "Op2", "qe2", t=-6
-            )  # t indicates the time index where these new samples should be added
-            b.play_at(
-                "Op2", "qe3", t=-6
-            )  # t indicates the time index where these new samples should be added
+            b.play_at("Op2", "qe2", t=-6)  # t indicates the time index where these new samples should be added
+            b.play_at("Op2", "qe3", t=-6)  # t indicates the time index where these new samples should be added
             # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
             #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
 
@@ -369,12 +331,8 @@ def test_negative_wait_too_large(config):
         ):
             b.wait(-6, "qe2")
             b.wait(-6, "qe3")
-            b.play(
-                "Op2", "qe2"
-            )  # t indicates the time index where these new samples should be added
-            b.play(
-                "Op2", "qe3"
-            )  # t indicates the time index where these new samples should be added
+            b.play("Op2", "qe2")  # t indicates the time index where these new samples should be added
+            b.play("Op2", "qe3")  # t indicates the time index where these new samples should be added
             # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
             #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
 

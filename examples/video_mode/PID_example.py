@@ -10,9 +10,7 @@ from qualang_tools.video_mode.videomode import VideoMode
 ####################
 # Helper functions #
 ####################
-def PID_derivation(
-    input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target
-):
+def PID_derivation(input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, alpha, target):
     """
 
     :param input_signal: Result of the demodulation
@@ -100,9 +98,7 @@ def PID_prog(vm: VideoMode, PDH_angle: float = 0.0):
             )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, int_error, der_error = PID_derivation(
-                single_shot_DC, *vm.variables
-            )
+            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *vm.variables)
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
             # Handle saturation - Make sure that the DAC won't be asked to output more than 0.5V

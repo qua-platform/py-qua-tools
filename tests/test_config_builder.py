@@ -24,20 +24,10 @@ def config_resonator():
     ]
 
     ro_pulse = MeasurePulse("ro_pulse", wfs, 16)
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w1_I", cosine=1, sine=0, duration=16))
-    )
-    ro_pulse.add(
-        Weights(
-            ConstantIntegrationWeights("integ_w1_Q", cosine=0, sine=-1, duration=16)
-        )
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w2_I", cosine=0, sine=1, duration=16))
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w2_Q", cosine=1, sine=0, duration=16))
-    )
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w1_I", cosine=1, sine=0, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w1_Q", cosine=0, sine=-1, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w2_I", cosine=0, sine=1, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w2_Q", cosine=1, sine=0, duration=16)))
 
     res.add(Operation(ro_pulse))
 
@@ -294,17 +284,9 @@ def config_3qb_3res():
 
     ro_pulse = MeasurePulse("ro_pulse", [ro_I, ro_Q], 100)
 
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("cos", cosine=1, sine=0, duration=100))
-    )
-    ro_pulse.add(
-        Weights(
-            ConstantIntegrationWeights("minus_sin", cosine=0, sine=-1, duration=100)
-        )
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("sin", cosine=0, sine=1, duration=100))
-    )
+    ro_pulse.add(Weights(ConstantIntegrationWeights("cos", cosine=1, sine=0, duration=100)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("minus_sin", cosine=0, sine=-1, duration=100)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("sin", cosine=0, sine=1, duration=100)))
 
     res1.add(Operation(ro_pulse))
     res2.add(Operation(ro_pulse))

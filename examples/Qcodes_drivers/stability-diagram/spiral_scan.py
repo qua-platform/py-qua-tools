@@ -95,41 +95,24 @@ class OPXCustomSequence(OPX):
                 # Get data and convert to Volt
                 out = None
                 # demodulated or integrated data
-                self.result_handles.get(self.results["names"][i]).wait_for_values(
-                    self.counter
-                )
+                self.result_handles.get(self.results["names"][i]).wait_for_values(self.counter)
                 if self.results["types"][i] == "IQ":
                     out = (
-                        -(
-                            self.result_handles.get(self.results["names"][i]).fetch(
-                                self.counter - 1
-                            )["value"]
-                        )
+                        -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
                         * 4096
                         / self.readout_pulse_length()
                     )
                 # raw adc traces
                 elif self.results["types"][i] == "adc":
-                    out = (
-                        -(
-                            self.result_handles.get(self.results["names"][i]).fetch(
-                                self.counter - 1
-                            )["value"]
-                        )
-                        / 4096
-                    )
+                    out = -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"]) / 4096
                 # Reshape data
                 out = out.reshape(self.results["buffers"][i][0])
-                output[self.results["names"][i]] = out[
-                    self.spiral(int(np.sqrt(self.results["buffers"][i][0])))
-                ]
+                output[self.results["names"][i]] = out[self.spiral(int(np.sqrt(self.results["buffers"][i][0])))]
 
             # Add amplitude and phase if I and Q are in the SP
             if "I" in output.keys() and "Q" in output.keys():
                 output["R"] = np.sqrt(output["I"] ** 2 + output["Q"] ** 2)
-                output["Phi"] = (
-                    np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
-                )
+                output["Phi"] = np.unwrap(np.angle(output["I"] + 1j * output["Q"])) * 180 / np.pi
             return output
 
     def get_measurement_parameter(self, scale_factor=((),)):
@@ -163,9 +146,7 @@ class OPXCustomSequence(OPX):
                 self.axis1_stop(int(self.readout_pulse_length()))
                 self.axis1_step(1)
                 self.axis1_npoints(int(self.readout_pulse_length()))
-                self.axis1_full_list(
-                    np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step())
-                )
+                self.axis1_full_list(np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step()))
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
 
@@ -175,12 +156,8 @@ class OPXCustomSequence(OPX):
                 if len(scale_factor[0]) == 3:
                     for param in scale_factor:
                         if param[0] in self.results["names"]:
-                            self.results["units"][
-                                self.results["names"].index(param[0])
-                            ] = param[2]
-                            self.results["scale_factor"][
-                                self.results["names"].index(param[0])
-                            ] = param[1]
+                            self.results["units"][self.results["names"].index(param[0])] = param[2]
+                            self.results["scale_factor"][self.results["names"].index(param[0])] = param[1]
                 else:
                     raise ValueError(
                         "scale_factor must be a list of tuples with 3 elements (the result name, the scale factor and the new unit), as in [('I', 0.152, 'pA'), ]."
@@ -191,14 +168,10 @@ class OPXCustomSequence(OPX):
             "OPX_results",
             names=self.results["names"],
             units=self.results["units"],
-            shapes=((self.results["buffers"][0][0], self.results["buffers"][0][0]),)
-            * len(self.results["names"]),
-            setpoints=((self.axis2_axis(), self.axis1_axis()),)
-            * len(self.results["names"]),
-            setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),)
-            * len(self.results["names"]),
-            setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),)
-            * len(self.results["names"]),
+            shapes=((self.results["buffers"][0][0], self.results["buffers"][0][0]),) * len(self.results["names"]),
+            setpoints=((self.axis2_axis(), self.axis1_axis()),) * len(self.results["names"]),
+            setpoint_units=((self.axis2_axis.unit, self.axis1_axis.unit),) * len(self.results["names"]),
+            setpoint_labels=((self.axis2_axis.label, self.axis1_axis.label),) * len(self.results["names"]),
         )
 
 
@@ -233,15 +206,11 @@ db_file_path = os.path.join(os.getcwd(), db_name)
 qc.config.core.db_location = db_file_path
 initialise_or_create_database_at(db_file_path)
 # Initialize qcodes experiment
-experiment = load_or_create_experiment(
-    experiment_name=exp_name, sample_name=sample_name
-)
+experiment = load_or_create_experiment(experiment_name=exp_name, sample_name=sample_name)
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPXCustomSequence(
-    config, name="OPX", host=qop_ip, cluster_name=cluster_name
-)
+opx_instrument = OPXCustomSequence(config, name="OPX", host=qop_ip, cluster_name=cluster_name)
 
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
@@ -407,9 +376,7 @@ opx_instrument.set_sweep_parameters("axis1", Vy_setpoints, "V", "Gate 2 biases")
 # Axis2 is the second loop
 opx_instrument.set_sweep_parameters("axis2", Vx_setpoints, "V", "Gate 1 biases")
 # Add the custom sequence to the OPX
-opx_instrument.qua_program = spiral_scan(
-    "gate_1", "gate_2", "readout_element", simulate=True
-)
+opx_instrument.qua_program = spiral_scan("gate_1", "gate_2", "readout_element", simulate=True)
 # Simulate program
 opx_instrument.sim_time(100_000)
 # opx_instrument.simulate()
@@ -418,9 +385,7 @@ opx_instrument.sim_time(100_000)
 # Set the dc offset to the center of the spiral (these must be set to the slow voltage source)
 # qm.set_output_dc_offset_by_element("gate_2", "single", Vy_center())
 # qm.set_output_dc_offset_by_element("gate_1", "single", Vx_center())
-opx_instrument.qua_program = spiral_scan(
-    "gate_1", "gate_2", "readout_element", simulate=False
-)
+opx_instrument.qua_program = spiral_scan("gate_1", "gate_2", "readout_element", simulate=False)
 do0d(
     opx_instrument.run_exp,
     opx_instrument.resume,

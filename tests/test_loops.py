@@ -27,9 +27,7 @@ def test_qua_arange(arange_param):
         with program() as prog:
             a = declare(int)
             a_st = declare_stream()
-            with for_(
-                *qua_arange(a, arange_param[0], arange_param[1], arange_param[2])
-            ):
+            with for_(*qua_arange(a, arange_param[0], arange_param[1], arange_param[2])):
                 update_frequency("resonator", a)
                 play("readout", "resonator")
                 save(a, a_st)
@@ -39,9 +37,7 @@ def test_qua_arange(arange_param):
         with program() as prog:
             a = declare(fixed)
             a_st = declare_stream()
-            with for_(
-                *qua_arange(a, arange_param[0], arange_param[1], arange_param[2])
-            ):
+            with for_(*qua_arange(a, arange_param[0], arange_param[1], arange_param[2])):
                 play("readout" * amp(a), "resonator")
                 save(a, a_st)
             with stream_processing():
@@ -112,9 +108,7 @@ def test_qua_linspace(linspace_param):
     with program() as prog:
         a = declare(fixed)
         a_st = declare_stream()
-        with for_(
-            *qua_linspace(a, linspace_param[0], linspace_param[1], linspace_param[2])
-        ):
+        with for_(*qua_linspace(a, linspace_param[0], linspace_param[1], linspace_param[2])):
             play("readout" * amp(a), "resonator")
             save(a, a_st)
         with stream_processing():
@@ -135,9 +129,7 @@ def test_qua_logspace_fixed(logspace_param):
     with program() as prog:
         a = declare(fixed)
         a_st = declare_stream()
-        with for_(
-            *qua_logspace(a, logspace_param[0], logspace_param[1], logspace_param[2])
-        ):
+        with for_(*qua_logspace(a, logspace_param[0], logspace_param[1], logspace_param[2])):
             play("readout" * amp(a), "resonator")
             save(a, a_st)
         with stream_processing():
@@ -156,9 +148,7 @@ def test_qua_logspace_int(logspace_param):
     with program() as prog:
         t = declare(int)
         t_st = declare_stream()
-        with for_(
-            *qua_logspace(t, logspace_param[0], logspace_param[1], logspace_param[2])
-        ):
+        with for_(*qua_logspace(t, logspace_param[0], logspace_param[1], logspace_param[2])):
             play("readout", "resonator", duration=t)
             save(t, t_st)
         with stream_processing():

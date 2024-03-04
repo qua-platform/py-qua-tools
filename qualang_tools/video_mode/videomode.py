@@ -57,9 +57,7 @@ def infer_type(value: Union[int, float, List, np.ndarray] = None):
         elif isinstance(value[0], float):
             return fixed
     else:
-        raise ValueError(
-            "Invalid parameter type. Please use float, int or bool or list."
-        )
+        raise ValueError("Invalid parameter type. Please use float, int or bool or list.")
 
 
 class ParameterValue:
@@ -115,9 +113,7 @@ class ParameterTable:
         """
         self.parameters_dict = parameters_dict
         self.table = {}
-        for index, (parameter_name, parameter_value) in enumerate(
-            self.parameters_dict.items()
-        ):
+        for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
             if isinstance(parameter_value, tuple):
                 if len(parameter_value) != 2:
                     raise ValueError(
@@ -127,9 +123,7 @@ class ParameterTable:
                     parameter_name, parameter_value[0], index, parameter_value[1]
                 )
             else:
-                self.table[parameter_name] = ParameterValue(
-                    parameter_name, parameter_value, index
-                )
+                self.table[parameter_name] = ParameterValue(parameter_name, parameter_value, index)
 
     def declare_variables(self):
         """
@@ -187,10 +181,7 @@ class ParameterTable:
         Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
                 else parameter_value associated to parameter_name.
         """
-        return {
-            parameter_name: parameter.value
-            for parameter_name, parameter in self.table.items()
-        }
+        return {parameter_name: parameter.value for parameter_name, parameter in self.table.items()}
 
     def get_parameter(self, param_name: str):
         """
@@ -271,11 +262,7 @@ class VideoMode:
         """
         self.qm = qm
         self.job = None
-        self._parameter_table = (
-            parameters
-            if isinstance(parameters, ParameterTable)
-            else ParameterTable(parameters)
-        )
+        self._parameter_table = parameters if isinstance(parameters, ParameterTable) else ParameterTable(parameters)
         self.active = True
         self.thread = threading.Thread(target=self.update_parameters)
         self.stop_event = threading.Event()
@@ -305,9 +292,7 @@ class VideoMode:
     def update_parameters(self):
         """Update parameters in the parameter table through user input."""
         while not self.stop_event.is_set() and self.active:
-            param_name = input(
-                "Enter a command (type help for getting the list of available commands): "
-            )
+            param_name = input("Enter a command (type help for getting the list of available commands): ")
             messages = param_name.split("=")
             if len(messages) == 1:
                 if messages[0] == "stop":
@@ -339,10 +324,7 @@ class VideoMode:
 
                     if isinstance(self.parameter_table.table[param_name].value, list):
                         param_value = param_value.split()
-                        if (
-                            len(param_value)
-                            != self.parameter_table.table[param_name].length
-                        ):
+                        if len(param_value) != self.parameter_table.table[param_name].length:
                             print(
                                 f"Invalid input. {self.parameter_table[param_name]} should be a list of length "
                                 f"{self.parameter_table.table[param_name].length}."
@@ -372,9 +354,7 @@ class VideoMode:
                                     "first value): "
                                 )
 
-                        assert all(
-                            isinstance(x, type(param_value[0])) for x in param_value
-                        ), (
+                        assert all(isinstance(x, type(param_value[0])) for x in param_value), (
                             f"Invalid input. {self.parameter_table[param_name]} should be a list of elements of the "
                             f"same type."
                         )
@@ -393,9 +373,7 @@ class VideoMode:
                     else:
                         if self.parameter_table.table[param_name].type == int:
                             if not param_value.isnumeric():
-                                print(
-                                    f"Invalid input. {self.parameter_table[param_name]} should be an integer."
-                                )
+                                print(f"Invalid input. {self.parameter_table[param_name]} should be an integer.")
                             else:
                                 try:
                                     param_value = int(param_value)
@@ -410,16 +388,12 @@ class VideoMode:
                             try:
                                 param_value = float(param_value)
                             except ValueError:
-                                print(
-                                    f"Invalid input. {self.parameter_table[param_name]} should be a float."
-                                )
+                                print(f"Invalid input. {self.parameter_table[param_name]} should be a float.")
                                 continue
 
                         elif self.parameter_table.table[param_name].type == bool:
                             if param_value not in ["True", "False", "0", "1"]:
-                                print(
-                                    f"Invalid input. {self.parameter_table[param_name]} should be a boolean."
-                                )
+                                print(f"Invalid input. {self.parameter_table[param_name]} should be a boolean.")
                             elif param_value in ["0", "1"]:
                                 param_value = bool(int(param_value))
                             else:
@@ -430,9 +404,7 @@ class VideoMode:
                                         f"Invalid input. {self.parameter_table[param_name]} could not be cast to bool"
                                     )
                         else:
-                            print(
-                                f"Invalid input. {param_value} is not a valid parameter value."
-                            )
+                            print(f"Invalid input. {param_value} is not a valid parameter value.")
 
                         self.qm.set_io2_value(param_value)
                         self.parameter_table.table[param_name].value = param_value

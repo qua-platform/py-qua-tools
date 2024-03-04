@@ -18,9 +18,7 @@ def config():
         c = np.cos(phi)
         s = np.sin(phi)
         N = 1 / ((1 - g**2) * (2 * c**2 - 1))
-        return [
-            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
-        ]
+        return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
         "version": 1,
@@ -136,11 +134,7 @@ def test_is_parameter_table_valid(param_dict):
             else:
                 assert param.type is param_dict[param_name][1]
         else:
-            assert (
-                param.type is type(param.value)
-                if isinstance(param.value, (bool, int))
-                else fixed
-            )
+            assert param.type is type(param.value) if isinstance(param.value, (bool, int)) else fixed
         if isinstance(param.value, List):
             assert param.length == len(param.value)
 
