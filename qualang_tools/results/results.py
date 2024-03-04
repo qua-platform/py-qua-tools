@@ -4,6 +4,7 @@ Content:
     - fetching_tool: API to easily fetch data from the stream processing.
     - progress_counter: Displays progress bar and prints remaining computation time.
 """
+
 import numpy as np
 import time
 from qm.jobs.running_qm_job import RunningQmJob

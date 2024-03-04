@@ -31,7 +31,7 @@ class OPX(Instrument):
         cluster_name: str = None,
         octave=None,
         close_other_machines: bool = True,
-        unwrap_phase: bool = True:
+        unwrap_phase: bool = True,
     ) -> None:
         """
         QCoDeS driver for the OPX.
