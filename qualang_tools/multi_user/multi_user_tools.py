@@ -17,9 +17,7 @@ class BusyFilter(logging.Filter):
 
 
 @contextmanager
-def qm_session(
-    qmm: QuantumMachinesManager, config: dict, timeout: int = 100
-) -> QuantumMachine:
+def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) -> QuantumMachine:
     """
     This context manager allows a user to _try_ to
     open a quantum machine, and if it is not possible since its resources are currently in use,
@@ -56,9 +54,7 @@ def qm_session(
                 and msg in e.errors[1][2]
             ):
                 if not printed:
-                    qm_log.warning(
-                        f"QOP is busy. Waiting for it to free up for {timeout}s..."
-                    )
+                    qm_log.warning(f"QOP is busy. Waiting for it to free up for {timeout}s...")
                     printed = True
                 sleep(0.2)
                 time += 0.2
@@ -71,9 +67,7 @@ def qm_session(
             qm_log.removeFilter(filt)
     if is_busy and time >= timeout:
         qm_log.warning(f"While waiting for QOP to free, reached timeout: {timeout}s")
-        raise TimeoutError(
-            f"While waiting for QOP to free, reached timeout: {timeout}s"
-        )
+        raise TimeoutError(f"While waiting for QOP to free, reached timeout: {timeout}s")
     try:
         yield qm
         while qm.get_running_job() is not None:

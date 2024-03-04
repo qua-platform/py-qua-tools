@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import warnings
 
 from dash import dcc
 import dash_bootstrap_components as dbc
@@ -89,12 +90,15 @@ def open_browser():
 
 
 if __name__ == "__main__":
+    warnings.warn(
+        "ConfigGUI is no longer being actively developed and may not support all config functionality",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     global port_number
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-p", "--port", help="port number to use for GUI server", type=int
-    )
+    parser.add_argument("-p", "--port", help="port number to use for GUI server", type=int)
     args = parser.parse_args()
     if args.port is not None:
         port_number = args.port
@@ -106,9 +110,7 @@ if __name__ == "__main__":
     timer.start()
     try:
         print(f"\tConfig GUI is running on http://{host}:{port_number}")
-        print(
-            "\tIf web browser does not open, please enter the address stated above manually."
-        )
+        print("\tIf web browser does not open, please enter the address stated above manually.")
         print("\tStop GUI by pressing Ctrl+C")
         print(
             "\t%s: %s"

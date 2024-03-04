@@ -55,13 +55,9 @@ class RBSequence:
         self.d_max = d_max
         self.config = config
         self.qubit = qubit
-        self.state_tracker = [
-            0
-        ] * d_max  # Keeps track of all transformations done on qubit state
+        self.state_tracker = [0] * d_max  # Keeps track of all transformations done on qubit state
         self.state_init = 0
-        self.revert_ops = [
-            0
-        ] * d_max  # Keeps track of inverse op index associated to each sequence
+        self.revert_ops = [0] * d_max  # Keeps track of inverse op index associated to each sequence
         self.duration_tracker = [0] * d_max  # Keeps track of each Clifford's duration
         # self.baked_cliffords = self.generate_cliffords()  # List of baking objects for running Cliffords
         self.operations_list = [None] * d_max
@@ -180,9 +176,7 @@ class RBSequence:
                 self.operations_list[d] = random_clifford
                 for op in random_clifford:
                     b.play(op, self.qubit)
-                    self.duration_tracker[
-                        d
-                    ] += 1  # Add additional duration for each pulse played to build Clifford
+                    self.duration_tracker[d] += 1  # Add additional duration for each pulse played to build Clifford
 
                 if d == 0:  # Handle the case for qubit set to original/ground state
                     self.state_tracker[d] = c1_table[self.state_init][i]

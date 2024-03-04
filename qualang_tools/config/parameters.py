@@ -219,9 +219,7 @@ class ConfigVars(object):
         :type setter: Callable
         """
         if name.find(" ") != -1:
-            raise ValueError(
-                "Parameter name cannot contain spaces. " "Use underscore of camelCase."
-            )
+            raise ValueError("Parameter name cannot contain spaces. " "Use underscore of camelCase.")
         if name not in self.params.keys():
             self.params[name] = Parameter(name)
         if setter is not None:

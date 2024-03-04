@@ -32,13 +32,9 @@ def update_field(click_number, value, pathname):
     if success == "OK":
         with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "a") as myfile:
             if isinstance(value, str):
-                myfile.write(
-                    f"config_editor('{pathname}', updated_value='{value}', configuration=configuration)\n"
-                )
+                myfile.write(f"config_editor('{pathname}', updated_value='{value}', configuration=configuration)\n")
             else:
-                myfile.write(
-                    f"config_editor('{pathname}', updated_value={value}, configuration=configuration)\n"
-                )
+                myfile.write(f"config_editor('{pathname}', updated_value={value}, configuration=configuration)\n")
         return [dbc.Alert(f"Updated {pathname} = {value}", color="success")]
     else:
         return [dbc.Alert(f"{success}", color="danger")]
@@ -60,9 +56,7 @@ def update_tuple(click_number, value0, value1, pathname):
                 f"config_editor('{pathname}', updated_value=('{value0}',{value1}), configuration=configuration)\n"
             )
 
-        return [
-            dbc.Alert(f"Updated {pathname} = ('{value0}', {value1})", color="success")
-        ]
+        return [dbc.Alert(f"Updated {pathname} = ('{value0}', {value1})", color="success")]
     else:
         return [dbc.Alert(f"{success}", color="danger")]
 
@@ -81,13 +75,9 @@ def update_wf(value, pathname, initial_waveform):
     if success == "OK":
         with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "a") as myfile:
             if isinstance(value, str):
-                myfile.write(
-                    f"config_editor('{pathname}', updated_value='{value}', config=configuration)\n"
-                )
+                myfile.write(f"config_editor('{pathname}', updated_value='{value}', config=configuration)\n")
             else:
-                myfile.write(
-                    f"config_editor('{pathname}', updated_value={value}, config=configuration)\n"
-                )
+                myfile.write(f"config_editor('{pathname}', updated_value={value}, config=configuration)\n")
         import config_edits
         import config_final
 
@@ -156,9 +146,7 @@ def add_port_to_list(bclick, options, values, controller, port):
 )
 def add_component_click(bclick, inputs, ports, added_objects, selected_component):
     try:
-        python_edit_command = component_editor(
-            selected_component, inputs=[inputs, ports]
-        )
+        python_edit_command = component_editor(selected_component, inputs=[inputs, ports])
         if added_objects is not None:
             for index, item in enumerate(added_objects):
                 if index == 0:
@@ -170,9 +158,7 @@ def add_component_click(bclick, inputs, ports, added_objects, selected_component
         with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "a") as myfile:
             myfile.write(f"setup.add({python_edit_command})\n")
 
-        return dbc.Alert(
-            f"Component added successfuly!\n {python_edit_command}", color="success"
-        )
+        return dbc.Alert(f"Component added successfuly!\n {python_edit_command}", color="success")
     except Exception:
         return dbc.Alert(traceback.format_exc(), color="danger")
 
@@ -226,9 +212,7 @@ def add_optional_input(
         return (
             current_added_items,
             current_options,
-            dbc.Alert(
-                f"Component added successfuly!\n {python_command}", color="success"
-            ),
+            dbc.Alert(f"Component added successfuly!\n {python_command}", color="success"),
         )
     except Exception:
         raise PreventUpdate

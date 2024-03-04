@@ -21,12 +21,8 @@ class _nanosecond:
     def _get_value(self) -> float:
         for frameinfo in stack():
             for var in frameinfo.frame.f_locals.values():
-                if isinstance(
-                    var, Program
-                ):  # we have a qua program being declared somewhere
-                    if (
-                        var._is_in_scope  # this is set by __enter__ and unset by __exit__ of Program
-                    ):
+                if isinstance(var, Program):  # we have a qua program being declared somewhere
+                    if var._is_in_scope:  # this is set by __enter__ and unset by __exit__ of Program
                         return 0.25  # now it is in clock cycles
         else:
             return 1.0  # this is in nanoseconds
@@ -215,9 +211,7 @@ class unit:
         return data * self.V / 4096
 
     @staticmethod
-    def volts2dBm(
-        Vp: Union[float, ndarray], Z: Union[float, int] = 50
-    ) -> Union[float, ndarray]:
+    def volts2dBm(Vp: Union[float, ndarray], Z: Union[float, int] = 50) -> Union[float, ndarray]:
         """Converts the peak voltage (amplitude) from volts to dBm.
 
         :param Vp: the peak voltage (amplitude) in volts. Must be a python variable or array.
@@ -227,9 +221,7 @@ class unit:
         return 10 * log10(((Vp / sqrt(2)) ** 2 * 1000) / Z)
 
     @staticmethod
-    def dBm2volts(
-        P_dBm: Union[float, ndarray], Z: Union[float, int] = 50
-    ) -> Union[float, ndarray]:
+    def dBm2volts(P_dBm: Union[float, ndarray], Z: Union[float, int] = 50) -> Union[float, ndarray]:
         """Converts the power from dBm to volts (peak voltage or amplitude).
 
         :param P_dBm: the power in dBm. Must be a python variable or array.

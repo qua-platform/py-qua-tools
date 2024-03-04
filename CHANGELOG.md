@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
+- results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
+
+### Changed
+- config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
+- simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
+- simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
+
+### Deprecated
+- simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
+
+## [0.16.0] - 2024-01-25
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
 - External_frameworks/qcodes - Fix bug with the setpoints when streaming the raw adc traces.
@@ -17,7 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Video_mode - New module to update some pre-defined parameters of a QUA program while fetching data from the OPX. 
 
 ### Changed
+- Eased package dependencies, requires python 3.8 or above
 - Unit - `demod2volts` now has a `single_demod` flag to correctly convert the data from single demodulation.
+
+## Deprecated
+- ConfigBuilder and ConfigGUI are not being activity developed and may not have all config options
+
 
 ## [0.15.2] - 2023-09-06
 ### Added
@@ -294,7 +312,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...HEAD
+[0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
 [0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.14.0...v0.15.0

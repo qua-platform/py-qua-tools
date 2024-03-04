@@ -31,9 +31,7 @@ class QMConfiguration:
         self.config["version"] = 1
         self.config["controllers"] = dict()
         for cont in controllers:
-            self.config["controllers"][cont.name] = self._call_dict_parameters(
-                cont.dict
-            )
+            self.config["controllers"][cont.name] = self._call_dict_parameters(cont.dict)
         self.config["elements"] = dict()
         self.config["pulses"] = dict()
         self.config["waveforms"] = dict()
@@ -115,16 +113,14 @@ class QMConfiguration:
         self.add_waveforms(pulse.wfs)
         if pulse.digital_marker is not None:
             _dict["digital_marker"] = pulse.digital_marker.name
-            self.config["digital_waveforms"][
-                pulse.digital_marker.name
-            ] = self._call_dict_parameters(pulse.digital_marker.dict)
+            self.config["digital_waveforms"][pulse.digital_marker.name] = self._call_dict_parameters(
+                pulse.digital_marker.dict
+            )
         if isinstance(pulse, MeasurePulse):
             _dict["integration_weights"] = dict()
             for w in pulse.integration_weights:
                 _dict["integration_weights"][w.name] = w.weights.name
-                self.config["integration_weights"][
-                    w.weights.name
-                ] = self._call_weights_dict(w.weights.dict)
+                self.config["integration_weights"][w.weights.name] = self._call_weights_dict(w.weights.dict)
         self.config["pulses"][pulse.name] = self._call_dict_parameters(_dict)
 
     def add_pulses(self, pulses: List[Pulse]):
@@ -175,9 +171,7 @@ class QMConfiguration:
         assert self.config["pulses"][pulse_name]["operation"] == "measure"
         assert len(self.config["pulses"][pulse_name]["waveforms"].keys()) == 2
         weight_name = pulse_name + "_weight"
-        self.config["integration_weights"][weight_name] = self._call_dict_parameters(
-            iw.dict
-        )
+        self.config["integration_weights"][weight_name] = self._call_dict_parameters(iw.dict)
 
     def update_constant_waveform(self, wf_name: str, amp: float):
         """Update the amplitude of an existing constant waveform
@@ -208,9 +202,7 @@ class QMConfiguration:
             controllers = []
         self.__init__(controllers)
 
-    def update_intermediate_frequency(
-        self, elm_name: str, freq: float, update_mixer: bool = True
-    ):
+    def update_intermediate_frequency(self, elm_name: str, freq: float, update_mixer: bool = True):
         self.config["elements"][elm_name]["intermediate_frequency"] = freq
         if update_mixer:
             m_name = self.config["elements"][elm_name]["mixer"]
@@ -261,9 +253,7 @@ class QMConfiguration:
         :param weight: an IntegrationWeights object
         :type weight: IntegrationWeights
         """
-        self.config["integration_weights"][weight.name] = self._call_dict_parameters(
-            weight.dict
-        )
+        self.config["integration_weights"][weight.name] = self._call_dict_parameters(weight.dict)
 
     def add_mixer(self, mixer: Mixer):
         """Add a mixer to this configuration
@@ -271,9 +261,7 @@ class QMConfiguration:
         :param mixer: A Mixer object
         :type mixer: Mixer
         """
-        self.config["mixers"][mixer.name] = [
-            self._call_dict_parameters(data) for data in mixer.dict
-        ]
+        self.config["mixers"][mixer.name] = [self._call_dict_parameters(data) for data in mixer.dict]
 
     def add_oscillator(self, oscillator: Oscillator):
         """Add an oscillator to this configuration
@@ -281,6 +269,4 @@ class QMConfiguration:
         :param oscillator: an Oscillator object
         :type oscillator: Oscillator
         """
-        self.config["oscillators"][oscillator.name] = self._call_dict_parameters(
-            oscillator.dict
-        )
+        self.config["oscillators"][oscillator.name] = self._call_dict_parameters(oscillator.dict)

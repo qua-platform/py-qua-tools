@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qualang-tools"
-version = "v0.15.2"
+version = "v0.16.0"
 description = "The qualang_tools package includes various tools related to QUA programs in Python"
 license = "BSD-3-Clause"
 authors = [
@@ -18,24 +18,25 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.7.1,<4.0"
+python = ">=3.8,<4.0"
 matplotlib = "^3.4.2"
 numpy = "^1.17.0"
-pandas = ">=1.2.4"
 qm-qua = ">=1.1.0"
 scipy = "^1.7.1"
-dash = "^2.0.0"
-dash-html-components = "^2.0.0"
-dash-core-components = "^2.0.0"
-dash-bootstrap-components = "^1.0.0"
-dash-cytoscape = "^0.3.0"
-dash-table = "^5.0.0"
-docutils = ">=0.14.0"
-dash-dangerously-set-inner-html = "^0.0.2"
-waitress = "^2.0.0"
+pandas = { version = ">=1.2.4", optional = true }
+dash = { version = "^2.0.0", optional = true }
+dash-html-components = { version = "^2.0.0", optional = true }
+dash-core-components = { version = "^2.0.0", optional = true }
+dash-bootstrap-components = { version = "^1.0.0", optional = true }
+dash-cytoscape = { version = "^0.3.0", optional = true }
+dash-table = { version = "^5.0.0", optional = true }
+dash-dangerously-set-inner-html = { version = "^0.0.2", optional = true }
+docutils = { version = ">=0.14.0", optional = true }
+waitress = { version = "^2.0.0", optional = true }
 dill = { version = "^0.3.4", optional = true }
 pypiwin32 = { version = "^223", optional = true }
 ipython = { version = "^7.31.1", optional = true }
+xarray = { version = "^2023.0.0", optional = true }
 scikit-learn = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
@@ -43,12 +44,15 @@ pytest = "^6.2.5"
 black = "^22.3"
 poethepoet = "^0.11.0"
 flake8 = "^4.0.1"
+setuptools = "^69.0.2"
 
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]
+configbuilder = ["pandas", "dash", "dash-html-components", "dash-core-components", "dash-bootstrap-components", "dash-cytoscape", "dash-table", "dash-dangerously-set-inner-html", "docutils", "waitress"]
+datahandler = ["xarray"]
 
 [tool.black]
-line-length = 88  # Defaults
+line-length = 120
 exclude = "qualang_tools/bakery/randomized_benchmark_c1.py"
 
 [tool.poe.tasks]
