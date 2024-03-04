@@ -31,6 +31,7 @@ class OPX(Instrument):
         cluster_name: str = None,
         octave=None,
         close_other_machines: bool = True,
+
     ) -> None:
         """
         QCoDeS driver for the OPX.
@@ -415,7 +416,7 @@ class OPX(Instrument):
                 self.results["names"].append("R")
                 self.results["names"].append("Phi")
                 self.results["units"].append("V")
-                self.results["units"].append("rad")
+                self.results["units"].append("deg")
             if "adc" in self.results["types"]:
                 self.axis1_start(0)
                 self.axis1_stop(int(self.readout_pulse_length()))
