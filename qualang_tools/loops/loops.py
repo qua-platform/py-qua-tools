@@ -6,6 +6,7 @@ Content:
     - qua_linspace: Function parametrizing the QUA `for_` loop from the numpy.linspace() syntax.
     - qua_logspace: Function parametrizing the QUA `for_` loop from the numpy.logspace() syntax.
 """
+
 import numpy as np
 import warnings
 from qm.qua import Cast

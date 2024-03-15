@@ -4,7 +4,6 @@ Content:
     - interrupt_on_close: Allows to interrupt the execution and free the console when closing the live-plotting figure.
 """
 
-
 from typing import List, Tuple
 import numpy as np
 from scipy import signal

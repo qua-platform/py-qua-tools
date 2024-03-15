@@ -55,7 +55,7 @@ class Controller(ConfigBuilderElement):
         :return: An instance of the analog port
         :rtype: AnalogOutputPort
         """
-        for (i, p) in enumerate(self.analog_output_ports):
+        for i, p in enumerate(self.analog_output_ports):
             if port == p.info[1]:
                 p.offset = offset
                 return p
@@ -73,7 +73,7 @@ class Controller(ConfigBuilderElement):
         :return: An instance of the input port
         :rtype: AnalogInputPort
         """
-        for (i, p) in enumerate(self.analog_input_ports):
+        for i, p in enumerate(self.analog_input_ports):
             if port == p.info[1]:
                 p.offset = offset
                 return p
@@ -89,7 +89,7 @@ class Controller(ConfigBuilderElement):
         :return:
         :rtype: DigitalOutputPort
         """
-        for (i, p) in enumerate(self.digital_output_ports):
+        for i, p in enumerate(self.digital_output_ports):
             if port == p.info[1]:
                 return p
         self._use_digital_output_port(port)
@@ -105,7 +105,7 @@ class Controller(ConfigBuilderElement):
         :rtype: DigitalOutputPort
         """
 
-        for (i, p) in enumerate(self.digital_input_ports):
+        for i, p in enumerate(self.digital_input_ports):
             if port == p.info[1]:
                 return p
         self._use_digital_input_port(port)
@@ -925,7 +925,7 @@ class ReadoutResonator(ElementCollection):
             drive.add(op)
 
         if self.drive_inputs:
-            for (i, port) in enumerate(self.drive_inputs):
+            for i, port in enumerate(self.drive_inputs):
                 drive.dict["outputs"]["out" + str(i + 1)] = port.info
 
         drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
