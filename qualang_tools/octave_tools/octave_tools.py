@@ -177,7 +177,7 @@ def update_correction_for_each_IF(
     return IFs, c00, c01, c10, c11, offset_I, offset_Q
 
 
-def octave_calibration(
+def octave_calibration_tool(
     qm: QuantumMachine,
     element: str,
     lo_frequencies: Union[int, float, list, np.ndarray],
