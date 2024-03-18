@@ -1630,6 +1630,17 @@ files = [
     {file = "pywin32-303-cp39-cp39-win_amd64.whl", hash = "sha256:79cbb862c11b9af19bcb682891c1b91942ec2ff7de8151e2aea2e175899cda34"},
 ]
 
+[[package]]
+name = "qm-octave"
+version = "2.1.0"
+description = "SDK to control an Octave with QUA"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "qm_octave-2.1.0-py3-none-any.whl", hash = "sha256:b909596fbbb183af3555cd737fa12ffb899afef0c3f804762e0aedd29abd9838"},
+    {file = "qm_octave-2.1.0.tar.gz", hash = "sha256:ca142a6656a0e1cd83ecbb8a2050096274468656a724ad041db6178c28864bfe"},
+]
+
 [package.dependencies]
 betterproto = "2.0.0b5"
 grpcio = ">=1.39.0,<2.0.0"
@@ -1662,6 +1673,7 @@ numpy = ">=1.17.0,<2.0.0"
 plotly = ">=5.13.0,<6.0.0"
 pretty_errors = ">=1.2.25,<2.0.0"
 protobuf = ">=3.17.3,<4.0.0"
+qm-octave = ">=1.1.0,<3.0.0"
 tinydb = ">=4.6.1,<5.0.0"
 
 [package.extras]
