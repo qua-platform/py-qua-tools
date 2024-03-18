@@ -41,12 +41,8 @@ class QuaCallable:
         kwargs: Dict[str, Any],
     ):
         align()
-        self._args = [
-            self._convert_to_qua_arg(f"__pos__{i}", arg) for i, arg in enumerate(args)
-        ]
-        self._kwargs = {
-            name: self._convert_to_qua_arg(name, arg) for name, arg in kwargs.items()
-        }
+        self._args = [self._convert_to_qua_arg(f"__pos__{i}", arg) for i, arg in enumerate(args)]
+        self._kwargs = {name: self._convert_to_qua_arg(name, arg) for name, arg in kwargs.items()}
         save(self._qua_callable_id, qua_callable_stream)
         pause()
         align()
@@ -70,20 +66,14 @@ class QuaCallable:
             return arg
         while True:
             value = job.result_handles.get(arg.tag).fetch_all()
-            if value is not None and (
-                arg.tag not in self._last_arg_fetch
-                or self._last_arg_fetch[arg.tag] != value[1]
-            ):
+            if value is not None and (arg.tag not in self._last_arg_fetch or self._last_arg_fetch[arg.tag] != value[1]):
                 self._last_arg_fetch[arg.tag] = value[1]
                 return value[0]
             sleep(0.01)
 
     def run(self, job: QmJob):
         args = [self._convert_to_value_arg(job, arg) for arg in self._args]
-        kwargs = {
-            name: self._convert_to_value_arg(job, arg)
-            for name, arg in self._kwargs.items()
-        }
+        kwargs = {name: self._convert_to_value_arg(job, arg) for name, arg in self._kwargs.items()}
         return self._fn(*args, **kwargs)
 
 
@@ -147,9 +137,7 @@ class QuaCallableEventManager(ProgramAddon):
                 func(result_handles)
 
     def register_qua_callable(self, fn: callable, *args, **kwargs):
-        lr = QuaCallable(
-            fn, self._qua_callable_stream, len(self._qua_callables), list(args), kwargs
-        )
+        lr = QuaCallable(fn, self._qua_callable_stream, len(self._qua_callables), list(args), kwargs)
         self._qua_callables.append(lr)
 
     def declare_all(self):
@@ -165,10 +153,7 @@ class QuaCallableEventManager(ProgramAddon):
         if not job.is_paused():
             return
         qua_callable_id = job.result_handles.get("__qua_callable").fetch_all()
-        if (
-            qua_callable_id is not None
-            and qua_callable_id[1] != self._last_qua_callable
-        ):
+        if qua_callable_id is not None and qua_callable_id[1] != self._last_qua_callable:
             self._last_qua_callable = qua_callable_id[1]
             out = self._qua_callables[qua_callable_id[0]].run(
                 job

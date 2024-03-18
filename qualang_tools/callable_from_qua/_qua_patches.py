@@ -39,6 +39,7 @@ class _ProgramScope(_ProgramScope_qua):
 
 QM_execute = QuantumMachine.execute
 
+
 def QM_execute_patched(
     self,
     program: Program,
@@ -68,6 +69,7 @@ def QM_execute_patched(
 
 def patch_qua_program_addons():
     import qm.qua._dsl
+
     if hasattr(Program, "addons"):
         print("qm.program.Program already has 'addons' attribute, not patching")
     else:
