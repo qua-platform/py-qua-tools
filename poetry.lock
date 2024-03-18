@@ -1656,8 +1656,8 @@ description = "QUA language SDK to control a Quantum Computer"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "qm_qua-1.1.1-py3-none-any.whl", hash = "sha256:c6e9c68690b40b3b97034dc1d4c39c23b9f9cb0ab1f34d18813a80490361730d"},
-    {file = "qm_qua-1.1.1.tar.gz", hash = "sha256:05a13841462f522afa61b6f63ff88d845a4734b81c1eb6b1c4083ed0e371ef95"},
+    {file = "qm_qua-1.1.7-py3-none-any.whl", hash = "sha256:6466d8925478c615fb41c10d92661f9a514f77ed6ce93d7b8385e07d87d43aa4"},
+    {file = "qm_qua-1.1.7.tar.gz", hash = "sha256:ef1d586a439116ef3da2b153be850969c15ee29a3d3a53abce869a73ab8706db"},
 ]
 
 [package.dependencies]
