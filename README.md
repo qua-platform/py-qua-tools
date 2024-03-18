@@ -16,6 +16,7 @@ It includes:
 * [Units Tools](qualang_tools/units/README.md) - This library includes tools for using units (MHz, us, mV...) and converting data to other units (demodulated data to volts for instance).
 * [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tools for analyzing data from experiments. 
 It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
+* [Octave Tools](qualang_tools/octave_tools/README.md) - This library includes tools for controlling the Octave and extract/set the correction parameters from the calibration database.
 * [Multi-user tools](qualang_tools/multi_user/README.md) - This library includes tools for working with the QOP in a multi-user or multi-process setting.
 * [Simulator tools](qualang_tools/simulator/README.md) - This library includes tools for creating simulations.
 
