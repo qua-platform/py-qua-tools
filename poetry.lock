@@ -1651,7 +1651,7 @@ protobuf = ">=3.17.3,<4.0.0"
 
 [[package]]
 name = "qm-qua"
-version = "1.1.1"
+version = "1.1.7"
 description = "QUA language SDK to control a Quantum Computer"
 optional = false
 python-versions = ">=3.7,<4.0"
