@@ -1,7 +1,7 @@
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from configuration import *
-from qualang_tools.callable_from_qua import *
+from qualang_tools.callable_from_qua import callable_from_qua, patch_qua_program_addons
 
 # Patch to add the callable from qua functions to the main SDK
 patch_qua_program_addons()
