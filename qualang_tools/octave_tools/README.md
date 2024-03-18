@@ -1,6 +1,8 @@
 # Octave Tools
 This library includes tools to improve the users Octave experience.
 
+**Note that these functions only work with `qm-qua >= 1.1.5`.**
+
 ## get_calibration_parameters
 This function will look into the calibration database and return the correction parameters (offsets and correction 
 matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
