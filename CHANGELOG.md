@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
 - results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
 - callable_from_qua - Framework used to call Python functions within the core of a QUA program.
+- octave_tools - Added `calibrate_several_frequencies` to calibrate several frequencies (each pair (LO, IF) will be calibrated).
+- octave_tools - Added `get_calibration_parameters` get the most up-to-date correction parameters in the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
+- octave_tools - Added `set_correction_parameters` set the most up-to-date correction parameters from the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
+- octave_tools - Added `update_correction_for_each_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
 
 ### Changed
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
@@ -31,10 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
 - External_frameworks/qcodes - Added ``live_plotting()`` to fetch and plot the OPX results while the program is running.
 - Unit - Added `volts2dBm` and `dBm2volts`.
-- octave_tools - Added `calibrate_several_frequencies` to calibrate several frequencies (each pair (LO, IF) will be calibrated).
-- octave_tools - Added `get_calibration_parameters` get the most up-to-date correction parameters in the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
-- octave_tools - Added `set_correction_parameters` set the most up-to-date correction parameters from the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
-- octave_tools - Added `update_correction_for_each_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
 
 ### Changed
 - Eased package dependencies, requires python 3.8 or above
