@@ -1662,7 +1662,6 @@ numpy = ">=1.17.0,<2.0.0"
 plotly = ">=5.13.0,<6.0.0"
 pretty_errors = ">=1.2.25,<2.0.0"
 protobuf = ">=3.17.3,<4.0.0"
-qm-octave = ">=1.1.0,<2.0.0"
 tinydb = ">=4.6.1,<5.0.0"
 
 [package.extras]
