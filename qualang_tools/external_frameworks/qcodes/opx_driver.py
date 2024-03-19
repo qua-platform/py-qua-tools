@@ -8,7 +8,6 @@ from qcodes import (
 )
 from qcodes.utils.validators import Numbers, Arrays
 from qm import SimulationConfig, generate_qua_script
-from qm.qua import program
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qualang_tools.results import wait_until_job_is_paused
 from qualang_tools.results import fetching_tool
