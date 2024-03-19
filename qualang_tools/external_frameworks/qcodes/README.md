@@ -27,7 +27,6 @@ open a quantum machine, simulate, compile and execute QUA programs.
 * ``open_qm()``: Open a quantum machine with a given configuration ready to execute a program.
 * ``update_qm()``: Close and re-open a new quantum machine so that it reloads the configuration in case it has been updated.
 * ``update_readout_length(readout_element, readout_operation, new_length)``: Update locally the readout length of a given readout operation and readout element.
-* ``get_prog()``: Get the implemented QUA program.
 * ``get_res()``: Get the results from the OPX.
 * ``set_sweep_parameters(scanned_axis, setpoints, unit=None, label=None)``: Set the setpoints based on the sweep parameters.
 * ``get_measurement_parameter(scale_factor=[(),])``: Find the correct Parameter shape based on the stream-processing and return the measurement Parameter. If 'I' and 'Q' are saved in the stream_processing, then the amplitude 'R' and phase 'Phi' will also be returned. Additionally, the default unit for the raw adc traces, and the results from the integration and demodulation methods are automatically converted into Volts. It is however possible to convert it to another unit by specifying a scale factor as an input parameter of the form [(name of the variable, conversion factor, new unit), ], as in ``scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]``. 
