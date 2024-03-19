@@ -46,6 +46,7 @@ class OPX(Instrument):
         self.qm = None
         self.qm_id = None
         self.qmm = None
+        self.qua_program = None
         self.close_other_machines = close_other_machines
         self.config = None
         self.result_handles = None
@@ -241,24 +242,6 @@ class OPX(Instrument):
             self.qm.close()
         self.open_qm(self.close_other_machines)
 
-    # Empty method that can be replaced by your pulse sequence in the main script
-    # This can also be modified so that you can put the sequences here directly...
-    def qua_program(self):
-        """
-        Custom QUA program
-
-        :return: QUA program
-        """
-        with program() as prog:
-            pass
-        return prog
-
-    # @abstractmethod
-    def get_prog(self):
-        """Get the QUA program from the user"""
-        prog = self.qua_program
-        return prog
-
     # @abstractmethod
     def get_res(self):
         """
@@ -411,7 +394,7 @@ class OPX(Instrument):
         }
         # Add amplitude and phase if I and Q are in the SP
         if len(self.results["names"]) == 0:
-            self._get_stream_processing(self.get_prog())
+            self._get_stream_processing(self.qua_program)
 
             if "I" in self.results["names"] and "Q" in self.results["names"]:
                 self.results["names"].append("R")
@@ -591,12 +574,11 @@ class OPX(Instrument):
         """
         Execute a given QUA program, initialize the counter to 0 and creates a result handle to fetch the results.
         """
-        prog = self.get_prog()
-        if " demod" in generate_qua_script(prog, self.config):
+        if " demod" in generate_qua_script(self.qua_program, self.config):
             self.demod_factor = 2
         else:
             self.demod_factor = 1
-        self.job = self.qm.execute(prog)
+        self.job = self.qm.execute(self.qua_program)
         self.counter = 0
         self.result_handles = self.job.result_handles
 
@@ -634,8 +616,7 @@ class OPX(Instrument):
         """
         Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
         """
-        prog = self.get_prog()
-        self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
+        self.job = self.qmm.simulate(self.config, self.qua_program, SimulationConfig(self.sim_time() // 4))
         simulated_samples = self.job.get_simulated_samples()
         for con in [f"con{i}" for i in range(1, 10)]:
             if hasattr(simulated_samples, con):
