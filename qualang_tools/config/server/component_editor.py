@@ -20,7 +20,6 @@ __all__ = [
 
 
 def editor_of_quantum_machine_elements():
-
     qm_list = []
     component_libraries = ["qualang_tools.config.components"]
 
@@ -92,6 +91,7 @@ def component_editor(selected_component, inputs=None):
 
     # objects that we can add through add method
     additional_add_docstring = ""
+
     if hasattr(component_class, "add") and callable(component_class.add) and inputs[0] is None and inputs[1] is None:
 
         arugments = inspect.getfullargspec(component_class.add)
@@ -102,7 +102,6 @@ def component_editor(selected_component, inputs=None):
         add_index = [0, 0]
 
         for index, name in enumerate(argument_names):
-
             possible_addons = [
                 primitive_components.Operation,
                 primitive_components.Weights,
@@ -630,7 +629,6 @@ def class_editor_and_gui(
             input_index[0] += 1
         elif argument_types[name] == primitive_components.IntegrationWeights:
             if inputs[0] is not None:
-
                 selection = inputs[0][input_index[0]].split(",")[0]
                 index = inputs[0][input_index[0]].split(",")[1]
 

@@ -212,6 +212,7 @@ def config_editor(pathname, updated_value=None, configuration=None):
             if controlArguments.find("view=list") != -1:
 
                 details.append(dcc.Link("view as plot", href=url + f"/{selected}/[view=plot]"))
+
                 # show list
                 details.append(
                     dbc.InputGroup(

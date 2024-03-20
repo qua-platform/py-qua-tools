@@ -28,7 +28,6 @@ def unit_verbose():
 
 
 def test_not_in_scope(unit):
-
     assert unit.ns == 1
     assert unit.us == 1e3
     assert unit.ms == 1e6
@@ -37,7 +36,6 @@ def test_not_in_scope(unit):
 
 
 def test_in_scope(unit):
-
     with program() as dummyprogram:
         assert unit.ns == 1 / 4
         assert unit.us == 1e3 / 4
@@ -47,9 +45,7 @@ def test_in_scope(unit):
 
 
 def test_nested(unit):
-
     with program() as dummyprogram:
-
         ind = declare(int)
 
         with for_(ind, 0, ind < 10, ind + 1):
@@ -61,9 +57,7 @@ def test_nested(unit):
 
 
 def test_nested_contexts(unit):
-
     with DummyContextManager():
-
         with program() as dummyprogram:
             assert unit.ns == 1 / 4
             assert unit.us == 1e3 / 4
@@ -73,9 +67,7 @@ def test_nested_contexts(unit):
 
 
 def test_other_context(unit):
-
     with DummyContextManager():
-
         assert unit.ns == 1
         assert unit.us == 1e3
         assert unit.ms == 1e6
@@ -84,7 +76,6 @@ def test_other_context(unit):
 
 
 def _subroutine_in_scope(unit):
-
     assert unit.ns == 1 / 4
     assert unit.us == 1e3 / 4
     assert unit.ms == 1e6 / 4
@@ -93,13 +84,11 @@ def _subroutine_in_scope(unit):
 
 
 def test_in_scope_subroutine(unit):
-
     with program() as dummyprogram:
         _subroutine_in_scope(unit)
 
 
 def _subroutine_not_in_scope(unit):
-
     assert unit.ns == 1
     assert unit.us == 1e3
     assert unit.ms == 1e6
@@ -108,7 +97,6 @@ def _subroutine_not_in_scope(unit):
 
 
 def test_not_in_scope_subroutine(unit):
-
     _subroutine_not_in_scope(unit)
 
 
@@ -116,7 +104,6 @@ def test_not_in_scope_subroutine(unit):
 
 
 def test_not_in_scope_verbose(unit_verbose):
-
     assert unit_verbose.ns == 1
     assert unit_verbose.us == 1e3
     assert unit_verbose.ms == 1e6
@@ -125,7 +112,6 @@ def test_not_in_scope_verbose(unit_verbose):
 
 
 def test_in_scope_verbose(unit_verbose):
-
     with program() as dummyprogram:
         assert 4 * unit_verbose.ns == 1
         assert 4 * unit_verbose.us == 1e3
@@ -135,7 +121,6 @@ def test_in_scope_verbose(unit_verbose):
 
 
 def test_in_scope_verbose_rmul(unit_verbose):
-
     with program() as dummyprogram:
         assert unit_verbose.ns * 4 == 1
         assert unit_verbose.us * 4 == 1e3
@@ -145,7 +130,6 @@ def test_in_scope_verbose_rmul(unit_verbose):
 
 
 def test_in_scope_verbose_warnings(unit_verbose):
-
     with program() as dummyprogram:
         with pytest.warns(RuntimeWarning):
             assert 6 * unit_verbose.ns == 1
@@ -158,7 +142,6 @@ def test_in_scope_verbose_warnings(unit_verbose):
 
 
 def test_frequency_units(unit):
-
     assert unit.mHz == 1e-3
     assert unit.Hz == 1
     assert unit.kHz == 1e3
@@ -167,16 +150,17 @@ def test_frequency_units(unit):
 
 
 def test_frequency_conversion(unit_verbose):
-
     assert 4.1 * unit_verbose.mHz == 4.1 * 1e-3
     assert 4.1 * unit_verbose.Hz == 4
     assert 4.1 * unit_verbose.kHz == 4_100
     assert 4.1 * unit_verbose.MHz == 4_100_000
     assert 4.1 * unit_verbose.GHz == 4_100_000_000
 
+
 def test_dBm2volts(unit):
     assert unit.dBm2volts(1) == 0.3548133892335754
     assert unit.dBm2volts(1, Z=100) == 0.5017819071656863
+
 
 def test_volts2dBm(unit):
     assert unit.volts2dBm(0.5) == 3.9794000867203754

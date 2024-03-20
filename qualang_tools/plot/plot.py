@@ -228,7 +228,6 @@ def get_simulated_samples_by_element(element_name: str, job: QmJob, config: dict
     # Digital waveforms
     digital_samples = []
     if "digitalInputs" in element:
-
         for key in element["digitalInputs"].keys():
             port = element["digitalInputs"][key]["port"]
             digital_samples.append(sample_struct.__dict__[port[0]].digital[str(port[1])].astype(int))

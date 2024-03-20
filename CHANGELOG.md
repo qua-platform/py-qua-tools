@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
 - External_frameworks/qcodes - Added ``live_plotting()`` to fetch and plot the OPX results while the program is running.
 - Unit - Added `volts2dBm` and `dBm2volts`.
+- Video_mode - New module to update some pre-defined parameters of a QUA program while fetching data from the OPX. 
 
 ### Changed
 - Eased package dependencies, requires python 3.8 or above

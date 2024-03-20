@@ -134,12 +134,8 @@ class OPXCustomSequence(OPX):
     def update_readout_parameters(self):
         """Update the config with the readout length and amplitude set with self.readout_pulse_length() and self.readout_pulse_amplitude()."""
         if self.readout_pulse_length() % 4 != 0:
-            raise ValueError(
-                "The readout pulse length must be an integer multiple of 4ns."
-            )
-        self.config["pulses"]["readout_pulse"]["length"] = int(
-            self.readout_pulse_length()
-        )
+            raise ValueError("The readout pulse length must be an integer multiple of 4ns.")
+        self.config["pulses"]["readout_pulse"]["length"] = int(self.readout_pulse_length())
         self.config["integration_weights"]["cosine_weights"]["cosine"] = [
             (1.0, self.config["pulses"]["readout_pulse"]["length"])
         ]
@@ -159,9 +155,7 @@ class OPXCustomSequence(OPX):
             (-1.0, self.config["pulses"]["readout_pulse"]["length"])
         ]
         # update readout pulse amplitude
-        pulse = self.config["elements"][self.readout_element()]["operations"][
-            self.readout_operation()
-        ]
+        pulse = self.config["elements"][self.readout_element()]["operations"][self.readout_operation()]
         wf = self.config["pulses"][pulse]["waveforms"]["I"]
         self.config["waveforms"][wf]["sample"] = self.readout_pulse_amplitude()
         # Open QM
@@ -200,10 +194,7 @@ class OPXCustomSequence(OPX):
                 Q1_arr,
                 Q2_arr,
             ]
-        elif (
-            self.acquisition_mode() == "full_integration"
-            or self.acquisition_mode() == "full_demodulation"
-        ):
+        elif self.acquisition_mode() == "full_integration" or self.acquisition_mode() == "full_demodulation":
             I = declare(fixed)
             Q = declare(fixed)
             I_st = declare_stream()
@@ -288,76 +279,49 @@ class OPXCustomSequence(OPX):
         """Create the stream processing based on the measurement mode (self.acquisition_mode()) and OPX scan 0d, 1d or 2d (self.opx_scan())"""
         variables = self.measurement_variables
         if self.opx_scan() == "0d":
-            if (
-                self.acquisition_mode() == "full_integration"
-                or self.acquisition_mode() == "full_demodulation"
-            ):
+            if self.acquisition_mode() == "full_integration" or self.acquisition_mode() == "full_demodulation":
                 variables[2].buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("I")
                 variables[3].buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("Q")
             elif self.acquisition_mode() == "raw_adc":
-                variables.input1().buffer(self.n_avg()).map(
-                    FUNCTIONS.average()
-                ).save_all("adc1")
-                variables.input2().buffer(self.n_avg()).map(
-                    FUNCTIONS.average()
-                ).save_all("adc2")
-            elif (
-                self.acquisition_mode() == "sliced_integration"
-                or self.acquisition_mode() == "sliced_demodulation"
-            ):
-                variables[2].buffer(variables[5]).buffer(self.n_avg()).map(
-                    FUNCTIONS.average()
-                ).save_all("I")
-                variables[3].buffer(variables[5]).buffer(self.n_avg()).map(
-                    FUNCTIONS.average()
-                ).save_all("Q")
+                variables.input1().buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("adc1")
+                variables.input2().buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("adc2")
+            elif self.acquisition_mode() == "sliced_integration" or self.acquisition_mode() == "sliced_demodulation":
+                variables[2].buffer(variables[5]).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("I")
+                variables[3].buffer(variables[5]).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("Q")
         elif self.opx_scan() == "1d":
-            if (
-                self.acquisition_mode() == "full_integration"
-                or self.acquisition_mode() == "full_demodulation"
-            ):
-                variables[2].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(
+            if self.acquisition_mode() == "full_integration" or self.acquisition_mode() == "full_demodulation":
+                variables[2].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("I")
+                variables[3].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("Q")
+            elif self.acquisition_mode() == "raw_adc":
+                variables.buffer(self.axis1_npoints()).input1().buffer(self.n_avg()).map(FUNCTIONS.average()).save_all(
+                    "adc1"
+                )
+                variables.buffer(self.axis1_npoints()).input2().buffer(self.n_avg()).map(FUNCTIONS.average()).save_all(
+                    "adc2"
+                )
+            elif self.acquisition_mode() == "sliced_integration" or self.acquisition_mode() == "sliced_demodulation":
+                variables[2].buffer(variables[5]).buffer(self.axis2_npoints()).buffer(self.n_avg()).map(
                     FUNCTIONS.average()
                 ).save_all("I")
-                variables[3].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(
+                variables[3].buffer(variables[5]).buffer(self.axis2_npoints()).buffer(self.n_avg()).map(
                     FUNCTIONS.average()
                 ).save_all("Q")
-            elif self.acquisition_mode() == "raw_adc":
-                variables.buffer(self.axis1_npoints()).input1().buffer(
-                    self.n_avg()
-                ).map(FUNCTIONS.average()).save_all("adc1")
-                variables.buffer(self.axis1_npoints()).input2().buffer(
-                    self.n_avg()
-                ).map(FUNCTIONS.average()).save_all("adc2")
-            elif (
-                self.acquisition_mode() == "sliced_integration"
-                or self.acquisition_mode() == "sliced_demodulation"
-            ):
-                variables[2].buffer(variables[5]).buffer(self.axis2_npoints()).buffer(
-                    self.n_avg()
-                ).map(FUNCTIONS.average()).save_all("I")
-                variables[3].buffer(variables[5]).buffer(self.axis2_npoints()).buffer(
-                    self.n_avg()
-                ).map(FUNCTIONS.average()).save_all("Q")
         elif self.opx_scan() == "2d":
-            if (
-                self.acquisition_mode() == "full_integration"
-                or self.acquisition_mode() == "full_demodulation"
-            ):
+            if self.acquisition_mode() == "full_integration" or self.acquisition_mode() == "full_demodulation":
                 if self.outer_averaging_loop():
-                    variables[2].buffer(self.axis1_npoints()).buffer(
-                        self.axis2_npoints()
-                    ).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("I")
-                    variables[3].buffer(self.axis1_npoints()).buffer(
-                        self.axis2_npoints()
-                    ).buffer(self.n_avg()).map(FUNCTIONS.average()).save_all("Q")
+                    variables[2].buffer(self.axis1_npoints()).buffer(self.axis2_npoints()).buffer(self.n_avg()).map(
+                        FUNCTIONS.average()
+                    ).save_all("I")
+                    variables[3].buffer(self.axis1_npoints()).buffer(self.axis2_npoints()).buffer(self.n_avg()).map(
+                        FUNCTIONS.average()
+                    ).save_all("Q")
                 else:
-                    variables[2].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(
-                        FUNCTIONS.average()
-                    ).buffer(self.axis2_npoints()).save_all("I")
-                    variables[3].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(
-                        FUNCTIONS.average()
-                    ).buffer(self.axis2_npoints()).save_all("Q")
+                    variables[2].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(FUNCTIONS.average()).buffer(
+                        self.axis2_npoints()
+                    ).save_all("I")
+                    variables[3].buffer(self.axis1_npoints()).buffer(self.n_avg()).map(FUNCTIONS.average()).buffer(
+                        self.axis2_npoints()
+                    ).save_all("Q")
             else:
                 raise Exception(
                     "It is advises to use 'full_integration' or 'full_demodulation' only for performing 2d scans on the OPX to avoid memory overflow."
