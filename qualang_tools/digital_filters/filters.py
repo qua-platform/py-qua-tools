@@ -64,6 +64,17 @@ def calc_filter_taps(
     return list(feedforward_taps), list(feedback_taps)
 
 
+def exponential_decay(t, A, tau):
+    """Exponential decay defined as 1 + A * np.exp(-t / tau).
+
+    :param t: numpy array for the time vector in ns
+    :param A: float for the exponential amplitude
+    :param tau: float for the exponential decay time in ns
+    :return: numpy array for the exponential decay
+    """
+    return 1 + A * np.exp(-t / tau)
+
+
 def exponential_correction(A: float, tau: float, Ts: float = 1):
     """
     Calculate the best FIR and IIR filter taps to correct for an exponential decay (LPF) of the shape
@@ -176,7 +187,7 @@ def bounce_and_delay_correction(
     return feedforward_taps[index_start:index_end]
 
 
-def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts:float=1):
+def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1.0):
     b = np.zeros((2, len(values)))
     feedback_taps = np.append(np.zeros(len(values)), feedback_taps)
 
@@ -195,7 +206,7 @@ def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts:flo
     return feedforward_taps, feedback_taps
 
 
-def _get_coefficients_for_delay(tau, full_taps_x, Ts:float=1):
+def _get_coefficients_for_delay(tau, full_taps_x, Ts=1.0):
     full_taps = np.sinc((full_taps_x - tau) / Ts)
     full_taps = _round_taps_close_to_zero(full_taps)
     return full_taps
