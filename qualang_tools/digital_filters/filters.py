@@ -9,7 +9,7 @@ def calc_filter_taps(
     exponential: List[Tuple[float, float]] = None,
     highpass: List[float] = None,
     bounce: List[Tuple[float, float]] = None,
-    delay: float = None,
+    delay: int = None,
     Ts: float = 1,
 ) -> Tuple[List[float], List[float]]:
     """
@@ -61,16 +61,16 @@ def calc_filter_taps(
     if max_value >= 2:
         feedforward_taps = 1.5 * feedforward_taps / max_value
 
-    return feedforward_taps, feedback_taps
+    return list(feedforward_taps), list(feedback_taps)
 
 
-def exponential_correction(A, tau, Ts=1):
+def exponential_correction(A: float, tau: float, Ts: float = 1):
     """
     Calculate the best FIR and IIR filter taps to correct for an exponential decay (LPF) of the shape
     `1 + A * exp(-t/tau)`.
 
     Args:
-        A: The exponential decay prefactor.
+        A: The exponential decay pre-factor.
         tau: The time constant for the exponential decay, given in ns.
         Ts: The sampling rate (in ns) of the system and filter taps.
     Returns:
@@ -89,7 +89,7 @@ def exponential_correction(A, tau, Ts=1):
     return feedforward_taps, feedback_tap
 
 
-def highpass_correction(tau, Ts=1):
+def highpass_correction(tau: float, Ts: float = 1):
     """
     Calculate the best FIR and IIR filter taps to correct for a highpass decay (HPF) of the shape `exp(-t/tau)`.
 
@@ -102,17 +102,18 @@ def highpass_correction(tau, Ts=1):
         The second is a single IIR (feedback) tap.
     """
     Ts *= 1e-9
-    filts = sig.lti(
-        *sig.butter(1, np.array([1 / tau / Ts]), btype="highpass", analog=True)
-    )
-    ahp2, bhp2 = sig.bilinear(filts.den, filts.num, 1000e6)
+    flt = sig.butter(1, np.array([1 / tau / Ts]), btype="highpass", analog=True)
+    ahp2, bhp2 = sig.bilinear(flt[1], flt[0], 1000e6)
     feedforward_taps = list(np.array([ahp2[0], ahp2[1]]))
     feedback_tap = [min(bhp2[0], 0.9999990463225004)]  # Maximum value for the iir tap
     return feedforward_taps, feedback_tap
 
 
 def bounce_and_delay_correction(
-    bounce_values=[], delay=0, feedforward_taps=[1.0], Ts=1
+    bounce_values: list = (),
+    delay: int = 0,
+    feedforward_taps: list = (1.0,),
+    Ts: float = 1,
 ):
     """
     Calculate the FIR filter taps to correct for reflections (bounce corrections) and to add a delay.
@@ -175,7 +176,7 @@ def bounce_and_delay_correction(
     return feedforward_taps[index_start:index_end]
 
 
-def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1):
+def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts:float=1):
     b = np.zeros((2, len(values)))
     feedback_taps = np.append(np.zeros(len(values)), feedback_taps)
 
@@ -194,7 +195,7 @@ def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1):
     return feedforward_taps, feedback_taps
 
 
-def _get_coefficients_for_delay(tau, full_taps_x, Ts=1):
+def _get_coefficients_for_delay(tau, full_taps_x, Ts:float=1):
     full_taps = np.sinc((full_taps_x - tau) / Ts)
     full_taps = _round_taps_close_to_zero(full_taps)
     return full_taps
