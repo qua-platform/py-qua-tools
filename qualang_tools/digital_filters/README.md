@@ -8,31 +8,28 @@ More details about these types of filter and how they are implemented on the OPX
 
 The goal of the following functions is to allow users to easily implement such filters by deriving the IIR and FIR taps 
 from the measured distortions:
-* [Exponential decay](#exponentialcorrection): fit a low-pass exponential decay `1 + A * exp(-t/tau)`.
-* [Exponential correction](#exponentialcorrection): correct for a low-pass exponential decay `1 + A * exp(-t/tau)`.
+* [Multi-exponential decay](#singleexponentialcorrection): generate a multi-exponential decay of the form: `1 + A * exp(-t/tau)` (lpf) or `A * exp(-t/tau)` (hpf).
+* [Multi-exponential fit](#singleexponentialcorrection): fit a multi-exponential decay of the form: `1 + A * exp(-t/tau)` (lpf) or `A * exp(-t/tau)` (hpf).
+* [Single exponential correction](#singleexponentialcorrection): correct for a low-pass exponential decay `1 + A * exp(-t/tau)`.
 * [Highpass correction](#highpasscorrection): correct for a high pass exponential decay `exp(-t/tau)`.
 * [Bounce and delay correction](#bounceanddelaycorrection): correct for reflections and delays.
 * [Calc filter taps](#calcfiltertaps): correct for any combination of the aforementioned compensations.
 
 ## Usage examples
 
-### exponential_correction
+### single_exponential_correction
 Calculate the best FIR and IIR filter taps to correct for an exponential decay (low-pass filter) of the shape
-`exponential_decay(t, A, tau) = 1 + A * exp(-t/tau)`.
+`1 + A * exp(-t/tau)`.
 
 #### 
 ```python
 from scipy import optimize
-from qualang_tools.digital_filters import exponential_decay, exponential_correction
+from qualang_tools.digital_filters import multi_exponential_fit, single_exponential_correction
 
-# Fit your data with the exponential_decay function
-[A, tau_ns], _ = optimize.curve_fit(
-        exponential_decay,
-        time_axis_in_ns,
-        data_to_fit,
-    )
+# Fit your data with the multi_exponential_fit function
+A, tau_ns, _ = multi_exponential_fit(N=1, t=time, y=data, mode="lpf")
 # Derive the corresponding taps
-feedforward_taps, feedback_tap = exponential_correction(A, tau_ns)
+feedforward_taps, feedback_tap = single_exponential_correction(A[0], tau_ns[0])
 # Update the config with the digital filter parameters
 config["controllers"]["con1"]["analog_outputs"][port_number] = {
     "offset": 0.0, 
@@ -44,10 +41,12 @@ Calculate the best FIR and IIR filter taps to correct for a highpass decay (high
 
 #### 
 ```python
-from qualang_tools.digital_filters import highpass_correction
+from qualang_tools.digital_filters import multi_exponential_fit, highpass_correction
 
+# Fit your data with the multi_exponential_fit function
+A, tau_ns, _ = multi_exponential_fit(N=1, t=time, y=data, mode="hpf")
 # Derive the taps from the time constant of the exponential highpass decay tau
-feedforward_taps, feedback_tap = highpass_correction(tau_ns)
+feedforward_taps, feedback_tap = highpass_correction(tau_ns[0])
 # Update the config with the digital filter parameters
 config["controllers"]["con1"]["analog_outputs"][port_number] = {
     "offset": 0.0, 
@@ -72,20 +71,16 @@ corrections (LPF), high pass compensation, reflections (bounce corrections) and 
 #### 
 ```python
 from scipy import optimize
-from qualang_tools.digital_filters import exponential_decay
+from qualang_tools.digital_filters import multi_exponential_fit
 from qualang_tools.digital_filters import calc_filter_taps
 
 
-# Fit your data with the exponential_decay function
-[A, tau_ns], _ = optimize.curve_fit(
-        exponential_decay,
-        time_axis_in_ns,
-        data_to_fit,
-    )
+# Fit your data with the multi_exponential_fit function (lpf)
+A_lpf, tau_ns_lpf, _ = multi_exponential_fit(N=3, t=time, y=data, mode="lpf")
 # Derive the taps for correction all the identified distortions (high-pass, low-pass, reflection and delay) 
 feedforward_taps, feedback_tap = calc_filter_taps(
     fir=None,
-    exponential=[(A, tau_ns),],
+    exponential=list(zip(A_lpf, tau_ns_lpf)),
     highpass=[tau_hpf],
     bounce=[(a_bounce, tau_bounce),],
     delay=,

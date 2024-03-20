@@ -1,7 +1,8 @@
 import warnings
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 import scipy.signal as sig
+from scipy.optimize import differential_evolution
 
 
 def calc_filter_taps(
@@ -64,18 +65,66 @@ def calc_filter_taps(
     return list(feedforward_taps), list(feedback_taps)
 
 
-def exponential_decay(t, A, tau):
-    """Exponential decay defined as 1 + A * np.exp(-t / tau).
+def multi_exponential_decay(
+    t: np.ndarray,
+    A: Union[float, list[float]],
+    tau: Union[float, list[float]],
+    mode: str,
+) -> np.ndarray:
+    """Multi-exponential decay defined as 1 + Sum_i( A[i] * np.exp(-t / tau[i]) ) for LPF, or Sum_i( A[i] * np.exp(-t / tau[i]) ) for HPF.
 
     :param t: numpy array for the time vector in ns
-    :param A: float for the exponential amplitude
-    :param tau: float for the exponential decay time in ns
+    :param A: exponential amplitude, can be a single float or a list of floats.
+    :param tau: exponential decay time in ns, can be a single float or a list of floats.
+    :param mode: either "hpf": `Sum_i( A[i] * np.exp(-t / tau[i])`, or "lpf": `1 + Sum_i( A[i] * np.exp(-t / tau[i])`.
     :return: numpy array for the exponential decay
     """
-    return 1 + A * np.exp(-t / tau)
+    A = np.array(A)
+    tau = np.array(tau)
+    if mode == "lpf":
+        return 1 + (np.dot(A, np.exp(-np.outer(1.0 / tau, t))))
+    elif mode == "hpf":
+        return np.dot(A, np.exp(-np.outer(1.0 / tau, t)))
+    else:
+        raise ValueError("mode can only be 'lpf' or 'hpf'")
 
 
-def exponential_correction(A: float, tau: float, Ts: float = 1):
+def multi_exponential_fit(
+    N: int, t: np.ndarray, y: np.ndarray, mode: str
+) -> tuple[list[float], list[float], float]:
+    """
+    Fits a multi-exponential decay by scipy.optimize.differential_evolution.
+    Adapted from https://gitlabph.physik.fu-berlin.de/rschwarz/MultiExponentialFitting
+
+    :param N: number of exponential functions to fit.
+    :param t: 1-dimensional list of time-values.
+    :param y: 1-dimensional list of y-values to fit.
+    :param mode: either "hpf": `Sum_i( A[i] * np.exp(-t / tau[i])`, or "lpf": `1 + Sum_i( A[i] * np.exp(-t / tau[i])`.
+    :return: tuple containing the solution pre-factors in order [A1, A2, ..., AN], time-constants (positive) in order [tau1, tau2, ..., tauN] and reduced chi squared as calculated by the sum of squared residuals
+    """
+    t = np.asarray(t)
+    if mode == "hpf":
+        y = np.asarray(y)
+    elif mode == "lpf":
+        y = np.asarray(y - 1.0)
+    else:
+        raise ValueError("mode can only be 'lpf' or 'hpf'")
+
+    bounds = [[min(t), max(t)]] * N + [[min(y), max(y)]] * N
+
+    def objective(s):
+        tau_i, a_i = np.split(s, 2)
+        return np.sum((y - (np.dot(a_i, np.exp(-np.outer(1.0 / tau_i, t))))) ** 2.0)
+
+    result = differential_evolution(objective, bounds)
+    print(result)
+    res = result["t"]
+    red_chi_sq = objective(res) / (len(t) - len(res))
+    tau, A = np.split(res, 2)
+    return A, tau, red_chi_sq
+
+
+def single_exponential_correction(A: float, tau: float, Ts: float = 1):
     """
     Calculate the best FIR and IIR filter taps to correct for an exponential decay (LPF) of the shape
     `1 + A * exp(-t/tau)`.
@@ -196,7 +245,7 @@ def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1.0
             b[:, i], feedback_taps[i] = highpass_correction(tau, Ts)
     elif filter_type == "exponential":
         for i, (A, tau) in enumerate(values):
-            b[:, i], feedback_taps[i] = exponential_correction(A, tau, Ts)
+            b[:, i], feedback_taps[i] = single_exponential_correction(A, tau, Ts)
     else:
         raise Exception("Unknown filter type")
 
