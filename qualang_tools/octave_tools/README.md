@@ -1,8 +1,6 @@
 # Octave Tools
 This library includes tools to improve the users Octave experience.
 
-**Note that these functions only work with `qm-qua >= 1.1.5`.**
-
 ## get_calibration_parameters
 This function will look into the calibration database and return the correction parameters (offsets and correction 
 matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
@@ -22,7 +20,7 @@ If no calibration parameters are found in the database, the function will either
 ### Usage example
  
 ```python
-from qualang_tools.octave_tools import set_correction_parameters
+from qualang_tools.octave_tools import get_correction_parameters
 
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
@@ -36,10 +34,10 @@ qm.calibrate_element("qubit", {5e9: (50e6,)})
 qm.octave.set_lo_frequency("qubit", 5e9)
 qm.octave.set_rf_output_gain("qubit", -7)
 # Get the correction parameters corresponding to the desired parameters:
-param_qubit = set_correction_parameters(
+param_qubit = get_correction_parameters(
     path_to_database="", config=config, element="qubit", 
     LO=5e9, IF=50e6, gain=-7, 
-    qm=qm, verbose_level=1)
+    verbose_level=1)
 ```
 
 ## set_correction_parameters
@@ -56,8 +54,8 @@ The correction parameters are returned in the format of a dictionary:
 ```
 
 If no calibration parameters are found in the database, the function will either:
-* return the dictionary with empty values (verbose_level 0)
-* return the dictionary with empty values and print a warning in the Python console (verbose_level 1)
+* not update the parameters and return the dictionary with empty values (verbose_level 0)
+* not update the parameters, return the dictionary with empty values and print a warning in the Python console (verbose_level 1)
 * raise an error and block the execution of the script (verbose_level 2)
 
 ### Usage example
@@ -81,11 +79,12 @@ with program() as LO_sweep_prog:
 qmm = QuantumMachinesManager()
 # Open the quantum machine
 qm = qmm.open_qm(config)
+# Set the Octave gain
+qm.octave.set_rf_output_gain("qubit", 0)
 # Loop over the LO frequencies
 for i in range(len(lo_frequencies)):  
     # Set the frequency and gain of the LO source
     qm.octave.set_lo_frequency("qubit", lo_frequencies[i])
-    qm.octave.set_rf_output_gain("qubit", 0)
     # Update the correction parameters
     set_correction_parameters(
         path_to_database="",
@@ -104,7 +103,7 @@ for i in range(len(lo_frequencies)):
     ...
 ```
 
-## update_correction_for_each_IF
+## get_correction_for_each_LO_and_IF
 Look in the calibration database for the calibration parameters corresponding to the provided set of LO
 frequencies, intermediate frequencies and gain.
 The intermediate frequencies considered here are only the ```nb_of_updates``` equally spaced frequencies from the
@@ -123,7 +122,7 @@ program and the four coefficients of the correction matrix with one element for 
 ### Usage example
 
 ```python
-from qualang_tools.octave_tools import update_correction_for_each_IF
+from qualang_tools.octave_tools import get_correction_for_each_LO_and_IF
 
 # Open the QMM
 qmm = QuantumMachinesManager()
@@ -143,7 +142,7 @@ lo_frequencies = np.arange(f_min_external, f_max_external + df_external / 2, df_
 
 # Get the list of intermediate frequencies at which the correction matrix will 
 # be updated in QUA and the corresponding correction matrix elements
-IFs, c00, c01, c10, c11 = update_correction_for_each_IF(
+IFs, c00, c01, c10, c11 = get_correction_for_each_LO_and_IF(
     path_to_database="",
     config=config,
     element="qubit",
@@ -157,10 +156,10 @@ IFs, c00, c01, c10, c11 = update_correction_for_each_IF(
 
 with program() as LO_sweep_prog:
     # QUA declarations
-    c00_qua = declare(fixed, value=c00)  # QUA variable for the measured 'I' quadrature
-    c01_qua = declare(fixed, value=c01)  # QUA variable for the measured 'I' quadrature
-    c10_qua = declare(fixed, value=c10)  # QUA variable for the measured 'I' quadrature
-    c11_qua = declare(fixed, value=c11)  # QUA variable for the measured 'I' quadrature
+    c00_qua = declare(fixed, value=c00)
+    c01_qua = declare(fixed, value=c01)
+    c10_qua = declare(fixed, value=c10)
+    c11_qua = declare(fixed, value=c11)
     ...
     with for_(i, 0, i < len(lo_frequencies) + 1, i + 1):
         pause()  # This waits until it is resumed from python
