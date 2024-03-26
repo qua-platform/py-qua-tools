@@ -107,7 +107,8 @@ for i in range(len(lo_frequencies)):
 Look in the calibration database for the calibration parameters corresponding to the provided set of LO
 frequencies, intermediate frequencies and gain.
 The intermediate frequencies considered here are only the ```nb_of_updates``` equally spaced frequencies from the
-provided ```IF_list```.
+provided ```IF_list```. For instance, if a list of 100 intermediate frequencies is provided, but nb_of_update is set
+    to 10, then only 10 correction parameters will be returned for the returned equally spaced intermediate frequencies.
 
 The goal is to perform a wide frequency sweep (scan the LO frequency in Python and the IF in QUA) and update the
 mixer correction parameters for each LO frequency and a few intermediate frequencies, given by ```nb_of_updates```, 
@@ -117,7 +118,7 @@ If the flag ```calibrate``` is set to True (the opened Quantum Machine needs to 
 (all LO frequencies and only the ``nb_of_updates``` intermediate frequencies).
 
 The function will return the list on intermediate frequencies at which the correction matrix will be updated in the
-program and the four coefficients of the correction matrix with one element for each pair (LO, IF).
+program (```nb_of_updates``` items) and the four coefficients of the correction matrix and two offsets with one element for each pair (LO, IF) (```nb_of_updates * len(LO_list)``` items).
 
 ### Usage example
 
@@ -142,7 +143,7 @@ lo_frequencies = np.arange(f_min_external, f_max_external + df_external / 2, df_
 
 # Get the list of intermediate frequencies at which the correction matrix will 
 # be updated in QUA and the corresponding correction matrix elements
-IFs, c00, c01, c10, c11 = get_correction_for_each_LO_and_IF(
+IFs, c00, c01, c10, c11, offset_I, offset_Q = get_correction_for_each_LO_and_IF(
     path_to_database="",
     config=config,
     element="qubit",
@@ -160,9 +161,13 @@ with program() as LO_sweep_prog:
     c01_qua = declare(fixed, value=c01)
     c10_qua = declare(fixed, value=c10)
     c11_qua = declare(fixed, value=c11)
+    offset_I_qua = declare(fixed, value=offset_I)
+    offset_Q_qua = declare(fixed, value=offset_Q)
     ...
     with for_(i, 0, i < len(lo_frequencies) + 1, i + 1):
         pause()  # This waits until it is resumed from python
+        set_dc_offset("qubit", "I", offset_I_qua)
+        set_dc_offset("qubit", "Q", offset_Q_qua)
         with for_(n, 0, n < n_avg, n + 1):
             with for_(*from_array(f, intermediate_frequencies)):
                 # Update the frequency of the digital oscillator linked to the qubit element
@@ -185,17 +190,6 @@ with program() as LO_sweep_prog:
 for i in range(len(lo_frequencies)):  
     # Set the frequency and gain of the LO source
     qm.octave.set_lo_frequency("qubit", lo_frequencies[i])
-    qm.octave.set_rf_output_gain("qubit", 0)
-    # Update the correction parameters
-    set_correction_parameters(
-        path_to_database="",
-        config=config,
-        element="qubit",
-        LO=freqs_external[i],
-        IF=IFs[0],
-        gain=0,
-        qm=qm,
-    )
     # Resume the QUA program (escape the 'pause' statement)
     job.resume()
     # Wait until the program reaches the 'pause' statement again, indicating that the QUA program is done
