@@ -85,6 +85,9 @@ def set_correction_parameters(
     the Octave LO frequency, intermediate frequency and Octave gain and update the running job.
     If no job is specified, then the running will be taken using `qm.get_running_job()`.
 
+    The correction parameters are returned in a dictionary of the form:
+    ```{"offsets": {"I": I_offset, "Q": Q_offset}, "correction_matrix": correction}```.
+
     If the correction parameters are not found in the database:
       * verbose_level=2 will raise a warning which will block the execution.
       * verbose_level=1 will print a warning which will not block the execution and correction settings will be unchanged.
@@ -147,8 +150,8 @@ def get_correction_for_each_LO_and_IF(
     :param calibrate: calibrate all the frequencies involved to the scan (LO and IF for the specified gain). Default is False.
     :param qm: the quantum machine object. Default is None.
     :return: the list on intermediate frequencies at which the correction matrix will be updated in the
-    program, the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair
-    (LO, IF): IFs, c00, c01, c10, c11, offset_I, offset_Q.
+    program (size nb_of_updates), the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair
+    (LO, IF) (size nb_of_updates*len(LO_list)): IFs, c00, c01, c10, c11, offset_I, offset_Q.
     """
     N = len(IF_list)
     IFs = [IF_list[i * N // nb_of_updates] for i in range(nb_of_updates)]
