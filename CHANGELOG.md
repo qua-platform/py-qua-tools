@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
 - External_frameworks/qcodes - Fixed the unit of phase
 - External_frameworks/qcodes - Added a flag to allow for the phase to remain wrapped 
+- results - Add a warning when timeout is reached in ``wait_until_job_is_paused``.
 
 ### Deprecated
 - simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
