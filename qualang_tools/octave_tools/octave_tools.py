@@ -6,7 +6,7 @@ from qm.jobs.running_qm_job import RunningQmJob
 from qm.QuantumMachine import QuantumMachine
 
 
-def get_calibration_parameters(
+def get_calibration_parameters_from_db(
     path_to_database: str,
     config: dict,
     element: str,
@@ -70,7 +70,7 @@ def get_calibration_parameters(
     return param
 
 
-def set_correction_parameters(
+def set_correction_parameters_to_opx(
     path_to_database: str,
     config: dict,
     element: str,
@@ -103,7 +103,7 @@ def set_correction_parameters(
     :param verbose_level: set the type of messages printed in the Python console. Default is 2.
     :return: dictionary containing the 'I' and 'Q' offsets and the correction_matrix.
     """
-    param = get_calibration_parameters(path_to_database, config, element, LO, IF, gain, verbose_level)
+    param = get_calibration_parameters_from_db(path_to_database, config, element, LO, IF, gain, verbose_level)
     if "I" in param["offsets"] and "Q" in param["offsets"]:
         qm.set_output_dc_offset_by_element(element, ("I", "Q"), (param["offsets"]["I"], param["offsets"]["Q"]))
     if job is None:
@@ -171,7 +171,7 @@ def get_correction_for_each_LO_and_IF(
             )
 
         for i in IFs:
-            param = get_calibration_parameters(path_to_database, config, element, lo, i, gain)
+            param = get_calibration_parameters_from_db(path_to_database, config, element, lo, i, gain)
             c00.append(param["correction_matrix"][0])
             c01.append(param["correction_matrix"][1])
             c10.append(param["correction_matrix"][2])
