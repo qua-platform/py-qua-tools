@@ -83,6 +83,7 @@ def set_correction_parameters(
 ) -> dict:
     """Look for the correction parameters in the database, located at the specified path_to_database, for the specified values of
     the Octave LO frequency, intermediate frequency and Octave gain and update the running job.
+    If no job is specified, then the running will be taken using `qm.get_running_job()`.
 
     If the correction parameters are not found in the database:
       * verbose_level=2 will raise a warning which will block the execution.
@@ -95,7 +96,7 @@ def set_correction_parameters(
     :param IF: the intermediate frequency in Hz.
     :param gain: the Octave gain.
     :param qm: the opened quantum machine.
-    :param job: the running job.
+    :param job: the running job. If None, then the running will be taken using `qm.get_running_job()`.
     :param verbose_level: set the type of messages printed in the Python console. Default is 2.
     :return: dictionary containing the 'I' and 'Q' offsets and the correction_matrix.
     """
@@ -109,7 +110,7 @@ def set_correction_parameters(
     return param
 
 
-def update_correction_for_each_IF(
+def get_correction_for_each_LO_and_IF(
     path_to_database: str,
     config: dict,
     element: str,
@@ -123,7 +124,8 @@ def update_correction_for_each_IF(
     """Look in the calibration database for the calibration parameters corresponding to the provided set of LO
     frequencies, intermediate frequencies and gain.
     The intermediate frequencies considered here are only the ```nb_of_updates``` equally spaced frequencies from the
-    provided ```IF_list```.
+    provided ```IF_list```. For instance, if a list of 100 intermediate frequencies is provided, but nb_of_update is set
+    to 10, then only 10 correction parameters will be returned for the returned equally spaced intermediate frequencies.
 
     The goal is to perform a wide frequency sweep (scan the LO frequency in Python and the IF in QUA) and update the
     mixer correction parameters for each LO frequency and a few intermediate frequencies, given by ```nb_of_updates```,
