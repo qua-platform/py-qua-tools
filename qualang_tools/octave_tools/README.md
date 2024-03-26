@@ -1,7 +1,7 @@
 # Octave Tools
 This library includes tools to improve the users Octave experience.
 
-## get_calibration_parameters
+## get_calibration_parameters_from_db
 This function will look into the calibration database and return the correction parameters (offsets and correction 
 matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
 
@@ -40,7 +40,7 @@ param_qubit = get_correction_parameters(
     verbose_level=1)
 ```
 
-## set_correction_parameters
+## set_correction_parameters_to_opx
 This function will look into the calibration database and update the correction parameters in Python, (offsets and 
 correction matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
 
@@ -61,7 +61,7 @@ If no calibration parameters are found in the database, the function will either
 ### Usage example
 
 ```python
-from qualang_tools.octave_tools import set_correction_parameters
+from qualang_tools.octave_tools import set_correction_parameters_to_opx
 
 with program() as LO_sweep_prog:
     # QUA declarations
@@ -86,7 +86,7 @@ for i in range(len(lo_frequencies)):
     # Set the frequency and gain of the LO source
     qm.octave.set_lo_frequency("qubit", lo_frequencies[i])
     # Update the correction parameters
-    set_correction_parameters(
+    set_correction_parameters_to_opx(
         path_to_database="",
         config=config,
         element="qubit",
