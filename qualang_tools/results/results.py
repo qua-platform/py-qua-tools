@@ -8,6 +8,7 @@ Content:
 import numpy as np
 import time
 from qm.jobs.running_qm_job import RunningQmJob
+from warnings import warn
 
 
 class fetching_tool:
@@ -136,4 +137,6 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
     while (not running_job.is_paused()) and (delay < timeout):
         time.sleep(0.1)
         delay = time.time() - start
+    if delay < timeout:
+        warn("Timeout was reached, consider extending it if it was not intended.")
     return True
