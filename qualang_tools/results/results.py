@@ -121,7 +121,7 @@ def progress_counter(iteration, total, progress_bar=True, percent=True, start_ti
         print("")
 
 
-def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
+def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30, strict_timeout: bool = True):
     """
     Waits until the OPX FPGA reaches a "pause" statement.
     Used when the OPX sequence needs to be synchronized with an external parameter sweep and to ensure that the OPX
@@ -130,6 +130,7 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
 
     :param running_job: the QM running job object.
     :param timeout: duration in seconds after which the console will be freed even if the pause statement has not been reached to prevent from being stuck here forever.
+    :param strict_timeout: will throw and exception is set to True, otherwise it will just a print a warning.
     :return: True when the pause statement has been reached.
     """
     start = time.time()
@@ -137,6 +138,9 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
     while (not running_job.is_paused()) and (delay < timeout):
         time.sleep(0.1)
         delay = time.time() - start
-    if delay < timeout:
-        warn("Timeout was reached, consider extending it if it was not intended.")
+    if delay > timeout:
+        if strict_timeout:
+            raise TimeoutError(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
+        else:
+            warn(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
     return True
