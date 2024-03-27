@@ -42,6 +42,9 @@ with program() as prog:
         # The variable 'f' will be looped over the values from exact_qubit_frequency
         ...
 ```
+__WARNING__: if the logarithmic step is small such that two consecutive values will be equal after being cast to integers, 
+then an error will be raised because the QUA for_ loop would be infinite. 
+In that case, you can consider increasing the step or using the [for_each_()](https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each) method.  
 
 Note that this does not happen when looping over a QUA variable of type fixed, or when using a linear increment.
 
