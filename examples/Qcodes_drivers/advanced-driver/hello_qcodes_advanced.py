@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import qcodes as qc
 from qcodes import initialise_or_create_database_at, load_or_create_experiment
