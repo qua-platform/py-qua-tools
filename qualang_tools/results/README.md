@@ -142,7 +142,7 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     # Resume the QUA program (escape the 'pause' statement)
     job.resume()
     # Wait until the program reaches the 'pause' statement again, indicating that the QUA sequence is done
-    wait_until_job_is_paused(job)
+    wait_until_job_is_paused(job, timeout=60, strict_timeout=True)
     # Wait until the data of this run is processed by the stream processing
     I_handle.wait_for_values(i + 1)
     Q_handle.wait_for_values(i + 1)
