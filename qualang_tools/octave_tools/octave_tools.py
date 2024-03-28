@@ -108,8 +108,17 @@ def set_correction_parameters_to_opx(
         qm.set_output_dc_offset_by_element(element, ("I", "Q"), (param["offsets"]["I"], param["offsets"]["Q"]))
     if job is None:
         job = qm.get_running_job()
-    if len(param["correction_matrix"]) == 4:
-        job.set_element_correction(element, param["correction_matrix"])
+        if job is not None:
+            job.set_element_correction(element, param["correction_matrix"])
+        else:
+            mixer_name = qm.get_config()["elements"][element]["mixInputs"]["mixer"]
+            lo_conf = qm.get_config()["elements"]["q0.resonator"]["mixInputs"]["lo_frequency"]
+            if_conf = qm.get_config()["elements"]["q0.resonator"]["intermediate_frequency"]
+            if IF != if_conf:
+                print(
+                    "WARNING: the intermediate frequency doesn't match the one defined in the config, which means that the loaded correction matrix may not be optimal."
+                )
+            qm.set_mixer_correction(mixer_name, if_conf, lo_conf, tuple(param["correction_matrix"]))
     return param
 
 
