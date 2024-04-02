@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from qualang_tools.octave_tools import get_calibration_parameters
+from qualang_tools.octave_tools import get_calibration_parameters_from_db
 
 @pytest.fixture
 def config():
@@ -106,21 +106,21 @@ def abs_path_to(rel_path: str) -> str:
 # res: 6e9, -60e6, gain=0 and 10
 # qubit: 5e9, 50e6, gain=0 and -10
 def test_validity_correction_parameters(config):
-    param_qubit = get_calibration_parameters(abs_path_to(""), config, "qubit", 5e9, 50e6, 0)
-    param_res = get_calibration_parameters(abs_path_to(""), config, "resonator", 6e9, -60e6, 0)
+    param_qubit = get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 0)
+    param_res = get_calibration_parameters_from_db(abs_path_to(""), config, "resonator", 6e9, -60e6, 0)
     assert param_qubit["correction_matrix"] == convert_to_correction(0.002667968769702953, 0.1732576938647769)
     assert param_res["correction_matrix"] == convert_to_correction(-0.001663141321574909, -0.02624172671912417)
-    param_qubit = get_calibration_parameters(abs_path_to(""), config, "qubit", 5e9, 50e6, -10)
-    param_res = get_calibration_parameters(abs_path_to(""), config, "resonator", 6e9, -60e6, 10)
+    param_qubit = get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, -10)
+    param_res = get_calibration_parameters_from_db(abs_path_to(""), config, "resonator", 6e9, -60e6, 10)
     assert param_qubit["correction_matrix"] == convert_to_correction(0.000670812605205233, 0.16976806502793335)
     assert param_res["correction_matrix"] == convert_to_correction(-0.00357108327961989, -0.0270416534916431)
 
 def test_verbose(config):
-    param_qubit = get_calibration_parameters(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=0)
+    param_qubit = get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=0)
     assert param_qubit["correction_matrix"] == ()
-    param_qubit = get_calibration_parameters(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=1)
+    param_qubit = get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=1)
     assert param_qubit["correction_matrix"] == ()
     with pytest.raises(Warning):
-        get_calibration_parameters(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=2)
+        get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=2)
 
 
