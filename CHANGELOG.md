@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
+- bakery - Added the possibility to use the `mwInput` key to enable baking compatibility with MW-FEM dedicated element.
 - simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
 - results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
 - callable_from_qua - Framework used to call Python functions within the core of a QUA program.
