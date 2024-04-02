@@ -183,6 +183,7 @@ supported:
 
 ### Basic example
 ```python
+from qualang_tools.results.data_handler import DataHandler
 # Assume a measurement has been performed, and all results are collected here
 T1_data = {
     "T1": 5e-6,
@@ -214,6 +215,10 @@ After calling `data_handler.save_data()`, three files are created in `data_folde
 ### Creating a data folder
 A data folder can be created in two ways:
 ```python
+from qualang_tools.results.data_handler import DataHandler
+# Initialize the DataHandler
+data_handler = DataHandler(root_data_folder="C:/data")
+
 # Method 1: explicitly creating data folder
 data_folder_properties = data_handler.create_data_folder(name="new_data_folder")
 
@@ -227,7 +232,8 @@ This additional information can also be accessed after calling `DataHandler.save
 ### Saving multiple times
 A `DataHandler` object can be used to save multiple times to different data folders:
 ```python
-
+from qualang_tools.results.data_handler import DataHandler
+# Initialize the DataHandler
 data_handler = DataHandler(root_data_folder="C:/data")
 
 T1_data = {...}
