@@ -20,7 +20,7 @@ If no calibration parameters are found in the database, the function will either
 ### Usage example
  
 ```python
-from qualang_tools.octave_tools import get_correction_parameters
+from qualang_tools.octave_tools import get_calibration_parameters_from_db
 
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
@@ -34,7 +34,7 @@ qm.calibrate_element("qubit", {5e9: (50e6,)})
 qm.octave.set_lo_frequency("qubit", 5e9)
 qm.octave.set_rf_output_gain("qubit", -7)
 # Get the correction parameters corresponding to the desired parameters:
-param_qubit = get_correction_parameters(
+param_qubit = get_calibration_parameters_from_db(
     path_to_database="", config=config, element="qubit", 
     LO=5e9, IF=50e6, gain=-7, 
     verbose_level=1)

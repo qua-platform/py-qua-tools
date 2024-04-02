@@ -81,10 +81,10 @@ def set_correction_parameters_to_opx(
     job: Union[QmJob, RunningQmJob] = None,
     verbose_level: int = 2,
 ) -> dict:
-    """Look for the correction parameters in the database, located at the specified path_to_database, for the specified values of
-    the Octave LO frequency, intermediate frequency and Octave gain and update the running job.
+    """Look for the correction parameters in the database, located at path_to_database, for the specified values of
+    the Octave LO frequency, intermediate frequency and Octave gain and update the running job with `job.set_element_correction()`.
     If no job is specified, then the running will be taken using `qm.get_running_job()`.
-    TODO: explain when not running job
+    If no job is running, then the loaded mixer correction matrix is updated using `qm.set_mixer_correction()`.
     The correction parameters are returned in a dictionary of the form:
     ```{"offsets": {"I": I_offset, "Q": Q_offset}, "correction_matrix": correction}```.
 
