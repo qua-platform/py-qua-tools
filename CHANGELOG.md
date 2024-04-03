@@ -5,7 +5,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
-- bakery - Added the possibility to use the `mwInput` key to enable baking compatibility with MW-FEM dedicated element.
 - simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
 - results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
 - callable_from_qua - Framework used to call Python functions within the core of a QUA program.
@@ -15,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - octave_tools - Added `get_correction_for_each_LO_and_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
 
 ### Changed
+- bakery - Added the possibility to use the `mwInput` key to enable baking compatibility with MW-FEM dedicated element.
 - config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
 - simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
 - simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
