@@ -22,11 +22,11 @@ Calculate the best FIR and IIR filter taps to correct for an exponential decay (
 #### 
 ```python
 from scipy import optimize
-from qualang_tools.digital_filters import low_pass_exponential, single_exponential_correction
+from qualang_tools.digital_filters import exponential_decay, single_exponential_correction
 
-# Fit your data with the low_pass_exponential function
+# Fit your data with the exponential_decay function
 [A_lpf, tau_lpf_ns], _ = optimize.curve_fit(
-    low_pass_exponential,
+    exponential_decay,
     x_data,
     y_data,
 )
@@ -46,7 +46,7 @@ Calculate the best FIR and IIR filter taps to correct for a highpass decay (high
 from scipy import optimize
 from qualang_tools.digital_filters import high_pass_exponential, highpass_correction
 
-# Fit your data with the low_pass_exponential function
+# Fit your data with the exponential_decay function
 [tau_hpf_ns], _ = optimize.curve_fit(
     high_pass_exponential,
     x_data,

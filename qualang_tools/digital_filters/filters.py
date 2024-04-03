@@ -60,8 +60,8 @@ def calc_filter_taps(
     return list(feedforward_taps), list(feedback_taps)
 
 
-def low_pass_exponential(x, a, t):
-    """Exponential decay defined as 1 + a * np.exp(-x / t).
+def exponential_decay(x, a, t):
+    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
 
     :param x: numpy array for the time vector in ns
     :param a: float for the exponential amplitude
@@ -72,7 +72,7 @@ def low_pass_exponential(x, a, t):
 
 
 def high_pass_exponential(x, t):
-    """Exponential decay defined as np.exp(-x / t).
+    """Function representing the exponential decay defined as np.exp(-x / t).
 
     :param x: numpy array for the time vector in ns
     :param t: float for the exponential decay time in ns
@@ -83,7 +83,7 @@ def high_pass_exponential(x, t):
 
 def single_exponential_correction(A: float, tau: float, Ts: float = 1):
     """
-    Calculate the best FIR and IIR filter taps to correct for an exponential decay (LPF) of the shape
+    Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot or overshoot) of the shape
     `1 + A * exp(-t/tau)`.
 
     Args:
@@ -191,10 +191,10 @@ def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1.0
 
     if filter_type == "highpass":
         for i, tau in enumerate(values):
-            b[:, i], feedback_taps[i] = highpass_correction(tau, Ts)
+            b[:, i], [feedback_taps[i]] = highpass_correction(tau, Ts)
     elif filter_type == "exponential":
         for i, (A, tau) in enumerate(values):
-            b[:, i], feedback_taps[i] = single_exponential_correction(A, tau, Ts)
+            b[:, i], [feedback_taps[i]] = single_exponential_correction(A, tau, Ts)
     else:
         raise Exception("Unknown filter type")
 

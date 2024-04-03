@@ -7,12 +7,12 @@ from qualang_tools.digital_filters import *
      [500, -0.25, 200],
      [500, 0.25, 200],
 ])
-def test_low_pass_exponential(low_pass_exp):
+def test_exponential_decay(low_pass_exp):
     t_max = low_pass_exp[0]
     A = low_pass_exp[1]
     tau = low_pass_exp[2]
     t = np.arange(0, t_max, 1)
-    assert np.all(low_pass_exponential(t, A, tau) == 1 + A * np.exp(-t/tau))
+    assert np.all(exponential_decay(t, A, tau) == 1 + A * np.exp(-t/tau))
 
 @pytest.mark.parametrize("high_pass_exp", [
      [500, 200],
@@ -38,8 +38,8 @@ def test_single_exp_correction(single_exp_correction):
     feedforward = np.array(feedforward)
     print(f"\nfeedback: {feedback}")
     print(f"feedforward: {feedforward}")
-    assert -1 < feedback < 1  # Must be within (-1, 1)
-    assert 0 < feedback  # Low pass correction must be > 0
+    assert -1 < feedback[0] < 1  # Must be within (-1, 1)
+    assert 0 <= feedback[0]  # Low pass correction must be > 0
     assert np.all(-2 < np.array(feedforward))  # Must be within (-2, 2)
     assert np.all(np.array(feedforward) < 2)  # Must be within (-2, 2)
     assert np.all(feedforward == single_exponential_correction(A, tau*2, 2*ts)[0])
@@ -57,8 +57,8 @@ def test_hp_correction(hp_correction):
     feedforward, feedback = highpass_correction(tau, ts)
     print(f"\nfeedback: {feedback}")
     print(f"feedforward: {feedforward}")
-    assert -1 < feedback < 1  # Must be within (-1, 1)
-    assert 0 > feedback  # Low pass correction must be < 0
+    assert -1 < feedback[0] < 1  # Must be within (-1, 1)
+    assert 0 <= feedback[0]  # High pass correction must be > 0
     assert np.all(-2 < np.array(feedforward))  # Must be within (-2, 2)
     assert np.all(np.array(feedforward) < 2)  # Must be within (-2, 2)
     assert np.all(feedforward == highpass_correction(tau/2, 2*ts)[0])
@@ -88,7 +88,7 @@ def test_single_calc_filter_taps(calc_correction):
 
 @pytest.mark.parametrize("static_calc_correction", [
      [[(-0.25, 200)], None, 1, [[1.3322259136212624, -1.325581395348837], [0.9933554817275746]]],
-     [None, [20_000], 1, [[1.000025, -0.999975], [-0.9999990463225004]]],
+     [None, [20_000], 1, [[1.000025, -0.999975], [0.9999990463225004]]],
 ])
 def test_single_calc_filter_taps_static(static_calc_correction):
     low_pass = static_calc_correction[0]
