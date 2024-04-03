@@ -103,8 +103,8 @@ def single_exponential_correction(A: float, tau: float, Ts: float = 1):
     c1 = Ts + 2 * tau
     c2 = Ts - 2 * tau
     feedback_tap = k2 / k1
-    feedforward_taps = np.array([c1, c2]) / k1
-    return feedforward_taps, feedback_tap
+    feedforward_taps = list(np.array([c1, c2]) / k1)
+    return feedforward_taps, -feedback_tap
 
 
 def highpass_correction(tau: float, Ts: float = 1):
@@ -124,7 +124,7 @@ def highpass_correction(tau: float, Ts: float = 1):
     ahp2, bhp2 = sig.bilinear(flt[1], flt[0], 1e9)
     feedforward_taps = list(np.array([ahp2[0], ahp2[1]]))
     feedback_tap = min(bhp2[0], 0.9999990463225004)  # Maximum value for the iir tap
-    return feedforward_taps, feedback_tap
+    return feedforward_taps, -feedback_tap
 
 
 def bounce_and_delay_correction(
