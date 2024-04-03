@@ -130,7 +130,7 @@ class Baking:
                 "freq": 0,
                 "time_track": 0,  # Value used for negative waits, to know where to add the samples (negative int)
             }
-            if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
+            if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                 sample_dict[qe] = {"I": [], "Q": []}
 
             elif "singleInput" in self._local_config["elements"][qe]:
@@ -209,7 +209,7 @@ class Baking:
                 self._qe_set.add(qe)
                 qe_samples = self._samples_dict[qe]
                 if self.sampling_rate > int(1e9):
-                    if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                    if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                         y1 = qe_samples["I"]
                         y2 = qe_samples["Q"]
                         dt = 1e9 / self.sampling_rate
@@ -246,7 +246,7 @@ class Baking:
                     self.wait(4 - self._qe_dict[qe]["time"] % 4, qe)
 
                 end_samples = 0
-                if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                     end_samples = len(qe_samples["I"]) - wait_duration
                 elif "singleInput" in elements[qe]:
                     end_samples = len(qe_samples["single"]) - wait_duration
@@ -265,7 +265,7 @@ class Baking:
                         )
 
                 elif self._padding_method == "left":
-                    if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                    if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                         qe_samples["I"] = qe_samples["I"][end_samples:] + qe_samples["I"][0:end_samples]
                         qe_samples["Q"] = qe_samples["Q"][end_samples:] + qe_samples["Q"][0:end_samples]
                     elif "singleInput" in elements[qe]:
@@ -274,7 +274,7 @@ class Baking:
                 elif self._padding_method == "symmetric_l" or (
                     self._padding_method == "symmetric_r" and wait_duration % 2 == 0
                 ):
-                    if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                    if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                         qe_samples["I"] = (
                             qe_samples["I"][end_samples + wait_duration // 2 :]
                             + qe_samples["I"][0 : end_samples + wait_duration // 2]
@@ -292,7 +292,7 @@ class Baking:
                         )
 
                 elif self._padding_method == "symmetric_r" and wait_duration % 2 != 0:
-                    if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                    if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                         qe_samples["I"] = (
                             qe_samples["I"][end_samples + wait_duration // 2 + 1 :]
                             + qe_samples["I"][0 : end_samples + wait_duration // 2 + 1]
@@ -310,7 +310,7 @@ class Baking:
                 if self.update_config:
                     self._update_config(qe, qe_samples)
 
-                if "mixInputs" in elements[qe] or "RF_inputs" in elements[qe]:
+                if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                     self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = qe_samples["I"]
                     self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = qe_samples["Q"]
 
@@ -412,7 +412,7 @@ class Baking:
                         max_length = length
             return max_length
         else:
-            if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
+            if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                 return len(self._samples_dict[qe]["I"])
             elif "singleInput" in self._local_config["elements"][qe]:
                 return len(self._samples_dict[qe]["single"])
@@ -465,9 +465,11 @@ class Baking:
             input_type = []
 
             if self._qe_dict[qe_internal]["time"] > 0:
-                if (
-                    "mixInputs" in self._local_config["elements"][qe_internal]
-                    or "RF_inputs" in self._local_config["elements"][qe_internal]
+                if any(
+                    [
+                        key in self._local_config["elements"][qe_internal]
+                        for key in ["mixInputs", "RF_inputs", "mwInput"]
+                    ]
                 ):
                     input_type.append("I")
                     input_type.append("Q")
@@ -529,7 +531,7 @@ class Baking:
                     if f"baked_Op_{self._ctr}" in self.config["elements"][q]["operations"]:
                         del self.config["elements"][q]["operations"][f"baked_Op_{self._ctr}"]
                         del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]
-                        if "mixInputs" in self.config["elements"][q] or "RF_inputs" in self.config["elements"][q]:
+                        if any([key in self.config["elements"][q] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                             del self.config["waveforms"][f"{q}_baked_wf_I_{self._ctr}"]
                             del self.config["waveforms"][f"{q}_baked_wf_Q_{self._ctr}"]
                         elif "singleInput" in self.config["elements"][q]:
@@ -579,7 +581,7 @@ class Baking:
                 if not (qe in self._qe_set):
                     raise KeyError(f"{qe} is not in the set of quantum elements of the baking object ")
                 else:
-                    if "mixInputs" in self._config["elements"][qe] or "RF_inputs" in self._config["elements"][qe]:
+                    if any([key in self._config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                         return len(self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["samples"])
                     else:
                         return len(self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["samples"])
@@ -641,7 +643,7 @@ class Baking:
 
         index = self._get_pulse_index(qe)
         Op = {name: f"{qe}_baked_pulse_b{self._ctr}_{index}"}
-        if "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
+        if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
             assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
             assert len(samples[0]) == len(
                 samples[1]
@@ -716,10 +718,7 @@ class Baking:
             phi = self._qe_dict[qe]["phase"]
 
             if self._qe_dict[qe]["time_track"] == 0:
-                if (
-                    "mixInputs" in self._local_config["elements"][qe]
-                    or "RF_inputs" in self._local_config["elements"][qe]
-                ):
+                if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                     assert isinstance(
                         samples, list
                     ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
@@ -810,10 +809,7 @@ class Baking:
                 pulse = self._local_config["elements"][qe]["operations"][Op]
                 samples = self._get_samples(pulse)
                 new_samples = 0
-                if (
-                    "mixInputs" in self._local_config["elements"][qe]
-                    or "RF_inputs" in self._local_config["elements"][qe]
-                ):
+                if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
                     assert isinstance(
                         samples, list
                     ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
@@ -945,7 +941,7 @@ class Baking:
         ramp_sample = [amp * t for t in range(duration)]
         if "singleInput" in self._local_config["elements"][qe]:
             self._samples_dict[qe]["single"] += ramp_sample
-        elif "mixInputs" in self._local_config["elements"][qe] or "RF_inputs" in self._local_config["elements"][qe]:
+        elif any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "mwInput"]]):
             self._samples_dict[qe]["Q"] += ramp_sample
             self._samples_dict[qe]["I"] += [0] * duration
         self._update_qe_time(qe, duration)
@@ -968,9 +964,11 @@ class Baking:
         if duration >= 0:
             for qe in qe_set:
                 if qe in self._samples_dict.keys():
-                    if (
-                        "mixInputs" in self._local_config["elements"][qe].keys()
-                        or "RF_inputs" in self._local_config["elements"][qe].keys()
+                    if any(
+                        [
+                            key in self._local_config["elements"][qe].keys()
+                            for key in ["mixInputs", "RF_inputs", "mwInput"]
+                        ]
                     ):
                         self._samples_dict[qe]["I"] += [0] * duration
                         self._samples_dict[qe]["Q"] += [0] * duration
