@@ -1,8 +1,7 @@
 import warnings
-from typing import Tuple, List, Union
+from typing import Tuple, List
 import numpy as np
 import scipy.signal as sig
-from scipy.optimize import differential_evolution
 
 
 def calc_filter_taps(
