@@ -40,9 +40,7 @@ def calc_filter_taps(
     feedback_taps = np.array([])
 
     if highpass is not None:
-        feedforward_taps, feedback_taps = _iir_correction(
-            highpass, "highpass", feedforward_taps, feedback_taps, Ts
-        )
+        feedforward_taps, feedback_taps = _iir_correction(highpass, "highpass", feedforward_taps, feedback_taps, Ts)
 
     if exponential is not None:
         feedforward_taps, feedback_taps = _iir_correction(
@@ -53,9 +51,7 @@ def calc_filter_taps(
         feedforward_taps = np.convolve(feedforward_taps, fir)
 
     if bounce is not None or delay is not None:
-        feedforward_taps = bounce_and_delay_correction(
-            bounce, delay, feedforward_taps, Ts
-        )
+        feedforward_taps = bounce_and_delay_correction(bounce, delay, feedforward_taps, Ts)
 
     max_value = max(np.abs(feedforward_taps))
 
@@ -65,63 +61,25 @@ def calc_filter_taps(
     return list(feedforward_taps), list(feedback_taps)
 
 
-def multi_exponential_decay(
-    t: np.ndarray,
-    A: Union[float, list[float]],
-    tau: Union[float, list[float]],
-    mode: str,
-) -> np.ndarray:
-    """Multi-exponential decay defined as 1 + Sum_i( A[i] * np.exp(-t / tau[i]) ) for LPF, or Sum_i( A[i] * np.exp(-t / tau[i]) ) for HPF.
+def low_pass_exponential(x, a, t):
+    """Exponential decay defined as 1 + a * np.exp(-x / t).
 
-    :param t: numpy array for the time vector in ns
-    :param A: exponential amplitude, can be a single float or a list of floats.
-    :param tau: exponential decay time in ns, can be a single float or a list of floats.
-    :param mode: either "hpf": `Sum_i( A[i] * np.exp(-t / tau[i])`, or "lpf": `1 + Sum_i( A[i] * np.exp(-t / tau[i])`.
+    :param x: numpy array for the time vector in ns
+    :param a: float for the exponential amplitude
+    :param t: float for the exponential decay time in ns
     :return: numpy array for the exponential decay
     """
-    A = np.array(A)
-    tau = np.array(tau)
-    if mode == "lpf":
-        return 1 + (np.dot(A, np.exp(-np.outer(1.0 / tau, t))))
-    elif mode == "hpf":
-        return np.dot(A, np.exp(-np.outer(1.0 / tau, t)))
-    else:
-        raise ValueError("mode can only be 'lpf' or 'hpf'")
+    return 1 + a * np.exp(-x / t)
 
 
-def multi_exponential_fit(
-    N: int, t: np.ndarray, y: np.ndarray, mode: str
-) -> tuple[list[float], list[float], float]:
+def high_pass_exponential(x, t):
+    """Exponential decay defined as np.exp(-x / t).
+
+    :param x: numpy array for the time vector in ns
+    :param t: float for the exponential decay time in ns
+    :return: numpy array for the exponential decay
     """
-    Fits a multi-exponential decay by scipy.optimize.differential_evolution.
-    Adapted from https://gitlabph.physik.fu-berlin.de/rschwarz/MultiExponentialFitting
-
-    :param N: number of exponential functions to fit.
-    :param t: 1-dimensional list of time-values.
-    :param y: 1-dimensional list of y-values to fit.
-    :param mode: either "hpf": `Sum_i( A[i] * np.exp(-t / tau[i])`, or "lpf": `1 + Sum_i( A[i] * np.exp(-t / tau[i])`.
-    :return: tuple containing the solution pre-factors in order [A1, A2, ..., AN], time-constants (positive) in order [tau1, tau2, ..., tauN] and reduced chi squared as calculated by the sum of squared residuals
-    """
-    t = np.asarray(t)
-    if mode == "hpf":
-        y = np.asarray(y)
-    elif mode == "lpf":
-        y = np.asarray(y - 1.0)
-    else:
-        raise ValueError("mode can only be 'lpf' or 'hpf'")
-
-    bounds = [[min(t), max(t)]] * N + [[min(y), max(y)]] * N
-
-    def objective(s):
-        tau_i, a_i = np.split(s, 2)
-        return np.sum((y - (np.dot(a_i, np.exp(-np.outer(1.0 / tau_i, t))))) ** 2.0)
-
-    result = differential_evolution(objective, bounds)
-    print(result)
-    res = result["t"]
-    red_chi_sq = objective(res) / (len(t) - len(res))
-    tau, A = np.split(res, 2)
-    return A, tau, red_chi_sq
+    return np.exp(-x / t)
 
 
 def single_exponential_correction(A: float, tau: float, Ts: float = 1):
@@ -163,9 +121,9 @@ def highpass_correction(tau: float, Ts: float = 1):
     """
     Ts *= 1e-9
     flt = sig.butter(1, np.array([1 / tau / Ts]), btype="highpass", analog=True)
-    ahp2, bhp2 = sig.bilinear(flt[1], flt[0], 1000e6)
+    ahp2, bhp2 = sig.bilinear(flt[1], flt[0], 1e9)
     feedforward_taps = list(np.array([ahp2[0], ahp2[1]]))
-    feedback_tap = [min(bhp2[0], 0.9999990463225004)]  # Maximum value for the iir tap
+    feedback_tap = min(bhp2[0], 0.9999990463225004)  # Maximum value for the iir tap
     return feedforward_taps, feedback_tap
 
 
@@ -198,12 +156,8 @@ def bounce_and_delay_correction(
         feedforward_taps = [1.0]
     n_extra = 10
     n_taps = 101
-    long_taps_x = np.linspace(
-        (0 - n_extra) * Ts, (n_taps + n_extra) * Ts, n_taps + 1 + 2 * n_extra
-    )[0:-1]
-    feedforward_taps_x = np.linspace(
-        0, (len(feedforward_taps) - 1) * Ts, len(feedforward_taps)
-    )
+    long_taps_x = np.linspace((0 - n_extra) * Ts, (n_taps + n_extra) * Ts, n_taps + 1 + 2 * n_extra)[0:-1]
+    feedforward_taps_x = np.linspace(0, (len(feedforward_taps) - 1) * Ts, len(feedforward_taps))
 
     delay_taps = _get_coefficients_for_delay(delay, long_taps_x, Ts)
 
@@ -226,13 +180,9 @@ def bounce_and_delay_correction(
     feedforward_taps = _round_taps_close_to_zero(feedforward_taps)
     index_start = np.nonzero(feedforward_taps_x == 0)[0][0]
     index_end = np.nonzero(feedforward_taps)[0][-1] + 1
-    extra_taps = np.abs(
-        np.concatenate((feedforward_taps[:index_start], feedforward_taps[-index_end:]))
-    )
+    extra_taps = np.abs(np.concatenate((feedforward_taps[:index_start], feedforward_taps[-index_end:])))
     if np.any(extra_taps > 0.02):  # Contribution is more than 2%
-        warnings.warn(
-            f"Contribution from missing taps is not negligible. {max(extra_taps)}"
-        )  # todo: improve message
+        warnings.warn(f"Contribution from missing taps is not negligible. {max(extra_taps)}")  # todo: improve message
     return feedforward_taps[index_start:index_end]
 
 

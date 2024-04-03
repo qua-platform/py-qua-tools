@@ -1,7 +1,7 @@
 from qualang_tools.digital_filters.filters import (
     calc_filter_taps,
-    multi_exponential_decay,
-    multi_exponential_fit,
+    low_pass_exponential,
+    high_pass_exponential,
     single_exponential_correction,
     highpass_correction,
     bounce_and_delay_correction,
@@ -9,8 +9,8 @@ from qualang_tools.digital_filters.filters import (
 
 __all__ = [
     "calc_filter_taps",
-    "multi_exponential_decay",
-    "multi_exponential_fit",
+    "low_pass_exponential",
+    "high_pass_exponential",
     "single_exponential_correction",
     "highpass_correction",
     "bounce_and_delay_correction",
