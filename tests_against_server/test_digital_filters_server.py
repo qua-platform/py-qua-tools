@@ -471,9 +471,16 @@ config = {
 }
 
 
-feedforward, feedback = highpass_correction(10000)
+#
 # feedforward = [1.000055, -0.999945]
-# feedforward, feedback = single_exponential_correction(-0.1, 100)
+feedforward, feedback = single_exponential_correction(-0.2, 100)
+t_hp = 1_000_000
+# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)], highpass=[t_hp])
+# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)])
+feedforward, feedback = highpass_correction(t_hp)
+# feedforward = [1.0002, -0.9998]
+# feedback = [0.9999990463225004, 0.9999990463225004]
+# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)])
 # feedback = [-feedback[0]]
 config["controllers"]["con1"]["analog_outputs"][5] = {
     "offset": 0.0,
@@ -507,10 +514,18 @@ if simulate:
     # job.get_simulated_samples().con1.plot()
     samples = job.get_simulated_samples().con1
     t = np.arange(0, len(samples.analog["5"]), 1)
+    dt = np.where(samples.analog["5"] != 0)[0][0]
     plt.figure()
-    plt.plot(t, samples.analog["5"])
-    plt.plot(t[280:], samples.analog["5"][280:] * (np.exp(-t[:-280] / 10000)), '--')
-    plt.plot(t[280:const_flux_len+280], const_flux_amp * (np.exp(-t[:const_flux_len] / 10000)), '-')
+    plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)), 'b',label="Pulse before correction")
+    plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
+    plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)), 'r',label="Pulse after correction")
+    plt.legend()
+
+    # plt.figure()
+    # plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)) * (1 - 0.2*np.exp(-t[:const_flux_len] / 100)), 'b',label="Pulse before correction")
+    # plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
+    # plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)) * (1 - 0.2*np.exp(-t[:const_flux_len] / 100)), 'r',label="Pulse after correction")
+    # plt.legend()
 else:
     # Open a quantum machine to execute the QUA program
     qm = qmm.open_qm(config)
