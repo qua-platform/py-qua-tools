@@ -16,7 +16,7 @@ from the measured distortions:
 ## Usage examples
 
 ### single_exponential_correction
-Calculate the best FIR and IIR filter taps to correct for an exponential decay (low-pass filter) of the shape
+Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot and overshoot) of the shape
 `1 + A * exp(-t/tau)`.
 
 #### 
@@ -73,7 +73,7 @@ from qualang_tools.digital_filters import bounce_and_delay_correction
 
 ### calc_filter_taps
 Calculate the best FIR and IIR filter taps for a system with any combination of FIR corrections, exponential
-corrections (LPF), high pass compensation, reflections (bounce corrections) and a needed delay on the line.
+corrections (undershoot and overshoot), high pass compensation, reflections (bounce corrections) and a needed delay on the line.
 
 #### 
 ```python
