@@ -473,14 +473,17 @@ config = {
 
 #
 # feedforward = [1.000055, -0.999945]
-feedforward, feedback = single_exponential_correction(-0.2, 100)
-t_hp = 1_000_000
-# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)], highpass=[t_hp])
-# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)])
+t_hp = 1_0000
+A = -0.1
+tau_lp = 200
+# feedforward, feedback = single_exponential_correction(A, tau_lp)
+
+# feedforward, feedback = calc_filter_taps(exponential=[(A, tau_lp)], highpass=[t_hp])
+# feedforward, feedback = calc_filter_taps(exponential=[(A, tau_lp)])
 feedforward, feedback = highpass_correction(t_hp)
 # feedforward = [1.0002, -0.9998]
 # feedback = [0.9999990463225004, 0.9999990463225004]
-# feedforward, feedback = calc_filter_taps(exponential=[(-0.2, 100)])
+# feedforward, feedback = calc_filter_taps(exponential=[(-0.1, tau_lp)])
 # feedback = [-feedback[0]]
 config["controllers"]["con1"]["analog_outputs"][5] = {
     "offset": 0.0,
@@ -522,9 +525,9 @@ if simulate:
     plt.legend()
 
     # plt.figure()
-    # plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)) * (1 - 0.2*np.exp(-t[:const_flux_len] / 100)), 'b',label="Pulse before correction")
+    # plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)) * (1 + A*np.exp(-t[:const_flux_len] / tau_lp)), 'b',label="Pulse before correction")
     # plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
-    # plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)) * (1 - 0.2*np.exp(-t[:const_flux_len] / 100)), 'r',label="Pulse after correction")
+    # plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)) * (1 + A*np.exp(-t[:const_flux_len] / tau_lp)), 'r',label="Pulse after correction")
     # plt.legend()
 else:
     # Open a quantum machine to execute the QUA program

@@ -2,6 +2,7 @@ import warnings
 from typing import Tuple, List
 import numpy as np
 import scipy.signal as sig
+from warnings import warn
 
 
 def calc_filter_taps(
@@ -55,8 +56,15 @@ def calc_filter_taps(
     max_value = max(np.abs(feedforward_taps))
 
     if max_value >= 2:
-        feedforward_taps = 1.5 * feedforward_taps / max_value
+        feedforward_taps = 1.99 * feedforward_taps / max_value
 
+        def _warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+            return "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
+
+        warnings.formatwarning = _warning_on_one_line
+        warn(
+            f"The feedforward taps reached the maximum value of 2. \nThe coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of the pulses played through the filtered port by a factor of {max_value/1.99:.3f}."
+        )
     return list(feedforward_taps), list(feedback_taps)
 
 
