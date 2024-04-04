@@ -17,7 +17,7 @@ from the measured distortions:
 
 ### single_exponential_correction
 Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot or overshoot) of the shape
-`1 + A * exp(-t/tau)`.
+`1 + A * exp(-t/tau)`. You can use the `exponential_decay` function for fitting your data as shown below.
 
 #### 
 ```python
@@ -40,6 +40,7 @@ config["controllers"]["con1"]["analog_outputs"][port_number] = {
 
 ### highpass_correction
 Calculate the best FIR and IIR filter taps to correct for a highpass decay (high-pass filter) of the shape `exp(-t/tau)`.
+You can use the `high_pass_exponential` function for fitting your data as shown below.
 
 #### 
 ```python
