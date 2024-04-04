@@ -14,7 +14,7 @@ def calc_filter_taps(
 ) -> Tuple[List[float], List[float]]:
     """
     Calculate the best FIR and IIR filter taps for a system with any combination of FIR corrections, exponential
-    corrections (undershoot and overshoot), high pass compensation, reflections (bounce corrections) and a needed delay on the line.
+    corrections (undershoot or overshoot), high pass compensation, reflections (bounce corrections) and a needed delay on the line.
 
     Args:
         fir: A list of the needed FIR taps. These would be convoluted with whatever other FIR taps
@@ -83,7 +83,7 @@ def high_pass_exponential(x, t):
 
 def single_exponential_correction(A: float, tau: float, Ts: float = 1):
     """
-    Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot and overshoot) of the shape
+    Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot or overshoot) of the shape
     `1 + A * exp(-t/tau)`.
 
     Args:

@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - octave_tools - Added `get_calibration_parameters_from_db` get the most up-to-date correction parameters in the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
 - octave_tools - Added `set_correction_parameters_to_opx` set the most up-to-date correction parameters from the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
 - octave_tools - Added `get_correction_for_each_LO_and_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
-- digital_filters - Added a set of functions allowing the derivation the digital filter taps used to correct specific distortions.
+- digital_filters - Added library of functions allowing the derivation of the digital filter taps to correct distortions.
 - macros - Added `long_wait` convenience macro to simplify waiting for longer than the maximum wait time.
 
 ### Changed
