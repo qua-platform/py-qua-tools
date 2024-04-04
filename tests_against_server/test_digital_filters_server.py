@@ -187,7 +187,7 @@ flux_settle_time = 100 * u.ns
 amplitude_fit, frequency_fit, phase_fit, offset_fit = [0, 0, 0, 0]
 
 # FLux pulse parameters
-const_flux_len = 4000
+const_flux_len = 200
 const_flux_amp = 0.1
 
 # IQ Plane Angle
@@ -473,14 +473,15 @@ config = {
 
 #
 # feedforward = [1.000055, -0.999945]
-t_hp = 1_0000
+t_hp = 10_000
 A = -0.1
-tau_lp = 200
+tau_lp = 100
 # feedforward, feedback = single_exponential_correction(A, tau_lp)
-
+from scipy.signal.windows import hann
+feedforward, feedback = calc_filter_taps(delay=11, Ts=1)
 # feedforward, feedback = calc_filter_taps(exponential=[(A, tau_lp)], highpass=[t_hp])
 # feedforward, feedback = calc_filter_taps(exponential=[(A, tau_lp)])
-feedforward, feedback = highpass_correction(t_hp)
+# feedforward, feedback = highpass_correction(t_hp)
 # feedforward = [1.0002, -0.9998]
 # feedback = [0.9999990463225004, 0.9999990463225004]
 # feedforward, feedback = calc_filter_taps(exponential=[(-0.1, tau_lp)])
@@ -518,10 +519,16 @@ if simulate:
     samples = job.get_simulated_samples().con1
     t = np.arange(0, len(samples.analog["5"]), 1)
     dt = np.where(samples.analog["5"] != 0)[0][0]
+    # plt.figure()
+    # plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)), 'b',label="Pulse before correction")
+    # plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
+    # plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)), 'r',label="Pulse after correction")
+    # plt.legend()
+
     plt.figure()
-    plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)), 'b',label="Pulse before correction")
+    plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (1 + A*np.exp(-t[:const_flux_len] / tau_lp)), 'b',label="Pulse before correction")
     plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
-    plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)), 'r',label="Pulse after correction")
+    plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (1 + A*np.exp(-t[:const_flux_len] / tau_lp)), 'r',label="Pulse after correction")
     plt.legend()
 
     # plt.figure()

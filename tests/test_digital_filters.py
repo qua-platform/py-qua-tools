@@ -101,3 +101,71 @@ def test_single_calc_filter_taps_static(static_calc_correction):
     assert np.all(feedforward == static_values[0])
     assert feedback[0] == static_values[1][0]
 
+@pytest.mark.parametrize("calc_correction", [
+     [[(0.1, 100)], [10_000], 1, False],
+     [[(0.1, 100)], [10_000], 2, False],
+     [[(-0.1, 100)], [10_000], 1, True],
+     [[(-0.1, 100)], [10_000], 2, True],
+])
+def test_double_calc_filter_taps(calc_correction):
+    low_pass = calc_correction[0]
+    high_pass = calc_correction[1]
+    ts = calc_correction[2]
+    warning = calc_correction[3]
+    if warning:
+        with pytest.warns(expected_warning=UserWarning):
+            feedforward, feedback = calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                                     delay=None, Ts=ts)
+    else:
+        feedforward, feedback = calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                                 delay=None, Ts=ts)
+    print(f"\nfeedback: {feedback}")
+    print(f"feedforward: {feedforward}")
+    assert feedback[1] == highpass_correction(high_pass[0], ts)[1]
+    assert feedback[0] == single_exponential_correction(low_pass[0][0], low_pass[0][1], ts)[1]
+    assert np.all(np.abs(feedforward) < 2)
+
+
+@pytest.mark.parametrize("calc_correction", [
+     [None, None, 1, 10],
+     [None, None, 2, 10],
+     [None, None, 0.5, 11],
+     [[(0.1, 100)], [10_000], 1, 10],
+     [[(0.1, 100)], [10_000], 0.5, 10],
+])
+def test_delay_calc_filter_taps(calc_correction):
+    low_pass = calc_correction[0]
+    high_pass = calc_correction[1]
+    ts = calc_correction[2]
+    delay = calc_correction[3]
+
+    feedforward, feedback = calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                             delay=delay, Ts=ts)
+    print(f"\nfeedback: {feedback}")
+    print(f"feedforward: {feedforward}")
+
+    assert feedforward[:int(delay/ts)] == [0.0] * int(delay/ts)
+    assert feedforward[int(delay/ts):] == calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                             delay=0, Ts=ts)[0]
+    assert feedback == calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                             delay=0, Ts=ts)[1]
+
+@pytest.mark.parametrize("calc_correction", [
+     [None, None, 1],
+     [[(0.1, 100)], [10_000], 1],
+])
+def test_fir_calc_filter_taps(calc_correction):
+    from scipy.signal.windows import hann
+
+    low_pass = calc_correction[0]
+    high_pass = calc_correction[1]
+    ts = calc_correction[2]
+
+    feedforward, feedback = calc_filter_taps(fir=hann(20)/np.sum(hann(20)), exponential=low_pass, highpass=high_pass, bounce=None,
+                                             delay=None, Ts=ts)
+    print(f"\nfeedback: {feedback}")
+    print(f"feedforward: {feedforward}")
+
+    assert feedforward == list(np.convolve(calc_filter_taps(fir=None, exponential=low_pass, highpass=high_pass, bounce=None,
+                                             delay=None, Ts=ts)[0], hann(20)/np.sum(hann(20))))
+
