@@ -250,8 +250,7 @@ def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedba
     return list(feedforward_taps), list(feedback_taps)
 
 
-def _check_hardware_limitation_for_delay(
-    qop_version: Enum, feedforward_taps: List, feedback_taps_len: int):
+def _check_hardware_limitation_for_delay(qop_version: Enum, feedforward_taps: List, feedback_taps_len: int):
     max_feedforward_len = qop_version.value["feedforward_length"](feedback_taps_len)
     if len(feedforward_taps) > max_feedforward_len:
         feedforward_taps = feedforward_taps[:max_feedforward_len]
