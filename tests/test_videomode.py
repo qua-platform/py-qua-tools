@@ -135,7 +135,7 @@ def test_is_parameter_table_valid(param_dict):
                 assert param.type is param_dict[param_name][1]
         else:
             assert param.type is type(param.value) if isinstance(param.value, (bool, int)) else fixed
-        if isinstance(param.value, List):
+        if isinstance(param.value, list):
             assert param.length == len(param.value)
 
         with pytest.raises(ValueError):
