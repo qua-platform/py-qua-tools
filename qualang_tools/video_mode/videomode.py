@@ -7,7 +7,7 @@ from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
 import time
 import signal
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Tuple
 import numpy as np
 
 
@@ -114,7 +114,7 @@ class ParameterTable:
         self.parameters_dict = parameters_dict
         self.table = {}
         for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
-            if isinstance(parameter_value, tuple):
+            if isinstance(parameter_value, Tuple):
                 if len(parameter_value) != 2:
                     raise ValueError(
                         "Invalid format for parameter value. Please use (initial_value, qua_type) or initial_value."
