@@ -34,7 +34,7 @@ patch_qua_program_addons()
 @callable_from_qua
 def set_lo_freq(qm, element, frequency):
     # Here the LO frequency must be passed in kHz instead of Hz, 
-    # because the maximum QUA integer is 2**32 ~ 4.29e9
+    # because the QUA integer ranges in +/-2**31 ~ +/- 2.1e9
     print(f"setting the LO frequency of {element} to {frequency * 1e-3} GHz")
     qm.octave.set_lo_frequency(element, frequency * 1e3)
     qm.octave.set_element_parameters_from_calibration_db(element, qm.get_running_job())
