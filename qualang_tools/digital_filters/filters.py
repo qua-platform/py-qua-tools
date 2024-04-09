@@ -12,6 +12,11 @@ class QOP_VERSION(Enum):
         "feedback_max": 1 - 2**-20,
         "feedforward_length": lambda feedback_len: 44 - 7 * feedback_len,
     }
+    NONE = {
+        "feedforward_max": np.inf,
+        "feedback_max": np.inf,
+        "feedforward_length": lambda feedback_len: np.inf - 0 * feedback_len,
+    }
 
 
 def calc_filter_taps(
@@ -62,8 +67,6 @@ def calc_filter_taps(
 
     if bounce is not None or delay is not None:
         feedforward_taps = bounce_and_delay_correction(bounce, delay, feedforward_taps, Ts)
-
-    feedforward_taps = _check_hardware_limitation_for_delay(qop_version, feedforward_taps, len(feedback_taps))
 
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
@@ -192,11 +195,9 @@ def bounce_and_delay_correction(
     index_start = np.nonzero(feedforward_taps_x == 0)[0][0]
     index_end = np.nonzero(feedforward_taps)[0][-1] + 1
     extra_taps = np.abs(np.concatenate((feedforward_taps[:index_start], feedforward_taps[-index_end:])))
-    import matplotlib.pyplot as plt
-
-    plt.plot(extra_taps)
     if np.any(extra_taps > 0.02):  # Contribution is more than 2%
         warnings.warn(f"Contribution from missing taps is not negligible. {max(extra_taps)}")  # todo: improve message
+
     return _check_hardware_limitation(qop_version, feedforward_taps[index_start:index_end], [])[0]
 
 
@@ -231,27 +232,33 @@ def _round_taps_close_to_zero(taps, accuracy=1e-6):
 
 
 def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedback_taps: List):
-    feedforward_taps = np.array(feedforward_taps)
-    feedback_taps = np.array(feedback_taps)
-    feedback_taps[feedback_taps > qop_version.value["feedback_max"]] = qop_version.value["feedback_max"]
-    feedback_taps[feedback_taps < -qop_version.value["feedback_max"]] = -qop_version.value["feedback_max"]
+    def _warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+        return "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
+    warnings.formatwarning = _warning_on_one_line
 
+    feedback_taps = np.array(feedback_taps)
+    feedforward_taps = np.array(feedforward_taps)
+
+    # Check limitation on the number of feedforward taps
+    max_feedforward_len = qop_version.value["feedforward_length"](len(feedback_taps))
+    if len(feedforward_taps) > max_feedforward_len:
+        warn(f"The feedforward taps exceed the maximum length of { qop_version.value['feedforward_length'](len(feedback_taps))} and only the first taps were returned.")
+        if np.any(feedforward_taps[max_feedforward_len:] > 0.02):  # Contribution is more than 2%
+            warnings.warn(f"Contribution from missing taps is not negligible. {max(feedforward_taps[max_feedforward_len:])}")
+        feedforward_taps = feedforward_taps[:max_feedforward_len]
+
+    # Check limitation on the max value of a feedback tap
+    if np.any(np.abs(feedback_taps) > qop_version.value["feedback_max"]):
+        feedback_taps[feedback_taps > qop_version.value["feedback_max"]] = qop_version.value["feedback_max"]
+        feedback_taps[feedback_taps < -qop_version.value["feedback_max"]] = -qop_version.value["feedback_max"]
+        warn(f"The feedback taps reached the maximum value of {qop_version.value['feedback_max']} which may result in a non-optimal filter implementation.")
+
+    # Check limitation on the max value of a feedforward tap
     max_value = max(np.abs(feedforward_taps))
     if max_value > qop_version.value["feedforward_max"]:
         feedforward_taps = qop_version.value["feedforward_max"] * feedforward_taps / max_value
-
-        def _warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-            return "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
-
-        warnings.formatwarning = _warning_on_one_line
         warn(
-            f"The feedforward taps reached the maximum value of 2. \nThe coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of the pulses played through the filtered port by a factor of {max_value/1.99:.3f}."
+            f"The feedforward taps reached the maximum value of {qop_version.value['feedforward_max']}. \nThe coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of the pulses played through the filtered port by a factor of {max_value/qop_version.value['feedforward_max']:.3f}."
         )
+
     return list(feedforward_taps), list(feedback_taps)
-
-
-def _check_hardware_limitation_for_delay(qop_version: Enum, feedforward_taps: List, feedback_taps_len: int):
-    max_feedforward_len = qop_version.value["feedforward_length"](feedback_taps_len)
-    if len(feedforward_taps) > max_feedforward_len:
-        feedforward_taps = feedforward_taps[:max_feedforward_len]
-    return feedforward_taps
