@@ -27,11 +27,12 @@ class QOP_VERSION(Enum):
     def get_latest(cls):
         """Return the latest QOP version."""
         return cls.QOP222
-    
+
     @classmethod
     def get_options(cls):
         """Return the list of implemented QOP versions"""
         return [cls.NONE.name, cls.QOP220.name, cls.QOP222.name]
+
 
 def calc_filter_taps(
     fir: List[float] = None,
@@ -83,7 +84,9 @@ def calc_filter_taps(
         feedforward_taps = np.convolve(feedforward_taps, fir)
 
     if bounce is not None or delay is not None:
-        feedforward_taps = bounce_and_delay_correction(bounce, delay, feedforward_taps, Ts, qop_version=QOP_VERSION.NONE)
+        feedforward_taps = bounce_and_delay_correction(
+            bounce, delay, feedforward_taps, Ts, qop_version=QOP_VERSION.NONE
+        )
 
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
@@ -258,6 +261,7 @@ def _round_taps_close_to_zero(taps, accuracy=1e-6):
 def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedback_taps: List):
     def _warning_on_one_line(message, category, filename, lineno, file=None, line=None):
         return "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
+
     warnings.formatwarning = _warning_on_one_line
     warnings.simplefilter("always", UserWarning)
 
@@ -267,16 +271,22 @@ def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedba
     # Check limitation on the number of feedforward taps
     max_feedforward_len = qop_version.value["feedforward_length"](len(feedback_taps))
     if len(feedforward_taps) > max_feedforward_len:
-        warn(f"The feedforward taps exceed the maximum length of { qop_version.value['feedforward_length'](len(feedback_taps))} and only the first taps were returned.")
+        warn(
+            f"The feedforward taps exceed the maximum length of { qop_version.value['feedforward_length'](len(feedback_taps))} and only the first taps were returned."
+        )
         if np.any(feedforward_taps[max_feedforward_len:] > 0.02):  # Contribution is more than 2%
-            warnings.warn(f"Contribution from missing taps is not negligible: {max(feedforward_taps[max_feedforward_len:]):.3f}")
+            warnings.warn(
+                f"Contribution from missing taps is not negligible: {max(feedforward_taps[max_feedforward_len:]):.3f}"
+            )
         feedforward_taps = feedforward_taps[:max_feedforward_len]
 
     # Check limitation on the max value of a feedback tap
     if np.any(np.abs(feedback_taps) > qop_version.value["feedback_max"]):
         feedback_taps[feedback_taps > qop_version.value["feedback_max"]] = qop_version.value["feedback_max"]
         feedback_taps[feedback_taps < -qop_version.value["feedback_max"]] = -qop_version.value["feedback_max"]
-        warn(f"The feedback taps reached the maximum value of {qop_version.value['feedback_max']} which may result in a non-optimal filter implementation.")
+        warn(
+            f"The feedback taps reached the maximum value of {qop_version.value['feedback_max']} which may result in a non-optimal filter implementation."
+        )
 
     # Check limitation on the max value of a feedforward tap
     max_value = max(np.abs(feedforward_taps))
