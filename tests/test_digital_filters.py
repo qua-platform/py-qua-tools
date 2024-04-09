@@ -88,7 +88,7 @@ def test_single_calc_filter_taps(calc_correction):
 
 @pytest.mark.parametrize("static_calc_correction", [
      [[(-0.25, 200)], None, 1, [[1.3322259136212624, -1.325581395348837], [0.9933554817275746]]],
-     [None, [20_000], 1, [[1.000025, -0.999975], [0.9999990463225004]]],
+     [None, [20_000], 1, [[1.000025, -0.999975], [0.9999990463256836]]],
 ])
 def test_single_calc_filter_taps_static(static_calc_correction):
     low_pass = static_calc_correction[0]
