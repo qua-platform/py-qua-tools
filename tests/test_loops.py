@@ -1,5 +1,5 @@
 import pytest
-
+import numpy as np
 from qualang_tools.loops import *
 from qm.qua import *
 

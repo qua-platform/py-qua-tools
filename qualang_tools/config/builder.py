@@ -1,4 +1,5 @@
 import copy
+import warnings
 from typing import Union, List
 
 from qualang_tools.config.components import (
@@ -28,6 +29,11 @@ from qualang_tools.config.primitive_components import (
 class ConfigBuilder:
     def __init__(self) -> None:
         """A class used to build the configuration of an experiment with QUA"""
+        warnings.warn(
+            "ConfigBuilder is no longer being actively developed and may not support all config functionality",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.objects = []
         self.configuration = QMConfiguration([])
         self.controllers = []
@@ -136,9 +142,7 @@ class ConfigBuilder:
             elif isinstance(obj, Oscillator):
                 self.configuration.add_oscillator(obj)
             else:
-                raise NotImplementedError(
-                    "Can not add objects of type {0}".format(type(obj))
-                )
+                raise NotImplementedError("Can not add objects of type {0}".format(type(obj)))
         return self.configuration.config
 
     def find_instances(self, obj_type):
@@ -188,9 +192,7 @@ class ConfigBuilder:
         elif isinstance(elm, Mixer):
             return self._find_users_of_mixer(elm)
         else:
-            raise NotImplementedError(
-                "can not find objects of type {}".format(type(elm))
-            )
+            raise NotImplementedError("can not find objects of type {}".format(type(elm)))
 
     def _find_users_of_port(self, port: Port):
         objects = []

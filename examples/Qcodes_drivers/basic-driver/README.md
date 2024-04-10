@@ -186,7 +186,7 @@ In order to execute the QUA program using the do'n'd methods, several steps are 
 3. At each QCoDeS iteration, the ``resume`` command must be called to pass the ``pause()`` statement and execute the pulse sequence.
 4. The measurement parameters must be defined by calling the ``get_measurement_parameter()`` function as a QCoDeS ``*param_meas``. Note that the measurement parameters are automatically defined from the stream_processing. Additionally, the default unit for the raw adc traces, and the results from the integration and demodulation methods are automatically converted into Volts. It is however possible to convert it to another unit by specifying a scale factor as an input parameter of the form [(name of the variable, conversion factor, new unit), ], as in ``scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]``. 
 
-You will find below the examples of calling do0d, do1d and do2d with fake external parameters VP1 and VP2.
+You will find below the examples of calling do0d, do1d, do2d and manual measurement loop with fake external parameters VP1 and VP2.
 ```python
 # do0d
 do0d(
@@ -232,4 +232,33 @@ do2d(
     do_plot=True,
     exp=experiment,
 )
+# Qcodes Measurement
+    # Initialize the measurement
+    meas = qc.Measurement(exp=experiment, name='my_measurement')
+    # Register the qcodes parameter that we'll sweep
+    meas.register_parameter(VP1)
+    # Get the Result parameters from the OPX scan
+    OPX_param = opx_instrument.get_measurement_parameter()
+    # Register all the involved parameters
+    meas.register_parameter(OPX_param, setpoints=[VP1])
+    # Start the sequence (Send the QUA program to the OPX which compiles and executes it)
+    opx_instrument.run_exp()
+    # Start the qcodes measurement
+    with meas.run() as datasaver:
+        # Loop over an external parameter
+        for gate_v in np.arange(0, 0.01, 0.001):
+            # Update ethe external parameter
+            VP1(gate_v)
+            # Run the QUA sequence
+            opx_instrument.resume()
+            # Get the results from the OPX
+            data = opx_instrument.get_res()
+            # Store the results in the scodes database
+            datasaver.add_result((VP1, VP1()), (OPX_param, np.array(list(data.values()))))
+        # Halt the OPX program at the end
+        opx_instrument.halt()
+        # Get the full dataset
+        dataset = datasaver.dataset
+    # Plot the dataset
+    plot_dataset(dataset)
 ```

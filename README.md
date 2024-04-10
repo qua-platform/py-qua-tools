@@ -12,16 +12,19 @@ It includes:
 
 * [QUA Loops Tools](qualang_tools/loops/README.md) - This library includes tools for parametrizing QUA for_ loops using the numpy (linspace, arange, logspace) methods or by directly inputting a numpy array.
 * [Plotting Tools](qualang_tools/plot/README.md) - This library includes tools to help handling plots from QUA programs.
-* [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs.
+* [Result Tools](qualang_tools/results/README.md) - This library includes tools for handling and fetching results from QUA programs, and saving them to the local file storage.
 * [Units Tools](qualang_tools/units/README.md) - This library includes tools for using units (MHz, us, mV...) and converting data to other units (demodulated data to volts for instance).
 * [Analysis Tools](qualang_tools/analysis/README.md) - This library includes tools for analyzing data from experiments. 
 It currently has a two-states discriminator for analyzing the ground and excited IQ blobs.
+* [Octave Tools](qualang_tools/octave_tools/README.md) - This library includes tools for controlling the Octave and extract/set the correction parameters from the calibration database.
 * [Multi-user tools](qualang_tools/multi_user/README.md) - This library includes tools for working with the QOP in a multi-user or multi-process setting.
+* [Simulator tools](qualang_tools/simulator/README.md) - This library includes tools for creating simulations.
 
 * [Bakery](qualang_tools/bakery/README.md) - This library introduces a new framework for creating arbitrary waveforms and
 storing them in the usual configuration file. It allows defining waveforms in a QUA-like manner while working with 1ns resolution (or higher).
 
 * [External Frameworks](qualang_tools/external_frameworks/qcodes/README.md) - This library introduces drivers for integrating the OPX within external frameworks such as QCoDeS. Please refer to the [examples](./examples) section for more details about how to use these drivers.
+* [Video Mode](qualang_tools/video_mode/README.md) - This module allows the user to update some pre-defined parameters of a QUA program while fetching data from the OPX for dynamic tuning. Please refer to the [examples](./examples/video_mode) section for more details about how to implement this module.
 
 * Addons:
   * [Calibrations](qualang_tools/addons/calibration/README.md) - This module allows to easily perform most of the standard single qubit calibrations from a single python file.
@@ -34,9 +37,9 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 * [Config Tools](qualang_tools/config/README.md) - This package includes tools related to the QOP configuration file, including:
   * [Integration Weights Tools](qualang_tools/config/README_integration_weights_tools.md) - This package includes tools for the creation and manipulation of integration weights. 
   * [Waveform Tools](qualang_tools/config/README_waveform_tools.md) - This package includes tools for creating waveforms useful for experiments with the QOP.
-  * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file.
-  * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files.
   * [Config Helper Tools](qualang_tools/config/README_helper_tools.md) - This package includes tools for writing and updating the configuration.
+  * [Config GUI](qualang_tools/config/README_config_GUI.md) - This package contains a GUI for creating and visualizing the configuration file - No longer being actively developed.
+  * [Config Builder](qualang_tools/config/README_config_builder.md) - This package contains an API for creating and manipulation configuration files - No longer being actively developed.
 
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
   * [ManualOutputControl](qualang_tools/control_panel/README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
@@ -47,8 +50,18 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 
 Install the current version using `pip`, the `--upgrade` flag ensures that you will get the latest version.
 
-```commandline
+```bash
 pip install --upgrade qualang-tools
+```
+
+Note that in order use the `Config GUI` or `Config Builder`, you need to install using
+```bash
+pip install --upgrade qualang-tools[configbuilder]
+```
+
+Note that in order use the `Interactive Plot Library`, you need to install using
+```bash
+pip install --upgrade qualang-tools[interplot]
 ```
 
 ## Support and Contribution

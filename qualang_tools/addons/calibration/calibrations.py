@@ -1,6 +1,7 @@
 """
 CALIBRATIONS
 """
+
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 from qm.QuantumMachine import QuantumMachine
@@ -33,19 +34,15 @@ class QUA_calibrations:
         if operation in self.config["elements"][element]["operations"]:
             return True
         else:
-            raise Exception(
-                f"The operation '{operation}' is not in the current config for element '{element}'."
-            )
+            raise Exception(f"The operation '{operation}' is not in the current config for element '{element}'.")
 
     def _check_iw(self, int_weights):
         for iw in int_weights:
             if (
                 iw
-                not in self.config["pulses"][
-                    self.config["elements"][self.readout_elmt]["operations"][
-                        self.readout_op
-                    ]
-                ]["integration_weights"]
+                not in self.config["pulses"][self.config["elements"][self.readout_elmt]["operations"][self.readout_op]][
+                    "integration_weights"
+                ]
             ):
                 raise Exception(
                     f"The integration weight '{iw}' is not in the current config for operation '{self.readout_op}'."
@@ -55,9 +52,7 @@ class QUA_calibrations:
     def _check_outputs(self, outputs):
         for out in outputs:
             if out not in self.config["elements"][self.readout_elmt]["outputs"]:
-                raise Exception(
-                    f"The output '{out}' is not in the current config for element '{self.readout_elmt}'."
-                )
+                raise Exception(f"The output '{out}' is not in the current config for element '{self.readout_elmt}'.")
         return True
 
     def _check_plot_options(self, plot_options):
@@ -74,9 +69,7 @@ class QUA_calibrations:
     def _user_variables_checks(self, calibration, scan_variables, iterations):
         # Check calibration
         if calibration in self.calibration_list:
-            raise Exception(
-                "For the moment, it is not possible to run the same calibration twice in a row."
-            )
+            raise Exception("For the moment, it is not possible to run the same calibration twice in a row.")
         # Check variables
         for var in scan_variables:
             if var[0] not in available_variables:
@@ -87,9 +80,7 @@ class QUA_calibrations:
         if not (type(iterations) is int and iterations > 0):
             raise Exception("interations must be a python positive integer.")
 
-    def _user_variables_init(
-        self, calibration, scan_variables, iterations, cooldown_time
-    ):
+    def _user_variables_init(self, calibration, scan_variables, iterations, cooldown_time):
         self.calibration_list.append(calibration)
         self.results[calibration] = {
             "scan_variables": [],
@@ -111,9 +102,7 @@ class QUA_calibrations:
         elif cooldown_time == 0:
             self.user_specifics[calibration]["cooldown_time"] = None
         else:
-            raise Exception(
-                "cooldown_time must be a python positive integer larger than 4."
-            )
+            raise Exception("cooldown_time must be a python positive integer larger than 4.")
 
     def _get_qua_variables(self, current_calib):
         n = declare(int)  # Averaging index
@@ -135,15 +124,9 @@ class QUA_calibrations:
                     var2_name = var_name
             elif var_name == "amplitude":
                 if current_calib == "Ramsey":
-                    raise Exception(
-                        "Amplitude scan is not available for Ramsey measurements."
-                    )
-                elif (
-                    current_calib == "Resonator_spec"
-                ) and self.flux_line_elmt is None:
-                    raise Exception(
-                        "Amplitude scan is not available for resonator spectroscopy without flux line."
-                    )
+                    raise Exception("Amplitude scan is not available for Ramsey measurements.")
+                elif (current_calib == "Resonator_spec") and self.flux_line_elmt is None:
+                    raise Exception("Amplitude scan is not available for resonator spectroscopy without flux line.")
                 if var1 is None:
                     var1 = declare(fixed)
                     var1_scan = self.scan_var[current_calib][var_name]
@@ -154,19 +137,14 @@ class QUA_calibrations:
                     var2_name = var_name
             elif var_name == "duration":
                 if (self.scan_var[current_calib][var_name] < 4).any():
-                    raise Exception(
-                        "No scanned duration can be lower than 4 clock cycles."
-                    )
+                    raise Exception("No scanned duration can be lower than 4 clock cycles.")
                 if current_calib in ["Rabi", "Ramsey"]:
-                    pulse = self.config["elements"][self.qubit_elmt]["operations"][
-                        self.qubit_op
-                    ]
+                    pulse = self.config["elements"][self.qubit_elmt]["operations"][self.qubit_op]
                     for inpt in self.config["pulses"][pulse]["waveforms"]:
                         wf = self.config["pulses"][pulse]["waveforms"][inpt]
                         if self.config["waveforms"][wf]["type"] == "arbitrary":
                             if (
-                                self.scan_var[current_calib][var_name]
-                                < self.config["pulses"][pulse]["length"] // 4
+                                self.scan_var[current_calib][var_name] < self.config["pulses"][pulse]["length"] // 4
                             ).any():
                                 raise Exception(
                                     "The scanned duration must be greater than the one defined in the configuration for arbitrary waveforms. Arbitrary waveforms can only be stretched and not compressed on the fly."
@@ -261,20 +239,14 @@ class QUA_calibrations:
         plt.yticks(fontsize=self.plot_options["fontsize"])
 
     def _get_IQ_data_and_plot(self, job, calib, plot, dim):
-        pulse = self.config["elements"][self.readout_elmt]["operations"][
-            self.readout_op
-        ]
+        pulse = self.config["elements"][self.readout_elmt]["operations"][self.readout_op]
         res_handles = job.result_handles
         if dim == 1:
             if plot == "live":
-                results = fetching_tool(
-                    job, data_list=["I", "Q", "iteration"], mode="live"
-                )
+                results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
                 # Live plotting
                 fig = plt.figure(figsize=self.plot_options["figsize"])
-                interrupt_on_close(
-                    fig, job
-                )  # Interrupts the job when closing the figure
+                interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
                 while results.is_processing():
                     I, Q, iteration = results.fetch_all()
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
@@ -287,9 +259,7 @@ class QUA_calibrations:
                     )
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
-                    self.results[calib]["phase"] = signal.detrend(
-                        np.unwrap(np.angle(I + 1j * Q))
-                    )
+                    self.results[calib]["phase"] = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
 
                     self._plot_1d(
                         x=self.scan_var[calib][list(self.scan_var[calib].keys())[0]],
@@ -312,9 +282,7 @@ class QUA_calibrations:
                 )
 
                 self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
-                self.results[calib]["phase"] = signal.detrend(
-                    np.unwrap(np.angle(I + 1j * Q))
-                )
+                self.results[calib]["phase"] = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
 
                 if plot == "full":
                     plt.figure(figsize=self.plot_options["figsize"])
@@ -328,15 +296,11 @@ class QUA_calibrations:
         elif dim == 2:
             res_handles = job.result_handles
             if plot == "live":
-                results = fetching_tool(
-                    job, data_list=["I", "Q", "iteration"], mode="live"
-                )
+                results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
 
                 # Live plotting
                 fig = plt.figure(figsize=self.plot_options["figsize"])
-                interrupt_on_close(
-                    fig, job
-                )  # Interrupts the job when closing the figure
+                interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
                 while results.is_processing():
                     I, Q, iteration = results.fetch_all()
                     I = u.demod2volts(I, self.config["pulses"][pulse]["length"])
@@ -349,9 +313,7 @@ class QUA_calibrations:
                     )
 
                     self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
-                    self.results[calib]["phase"] = signal.detrend(
-                        np.unwrap(np.angle(I + 1j * Q))
-                    )
+                    self.results[calib]["phase"] = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
 
                     self._plot_2d(
                         x=self.scan_var[calib][list(self.scan_var[calib].keys())[0]],
@@ -375,9 +337,7 @@ class QUA_calibrations:
                 )
 
                 self.results[calib]["amplitude"] = np.sqrt(I**2 + Q**2)
-                self.results[calib]["phase"] = signal.detrend(
-                    np.unwrap(np.angle(I + 1j * Q))
-                )
+                self.results[calib]["phase"] = signal.detrend(np.unwrap(np.angle(I + 1j * Q)))
 
                 if plot == "full":
                     plt.figure(figsize=self.plot_options["figsize"])
@@ -453,9 +413,7 @@ class QUA_calibrations:
             "figsize": (12, 15),
         }
 
-    def set_resonator_spectroscopy(
-        self, scan_variables, iterations=1, cooldown_time=None
-    ):
+    def set_resonator_spectroscopy(self, scan_variables, iterations=1, cooldown_time=None):
         """Sets the resonator spectroscopy calibration.
         This program will measure the resonator response for different readout pulse frequencies defined in scan_variables.
 
@@ -466,9 +424,7 @@ class QUA_calibrations:
         """
         calibration = "Resonator_spec"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
 
     def set_rabi(self, scan_variables, iterations=1, cooldown_time=None):
         """Performs a Rabi-like measurement by sending a pulse to the qubit and measuring the resonator response.
@@ -484,9 +440,7 @@ class QUA_calibrations:
         """
         calibration = "Rabi"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
 
     def set_T1(self, scan_variables, iterations=1, cooldown_time=None):
         """Performs a T1 measurement by sending a pi-pulse to the qubit and measuring the resonator response after a varying time.
@@ -500,15 +454,11 @@ class QUA_calibrations:
         """
         calibration = "T1"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
         if (len(scan_variables) > 1) or (scan_variables[0][0] != "duration"):
             raise Exception("Only 'duration' scans are available for T1 calibration.")
 
-    def set_ramsey(
-        self, scan_variables, iterations=1, cooldown_time=None, idle_time=None
-    ):
+    def set_ramsey(self, scan_variables, iterations=1, cooldown_time=None, idle_time=None):
         """Performs a Ramsey-like measurement (pi/2 - idle time - pi/2).
         The available scanning parameters are:
         'duration' (idle time in clock cycles unit (4 ns)),
@@ -522,18 +472,14 @@ class QUA_calibrations:
         """
         calibration = "Ramsey"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
         # Check idle time
         if idle_time is None or (idle_time >= 4 and type(idle_time) is int):
             self.user_specifics[calibration]["idle_time"] = idle_time
         elif cooldown_time == 0:
             self.user_specifics[calibration]["cooldown_time"] = None
         else:
-            raise Exception(
-                "idle_time must be 0 or a python positive integer larger than 4."
-            )
+            raise Exception("idle_time must be 0 or a python positive integer larger than 4.")
 
     def set_raw_traces(self, scan_variables=(), iterations=1, cooldown_time=None):
         """Acquires the raw and averaged traces from the two inputs of the OPX.
@@ -545,13 +491,9 @@ class QUA_calibrations:
         """
         calibration = "raw_traces"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
 
-    def set_time_of_flight(
-        self, scan_variables=(), iterations=1, cooldown_time=None, threshold=10 / 4096
-    ):
+    def set_time_of_flight(self, scan_variables=(), iterations=1, cooldown_time=None, threshold=10 / 4096):
         """Measures the time of flight and offsets of the two inputs of the OPX.
 
         :param scan_variables: None
@@ -562,14 +504,10 @@ class QUA_calibrations:
         """
         calibration = "time_of_flight"
         self._user_variables_checks(calibration, scan_variables, iterations)
-        self._user_variables_init(
-            calibration, scan_variables, iterations, cooldown_time
-        )
+        self._user_variables_init(calibration, scan_variables, iterations, cooldown_time)
         self.user_specifics[calibration]["threshold"] = threshold
 
-    def run_calibrations(
-        self, quantum_machine, plot=None, fits=False, plot_options=None
-    ):
+    def run_calibrations(self, quantum_machine, plot=None, fits=False, plot_options=None):
         """Execute the implemented calibrations.
 
         :param quantum_machine:
@@ -629,9 +567,7 @@ class QUA_calibrations:
             elif calib == "Ramsey":
                 prog = self._ramsey(scan_dimension=len(self.scan_var[calib]) - 1)
             elif calib == "Resonator_spec":
-                prog = self._resonator_spec(
-                    scan_dimension=len(self.scan_var[calib]) - 1
-                )
+                prog = self._resonator_spec(scan_dimension=len(self.scan_var[calib]) - 1)
             elif calib == "raw_traces":
                 prog = self._raw_traces()
             elif calib == "time_of_flight":
@@ -643,9 +579,7 @@ class QUA_calibrations:
             elif isinstance(machine, QuantumMachine):
                 job = machine.simulate(prog, simulation_config)
             else:
-                raise Exception(
-                    "'machine' must be either a QuantumMachine or a QuantumMachinesManager instance."
-                )
+                raise Exception("'machine' must be either a QuantumMachine or a QuantumMachinesManager instance.")
             plt.figure()
             job.get_simulated_samples().con1.plot()
         self.simulation = False
@@ -660,12 +594,8 @@ class QUA_calibrations:
                     raise Exception(
                         "Amplitude scan of the resonator spectroscopy is only implemented for flux tunable transmons so please provide the flux line element."
                     )
-                elif var1_name != "frequency" or (
-                    var1_name == "amplitude" and self.flux_line_elmt is None
-                ):
-                    raise Exception(
-                        "Resonator spectroscopy is only implemented for frequency scan."
-                    )
+                elif var1_name != "frequency" or (var1_name == "amplitude" and self.flux_line_elmt is None):
+                    raise Exception("Resonator spectroscopy is only implemented for frequency scan.")
 
                 I = declare(fixed)
                 Q = declare(fixed)
@@ -684,9 +614,7 @@ class QUA_calibrations:
                         if var1_name == "frequency":
                             update_frequency(self.readout_elmt, var1)
                         # Align, measure and save data
-                        self._align_measure_save(
-                            I, Q, I_st, Q_st, calib, align_flag=False
-                        )
+                        self._align_measure_save(I, Q, I_st, Q_st, calib, align_flag=False)
                     save(n, n_st)
 
                 with stream_processing():
@@ -738,18 +666,12 @@ class QUA_calibrations:
                             elif var2_name == "frequency":
                                 update_frequency(self.readout_elmt, var2)
                             # Align, measure and save data
-                            self._align_measure_save(
-                                I, Q, I_st, Q_st, calib, align_flag=False
-                            )
+                            self._align_measure_save(I, Q, I_st, Q_st, calib, align_flag=False)
                     save(n, n_st)
 
                 with stream_processing():
-                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "I"
-                    )
-                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "Q"
-                    )
+                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("I")
+                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("Q")
                     n_st.save("iteration")
 
             if self.simulation:
@@ -852,12 +774,8 @@ class QUA_calibrations:
                     save(n, n_st)
 
                 with stream_processing():
-                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "I"
-                    )
-                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "Q"
-                    )
+                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("I")
+                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("Q")
                     n_st.save("iteration")
 
             if self.simulation:
@@ -922,9 +840,7 @@ class QUA_calibrations:
                         if var1_name == "duration":
                             wait(var1, self.qubit_elmt)
                         elif self.user_specifics[calib]["idle_time"] is not None:
-                            wait(
-                                self.user_specifics[calib]["idle_time"], self.qubit_elmt
-                            )
+                            wait(self.user_specifics[calib]["idle_time"], self.qubit_elmt)
                         # Second pi/2 pulse
                         play(self.qubit_op, self.qubit_elmt)
                         # Align, measure and save data
@@ -990,12 +906,8 @@ class QUA_calibrations:
                     save(n, n_st)
 
                 with stream_processing():
-                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "I"
-                    )
-                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save(
-                        "Q"
-                    )
+                    I_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("I")
+                    Q_st.buffer(len(var1_scan)).buffer(len(var2_scan)).average().save("Q")
                     n_st.save("iteration")
 
             if self.simulation:
@@ -1049,12 +961,8 @@ class QUA_calibrations:
             while res_handles.is_processing():
                 adc1 = u.raw2volts(res_handles.get("adc1").fetch_all())
                 adc2 = u.raw2volts(res_handles.get("adc2").fetch_all())
-                adc1_single_run = u.raw2volts(
-                    res_handles.get("adc1_single_run").fetch_all()
-                )
-                adc2_single_run = u.raw2volts(
-                    res_handles.get("adc2_single_run").fetch_all()
-                )
+                adc1_single_run = u.raw2volts(res_handles.get("adc1_single_run").fetch_all())
+                adc2_single_run = u.raw2volts(res_handles.get("adc2_single_run").fetch_all())
 
                 self.results[calib]["adc1"] = {"raw": adc1_single_run, "averaged": adc1}
                 self.results[calib]["adc2"] = {"raw": adc2_single_run, "averaged": adc2}
@@ -1068,29 +976,21 @@ class QUA_calibrations:
                 plt.plot(adc1_single_run, "b")
                 plt.plot(adc2_single_run, "r")
                 plt.xlabel("Time [ns]", fontsize=self.plot_options["fontsize"])
-                plt.ylabel(
-                    "Signal amplitude [V]", fontsize=self.plot_options["fontsize"]
-                )
+                plt.ylabel("Signal amplitude [V]", fontsize=self.plot_options["fontsize"])
                 plt.subplot(122)
                 plt.cla()
                 plt.title("Averaged run", fontsize=self.plot_options["fontsize"] + 2)
                 plt.plot(adc1, "b")
                 plt.plot(adc2, "r")
                 plt.xlabel("Time [ns]", fontsize=self.plot_options["fontsize"])
-                plt.ylabel(
-                    "Signal amplitude [V]", fontsize=self.plot_options["fontsize"]
-                )
+                plt.ylabel("Signal amplitude [V]", fontsize=self.plot_options["fontsize"])
                 plt.pause(0.01)
         else:
             res_handles.wait_for_all_values()
             adc1 = u.raw2volts(res_handles.get("adc1").fetch_all())
             adc2 = u.raw2volts(res_handles.get("adc2").fetch_all())
-            adc1_single_run = u.raw2volts(
-                res_handles.get("adc1_single_run").fetch_all()
-            )
-            adc2_single_run = u.raw2volts(
-                res_handles.get("adc2_single_run").fetch_all()
-            )
+            adc1_single_run = u.raw2volts(res_handles.get("adc1_single_run").fetch_all())
+            adc2_single_run = u.raw2volts(res_handles.get("adc2_single_run").fetch_all())
 
             self.results[calib]["adc1"] = {"raw": adc1_single_run, "averaged": adc1}
             self.results[calib]["adc2"] = {"raw": adc2_single_run, "averaged": adc2}
@@ -1105,17 +1005,13 @@ class QUA_calibrations:
                 plt.plot(adc1_single_run, "b")
                 plt.plot(adc2_single_run, "r")
                 plt.xlabel("Time [ns]", fontsize=self.plot_options["fontsize"])
-                plt.ylabel(
-                    "Signal amplitude [V]", fontsize=self.plot_options["fontsize"]
-                )
+                plt.ylabel("Signal amplitude [V]", fontsize=self.plot_options["fontsize"])
                 plt.subplot(122)
                 plt.title("Averaged run", fontsize=self.plot_options["fontsize"] + 2)
                 plt.plot(adc1, "b")
                 plt.plot(adc2, "r")
                 plt.xlabel("Time [ns]", fontsize=self.plot_options["fontsize"])
-                plt.ylabel(
-                    "Signal amplitude [V]", fontsize=self.plot_options["fontsize"]
-                )
+                plt.ylabel("Signal amplitude [V]", fontsize=self.plot_options["fontsize"])
 
     def _time_of_flight(self, plot=False):
         calib = "time_of_flight"
@@ -1143,9 +1039,7 @@ class QUA_calibrations:
 
         res_handles = job.result_handles
         if plot == "live":
-            raise Exception(
-                "Live plotting is not available for time of flight calibration"
-            )
+            raise Exception("Live plotting is not available for time of flight calibration")
         else:
             adc1 = None
             adc2 = None
@@ -1156,21 +1050,8 @@ class QUA_calibrations:
                 adc1 = u.raw2volts(res_handles.get("adc1").fetch_all())
                 self.results[calib]["adc1"] = adc1
                 # Find the pulse edge and derive tof
-                if (
-                    len(
-                        np.where(
-                            np.abs(np.diff(adc1))
-                            > self.user_specifics[calib]["threshold"]
-                        )[0]
-                    )
-                    > 0
-                ):
-                    tof1 = np.min(
-                        np.where(
-                            np.abs(np.diff(adc1))
-                            > self.user_specifics[calib]["threshold"]
-                        )
-                    )
+                if len(np.where(np.abs(np.diff(adc1)) > self.user_specifics[calib]["threshold"])[0]) > 0:
+                    tof1 = np.min(np.where(np.abs(np.diff(adc1)) > self.user_specifics[calib]["threshold"]))
                     print(f"TOF to add = {tof1} ns for out1")
                 else:
                     tof1 = None
@@ -1179,21 +1060,8 @@ class QUA_calibrations:
                 adc2 = u.raw2volts(res_handles.get("adc2").fetch_all())
                 self.results[calib]["adc2"] = adc2
                 # Find the pulse edge and derive tof
-                if (
-                    len(
-                        np.where(
-                            np.abs(np.diff(adc2))
-                            > self.user_specifics[calib]["threshold"]
-                        )[0]
-                    )
-                    > 0
-                ):
-                    tof2 = np.min(
-                        np.where(
-                            np.abs(np.diff(adc2))
-                            > self.user_specifics[calib]["threshold"]
-                        )
-                    )
+                if len(np.where(np.abs(np.diff(adc2)) > self.user_specifics[calib]["threshold"])[0]) > 0:
+                    tof2 = np.min(np.where(np.abs(np.diff(adc2)) > self.user_specifics[calib]["threshold"]))
                     print(f"TOF to add = {tof2} ns for out2")
                 else:
                     tof2 = None
@@ -1221,7 +1089,5 @@ class QUA_calibrations:
                         plt.axvline(x=tof2, color="r", linestyle=":")
                     plt.axhline(y=np.mean(adc2[:tof2]), color="r", linestyle="--")
                 plt.xlabel("Time [ns]", fontsize=self.plot_options["fontsize"])
-                plt.ylabel(
-                    "Signal amplitude [V]", fontsize=self.plot_options["fontsize"]
-                )
+                plt.ylabel("Signal amplitude [V]", fontsize=self.plot_options["fontsize"])
                 plt.legend()

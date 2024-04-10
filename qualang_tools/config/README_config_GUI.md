@@ -1,3 +1,8 @@
+# Deprecation Warning
+
+ConfigGUI is no longer being actively developed and may not support all config functionality.
+To use, you need to install the package using `pip instal qualang_tools[configbuilder]`
+
 # Feature
 
 GUI for creating configuration. It allows:

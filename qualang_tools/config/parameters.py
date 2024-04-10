@@ -219,9 +219,7 @@ class ConfigVars(object):
         :type setter: Callable
         """
         if name.find(" ") != -1:
-            raise ValueError(
-                "Parameter name cannot contain spaces. " "Use underscore of camelCase."
-            )
+            raise ValueError("Parameter name cannot contain spaces. " "Use underscore of camelCase.")
         if name not in self.params.keys():
             self.params[name] = Parameter(name)
         if setter is not None:
@@ -249,11 +247,11 @@ def _is_parametric(obj):
         for elm in obj.__dict__:
             _obj = getattr(obj, elm)
             if hasattr(_obj, "__dict__"):
-                for (k, v) in _obj.__dict__.items():
+                for k, v in _obj.__dict__.items():
                     if _is_parametric(v):
                         return True
             elif isinstance(_obj, dict):
-                for (k, v) in _obj.items():
+                for k, v in _obj.items():
                     if _is_parametric(v):
                         return True
             elif isinstance(_obj, list):
@@ -269,7 +267,7 @@ def _is_parametric(obj):
                     return True
         return False
     elif isinstance(obj, dict):
-        for (k, v) in obj.items():
+        for k, v in obj.items():
             if _is_parametric(v):
                 return True
     elif isinstance(obj, str):
@@ -293,7 +291,7 @@ def _is_callable(obj):
     if callable(obj):
         return True
     elif isinstance(obj, dict):
-        for (k, v) in obj.items():
+        for k, v in obj.items():
             if _is_callable(v):
                 return True
         return False

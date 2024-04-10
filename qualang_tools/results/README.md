@@ -17,10 +17,10 @@ Then the results can be fetched with the `.fetch_all()` method while the program
 from qualang_tools.results import fetching_tool
 
 n_avg = 1000
-with program as prog:
+with program() as prog:
     # QUA program with n_avg averaging iterations
 
-qmm = QuantumMachinesManager(host="127.0.0.1", port="80")
+qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 qm = qmm.open_qm(config)
 job = qm.execute(prog)
 
@@ -142,7 +142,7 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     # Resume the QUA program (escape the 'pause' statement)
     job.resume()
     # Wait until the program reaches the 'pause' statement again, indicating that the QUA sequence is done
-    wait_until_job_is_paused(job)
+    wait_until_job_is_paused(job, timeout=60, strict_timeout=True)
     # Wait until the data of this run is processed by the stream processing
     I_handle.wait_for_values(i + 1)
     Q_handle.wait_for_values(i + 1)
@@ -155,4 +155,129 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     progress_counter(iteration, len(freqs_external))
     # Process and plot the results
     ...
+```
+
+
+## Data handler
+The `DataHandler` is used to easily save data once a measurement has been performed.
+It saves data into an automatically generated folder with folder structure:
+`{root_data_folder}/%Y-%m-%d/#{idx}_{name}_%H%M%S`.  
+- `root_data_folder` is the root folder for all data, defined once at the start
+- `%Y-%m-%d`: All datasets are first ordered by date
+- `{idx}`: Datasets are identified by an incrementer (starting at `#1`).  
+  Whenever a save is performed, the index of the last saved dataset is determined and
+  increased by 1.
+- `name`: Each data folder has a name
+- `%H%M%S`: The time is also specified.
+This structure can be changed in `DataHandler.folder_structure`.
+
+Data is generally saved using the command `data_handler.save_data("msmt_name", data)`, 
+where `data` is a dictionary.
+The data is saved to the json file `data.json` in the data folder, but nonserialisable 
+types are saved into separate files. The following nonserialisable types are currently
+supported:
+- Matplotlib figures
+- Numpy arrays
+- Xarrays
+
+
+### Basic example
+```python
+from qualang_tools.results.data_handler import DataHandler
+# Assume a measurement has been performed, and all results are collected here
+T1_data = {
+    "T1": 5e-6,
+    "T1_figure": plt.figure(),
+    "IQ_array": np.array([[1, 2, 3], [4, 5, 6]])
+}
+
+# Initialize the DataHandler
+data_handler = DataHandler(root_data_folder="C:/data")
+
+# Save results
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
+print(data_folder)
+# C:/data/2024-02-24/#152_T1_measurement_095214
+# This assumes the save was performed at 2024-02-24 at 09:52:14
+```
+After calling `data_handler.save_data()`, three files are created in `data_folder`:
+- `T1_figure.png`
+- `arrays.npz` containing all the numpy arrays
+- `data.json` which contains:  
+    ```
+    {
+        "T1": 5e-06,
+        "T1_figure": "./T1_figure.png",
+        "IQ_array": "./arrays.npz#IQ_array"
+    }
+    ```
+
+### Creating a data folder
+A data folder can be created in two ways:
+```python
+from qualang_tools.results.data_handler import DataHandler
+# Initialize the DataHandler
+data_handler = DataHandler(root_data_folder="C:/data")
+
+# Method 1: explicitly creating data folder
+data_folder_properties = data_handler.create_data_folder(name="new_data_folder")
+
+# Method 2: Create when saving results
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
+```
+Note that the methods return different results. 
+The method `DataHandler.save_data` simply returns the path to the newly-created data folder, whereas `DataHandler.create_data_folder` returns a dict with additional information on the data folder such as the `idx`.
+This additional information can also be accessed after calling `DataHandler.save_data` through the attribute `DataHandler.path_properties`.
+
+### Saving multiple times
+A `DataHandler` object can be used to save multiple times to different data folders:
+```python
+from qualang_tools.results.data_handler import DataHandler
+# Initialize the DataHandler
+data_handler = DataHandler(root_data_folder="C:/data")
+
+T1_data = {...}
+
+# Save results
+data_folder = data_handler.save_data(data=T1_data, name="T1_measurement")
+# C:/data/2024-02-24/#1_T1_measurement_095214
+
+T1_modified_data = {...}
+
+data_folder = data_handler.save_data(data=T1_modified_data, name="T1_measurement")
+# C:/data/2024-02-24/#2_T1_measurement_095217
+```
+The save second call to `DataHandler.save_data` creates a new data folder where the incrementer is increased by 1.
+
+### Manually adding additional files to data folder
+After a data folder has been created, its path can be accessed from `DataHandler.path`.  
+This allows you to add additional files:
+
+```python
+data_folder = data_handler.save_data(data)
+assert data_folder == data_handler.path  # data_folder is added to data_handler.path
+
+(data_handler.path / "test_file.txt").write_text("I'm adding a file to the data folder")
+```
+
+### Auto-saving additional files to data folder
+In many cases certain files need to be added every time a data folder is created.
+Instead of having to manually add these files each time, they can be specified beforehand:
+
+```python
+DataHandler.additional_files = {
+    "configuration.py": "configuration.py
+}
+```
+Each key is a path from the current working directory, and the corresponding value is the target filepath w.r.t. the data folder. 
+The key does not have to be a relative filepath, it can also be an absolute path. 
+This can be useful if you want to autosave a specific file on a fixed location somewhere on your hard drive.
+
+### Use filename as name
+Instead of manually specifying the name for a data folder, often the current filename is a good choice.
+This can be done by creating the data handler as such:
+
+```python
+from pathlib import Path
+data_handler = DataHandler(name=Path(__file__).stem)
 ```

@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- Video_mode - New module to update some pre-defined parameters of a QUA program while fetching data from the OPX.
+- simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
+- results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
+- callable_from_qua - Framework used to call Python functions within the core of a QUA program.
+- octave_tools - Added `calibrate_several_frequencies` to calibrate several frequencies (each pair (LO, IF) will be calibrated).
+- octave_tools - Added `get_calibration_parameters_from_db` get the most up-to-date correction parameters in the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
+- octave_tools - Added `set_correction_parameters_to_opx` set the most up-to-date correction parameters from the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
+- octave_tools - Added `get_correction_for_each_LO_and_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
+
+### Changed
+- bakery - Added the possibility to use the `mwInput` key to enable baking compatibility with MW-FEM dedicated element.
+- config/waveform_tools - Added sampling rate argument with default value set to 1GS/s to the waveforms.
+- simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
+- simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
+- External_frameworks/qcodes - Fixed the unit of phase
+- External_frameworks/qcodes - Added a flag to allow for the phase to remain wrapped 
+- results - Add a warning when timeout is reached in ``wait_until_job_is_paused``.
+
+### Deprecated
+- simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
+
+## [0.16.0] - 2024-01-25
+### Fixed
+- ConfigBuilder - `Element` now correctly accepts default arguments.
+- External_frameworks/qcodes - Fix bug with the setpoints when streaming the raw adc traces.
+- bakery - add the `RF_inputs` key to be compatible with the Octave API from qm-qua>=1.1.5.
+
+### Added
+- External_frameworks/qcodes - Added ``update_readout_length()`` to update locally the readout length of a given readout element and operation.
+- External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
+- External_frameworks/qcodes - Added ``live_plotting()`` to fetch and plot the OPX results while the program is running.
+- Unit - Added `volts2dBm` and `dBm2volts`.
+
+### Changed
+- Eased package dependencies, requires python 3.8 or above
+- Unit - `demod2volts` now has a `single_demod` flag to correctly convert the data from single demodulation.
+
+## Deprecated
+- ConfigBuilder and ConfigGUI are not being activity developed and may not have all config options
+
 
 ## [0.15.2] - 2023-09-06
 ### Added
@@ -280,7 +321,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...HEAD
+[0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
 [0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.14.0...v0.15.0

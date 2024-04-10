@@ -49,9 +49,7 @@ class XEB:
         self.m_max = m_max
         self.duration_tracker = [0] * m_max
         self.operations_list = {qe: [] for qe in ["q1", "q2"]}
-        self.baked_sequence = self._generate_xeb_sequence(
-            q1_ops, q2_ops, two_qubit_op, align_op
-        )
+        self.baked_sequence = self._generate_xeb_sequence(q1_ops, q2_ops, two_qubit_op, align_op)
 
     def _generate_xeb_sequence(self, q1_ops, q2_ops, two_qubit_op, align_op):
         rand_seq1 = np.random.randint(3, size=self.m_max)
@@ -103,6 +101,4 @@ def play_all_ops(current_bake, sub_bake):
 
 
 def get_total_len(baking_sequence):
-    return max(
-        baking_sequence.get_op_length(element) for element in baking_sequence.elements
-    )
+    return max(baking_sequence.get_op_length(element) for element in baking_sequence.elements)

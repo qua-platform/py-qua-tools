@@ -377,7 +377,7 @@ def test_deprecated_warning():
 
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 1
+    assert len(record.list) == 2
 
     with pytest.warns(None) as record:
         cb = ConfigBuilder()
@@ -387,7 +387,7 @@ def test_deprecated_warning():
         )
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 0
+    assert len(record.list) == 1
 
 def test_digital_input():
     cont = Controller("con1")
@@ -397,3 +397,7 @@ def test_digital_input():
     elm.set_digital_input_delay(2, 20)
     assert "in2" in elm.dict["digitalInputs"].keys()
     assert elm.dict["digitalInputs"]["in2"]["delay"] == 20
+
+def test_element_none_arguments():
+    cont = Controller("con1")
+    elm = Element("elm", digital_input_ports=[cont.digital_output(2)])

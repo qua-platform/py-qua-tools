@@ -55,7 +55,7 @@ class Controller(ConfigBuilderElement):
         :return: An instance of the analog port
         :rtype: AnalogOutputPort
         """
-        for (i, p) in enumerate(self.analog_output_ports):
+        for i, p in enumerate(self.analog_output_ports):
             if port == p.info[1]:
                 p.offset = offset
                 return p
@@ -73,7 +73,7 @@ class Controller(ConfigBuilderElement):
         :return: An instance of the input port
         :rtype: AnalogInputPort
         """
-        for (i, p) in enumerate(self.analog_input_ports):
+        for i, p in enumerate(self.analog_input_ports):
             if port == p.info[1]:
                 p.offset = offset
                 return p
@@ -89,7 +89,7 @@ class Controller(ConfigBuilderElement):
         :return:
         :rtype: DigitalOutputPort
         """
-        for (i, p) in enumerate(self.digital_output_ports):
+        for i, p in enumerate(self.digital_output_ports):
             if port == p.info[1]:
                 return p
         self._use_digital_output_port(port)
@@ -105,7 +105,7 @@ class Controller(ConfigBuilderElement):
         :rtype: DigitalOutputPort
         """
 
-        for (i, p) in enumerate(self.digital_input_ports):
+        for i, p in enumerate(self.digital_input_ports):
             if port == p.info[1]:
                 return p
         self._use_digital_input_port(port)
@@ -127,9 +127,7 @@ class Controller(ConfigBuilderElement):
         """
         if port_num not in self.dict["analog_inputs"]:
             self.dict["analog_inputs"][port_num] = {"offset": offset}
-            self.analog_input_ports += [
-                AnalogInputPort(self.name, port_num, offset=offset)
-            ]
+            self.analog_input_ports += [AnalogInputPort(self.name, port_num, offset=offset)]
 
     def _use_analog_output_port(self, port_num: int, offset: float = 0.0):
         """Adds an instance of  AnalogOutputPort to configuration if it is not used
@@ -141,9 +139,7 @@ class Controller(ConfigBuilderElement):
         """
         if port_num not in self.dict["analog_outputs"]:
             self.dict["analog_outputs"][port_num] = {"offset": offset}
-            self.analog_output_ports += [
-                AnalogOutputPort(self.name, port_num, offset=offset)
-            ]
+            self.analog_output_ports += [AnalogOutputPort(self.name, port_num, offset=offset)]
 
     def _use_digital_output_port(self, port_num: int):
         """Adds an instance of  DigitalOutputPort to configuration if it is not used
@@ -172,12 +168,7 @@ class Controller(ConfigBuilderElement):
         :return:
         :rtype: Set
         """
-        return (
-            self.digital_input_ports
-            + self.digital_output_ports
-            + self.analog_input_ports
-            + self.analog_output_ports
-        )
+        return self.digital_input_ports + self.digital_output_ports + self.analog_input_ports + self.analog_output_ports
 
 
 class ArbitraryWaveform(Waveform):
@@ -233,9 +224,7 @@ class DigitalWaveform(Waveform):
         if isinstance(samples[0], DigitalSample):
             self._samples = samples
         else:
-            self._samples = [
-                DigitalSample(state, duration) for (state, duration) in samples
-            ]
+            self._samples = [DigitalSample(state, duration) for (state, duration) in samples]
         dic = dict()
         dic["samples"] = [(ds.state, ds.duration) for ds in self._samples]
         super(DigitalWaveform, self).__init__(name, dic)
@@ -249,9 +238,7 @@ class DigitalWaveform(Waveform):
         if isinstance(samples[0], DigitalSample):
             self._samples = samples
         else:
-            self._samples = [
-                DigitalSample(state, duration) for (state, duration) in samples
-            ]
+            self._samples = [DigitalSample(state, duration) for (state, duration) in samples]
         self.dict["samples"] = [(ds.state, ds.duration) for ds in self._samples]
 
 
@@ -338,9 +325,7 @@ class Mixer(ConfigBuilderElement):
 
 
 class Oscillator(ConfigBuilderElement):
-    def __init__(
-        self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str
-    ):
+    def __init__(self, name: str, intermediate_frequency: int, lo_frequency: int, mixer: str):
         """An internal oscillator.
         :param name: name of the oscillator
         :type name: str
@@ -432,23 +417,16 @@ class Element(ConfigBuilderElement):
             element_digital_outputs = digital_output_ports
 
         self.dict = dict()
-        assert len(element_analog_inputs) <= 2
-        self.type = "singleInput" if len(element_analog_inputs) == 1 else "mixInputs"
         self.pulses = []
         if pulses is not None:
             self.pulses = pulses
-        self.element_analog_inputs = (
-            [] if element_analog_inputs is None else element_analog_inputs
-        )
-        self.element_analog_outputs = (
-            [] if element_analog_outputs is None else element_analog_outputs
-        )
-        self.element_digital_outputs = (
-            [] if element_digital_outputs is None else element_digital_outputs
-        )
-        self.element_digital_inputs = (
-            [] if element_digital_inputs is None else element_digital_inputs
-        )
+        self.element_analog_inputs = [] if element_analog_inputs is None else element_analog_inputs
+        self.element_analog_outputs = [] if element_analog_outputs is None else element_analog_outputs
+        self.element_digital_outputs = [] if element_digital_outputs is None else element_digital_outputs
+        self.element_digital_inputs = [] if element_digital_inputs is None else element_digital_inputs
+
+        assert len(self.element_analog_inputs) <= 2
+        self.type = "singleInput" if len(self.element_analog_inputs) == 1 else "mixInputs"
         self.mixer: Mixer = mixer
 
         if len(self.element_analog_inputs) > 0:
@@ -540,9 +518,7 @@ class Element(ConfigBuilderElement):
         self.dict["operations"][op.name] = op.pulse.name
         self.pulses.append(op.pulse)
 
-    def _add(
-        self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse, Oscillator]
-    ):
+    def _add(self, obj: Union[Operation, Mixer, ControlPulse, MeasurePulse, Oscillator]):
         """A method to add components to an element
 
         :param obj: The component to be added
@@ -586,19 +562,11 @@ class Element(ConfigBuilderElement):
 
     @property
     def ports(self):
-        return (
-            self.analog_input_ports
-            + self.analog_output_ports
-            + self.digital_output_ports
-            + self.digital_input_ports
-        )
+        return self.analog_input_ports + self.analog_output_ports + self.digital_output_ports + self.digital_input_ports
 
     @property
     def has_signal_threshold(self):
-        return (
-            "outputPulseParameters" in self.dict
-            and "signalThreshold" in self.dict["outputPulseParameters"].keys()
-        )
+        return "outputPulseParameters" in self.dict and "signalThreshold" in self.dict["outputPulseParameters"].keys()
 
     @property
     def signal_threshold(self):
@@ -615,10 +583,7 @@ class Element(ConfigBuilderElement):
 
     @property
     def has_signal_polarity(self):
-        return (
-            "outputPulseParameters" in self.dict
-            and "signalPolarity" in self.dict["outputPulseParameters"].keys()
-        )
+        return "outputPulseParameters" in self.dict and "signalPolarity" in self.dict["outputPulseParameters"].keys()
 
     @property
     def signal_polarity(self):
@@ -636,8 +601,7 @@ class Element(ConfigBuilderElement):
     @property
     def has_derivative_threshold(self):
         return (
-            "outputPulseParameters" in self.dict
-            and "derivativeThreshold" in self.dict["outputPulseParameters"].keys()
+            "outputPulseParameters" in self.dict and "derivativeThreshold" in self.dict["outputPulseParameters"].keys()
         )
 
     @property
@@ -656,8 +620,7 @@ class Element(ConfigBuilderElement):
     @property
     def has_derivative_polarity(self):
         return (
-            "outputPulseParameters" in self.dict
-            and "derivativePolarity" in self.dict["outputPulseParameters"].keys()
+            "outputPulseParameters" in self.dict and "derivativePolarity" in self.dict["outputPulseParameters"].keys()
         )
 
     @property
@@ -787,9 +750,7 @@ class PiecewiseConstantIntegrationWeights(IntegrationWeights):
         tot_duration_sin = 0
         for e in sines:
             tot_duration_sin += e[1]
-        assert (
-            tot_duration_sin == tot_duration_cos
-        ), "Total duration of the sine and cosine weights must be same"
+        assert tot_duration_sin == tot_duration_cos, "Total duration of the sine and cosine weights must be same"
 
         super(PiecewiseConstantIntegrationWeights, self).__init__(
             name,
@@ -813,9 +774,7 @@ class ConstantIntegrationWeights(IntegrationWeights):
         self._duration = duration
         self._cosine = cosine
         self._sine = sine
-        super(ConstantIntegrationWeights, self).__init__(
-            name, [(cosine, duration)], [(sine, duration)]
-        )
+        super(ConstantIntegrationWeights, self).__init__(name, [(cosine, duration)], [(sine, duration)])
 
     @property
     def cosine(self):
@@ -966,7 +925,7 @@ class ReadoutResonator(ElementCollection):
             drive.add(op)
 
         if self.drive_inputs:
-            for (i, port) in enumerate(self.drive_inputs):
+            for i, port in enumerate(self.drive_inputs):
                 drive.dict["outputs"]["out" + str(i + 1)] = port.info
 
         drive.dict["mixInputs"]["I"] = self.drive_outputs[0].info
@@ -1075,14 +1034,7 @@ class ReadoutResonator(ElementCollection):
 
 
 class Transmon(ElementCollection):
-    def __init__(
-        self,
-        name: str,
-        I: AnalogOutputPort,
-        Q: AnalogOutputPort,
-        intermediate_frequency: int,
-        **kwargs
-    ):
+    def __init__(self, name: str, I: AnalogOutputPort, Q: AnalogOutputPort, intermediate_frequency: int, **kwargs):
         """A superconducting transmon qubit
 
         :param name: A name for this transmon
@@ -1263,23 +1215,17 @@ class FluxTunableTransmon(Transmon):
             elif len(op.pulse.wfs) == 1:
                 self.flux_operations.append(op)
             else:
-                raise ConfigurationError(
-                    "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
-                )
+                raise ConfigurationError("Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs)))
         elif isinstance(op, ControlPulse):
             if len(op.wfs) == 2:
                 super(FluxTunableTransmon, self)._add(op)
             elif len(op.wfs) == 1:
                 self.flux_operations.append(op)
             else:
-                raise ConfigurationError(
-                    "Can not add a pulse with {0} waveforms".format(len(op.wfs))
-                )
+                raise ConfigurationError("Can not add a pulse with {0} waveforms".format(len(op.wfs)))
 
         else:
-            raise ConfigurationError(
-                "adding unsupported object of type {}".format(type(op))
-            )
+            raise ConfigurationError("adding unsupported object of type {}".format(type(op)))
 
 
 class Coupler(ElementCollection):
@@ -1307,9 +1253,7 @@ class Coupler(ElementCollection):
         if len(op.pulse.wfs) == 1:
             self.operations.append(op)
         else:
-            raise ConfigurationError(
-                "Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs))
-            )
+            raise ConfigurationError("Can not add a pulse with {0} waveforms".format(len(op.pulse.wfs)))
 
     def add(self, op: Union[List[Operation], Operation]):
         if isinstance(op, list):

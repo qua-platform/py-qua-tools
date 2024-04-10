@@ -1,5 +1,5 @@
 __all__ = [
-    "simulator_tools",
+    "simulator",
     "bakery",
     "config",
     "control_panel",
@@ -11,4 +11,5 @@ __all__ = [
     "multi_user",
     "units",
     "external_frameworks",
+    "callable_from_qua",
 ]

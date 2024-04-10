@@ -4,9 +4,11 @@ Content:
     - fetching_tool: API to easily fetch data from the stream processing.
     - progress_counter: Displays progress bar and prints remaining computation time.
 """
+
 import numpy as np
 import time
 from qm.jobs.running_qm_job import RunningQmJob
+from warnings import warn
 
 
 class fetching_tool:
@@ -22,9 +24,7 @@ class fetching_tool:
         if not data_list:
             raise Exception("The provided data list is empty.")
         if mode not in ["live", "wait_for_all"]:
-            raise Exception(
-                f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']"
-            )
+            raise Exception(f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']")
         self.data_list = data_list
         self.mode = mode
         self.results = []
@@ -86,9 +86,7 @@ class fetching_tool:
             self.res_handles.wait_for_all_values()
             for data in self.data_list:
                 if hasattr(self.res_handles, data):
-                    self.results.append(
-                        self._format(self.res_handles.get(data).fetch_all())
-                    )
+                    self.results.append(self._format(self.res_handles.get(data).fetch_all()))
 
         elif self.mode == "live":
             self.results = []
@@ -97,9 +95,7 @@ class fetching_tool:
         return self.results
 
 
-def progress_counter(
-    iteration, total, progress_bar=True, percent=True, start_time=None
-):
+def progress_counter(iteration, total, progress_bar=True, percent=True, start_time=None):
     """Displays progress bar and prints remaining computation time.
 
     :param iteration: current iteration. Must be a python integer.
@@ -125,7 +121,7 @@ def progress_counter(
         print("")
 
 
-def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
+def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30, strict_timeout: bool = True):
     """
     Waits until the OPX FPGA reaches a "pause" statement.
     Used when the OPX sequence needs to be synchronized with an external parameter sweep and to ensure that the OPX
@@ -134,6 +130,7 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
 
     :param running_job: the QM running job object.
     :param timeout: duration in seconds after which the console will be freed even if the pause statement has not been reached to prevent from being stuck here forever.
+    :param strict_timeout: will throw and exception is set to True, otherwise it will just a print a warning.
     :return: True when the pause statement has been reached.
     """
     start = time.time()
@@ -141,4 +138,9 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30):
     while (not running_job.is_paused()) and (delay < timeout):
         time.sleep(0.1)
         delay = time.time() - start
+    if delay > timeout:
+        if strict_timeout:
+            raise TimeoutError(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
+        else:
+            warn(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
     return True

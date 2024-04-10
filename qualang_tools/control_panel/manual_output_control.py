@@ -1,4 +1,5 @@
 """calling function libraries"""
+
 import copy
 from time import sleep
 
@@ -94,13 +95,9 @@ class ManualOutputControl:
                     if len(port_int) == 2:
                         con_number = (port_int[0] - 1) // 10 + 1
                         if con_number is not (port_int[1] - 1) // 10 + 1:
-                            raise Exception(
-                                f"Ports {port_int[0]} and {port_int[1]} are not from the same controller"
-                            )
+                            raise Exception(f"Ports {port_int[0]} and {port_int[1]} are not from the same controller")
                     else:
-                        raise Exception(
-                            f"Port {port_int} should be either an integer or a tuple of two integers"
-                        )
+                        raise Exception(f"Port {port_int} should be either an integer or a tuple of two integers")
                 else:
                     con_number = (port_int - 1) // 10 + 1
                 con = f"con{con_number}"
@@ -116,13 +113,9 @@ class ManualOutputControl:
                     port1 = (port_int[0] - 1) % 10 + 1
                     port2 = (port_int[1] - 1) % 10 + 1
                     if port1 not in config["controllers"][con]["analog_outputs"]:
-                        config["controllers"][con]["analog_outputs"][port1] = {
-                            "offset": 0.0
-                        }
+                        config["controllers"][con]["analog_outputs"][port1] = {"offset": 0.0}
                     if port2 not in config["controllers"][con]["analog_outputs"]:
-                        config["controllers"][con]["analog_outputs"][port2] = {
-                            "offset": 0.0
-                        }
+                        config["controllers"][con]["analog_outputs"][port2] = {"offset": 0.0}
                     if port_str not in config["elements"]:
                         config["elements"][port_str] = {
                             "mixInputs": {
@@ -135,9 +128,7 @@ class ManualOutputControl:
                     port_str = str(port_int)
                     port_int = (port_int - 1) % 10 + 1
                     if port_int not in config["controllers"][con]["analog_outputs"]:
-                        config["controllers"][con]["analog_outputs"][port_int] = {
-                            "offset": 0.0
-                        }
+                        config["controllers"][con]["analog_outputs"][port_int] = {"offset": 0.0}
                     if port_str not in config["elements"]:
                         config["elements"][port_str] = {
                             "singleInput": {
@@ -200,9 +191,7 @@ class ManualOutputControl:
         if not isinstance(element, str):
             element = str(element)
         if element not in self.digital_elements and element not in self.analog_elements:
-            raise Exception(
-                f"Element {element} is not part of the elements in the configuration files"
-            )
+            raise Exception(f"Element {element} is not part of the elements in the configuration files")
         if amplitude is None:
             amplitude = self.ANALOG_WAVEFORM_AMPLITUDE
         if frequency is not None:
@@ -221,13 +210,8 @@ class ManualOutputControl:
             for element in elements:
                 if not isinstance(element, str):
                     element = str(element)
-                if (
-                    element not in self.digital_elements
-                    and element not in self.analog_elements
-                ):
-                    raise Exception(
-                        f"Element {element} is not part of the elements in the configuration files"
-                    )
+                if element not in self.digital_elements and element not in self.analog_elements:
+                    raise Exception(f"Element {element} is not part of the elements in the configuration files")
         self.digital_off(*elements, ignore_missing_elements=True)
         if len(elements) == 0:
             elements = self.analog_elements
@@ -249,18 +233,14 @@ class ManualOutputControl:
             if ignore_missing_elements:
                 return
             else:
-                raise Exception(
-                    f"Element {element} is not part of the elements in the analog configuration file"
-                )
+                raise Exception(f"Element {element} is not part of the elements in the analog configuration file")
         if abs(value) > self.ANALOG_WAVEFORM_AMPLITUDE:
             if value == 0.5:
                 value = 0.5 - 2**-16
             elif value == -0.5:
                 value = -0.5 + 2**-16
             else:
-                raise Exception(
-                    f"The absolute value of the amplitude must smaller than 0.5, {value} was given"
-                )
+                raise Exception(f"The absolute value of the amplitude must smaller than 0.5, {value} was given")
 
         prev_value = self.analog_data[element]["amplitude"]
         self.analog_data[element]["amplitude"] = value
@@ -294,19 +274,13 @@ class ManualOutputControl:
             if ignore_missing_elements:
                 return
             else:
-                raise Exception(
-                    f"Element {element} is not part of the elements in the analog configuration file"
-                )
+                raise Exception(f"Element {element} is not part of the elements in the analog configuration file")
         if int(value) > int(500e6):
-            raise Exception(
-                f"The frequency should be lower than 500e6, {value} was given"
-            )
+            raise Exception(f"The frequency should be lower than 500e6, {value} was given")
         self.analog_data[element]["frequency"] = value
         while not self.analog_job.is_paused():
             sleep(0.01)
-        self.analog_qm.set_io_values(
-            int(self.analog_elements.index(element)), int(value)
-        )
+        self.analog_qm.set_io_values(int(self.analog_elements.index(element)), int(value))
         self.analog_job.resume()
 
     def digital_on(self, *digital_elements, ignore_missing_elements=False):
@@ -327,9 +301,7 @@ class ManualOutputControl:
                 if ignore_missing_elements:
                     return
                 else:
-                    raise Exception(
-                        f"Element {element} is not part of the elements in the digital configuration file"
-                    )
+                    raise Exception(f"Element {element} is not part of the elements in the digital configuration file")
             self.digital_data[element] = True
         self._start_digital()
 
@@ -351,9 +323,7 @@ class ManualOutputControl:
                 if ignore_missing_elements:
                     return
                 else:
-                    raise Exception(
-                        f"Element {element} is not part of the elements in the digital configuration file"
-                    )
+                    raise Exception(f"Element {element} is not part of the elements in the digital configuration file")
             self.digital_data[element] = False
         self._start_digital()
 
@@ -369,9 +339,7 @@ class ManualOutputControl:
             if not isinstance(element, str):
                 element = str(element)
             if element not in self.digital_elements:
-                raise Exception(
-                    f"Element {element} is not part of the elements in the digital configuration file"
-                )
+                raise Exception(f"Element {element} is not part of the elements in the digital configuration file")
             self.digital_data[element] = not self.digital_data[element]
         self._start_digital()
 
@@ -452,9 +420,9 @@ class ManualOutputControl:
                 "type": "opx1",
                 "analog_outputs": {},
             }
-            self.analog_config["controllers"][controller]["analog_outputs"] = config[
-                "controllers"
-            ][controller]["analog_outputs"]
+            self.analog_config["controllers"][controller]["analog_outputs"] = config["controllers"][controller][
+                "analog_outputs"
+            ]
             pulser_count[controller] = 0
         self.analog_config["elements"] = {}
         self.analog_config["waveforms"] = {
@@ -500,29 +468,21 @@ class ManualOutputControl:
                 self.digital_data[element] = False
                 self.digital_elements.append(element)
                 for digital_input in config["elements"][element]["digitalInputs"]:
-                    con, port = config["elements"][element]["digitalInputs"][
-                        digital_input
-                    ]["port"]
+                    con, port = config["elements"][element]["digitalInputs"][digital_input]["port"]
                     con_int_index = int(con[-1]) - 1
                     port_index = port - 1
                     self.digital_index[element].append((con_int_index, port_index))
                     if self.digital_configs[con_int_index][port_index] is None:
                         pulser_count[con] += 1
-                        self.digital_configs[con_int_index][port_index] = copy.deepcopy(
-                            digital_config
-                        )
-                        self.digital_configs[con_int_index][port_index]["controllers"][
-                            con
-                        ] = {
+                        self.digital_configs[con_int_index][port_index] = copy.deepcopy(digital_config)
+                        self.digital_configs[con_int_index][port_index]["controllers"][con] = {
                             "type": "opx1",
                             "digital_outputs": {port: {}},
                         }
-                        self.digital_configs[con_int_index][port_index]["elements"][
-                            "digital"
-                        ] = {"operations": {"ON": "digital_ON"}}
-                        self.digital_configs[con_int_index][port_index]["elements"][
-                            "digital"
-                        ]["digitalInputs"] = {
+                        self.digital_configs[con_int_index][port_index]["elements"]["digital"] = {
+                            "operations": {"ON": "digital_ON"}
+                        }
+                        self.digital_configs[con_int_index][port_index]["elements"]["digital"]["digitalInputs"] = {
                             "digital": {
                                 "port": (con, port),
                                 "delay": 0,
@@ -535,54 +495,36 @@ class ManualOutputControl:
                 con = config["elements"][element]["mixInputs"]["I"][0]
                 pulser_count[con] += 2
                 self.analog_config["elements"][element] = config["elements"][element]
-                if (
-                    self.analog_config["elements"][element].get("digitalInputs")
-                    is not None
-                ):
+                if self.analog_config["elements"][element].get("digitalInputs") is not None:
                     self.analog_config["elements"][element].pop("digitalInputs")
                 if self.analog_config["elements"][element].get("outputs") is not None:
                     self.analog_config["elements"][element].pop("outputs")
                     self.analog_config["elements"][element].pop("time_of_flight")
                     self.analog_config["elements"][element].pop("smearing")
-                if (
-                    self.analog_config["elements"][element].get("operations")
-                    is not None
-                ):
+                if self.analog_config["elements"][element].get("operations") is not None:
                     self.analog_config["elements"][element].pop("operations")
-                self.analog_config["elements"][element]["operations"] = {
-                    "play": "IQ_Ion"
-                }
+                self.analog_config["elements"][element]["operations"] = {"play": "IQ_Ion"}
                 self.analog_elements.append(element)
 
             elif config["elements"][element].get("singleInput") is not None:
                 con = config["elements"][element]["singleInput"]["port"][0]
                 pulser_count[con] += 1
                 self.analog_config["elements"][element] = config["elements"][element]
-                if (
-                    self.analog_config["elements"][element].get("digitalInputs")
-                    is not None
-                ):
+                if self.analog_config["elements"][element].get("digitalInputs") is not None:
                     self.analog_config["elements"][element].pop("digitalInputs")
                 if self.analog_config["elements"][element].get("outputs") is not None:
                     self.analog_config["elements"][element].pop("outputs")
                     self.analog_config["elements"][element].pop("time_of_flight")
                     self.analog_config["elements"][element].pop("smearing")
-                if (
-                    self.analog_config["elements"][element].get("operations")
-                    is not None
-                ):
+                if self.analog_config["elements"][element].get("operations") is not None:
                     self.analog_config["elements"][element].pop("operations")
-                self.analog_config["elements"][element]["operations"] = {
-                    "play": "single_on"
-                }
+                self.analog_config["elements"][element]["operations"] = {"play": "single_on"}
                 self.analog_elements.append(element)
         for element in self.analog_elements:
             self.analog_config["elements"][element]["hold_offset"] = {"duration": 16}
             self.analog_data[element] = {
                 "amplitude": 0,
-                "frequency": self.analog_config["elements"][element].get(
-                    "intermediate_frequency"
-                ),
+                "frequency": self.analog_config["elements"][element].get("intermediate_frequency"),
             }
 
         opx_plus = True if self.qmm.version()["server"][0] == "2" else False
@@ -620,9 +562,7 @@ class ManualOutputControl:
         for con_port_list in self.digital_index.values():
             for con, port in con_port_list:
                 if self.digital_qms[con][port] is None:
-                    self.digital_qms[con][port] = self.qmm.open_qm(
-                        self.digital_configs[con][port], False
-                    )
+                    self.digital_qms[con][port] = self.qmm.open_qm(self.digital_configs[con][port], False)
 
     def _start_digital(self):
         """
@@ -645,13 +585,9 @@ class ManualOutputControl:
                 if (con, port) in digital_on:  # Needs to be on
                     if (  # Is not on
                         self.digital_jobs[con][port] is None
-                        or not self.digital_jobs[con][
-                            port
-                        ].result_handles.is_processing()
+                        or not self.digital_jobs[con][port].result_handles.is_processing()
                     ):
-                        self.digital_jobs[con][port] = self.digital_qms[con][
-                            port
-                        ].execute(prog)
+                        self.digital_jobs[con][port] = self.digital_qms[con][port].execute(prog)
                     else:  # Is already on
                         pass
                 else:  # Needs to be off
@@ -685,9 +621,7 @@ class ManualOutputControl:
                 for i in range(len(self.analog_elements)):
                     with case_(i):
                         if (
-                            self.analog_config["elements"][self.analog_elements[i]].get(
-                                "intermediate_frequency"
-                            )
+                            self.analog_config["elements"][self.analog_elements[i]].get("intermediate_frequency")
                             is not None
                         ):
                             update_frequency(self.analog_elements[i], freq)

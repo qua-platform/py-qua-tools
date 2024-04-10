@@ -1,4 +1,5 @@
 """calling function libraries"""
+
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
 import numpy as np
@@ -32,21 +33,11 @@ class VNA:
         self.element = element
         self.operation = operation
         self.inputs = [
-            config["elements"][element]["outputs"][out][1]
-            for out in config["elements"][element]["outputs"].keys()
+            config["elements"][element]["outputs"][out][1] for out in config["elements"][element]["outputs"].keys()
         ]
 
         if Q is not None:
-            self.relax_time = int(
-                Q
-                / (
-                    2
-                    * np.pi
-                    * config["elements"][element]["mixInputs"]["lo_frequency"]
-                    * 1e-9
-                )
-                / 4
-            )
+            self.relax_time = int(Q / (2 * np.pi * config["elements"][element]["mixInputs"]["lo_frequency"] * 1e-9) / 4)
         else:
             self.relax_time = 4
         self.measurements = []
@@ -95,15 +86,13 @@ class VNA:
             raise KeyError(f"Output '{outputs}' is not in the config")
         elif not (
             int_weights
-            in self.config["pulses"][
-                self.config["elements"][self.element]["operations"][self.operation]
-            ]["integration_weights"]
+            in self.config["pulses"][self.config["elements"][self.element]["operations"][self.operation]][
+                "integration_weights"
+            ]
         ):
             raise KeyError(f"Integration weights '{int_weights}' is not in the config")
         elif not (measurement in ["S11", "S21"]):
-            raise KeyError(
-                f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
-            )
+            raise KeyError(f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']")
 
         self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "ED"
@@ -124,20 +113,16 @@ class VNA:
             all(
                 [
                     iw
-                    in self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][
-                            self.operation
-                        ]
-                    ]["integration_weights"]
+                    in self.config["pulses"][self.config["elements"][self.element]["operations"][self.operation]][
+                        "integration_weights"
+                    ]
                     for iw in int_weights
                 ]
             )
         ):
             raise KeyError(f"Integration weights '{int_weights}' are not in the config")
         elif not (measurement in ["S11", "S21"]):
-            raise KeyError(
-                f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
-            )
+            raise KeyError(f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']")
 
         self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "IR"
@@ -156,33 +141,22 @@ class VNA:
             raise TypeError(f"Output '{outputs}' must be a list of two  outputs.")
         if np.array(int_weights).shape != (2, 2):
             raise TypeError(f"Output '{int_weights}' must be a 2x2 list.")
-        if not (
-            all(
-                [
-                    out in self.config["elements"][self.element]["outputs"]
-                    for out in outputs
-                ]
-            )
-        ):
+        if not (all([out in self.config["elements"][self.element]["outputs"] for out in outputs])):
             raise KeyError(f"Integration weights '{outputs}' are not in the config")
         elif not (
             all(
                 [
                     iw
-                    in self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][
-                            self.operation
-                        ]
-                    ]["integration_weights"]
+                    in self.config["pulses"][self.config["elements"][self.element]["operations"][self.operation]][
+                        "integration_weights"
+                    ]
                     for iw in np.array(int_weights).reshape(1, 4)[0]
                 ]
             )
         ):
             raise KeyError(f"Integration weights '{int_weights}' are not in the config")
         elif not (measurement in ["S11", "S21"]):
-            raise KeyError(
-                f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']"
-            )
+            raise KeyError(f"Measurement '{measurement}' not implemented yet, must be in ['S11', 'S21']")
 
         self._add_S_measurement(measurement, outputs, int_weights)
         self.measurements[-1]["down_converter"] = "IQ"
@@ -255,12 +229,8 @@ class VNA:
         raw = np.array(raw)
         # Store data in self.results
         self.results["SA"]["raw"] = raw / 4096
-        self.results["SA"]["fft"] = (
-            fft / 4096 * (2 / self.calibration["SA"]["pulse_length"])
-        )
-        self.results["SA"]["f"] = np.arange(
-            0, 0.5 * 1e9, 1e9 / self.calibration["SA"]["pulse_length"]
-        )
+        self.results["SA"]["fft"] = fft / 4096 * (2 / self.calibration["SA"]["pulse_length"])
+        self.results["SA"]["f"] = np.arange(0, 0.5 * 1e9, 1e9 / self.calibration["SA"]["pulse_length"])
 
     def _define_single_measurement(self, sequence: dict, freq_sweep: dict, n_avg: int):
         """
@@ -301,9 +271,7 @@ class VNA:
                             self.operation,
                             self.element,
                             None,
-                            integration.full(
-                                sequence["integration_weights"], I, sequence["outputs"]
-                            ),
+                            integration.full(sequence["integration_weights"], I, sequence["outputs"]),
                         )
 
                     elif sequence["down_converter"] == "IR":
@@ -380,13 +348,7 @@ class VNA:
             self.results[sequence["measurement"]]["S"] = (
                 np.abs(I)
                 * 4096
-                / (
-                    self.config["pulses"][
-                        self.config["elements"][self.element]["operations"][
-                            self.operation
-                        ]
-                    ]["length"]
-                )
+                / (self.config["pulses"][self.config["elements"][self.element]["operations"][self.operation]]["length"])
             )
             self.results[sequence["measurement"]]["phase"] = 0 * np.abs(I)
         else:
@@ -569,16 +531,10 @@ class VNA:
             self.results[self.measurements[i]["measurement"]]["f"] = f
             if self.measurements[i]["down_converter"] == "ED":
                 self.results[self.measurements[i]["measurement"]]["S"] = np.abs(I)
-                self.results[self.measurements[i]["measurement"]]["phase"] = 0 * np.abs(
-                    I
-                )
+                self.results[self.measurements[i]["measurement"]]["phase"] = 0 * np.abs(I)
             else:
-                self.results[self.measurements[i]["measurement"]]["S"] = np.sqrt(
-                    I**2 + Q**2
-                )
-                self.results[self.measurements[i]["measurement"]]["phase"] = np.unwrap(
-                    np.arctan2(I, Q)
-                )
+                self.results[self.measurements[i]["measurement"]]["S"] = np.sqrt(I**2 + Q**2)
+                self.results[self.measurements[i]["measurement"]]["phase"] = np.unwrap(np.arctan2(I, Q))
 
     def run_all(self, freq_sweep: dict = None, n_avg: int = 1, dual: bool = False):
         """
@@ -598,9 +554,7 @@ class VNA:
             print("Spectrum analyzer...")
             # update measurement pulse duration to match bandwidth
             pulse = self.config["elements"][self.element]["operations"][self.operation]
-            self.config["pulses"][pulse]["length"] = self.calibration["SA"][
-                "pulse_length"
-            ]
+            self.config["pulses"][pulse]["length"] = self.calibration["SA"]["pulse_length"]
             qm = self.qmm.open_qm(self.config)
             self._run_spectrum_analyzer(qm, n_avg)
 
@@ -611,9 +565,7 @@ class VNA:
                 self._run_single_measurement(qm, seq, freq_sweep, n_avg)
         else:
             if len(self.measurements) != 2:
-                raise KeyError(
-                    "Dual run only works for two previously defined measurements"
-                )
+                raise KeyError("Dual run only works for two previously defined measurements")
             self._run_dual_measurement(qm, freq_sweep, n_avg)
 
     def plot_all(self):
@@ -637,9 +589,7 @@ class VNA:
                     plt.subplot(212)
                     plt.plot(
                         self.results["SA"]["f"],
-                        self.results["SA"]["fft"][i][
-                            : int(np.ceil(len(self.results["SA"]["fft"][i]) / 2))
-                        ],
+                        self.results["SA"]["fft"][i][: int(np.ceil(len(self.results["SA"]["fft"][i]) / 2))],
                         label=f"OPX input {self.inputs[i]}",
                     )
                 plt.subplot(211)
@@ -660,9 +610,7 @@ class VNA:
                 plt.ylabel(r"$\sqrt{I^2+Q^2}$ [V]")
                 plt.legend()
                 plt.subplot(212)
-                plt.plot(
-                    self.results[ss]["f"] / 1e6, self.results[ss]["phase"], label=ss
-                )
+                plt.plot(self.results[ss]["f"] / 1e6, self.results[ss]["phase"], label=ss)
                 plt.ylabel("phase [rad]")
                 plt.xlabel("Frequency [Hz]")
                 plt.legend()
