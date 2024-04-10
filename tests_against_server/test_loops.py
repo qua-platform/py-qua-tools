@@ -92,7 +92,7 @@ def config():
 
 
 def simulate_program_and_return(config, prog):
-    qmm = QuantumMachinesManager("172.16.33.101", cluster_name = "Cluster_83")
+    qmm = QuantumMachinesManager()
     qm = qmm.open_qm(config)
     job = qm.execute(prog)
     return job
