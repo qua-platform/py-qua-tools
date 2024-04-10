@@ -1,0 +1,5 @@
+# On Linux, place this file in your home directory ~/, and remove the ".example"
+# On Windows, place it in your C:/Users/username directory, and remove the ".example"
+[qmm]
+host = "123.45.67.890"
+cluster_name = "Cluster_1"
