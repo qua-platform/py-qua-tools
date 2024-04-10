@@ -7,7 +7,7 @@ from qualang_tools.addons.calibration.calibrations import u
 MAX_WAIT = 2**31 - 1  # units of clock cycles (4ns)
 
 
-def long_wait(wait_time: Union[float, int], *elements: str, threshold_for_looping: int = u.to_clock_cycles(1e6)):
+def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_looping: int = u.to_clock_cycles(1e6)):
     """Perform a QUA wait command for longer than the current maximum wait time, 2^31-1.
 
     This macro unrolls into QUA for-loop of smaller waits if the maximum wait time is exceeded in `wait_time`.
@@ -15,7 +15,7 @@ def long_wait(wait_time: Union[float, int], *elements: str, threshold_for_loopin
     Note: `wait_time` must be a python number.
 
     Args:
-        wait_time (Union[float, int]): Desired wait time in units of clock cycles (4ns).
+        wait_time (int): Desired wait time in units of clock cycles (4ns).
         *elements (str): Variable length argument list of elements to wait on.
         threshold_for_looping: Minimum wait time at which `long_wait` uses a QUA for-loop of waits (default 1ms)
     """
