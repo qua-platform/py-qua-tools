@@ -17,7 +17,7 @@ def long_wait(wait_time: Union[float, int], *elements: str):
     """
     i = declare(int)
 
-    if not isinstance(wait_time, float | int):
+    if not isinstance(wait_time, (float, int)):
         raise TypeError(f"Expected wait_time to be a float or an integer, got: {type(wait_time)}.")
 
     if wait_time < MAX_WAIT:
