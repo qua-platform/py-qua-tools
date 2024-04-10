@@ -28,8 +28,9 @@ def long_wait(wait_time: Union[float, int], *elements: str, threshold_for_loopin
         raise ValueError(f"Expected loop threshold to be greater than 4 clock cycles, got {threshold_for_looping}")
 
     if threshold_for_looping > MAX_WAIT:
-        raise ValueError(f"Expected loop threshold to be less than the maximum wait time "
-                         f"{MAX_WAIT}, got {threshold_for_looping}")
+        raise ValueError(
+            f"Expected loop threshold to be less than the maximum wait time {MAX_WAIT}, got {threshold_for_looping}"
+        )
 
     if wait_time < threshold_for_looping:
         wait(wait_time, *elements)
