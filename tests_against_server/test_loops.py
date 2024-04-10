@@ -236,14 +236,8 @@ def test_from_array_log_error(config, vector, qua_type):
             return prog
 
     cfg = deepcopy(config)
-    try:
+    with pytest.raises(ValueError):
         simulate_program_and_return(cfg, prog_maker(vector, qua_type))
-        raise Exception("Didn't catch error!")
-    except Exception as e:
-        if e.__class__.__name__ == "ValueError":
-            pass
-        else:
-            raise Exception from e
 
 
 @pytest.mark.parametrize(["start", "stop", "N"],
@@ -353,11 +347,5 @@ def test_qua_logspace_error(config, start, stop, N):
         return prog
 
     cfg = deepcopy(config)
-    try:
+    with pytest.raises(ValueError):
         simulate_program_and_return(cfg, prog_maker(start, stop, N))
-        raise Exception("Didn't catch error!")
-    except Exception as e:
-        if e.__class__.__name__ == "ValueError":
-            pass
-        else:
-            raise Exception from e
