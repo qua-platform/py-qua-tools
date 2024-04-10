@@ -19,8 +19,6 @@ def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_l
         *elements (str): Variable length argument list of elements to wait on.
         threshold_for_looping: Minimum wait time at which `long_wait` uses a QUA for-loop of waits (default 1ms)
     """
-    i = declare(int)
-
     if not isinstance(wait_time, (int, np.integer)):
         raise TypeError(f"Expected wait_time to be a float or an integer, got {type(wait_time)}.")
 
@@ -36,10 +34,12 @@ def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_l
         wait(wait_time, *elements)
 
     else:
+        _long_wait_loop_index = declare(int)
+
         loop_runs = (wait_time // threshold_for_looping) - 1
 
         # wait for N x threshold wait time
-        with for_(i, 0, i < loop_runs, i + 1):
+        with for_(_long_wait_loop_index, 0, _long_wait_loop_index < loop_runs, _long_wait_loop_index + 1):
             wait(threshold_for_looping, *elements)
 
         # wait for the remainder
