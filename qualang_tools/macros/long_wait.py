@@ -12,7 +12,7 @@ def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_l
 
     This macro unrolls into QUA for-loop of smaller waits if the maximum wait time is exceeded in `wait_time`.
 
-    Note: `wait_time` must be a python number.
+    Note: `wait_time` must be a python integer, not a QUA variable.
 
     Args:
         wait_time (int): Desired wait time in units of clock cycles (4ns).
