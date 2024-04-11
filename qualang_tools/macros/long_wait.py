@@ -19,7 +19,7 @@ def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_l
         *elements (str): Variable length argument list of elements to wait on.
         threshold_for_looping: Minimum wait time at which `long_wait` uses a QUA for-loop of waits (default 1ms).
          1ms is chosen as a safe default because constants larger than 1e6 in a QUA program tend to extend compilation
-         times.
+         times. In units of clock cycles.
     """
     if not isinstance(wait_time, (int, np.integer)):
         raise TypeError(f"Expected wait_time to be a float or an integer, got {type(wait_time)}.")

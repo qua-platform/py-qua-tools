@@ -1,4 +1,5 @@
 import time
+import numpy as np
 
 import pytest
 from qualang_tools.addons.calibration.calibrations import u
@@ -76,6 +77,44 @@ def test_long_wait_time_simulation(qmm, config, wait_time):
     # plt.axvline(falling_edges[0], linestyle='--')
     # plt.axvline(rising_edges[1], linestyle='--')
     # plt.show()
+
+    assert len(wait_samples) == wait_time * u.clock_cycle
+
+
+@pytest.mark.parametrize("wait_time", [4, 16, 100,
+                                       dummy_max_wait_time-1,
+                                       dummy_max_wait_time,
+                                       dummy_max_wait_time+1,
+                                       100*dummy_max_wait_time])
+def test_long_wait_time_simulation_multi_element(qmm, config, wait_time):
+    """ Same as above, but multi-element waiting. """
+    op = "playOp"
+
+    with program() as prog:
+        play(op, "qe1")
+        play(op, "qe2")
+        long_wait(wait_time, "qe1", "qe2", threshold_for_looping=dummy_max_wait_time)
+        play(op, "qe1")
+        play(op, "qe2")
+
+    element = config['elements']['qe1']
+    pulse = config['pulses'][element['operations'][op]]
+    pulse_length = pulse['length']
+    pulse_amplitude = config['waveforms'][pulse['waveforms']['single']]['sample']
+
+    job = execute_program(qmm, config, prog, simulate=True, simulation_duration=wait_time + 2*pulse_length + 100)
+
+    output_1 = job.get_simulated_samples().con1.analog['1-1']
+    output_2 = job.get_simulated_samples().con1.analog['1-2']
+
+    for output in [output_1, output_2]:
+        th = pulse_amplitude / 2  # edge threshold
+        rising_edges = np.where((output[:-1] <= th/2) & (output[1:] > th/2))[0]
+        falling_edges = np.where((output[:-1] > th/2) & (output[1:] <= th/2))[0]
+
+        # in a square -> wait -> square program, the wait time lies between the first falling edge
+        # and the second rising edge of the entire program.
+        wait_samples = output[falling_edges[0]:rising_edges[1]]
 
     assert len(wait_samples) == wait_time * u.clock_cycle
 

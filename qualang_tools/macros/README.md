@@ -20,5 +20,7 @@ with program() as prog:
     long_wait(20 * u.s, "qe1", "qe2")
     # wait on all elements for a short time, defaulting to usual `wait` behaviour
     long_wait(100 * u.us)
+    # wait on all elements, compile to multiple 500us waits if wait time is longer than 500us
+    long_wait(2 * u.ms, threshold_for_looping=500*u.us)
     measure(...)
 ```
