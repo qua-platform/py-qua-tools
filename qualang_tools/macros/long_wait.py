@@ -34,6 +34,7 @@ def long_wait(wait_time: Union[int, np.integer], *elements: str, threshold_for_l
         wait(wait_time, *elements)
 
     else:
+        # this QUA variable name shouldn't interfere with commonly used QUA variable names, e.g. i = declare(int)
         _long_wait_loop_index = declare(int)
 
         loop_runs = (wait_time // threshold_for_looping) - 1
