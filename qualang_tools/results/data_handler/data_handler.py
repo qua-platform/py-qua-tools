@@ -17,7 +17,7 @@ def save_data(
     data: Dict[str, Any],
     metadata: Optional[Dict[str, Any]] = None,
     data_filename: str = "data.json",
-    metadata_filename: str = "metadata.json",
+    metadata_filename: str = "node.json",
     data_processors: Sequence[DataProcessor] = (),
 ) -> Path:
     """
@@ -102,7 +102,7 @@ class DataHandler:
     root_data_folder: Path = None
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
     data_filename: str = "data.json"
-    metadata_filename: str = "metadata.json"
+    metadata_filename: str = "node.json"
     additional_files: Dict[str, str] = {}
 
     def __init__(
@@ -118,7 +118,9 @@ class DataHandler:
         if data_processors is not None:
             self.data_processors = data_processors
         else:
-            self.data_processors = [processor() for processor in self.default_data_processors]
+            self.data_processors = [
+                processor() for processor in self.default_data_processors
+            ]
 
         if root_data_folder is not None:
             self.root_data_folder = root_data_folder
@@ -243,7 +245,10 @@ class DataHandler:
 
         for source_name, destination_name in self.additional_files.items():
             if not Path(source_name).exists():
-                warnings.warn(f"Additional file {source_name} does not exist, not copying", UserWarning)
+                warnings.warn(
+                    f"Additional file {source_name} does not exist, not copying",
+                    UserWarning,
+                )
                 continue
 
             shutil.copy(source_name, data_folder / destination_name)
