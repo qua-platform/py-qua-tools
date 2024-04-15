@@ -11,23 +11,23 @@ from .data_folder_tools import DEFAULT_FOLDER_PATTERN, create_data_folder
 
 __all__ = ["save_data", "DataHandler"]
 
+NODE_FILENAME = "node.json"
+
 
 def save_data(
     data_folder: Path,
     data: Dict[str, Any],
+    node_contents: Dict[str, Any],
     metadata: Optional[Dict[str, Any]] = None,
     data_filename: str = "data.json",
-    metadata_filename: str = "node.json",
     data_processors: Sequence[DataProcessor] = (),
 ) -> Path:
-    """
-    Save data to a folder
+    """Save data to a folder
 
     The data (assumed to be a dict) is saved as a json file to "{data_folder}/{data_filename}", which typically
     follows the format "%Y-%m-%d/#{idx}_{name}_%H%M%S/data.json".
     Non-serialisable contents in data such as figures and arrays are saved into separate files and the paths are
     referenced from the data dictionary.
-    The optional metadata (assumed to be a dict) is saved as a json file to "{data_folder}/{metadata_filename}".
 
     This function also applies a list of data processors to the data before saving it. The data processors are
     applied in the order they are provided.
@@ -36,9 +36,9 @@ def save_data(
 
     :param data_folder: The folder where the data will be saved
     :param data: The data to be saved
+    :param node_contents: The contents of the node file
     :param metadata: Metadata to be saved
     :param data_filename: The filename of the data
-    :param metadata_filename: The filename of the metadata
     :param data_processors: A list of data processors to be applied to the data
     :return: The path of the saved data folder
     """
@@ -47,6 +47,16 @@ def save_data(
 
     if not data_folder.exists():
         raise NotADirectoryError(f"Save_data: data_folder {data_folder} does not exist")
+
+    if (data_folder / NODE_FILENAME).exists():
+        raise FileExistsError(f"Save_data: data_folder {data_folder} already contains data")
+
+    node_contents = node_contents.copy()
+    if metadata is not None:
+        node_contents.setdefault("metadata", {})
+        node_contents["metadata"].update(metadata)
+    json_node_contents = json.dumps(node_contents, indent=4)
+    (data_folder / NODE_FILENAME).write_text(json_node_contents)
 
     if not isinstance(data, dict):
         raise TypeError("save_data: 'data' must be a dictionary")
@@ -57,13 +67,6 @@ def save_data(
 
     json_data = json.dumps(processed_data, indent=4)
     (data_folder / data_filename).write_text(json_data)
-
-    if metadata is not None:
-        if not isinstance(metadata, dict):
-            raise TypeError("save_data: 'metadata' must be a dictionary")
-
-        with (data_folder / metadata_filename).open("w") as f:
-            json.dump(metadata, f)
 
     for data_processor in data_processors:
         data_processor.post_process(data_folder=data_folder)
@@ -102,7 +105,6 @@ class DataHandler:
     root_data_folder: Path = None
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
     data_filename: str = "data.json"
-    metadata_filename: str = "node.json"
     additional_files: Dict[str, str] = {}
 
     def __init__(
@@ -118,9 +120,7 @@ class DataHandler:
         if data_processors is not None:
             self.data_processors = data_processors
         else:
-            self.data_processors = [
-                processor() for processor in self.default_data_processors
-            ]
+            self.data_processors = [processor() for processor in self.default_data_processors]
 
         if root_data_folder is not None:
             self.root_data_folder = root_data_folder
@@ -187,9 +187,10 @@ class DataHandler:
     def save_data(
         self,
         data,
-        name=None,
-        metadata=None,
-        idx=None,
+        name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        idx: Optional[int] = None,
+        node_contents: Optional[Dict[str, Any]] = None,
         use_datetime: Optional[datetime] = None,
     ):
         """Save the data to the data folder.
@@ -229,9 +230,19 @@ class DataHandler:
             self.name = name
         if self.name is None:
             raise ValueError("DataHandler: name must be specified")
+
+        if node_contents is None:
+            node_contents = generate_node_contents(idx=idx, use_datetime=use_datetime, name=name, metadata=metadata)
+        else:
+            if use_datetime is not None:
+                warnings.warn("DataHandler: use_datetime is ignored when node_contents is provided", UserWarning)
+            if idx is not None and idx != node_contents.get("idx"):
+                warnings.warn("DataHandler: idx is ignored when node_contents is provided", UserWarning)
+
         if self.path is None:
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
         elif self.path is not None and (self.path / self.data_filename).exists():
+            # TODO Shouldn't there first be: idx += 1
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
 
         data_folder = save_data(
@@ -239,7 +250,7 @@ class DataHandler:
             data=data,
             metadata=metadata,
             data_filename=self.data_filename,
-            metadata_filename=self.metadata_filename,
+            node_filename=self.node_filename,
             data_processors=self.data_processors,
         )
 
