@@ -84,9 +84,7 @@ def calc_filter_taps(
         feedforward_taps = np.convolve(feedforward_taps, fir)
 
     if bounce is not None or delay is not None:
-        feedforward_taps = bounce_and_delay_correction(
-            bounce, delay, feedforward_taps, Ts, qop_version=QOPVersion.NONE
-        )
+        feedforward_taps = bounce_and_delay_correction(bounce, delay, feedforward_taps, Ts, qop_version=QOPVersion.NONE)
 
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
@@ -112,7 +110,9 @@ def high_pass_exponential(x, t):
     return np.exp(-x / t)
 
 
-def single_exponential_correction(A: float, tau: float, Ts: float = 1, qop_version: QOPVersion = QOPVersion.get_latest()):
+def single_exponential_correction(
+    A: float, tau: float, Ts: float = 1, qop_version: QOPVersion = QOPVersion.get_latest()
+):
     """
     Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot or overshoot) of the shape
     `1 + A * exp(-t/tau)`.
@@ -271,12 +271,20 @@ def _check_hardware_limitation(qop_version: QOPVersion, feedforward_taps: List, 
     if len(feedforward_taps) > max_feedforward_len:
         extra_taps = feedforward_taps[max_feedforward_len:]
         final_taps = feedforward_taps[:max_feedforward_len]
-        if np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) > 0.02:  # Contribution is more than 2%
+        if np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) > 0.10:  # Contribution is more than 2%
+            raise RuntimeError(
+                f"The number of feedforward taps exceed the maximum length of "
+                f"{qop_version.value['feedforward_length'](len(feedback_taps))}.\nRemoved all taps afterwards."
+                f" The contribution from the removed taps was "
+                f"{np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) * 100:.1f}%."
+            )
+        elif np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) > 0.02:  # Contribution is more than 2%
             warnings.warn(
                 f"The number of feedforward taps exceed the maximum length of "
                 f"{qop_version.value['feedforward_length'](len(feedback_taps))}.\nRemoved all taps afterwards."
                 f" The contribution from the removed taps was "
-                f"{np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) * 100:.1f}%.")
+                f"{np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) * 100:.1f}%."
+            )
         feedforward_taps = final_taps
 
     # Check limitation on the max value of a feedback tap
