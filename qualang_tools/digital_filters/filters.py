@@ -221,7 +221,6 @@ def bounce_and_delay_correction(
     feedforward_taps = _round_taps_close_to_zero(feedforward_taps)
     index_start = np.nonzero(feedforward_taps_x == 0)[0][0]
     index_end = np.nonzero(feedforward_taps)[0][-1] + 1
-    extra_taps = np.concatenate((feedforward_taps[:index_start], feedforward_taps[index_end:]))
     final_taps = feedforward_taps[index_start:index_end]
 
     return _check_hardware_limitation(qop_version, final_taps, [])[0]
