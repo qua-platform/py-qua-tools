@@ -1,5 +1,5 @@
 from qualang_tools.digital_filters.filters import (
-    QOP_VERSION,
+    QOPVersion,
     calc_filter_taps,
     exponential_decay,
     high_pass_exponential,
@@ -9,7 +9,7 @@ from qualang_tools.digital_filters.filters import (
 )
 
 __all__ = [
-    "QOP_VERSION",
+    "QOPVersion",
     "calc_filter_taps",
     "exponential_decay",
     "high_pass_exponential",

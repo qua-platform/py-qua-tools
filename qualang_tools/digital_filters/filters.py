@@ -6,7 +6,7 @@ from warnings import warn
 from enum import Enum
 
 
-class QOP_VERSION(Enum):
+class QOPVersion(Enum):
     NONE = {
         "feedforward_max": np.inf,
         "feedback_max": np.inf,
@@ -41,13 +41,13 @@ def calc_filter_taps(
     bounce: List[Tuple[float, float]] = None,
     delay: float = None,
     Ts: float = 1,
-    qop_version: Enum = QOP_VERSION.get_latest(),
+    qop_version: QOPVersion = QOPVersion.get_latest(),
 ) -> Tuple[List[float], List[float]]:
     """
     Calculate the best FIR and IIR filter taps for a system with any combination of FIR corrections, exponential
     corrections (undershoot or overshoot), high pass compensation, reflections (bounce corrections) and a needed delay on the line.
-    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOP_VERSION.
-    The possible options are returned by the `QOP_VERSION.get_options()` method and the default value is given by `QOP_VERSION.get_latest()`.
+    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOPVersion.
+    The possible options are returned by the `QOPVersion.get_options()` method and the default value is given by `QOPVersion.get_latest()`.
 
     Args:
         fir: A list of the needed FIR taps. These would be convoluted with whatever other FIR taps
@@ -63,7 +63,7 @@ def calc_filter_taps(
             `delay` is in ns. Note, if `delay` is not a multiple of the sampling rate, multiple FIR taps will be
             created. If `delay` is smaller than 5 taps, accuracy might be lost.
         Ts: The sampling rate (in ns) of the system and filter taps.
-        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOP_VERSION.QOP222).
+        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOPVersion.QOP222).
     Returns:
         A tuple of two lists.
         The first is a list of FIR (feedforward) taps starting at 0 and spaced `Ts` apart.
@@ -85,7 +85,7 @@ def calc_filter_taps(
 
     if bounce is not None or delay is not None:
         feedforward_taps = bounce_and_delay_correction(
-            bounce, delay, feedforward_taps, Ts, qop_version=QOP_VERSION.NONE
+            bounce, delay, feedforward_taps, Ts, qop_version=QOPVersion.NONE
         )
 
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
@@ -112,18 +112,18 @@ def high_pass_exponential(x, t):
     return np.exp(-x / t)
 
 
-def single_exponential_correction(A: float, tau: float, Ts: float = 1, qop_version: Enum = QOP_VERSION.get_latest()):
+def single_exponential_correction(A: float, tau: float, Ts: float = 1, qop_version: QOPVersion = QOPVersion.get_latest()):
     """
     Calculate the best FIR and IIR filter taps to correct for an exponential decay (undershoot or overshoot) of the shape
     `1 + A * exp(-t/tau)`.
-    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOP_VERSION.
-    The possible options are returned by the `QOP_VERSION.get_options()` method and the default value is given by `QOP_VERSION.get_latest()`.
+    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOPVersion.
+    The possible options are returned by the `QOPVersion.get_options()` method and the default value is given by `QOPVersion.get_latest()`.
 
     Args:
         A: The exponential decay pre-factor.
         tau: The time constant for the exponential decay, given in ns.
         Ts: The sampling rate (in ns) of the system and filter taps.
-        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOP_VERSION.QOP222).
+        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOPVersion.QOP222).
     Returns:
         A tuple of two items.
         The first is a list of 2 FIR (feedforward) taps starting at 0 and spaced `Ts` apart.
@@ -140,16 +140,16 @@ def single_exponential_correction(A: float, tau: float, Ts: float = 1, qop_versi
     return _check_hardware_limitation(qop_version, feedforward_taps, feedback_tap)
 
 
-def highpass_correction(tau: float, Ts: float = 1, qop_version: Enum = QOP_VERSION.get_latest()):
+def highpass_correction(tau: float, Ts: float = 1, qop_version: QOPVersion = QOPVersion.get_latest()):
     """
     Calculate the best FIR and IIR filter taps to correct for a highpass decay (HPF) of the shape `exp(-t/tau)`.
-    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOP_VERSION.
-    The possible options are returned by the `QOP_VERSION.get_options()` method and the default value is given by `QOP_VERSION.get_latest()`.
+    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOPVersion.
+    The possible options are returned by the `QOPVersion.get_options()` method and the default value is given by `QOPVersion.get_latest()`.
 
     Args:
         tau: The time constant for the exponential decay, given in ns.
         Ts: The sampling rate (in ns) of the system and filter taps.
-        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOP_VERSION.QOP222).
+        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOPVersion.QOP222).
     Returns:
         A tuple of two items.
         The first is a list of 2 FIR (feedforward) taps starting at 0 and spaced `Ts` apart.
@@ -168,12 +168,12 @@ def bounce_and_delay_correction(
     delay: float = 0,
     feedforward_taps: list = (1.0,),
     Ts: float = 1,
-    qop_version: Enum = QOP_VERSION.get_latest(),
+    qop_version: QOPVersion = QOPVersion.get_latest(),
 ):
     """
     Calculate the FIR filter taps to correct for reflections (bounce corrections) and to add a delay.
-    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOP_VERSION.
-    The possible options are returned by the `QOP_VERSION.get_options()` method and the default value is given by `QOP_VERSION.get_latest()`.
+    The OPX has hardware constraints that may limit the filter implementation and this is why the running QOP version can be specified as an enum of the class QOPVersion.
+    The possible options are returned by the `QOPVersion.get_options()` method and the default value is given by `QOPVersion.get_latest()`.
 
     Args:
         bounce_values: A list of tuples (a, tau), each tuple represents a reflection of amplitude `a` happening at time
@@ -184,7 +184,7 @@ def bounce_and_delay_correction(
             created. If `delay` is smaller than 5 taps, accuracy might be lost.
         feedforward_taps: Existing FIR (feedforward) taps to be convoluted with the resulting taps.
         Ts: The sampling rate (in ns) of the system and filter taps.
-        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOP_VERSION.QOP222).
+        qop_version: running QOP version used to format the taps according to the corresponding hardware limitations (ex: QOPVersion.QOP222).
     Returns:
         A list of FIR (feedforward) taps starting at 0 and spaced `Ts` apart.
     """
@@ -221,11 +221,10 @@ def bounce_and_delay_correction(
     feedforward_taps = _round_taps_close_to_zero(feedforward_taps)
     index_start = np.nonzero(feedforward_taps_x == 0)[0][0]
     index_end = np.nonzero(feedforward_taps)[0][-1] + 1
-    extra_taps = np.abs(np.concatenate((feedforward_taps[:index_start], feedforward_taps[-index_end:])))
-    if np.any(extra_taps > 0.02):  # Contribution is more than 2%
-        warnings.warn(f"Contribution from missing taps is not negligible. {max(extra_taps)}")  # todo: improve message
+    extra_taps = np.concatenate((feedforward_taps[:index_start], feedforward_taps[index_end:]))
+    final_taps = feedforward_taps[index_start:index_end]
 
-    return _check_hardware_limitation(qop_version, feedforward_taps[index_start:index_end], [])[0]
+    return _check_hardware_limitation(qop_version, final_taps, [])[0]
 
 
 def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1.0):
@@ -234,10 +233,10 @@ def _iir_correction(values, filter_type, feedforward_taps, feedback_taps, Ts=1.0
 
     if filter_type == "highpass":
         for i, tau in enumerate(values):
-            b[:, i], [feedback_taps[i]] = highpass_correction(tau, Ts, qop_version=QOP_VERSION.NONE)
+            b[:, i], [feedback_taps[i]] = highpass_correction(tau, Ts, qop_version=QOPVersion.NONE)
     elif filter_type == "exponential":
         for i, (A, tau) in enumerate(values):
-            b[:, i], [feedback_taps[i]] = single_exponential_correction(A, tau, Ts, qop_version=QOP_VERSION.NONE)
+            b[:, i], [feedback_taps[i]] = single_exponential_correction(A, tau, Ts, qop_version=QOPVersion.NONE)
     else:
         raise Exception("Unknown filter type")
 
@@ -258,7 +257,7 @@ def _round_taps_close_to_zero(taps, accuracy=1e-6):
     return taps
 
 
-def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedback_taps: List):
+def _check_hardware_limitation(qop_version: QOPVersion, feedforward_taps: List, feedback_taps: List):
     def _warning_on_one_line(message, category, filename, lineno, file=None, line=None):
         return "%s:%s: %s: %s\n" % (filename, lineno, category.__name__, message)
 
@@ -271,21 +270,23 @@ def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedba
     # Check limitation on the number of feedforward taps
     max_feedforward_len = qop_version.value["feedforward_length"](len(feedback_taps))
     if len(feedforward_taps) > max_feedforward_len:
-        warn(
-            f"The feedforward taps exceed the maximum length of { qop_version.value['feedforward_length'](len(feedback_taps))} and only the first taps were returned."
-        )
-        if np.any(feedforward_taps[max_feedforward_len:] > 0.02):  # Contribution is more than 2%
+        extra_taps = feedforward_taps[max_feedforward_len:]
+        final_taps = feedforward_taps[:max_feedforward_len]
+        if np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) > 0.02:  # Contribution is more than 2%
             warnings.warn(
-                f"Contribution from missing taps is not negligible: {max(feedforward_taps[max_feedforward_len:]):.3f}"
-            )
-        feedforward_taps = feedforward_taps[:max_feedforward_len]
+                f"The number of feedforward taps exceed the maximum length of "
+                f"{qop_version.value['feedforward_length'](len(feedback_taps))}.\nRemoved all taps afterwards."
+                f" The contribution from the removed taps was "
+                f"{np.max(np.sum(extra_taps)) / np.max(np.sum(final_taps)) * 100:.1f}%.")
+        feedforward_taps = final_taps
 
     # Check limitation on the max value of a feedback tap
     if np.any(np.abs(feedback_taps) > qop_version.value["feedback_max"]):
         feedback_taps[feedback_taps > qop_version.value["feedback_max"]] = qop_version.value["feedback_max"]
         feedback_taps[feedback_taps < -qop_version.value["feedback_max"]] = -qop_version.value["feedback_max"]
         warn(
-            f"The feedback taps reached the maximum value of {qop_version.value['feedback_max']} which may result in a non-optimal filter implementation."
+            f"The feedback taps reached the maximum value of {qop_version.value['feedback_max']} which may result in "
+            f"a non-optimal filter implementation."
         )
 
     # Check limitation on the max value of a feedforward tap
@@ -293,7 +294,10 @@ def _check_hardware_limitation(qop_version: Enum, feedforward_taps: List, feedba
     if max_value > qop_version.value["feedforward_max"]:
         feedforward_taps = qop_version.value["feedforward_max"] * feedforward_taps / max_value
         warn(
-            f"The feedforward taps reached the maximum value of {qop_version.value['feedforward_max']}. \nThe coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of the pulses played through the filtered port by a factor of {max_value/qop_version.value['feedforward_max']:.3f}."
+            f"The feedforward taps reached the maximum value of {qop_version.value['feedforward_max']}.\n"
+            f"The coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of"
+            f" the pulses played through the filtered port by a factor of "
+            f"{max_value/qop_version.value['feedforward_max']:.3f}."
         )
 
     return list(feedforward_taps), list(feedback_taps)
