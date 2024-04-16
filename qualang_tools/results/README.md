@@ -200,7 +200,7 @@ print(data_folder)
 # C:/data/2024-02-24/#152_T1_measurement_095214
 # This assumes the save was performed at 2024-02-24 at 09:52:14
 ```
-After calling `data_handler.save_data()`, three files are created in `data_folder`:
+After calling `data_handler.save_data()`, four files are created in `data_folder`:
 - `T1_figure.png`
 - `arrays.npz` containing all the numpy arrays
 - `data.json` which contains:  
@@ -211,6 +211,7 @@ After calling `data_handler.save_data()`, three files are created in `data_folde
         "IQ_array": "./arrays.npz#IQ_array"
     }
     ```
+- `node.json` which contains all metadata related to this save.
 
 ### Creating a data folder
 A data folder can be created in two ways:
