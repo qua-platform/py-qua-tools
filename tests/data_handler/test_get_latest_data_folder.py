@@ -20,12 +20,7 @@ def test_get_latest_data_folder_default_structure(tmp_path):
     expected_properties = {
         "idx": 123,
         "name": "test",
-        "year": 2021,
-        "month": 1,
-        "day": 5,
-        "hour": 12,
-        "minute": 34,
-        "second": 56,
+        "created_at": datetime(year=2021, month=1, day=5, hour=12, minute=34, second=56),
         "path": date_folder / "#123_test_123456",
         "relative_path": Path(f"{date_folder.name}/#123_test_123456"),
     }
@@ -43,12 +38,7 @@ def test_get_latest_data_folder_two_items(tmp_path):
     expected_properties = {
         "idx": 124,
         "name": "test",
-        "year": 2021,
-        "month": 1,
-        "day": 5,
-        "hour": 12,
-        "minute": 34,
-        "second": 57,
+        "created_at": datetime(year=2021, month=1, day=5, hour=12, minute=34, second=57),
         "path": date_folder / "#124_test_123457",
         "relative_path": Path(f"{date_folder.name}/#124_test_123457"),
     }
@@ -69,12 +59,7 @@ def test_get_latest_data_folder_two_items_different_date(tmp_path):
     expected_properties = {
         "idx": 124,
         "name": "test",
-        "year": 2021,
-        "month": 1,
-        "day": 6,
-        "hour": 12,
-        "minute": 34,
-        "second": 57,
+        "created_at": datetime(year=2021, month=1, day=6, hour=12, minute=34, second=57),
         "path": date_folder / "#124_test_123457",
         "relative_path": Path(f"{date_folder.name}/#124_test_123457"),
     }
@@ -94,12 +79,7 @@ def test_get_latest_data_folder_different_date_empty_last_folder(tmp_path):
     expected_properties = {
         "idx": 123,
         "name": "test",
-        "year": 2021,
-        "month": 1,
-        "day": 5,
-        "hour": 12,
-        "minute": 34,
-        "second": 56,
+        "created_at": datetime(year=2021, month=1, day=5, hour=12, minute=34, second=56),
         "path": tmp_path / "2021-01-05/#123_test_123456",
         "relative_path": Path("2021-01-05/#123_test_123456"),
     }
@@ -118,12 +98,7 @@ def test_get_latest_data_folder_switched_idxs(tmp_path):
     expected_properties = {
         "idx": 123,
         "name": "test",
-        "year": 2021,
-        "month": 1,
-        "day": 6,
-        "hour": 12,
-        "minute": 34,
-        "second": 57,
+        "created_at": datetime(year=2021, month=1, day=6, hour=12, minute=34, second=57),
         "path": date_folder / "#123_test_123457",
         "relative_path": Path(f"{date_folder.name}/#123_test_123457"),
     }

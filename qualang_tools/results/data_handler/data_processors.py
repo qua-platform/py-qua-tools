@@ -111,7 +111,8 @@ class NumpyArraySaver(DataProcessor):
     def post_process(self, data_folder: Path):
         if self.merge_arrays:
             arrays = {str(path): arr for path, arr in self.data_arrays.items()}
-            np.savez(data_folder / self.merged_array_name, **arrays)
+            if arrays:
+                np.savez(data_folder / self.merged_array_name, **arrays)
         else:
             for path, arr in self.data_arrays.items():
                 np.save(data_folder / path.with_suffix(".npy"), arr)

@@ -15,7 +15,7 @@ def test_data_handler_basic(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data(data, "my_data", use_datetime=now)
+    data_handler.save_data(data, "my_data", created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -35,19 +35,29 @@ def test_data_handler_metadata(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data(data, "my_data", metadata=metadata, use_datetime=now)
+    data_handler.save_data(data, "my_data", metadata=metadata, created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
 
+    elems = list((tmp_path / expected_data_folder).iterdir())
+    assert set([elem.name for elem in elems]) == {"data.json", "node.json"}
+
     assert (tmp_path / expected_data_folder / "data.json").exists()
-    assert (tmp_path / expected_data_folder / "metadata.json").exists()
+    assert (tmp_path / expected_data_folder / "node.json").exists()
 
     file_data = json.loads((tmp_path / expected_data_folder / "data.json").read_text())
-    file_metadata = json.loads((tmp_path / expected_data_folder / "metadata.json").read_text())
+    file_node = json.loads((tmp_path / expected_data_folder / "node.json").read_text())
 
     assert file_data == data
-    assert file_metadata == metadata
+    expected_file_node = {
+        "created_at": now.replace(microsecond=0).astimezone().isoformat(),
+        "metadata": {**metadata, "name": "my_data", "data_path": expected_data_folder},
+        "id": 1,
+        "data": {},
+        "parents": [],
+    }
+    assert file_node == expected_file_node
 
 
 def test_data_handler_custom_processors(tmp_path):
@@ -62,7 +72,7 @@ def test_data_handler_custom_processors(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data(data, "my_data", use_datetime=now)
+    data_handler.save_data(data, "my_data", created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -85,7 +95,7 @@ def test_data_handler_matplotlib_processor(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data(data, "my_data", use_datetime=now)
+    data_handler.save_data(data, "my_data", created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -106,7 +116,7 @@ def test_data_handler_no_name_create_folder(tmp_path):
     now = datetime.now()
 
     with pytest.raises(ValueError):
-        data_handler.create_data_folder(use_datetime=now)
+        data_handler.create_data_folder(created_at=now)
 
 
 def test_data_handler_initialized_name_create_folder(tmp_path):
@@ -115,7 +125,7 @@ def test_data_handler_initialized_name_create_folder(tmp_path):
 
     now = datetime.now()
 
-    data_handler.create_data_folder(use_datetime=now)
+    data_handler.create_data_folder(created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -129,7 +139,7 @@ def test_data_handler_overwrite_initialized_name_create_folder(tmp_path):
 
     now = datetime.now()
 
-    data_handler.create_data_folder(name="my_new_data", use_datetime=now)
+    data_handler.create_data_folder(name="my_new_data", created_at=now)
     assert data_handler.name == "my_new_data"
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_new_data", idx=1)
@@ -152,7 +162,7 @@ def test_data_handler_initialized_name_save_data(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data({"a": 1, "b": 2, "c": 3}, use_datetime=now)
+    data_handler.save_data({"a": 1, "b": 2, "c": 3}, created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
@@ -166,7 +176,7 @@ def test_data_handler_overwrite_initialized_name_save_data(tmp_path):
 
     now = datetime.now()
 
-    data_handler.save_data({"a": 1, "b": 2, "c": 3}, name="my_new_data", use_datetime=now)
+    data_handler.save_data({"a": 1, "b": 2, "c": 3}, name="my_new_data", created_at=now)
     assert data_handler.name == "my_new_data"
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_new_data", idx=1)
@@ -208,14 +218,14 @@ def test_data_handler_multiple_saves(tmp_path):
     data = {"a": 1, "b": 2, "c": 3}
     now = datetime.now()
 
-    data_handler.save_data(data, "my_data", use_datetime=now)
+    data_handler.save_data(data, "my_data", created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
 
     assert data_handler.path == (tmp_path / expected_data_folder)
 
-    data_handler.save_data(data, "my_data", use_datetime=now)
+    data_handler.save_data(data, "my_data", created_at=now)
 
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=2)
     expected_data_folder = now.strftime(expected_data_folder)

@@ -1,4 +1,8 @@
-"""Tools for handling data folders."""
+"""Tools for handling data folders.
+
+This module provides functions for handling data folders, including extracting properties from data folders,
+finding the latest data folder, generating relative folder names, and creating new data folders.
+"""
 
 from pathlib import Path
 from typing import Dict, Union, Optional
@@ -57,7 +61,7 @@ def extract_data_folder_properties(
     if root_data_folder is not None:
         folder_path_str = str(data_folder.relative_to(root_data_folder))
     else:
-        folder_path_str = data_folder.name
+        folder_path_str = str(data_folder)
 
     folder_path_str = folder_path_str.replace("\\", "/")
 
@@ -66,6 +70,12 @@ def extract_data_folder_properties(
         return None
     properties = regex_match.groupdict()
     properties = {key: int(value) if value.isdigit() else value for key, value in properties.items()}
+
+    datetime_properties = {
+        key: properties.pop(key) for key in ["year", "month", "day", "hour", "minute", "second"] if key in properties
+    }
+    properties["created_at"] = datetime(**datetime_properties)
+
     properties["path"] = data_folder
     if root_data_folder is not None:
         properties["relative_path"] = data_folder.relative_to(root_data_folder)
@@ -152,12 +162,28 @@ def get_latest_data_folder(
         return None
 
 
+def generate_data_folder_relative_pathname(
+    idx: int, name: str, created_at: datetime, folder_pattern: str = DEFAULT_FOLDER_PATTERN
+) -> str:
+    """Generate the relative data folder name using a folder pattern.
+
+    :param idx: The index of the data folder.
+    :param name: The name of the data folder.
+    :param created_at: The datetime to use for the folder name.
+    :param folder_pattern: The pattern of the data folder, e.g. "%Y-%m-%d/#{idx}_{name}_%H%M%S".
+    :return: The relative folder name
+    """
+    relative_folder_name = folder_pattern.format(idx=idx, name=name)
+    relative_folder_name = created_at.strftime(relative_folder_name)
+    return relative_folder_name
+
+
 def create_data_folder(
     root_data_folder: Path,
     name: str,
     idx: Optional[int] = None,
     folder_pattern: str = DEFAULT_FOLDER_PATTERN,
-    use_datetime: Optional[datetime] = None,
+    created_at: Optional[datetime] = None,
     create: bool = True,
 ) -> Dict[str, Union[str, int, Path]]:
     """Create a new data folder in a given root data folder.
@@ -168,8 +194,15 @@ def create_data_folder(
     :param name: The name of the new data folder.
     :param idx: The index of the new data folder. If not provided, the index is determined automatically.
     :param folder_pattern: The pattern of the data folder, e.g. "%Y-%m-%d/#{idx}_{name}_%H%M%S".
-    :param use_datetime: The datetime to use for the folder name.
+    :param created_at: The datetime to use for the folder name.
     :param create: Whether to create the folder or not.
+    :return: A dictionary with the properties of the new data folder.
+    Dictionary keys:
+        - idx: The index of the data folder.
+        - name: The name of the data folder.
+        - path: The absolute path of the data folder.
+        - relative_path: The relative path of the data folder w.r.t the root_data_folder.
+        - created_at: The datetime the data folder was created.
     """
     if isinstance(root_data_folder, str):
         root_data_folder = Path(root_data_folder)
@@ -177,8 +210,8 @@ def create_data_folder(
     if not root_data_folder.exists():
         raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
 
-    if use_datetime is None:
-        use_datetime = datetime.now()
+    if created_at is None:
+        created_at = datetime.now()
 
     if idx is None:
         # Determine the latest folder index and increment by one
@@ -190,13 +223,11 @@ def create_data_folder(
         else:
             idx = latest_folder_properties["idx"] + 1
 
-    relative_folder_name = folder_pattern.format(idx=idx, name=name)
-    relative_folder_name = use_datetime.strftime(relative_folder_name)
+    relative_folder_name = generate_data_folder_relative_pathname(
+        idx=idx, name=name, created_at=created_at, folder_pattern=folder_pattern
+    )
 
     data_folder = root_data_folder / relative_folder_name
-
-    if data_folder.exists():
-        raise FileExistsError(f"Data folder {data_folder} already exists.")
 
     if not create:
         return {
@@ -204,11 +235,15 @@ def create_data_folder(
             "name": name,
             "path": data_folder,
             "relative_path": data_folder.relative_to(root_data_folder),
-            **{attr: getattr(use_datetime, attr) for attr in ["year", "month", "day", "hour", "minute", "second"]},
+            "created_at": created_at,
         }
+
+    if data_folder.exists():
+        raise FileExistsError(f"Data folder {data_folder} already exists.")
 
     data_folder.mkdir(parents=True)
 
+    # TODO Remove datetime entries from properties
     properties = extract_data_folder_properties(data_folder, folder_pattern, root_data_folder)
     if properties is None:
         raise ValueError(f"Could not extract properties from data folder {data_folder}.")
