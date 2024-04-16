@@ -13,7 +13,7 @@ def test_generate_node_contents_empty_folder(tmp_path):
 
     assert node_contents == {
         "created_at": created_at.astimezone().replace(microsecond=0).isoformat(),
-        "metadata": {"name": "msmt_name", "data_path": f"2023-02-01/#{idx}_msmt_name_123456"},
+        "metadata": {"name": "msmt_name", "data_path": f"2023-02-01/#1_msmt_name_123456"},
         "data": {},
         "id": 1,
         "parents": [],
