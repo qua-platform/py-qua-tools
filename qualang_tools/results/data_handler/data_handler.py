@@ -140,30 +140,30 @@ class DataHandler:
     def generate_node_contents(
         self,
         idx: Optional[int] = None,
-        use_datetime: Optional[datetime] = None,
+        created_at: Optional[datetime] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         # Check if an empty folder has been created, if so, use the idx and datetime from the folder
-        if self.path_properties is not None and idx is None and use_datetime is None:
+        if self.path_properties is not None and idx is None and created_at is None:
             if not (self.path / NODE_FILENAME).exists():
                 idx = self.path_properties["idx"]
-                use_datetime = self.path_properties["created_at"]
+                created_at = self.path_properties["created_at"]
 
         if idx is None:
             latest_folder_properties = get_latest_data_folder(self.root_data_folder, folder_pattern=self.folder_pattern)
             idx = latest_folder_properties["idx"] + 1 if latest_folder_properties is not None else 1
-        if use_datetime is None:
-            use_datetime = datetime.now()
+        if created_at is None:
+            created_at = datetime.now()
 
         metadata = metadata.copy() if metadata is not None else {}
         metadata["name"] = self.name
 
         metadata["data_path"] = generate_data_folder_relative_name(
-            idx=idx, name=self.name, use_datetime=use_datetime, folder_pattern=self.folder_pattern
+            idx=idx, name=self.name, created_at=created_at, folder_pattern=self.folder_pattern
         )
 
         return {
-            "created_at": use_datetime.astimezone().isoformat(timespec="seconds"),
+            "created_at": created_at.astimezone().isoformat(timespec="seconds"),
             "metadata": metadata,
             "data": self.node_data,  # TODO Add self.node_data
             "id": idx,
@@ -174,7 +174,7 @@ class DataHandler:
         self,
         name: Optional[str] = None,
         idx: Optional[int] = None,
-        use_datetime: Optional[datetime] = None,
+        created_at: Optional[datetime] = None,
         create: bool = True,
     ) -> Dict[str, Union[str, int]]:
         """Create a new data folder in the root data folder.
@@ -182,7 +182,7 @@ class DataHandler:
         This method creates a new data folder in the root data folder specified
         in the `root_data_folder` attribute. The name of the data folder can be
         specified using the `name` parameter. An index can also be provided using
-        the `idx` parameter. If a datetime object is provided using the `use_datetime`
+        the `idx` parameter. If a datetime object is provided using the `created_at`
         parameter, it will be used in the folder name. By default, the data folder
         is created.
 
@@ -190,8 +190,8 @@ class DataHandler:
         :type name: str, optional
         :param idx: The index of the data folder.
         :type idx: int, optional
-        :param use_datetime: The datetime to be used in the folder name.
-        :type use_datetime: datetime, optional
+        :param created_at: The datetime to be used in the folder name.
+        :type created_at: datetime, optional
         :param create: Whether to create the data folder or not.
         :type create: bool, optional
         :return: The properties of the created data folder.
@@ -202,7 +202,7 @@ class DataHandler:
 
         .. code-block:: python
 
-            data_handler.create_data_folder(name="T1_experiment", idx=1, use_datetime=datetime.now())
+            data_handler.create_data_folder(name="T1_experiment", idx=1, created_at=datetime.now())
         """
         if name is not None:
             self.name = name
@@ -214,7 +214,7 @@ class DataHandler:
         self.path_properties = create_data_folder(
             root_data_folder=self.root_data_folder,
             folder_pattern=self.folder_pattern,
-            use_datetime=use_datetime,
+            created_at=created_at,
             name=self.name,
             idx=idx,
             create=create,
@@ -229,7 +229,7 @@ class DataHandler:
         metadata: Optional[Dict[str, Any]] = None,
         idx: Optional[int] = None,
         node_contents: Optional[Dict[str, Any]] = None,
-        use_datetime: Optional[datetime] = None,
+        created_at: Optional[datetime] = None,
     ):
         """Save the data to the data folder.
 
@@ -237,7 +237,7 @@ class DataHandler:
         `path` attribute. The name of the data folder can be specified using the
         `name` parameter. The metadata associated with the data can be provided
         using the `metadata` parameter. An index can also be provided using the
-        `idx` parameter. If a datetime object is provided using the `use_datetime`
+        `idx` parameter. If a datetime object is provided using the `created_at`
         parameter, it will be used in the folder name.
 
         A new data folder is created if
@@ -252,8 +252,8 @@ class DataHandler:
         :type metadata: any, optional
         :param idx: The index of the data folder.
         :type idx: int, optional
-        :param use_datetime: The datetime to be used in the folder name.
-        :type use_datetime: datetime, optional
+        :param created_at: The datetime to be used in the folder name.
+        :type created_at: datetime, optional
         :raises ValueError: If the name is not specified.
         :return: The result of saving the data.
         :rtype: any
@@ -262,7 +262,7 @@ class DataHandler:
 
         .. code-block:: python
 
-            data_handler.save_data(data, name="T1_experiment", metadata=metadata, idx=1, use_datetime=datetime.now())
+            data_handler.save_data(data, name="T1_experiment", metadata=metadata, idx=1, created_at=datetime.now())
         """
         if name is not None:
             self.name = name
@@ -271,14 +271,14 @@ class DataHandler:
 
         if node_contents is None:
             # Generate for a new data folder or use existing node_contents if self.path is set and folder is empty
-            node_contents = self.generate_node_contents(idx=idx, use_datetime=use_datetime, metadata=metadata)
-        elif use_datetime is not None:
-            warnings.warn("DataHandler: use_datetime is ignored when node_contents is provided", UserWarning)
+            node_contents = self.generate_node_contents(idx=idx, created_at=created_at, metadata=metadata)
+        elif created_at is not None:
+            warnings.warn("DataHandler: created_at is ignored when node_contents is provided", UserWarning)
         elif idx is not None and idx != node_contents["id"]:
             warnings.warn("DataHandler: idx is ignored when node_contents is provided", UserWarning)
 
         idx = node_contents["id"]
-        use_datetime = datetime.fromisoformat(node_contents["created_at"])
+        created_at = datetime.fromisoformat(node_contents["created_at"])
 
         # At this point we have determined the idx and datetime to use for the data folder
         # It may be that a folder already exists with the same idx and datetime and is populated.
@@ -294,7 +294,7 @@ class DataHandler:
                 # The folder has been created but not populated, so we can use it
                 pass
         else:
-            self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
+            self.create_data_folder(name=self.name, idx=idx, created_at=created_at)
 
         data_folder = save_data(
             data_folder=self.path,

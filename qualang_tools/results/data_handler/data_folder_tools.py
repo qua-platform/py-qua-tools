@@ -158,9 +158,9 @@ def get_latest_data_folder(
         return None
 
 
-def generate_data_folder_relative_name(idx: int, name: str, use_datetime: datetime, folder_pattern: str) -> str:
+def generate_data_folder_relative_name(idx: int, name: str, created_at: datetime, folder_pattern: str) -> str:
     relative_folder_name = folder_pattern.format(idx=idx, name=name)
-    relative_folder_name = use_datetime.strftime(relative_folder_name)
+    relative_folder_name = created_at.strftime(relative_folder_name)
     return relative_folder_name
 
 
@@ -169,7 +169,7 @@ def create_data_folder(
     name: str,
     idx: Optional[int] = None,
     folder_pattern: str = DEFAULT_FOLDER_PATTERN,
-    use_datetime: Optional[datetime] = None,
+    created_at: Optional[datetime] = None,
     create: bool = True,
 ) -> Dict[str, Union[str, int, Path]]:
     """Create a new data folder in a given root data folder.
@@ -180,7 +180,7 @@ def create_data_folder(
     :param name: The name of the new data folder.
     :param idx: The index of the new data folder. If not provided, the index is determined automatically.
     :param folder_pattern: The pattern of the data folder, e.g. "%Y-%m-%d/#{idx}_{name}_%H%M%S".
-    :param use_datetime: The datetime to use for the folder name.
+    :param created_at: The datetime to use for the folder name.
     :param create: Whether to create the folder or not.
     """
     if isinstance(root_data_folder, str):
@@ -189,8 +189,8 @@ def create_data_folder(
     if not root_data_folder.exists():
         raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
 
-    if use_datetime is None:
-        use_datetime = datetime.now()
+    if created_at is None:
+        created_at = datetime.now()
 
     if idx is None:
         # Determine the latest folder index and increment by one
@@ -203,7 +203,7 @@ def create_data_folder(
             idx = latest_folder_properties["idx"] + 1
 
     relative_folder_name = generate_data_folder_relative_name(
-        idx=idx, name=name, use_datetime=use_datetime, folder_pattern=folder_pattern
+        idx=idx, name=name, created_at=created_at, folder_pattern=folder_pattern
     )
 
     data_folder = root_data_folder / relative_folder_name
@@ -214,7 +214,7 @@ def create_data_folder(
             "name": name,
             "path": data_folder,
             "relative_path": data_folder.relative_to(root_data_folder),
-            "created_at": use_datetime,
+            "created_at": created_at,
         }
 
     if data_folder.exists():
