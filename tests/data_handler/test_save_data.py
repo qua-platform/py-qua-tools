@@ -6,7 +6,7 @@ def test_save_data_basic(tmp_path):
     data = {"a": 1, "b": 2, "c": 3}
     save_data(data_folder=tmp_path, data=data, node_contents={})
 
-    assert list(f.name for f in tmp_path.iterdir()) == ["data.json", "node.json"]
+    assert set(f.name for f in tmp_path.iterdir()) == set(["data.json", "node.json"])
 
     file_data = json.loads((tmp_path / "data.json").read_text())
 
