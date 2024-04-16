@@ -44,6 +44,7 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 * [Control Panel](qualang_tools/control_panel/README.md)- This package includes tools for directly controlling the OPX.
   * [ManualOutputControl](qualang_tools/control_panel/README_manual_output_control.md) - This module allows controlling the outputs from the OPX in CW mode. Once created, it has an API for defining which channels are on. Analog channels also have an API for defining their amplitude and frequency.
   * [VNA](qualang_tools/control_panel/README_vna.md) - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and operation (readout pulse for instance) already defined in the configuration. Once created, it has an API for defining which measurements are to be run depending on the down-conversion solution used (ED: envelope detector, IR: image rejection mixer, IQ: IQ mixer).
+* [Macros](qualang_tools/macros/README.md) - This module includes convenience functions for encapsulating common QUA code.
 
 
 ## Installation

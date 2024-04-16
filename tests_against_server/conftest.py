@@ -56,6 +56,22 @@ def config():
                     }
                 },
             },
+            "qe2": {
+                "singleInput": {"port": ("con1", 2)},
+                "intermediate_frequency": 0,
+                "operations": {
+                    "playOp": "constPulse",
+                    "a_pulse": "arb_pulse1",
+                    "playOp2": "constPulse2",
+                },
+                "digitalInputs": {
+                    "digital_input1": {
+                        "port": ("con1", 1),
+                        "delay": 0,
+                        "buffer": 0,
+                    }
+                },
+            },
         },
         "pulses": {
             "constPulse": {
