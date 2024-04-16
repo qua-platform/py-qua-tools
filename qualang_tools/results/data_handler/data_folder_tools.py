@@ -1,4 +1,8 @@
-"""Tools for handling data folders."""
+"""Tools for handling data folders.
+
+This module provides functions for handling data folders, including extracting properties from data folders,
+finding the latest data folder, generating relative folder names, and creating new data folders.
+"""
 
 from pathlib import Path
 from typing import Dict, Union, Optional
@@ -158,8 +162,17 @@ def get_latest_data_folder(
         return None
 
 
-def generate_data_folder_relative_pathname(idx: int, name: str, created_at: datetime, folder_pattern: str) -> str:
-    """Generate the relative name of a data folder."""
+def generate_data_folder_relative_pathname(
+    idx: int, name: str, created_at: datetime, folder_pattern: str = DEFAULT_FOLDER_PATTERN
+) -> str:
+    """Generate the relative data folder name using a folder pattern.
+
+    :param idx: The index of the data folder.
+    :param name: The name of the data folder.
+    :param created_at: The datetime to use for the folder name.
+    :param folder_pattern: The pattern of the data folder, e.g. "%Y-%m-%d/#{idx}_{name}_%H%M%S".
+    :return: The relative folder name
+    """
     relative_folder_name = folder_pattern.format(idx=idx, name=name)
     relative_folder_name = created_at.strftime(relative_folder_name)
     return relative_folder_name
@@ -183,6 +196,13 @@ def create_data_folder(
     :param folder_pattern: The pattern of the data folder, e.g. "%Y-%m-%d/#{idx}_{name}_%H%M%S".
     :param created_at: The datetime to use for the folder name.
     :param create: Whether to create the folder or not.
+    :return: A dictionary with the properties of the new data folder.
+    Dictionary keys:
+        - idx: The index of the data folder.
+        - name: The name of the data folder.
+        - path: The absolute path of the data folder.
+        - relative_path: The relative path of the data folder w.r.t the root_data_folder.
+        - created_at: The datetime the data folder was created.
     """
     if isinstance(root_data_folder, str):
         root_data_folder = Path(root_data_folder)

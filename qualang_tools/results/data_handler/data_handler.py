@@ -143,6 +143,18 @@ class DataHandler:
         created_at: Optional[datetime] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
+        """Generate the contents of the node.json file, which contains all node-related metadata.
+
+        :param idx: The index of the data folder.
+        :type idx: int, optional
+        :param created_at: The datetime to be used in the folder name.
+        :type created_at: datetime, optional
+        :param metadata: The user-specified metadata associated with the data. "name" and "data_path" are added to
+        this metadata.
+        :type metadata: any, optional
+        :return: The contents of the node.json file.
+        :rtype: dict
+        """
         # Check if an empty folder has been created, if so, use the idx and datetime from the folder
         if self.path_properties is not None and idx is None and created_at is None:
             if not (self.path / NODE_FILENAME).exists():
