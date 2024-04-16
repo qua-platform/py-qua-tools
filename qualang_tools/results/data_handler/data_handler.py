@@ -9,8 +9,8 @@ from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
 from .data_folder_tools import (
     DEFAULT_FOLDER_PATTERN,
     create_data_folder,
+    generate_data_folder_relative_name,
     get_latest_data_folder,
-    generate_data_folder_relative_path,
 )
 
 
@@ -111,6 +111,7 @@ class DataHandler:
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
     data_filename: str = "data.json"
     additional_files: Dict[str, str] = {}
+    node_data: Dict[str, Any] = {}
 
     def __init__(
         self,
@@ -152,11 +153,18 @@ class DataHandler:
             latest_folder_properties = get_latest_data_folder(self.root_data_folder, folder_pattern=self.folder_pattern)
             idx = latest_folder_properties["idx"] + 1 if latest_folder_properties is not None else 1
         if use_datetime is None:
-            use_datetime = datetime.now().astimezone()
+            use_datetime = datetime.now()
+
+        metadata = metadata.copy() if metadata is not None else {}
+        metadata["name"] = self.name
+
+        metadata["data_path"] = generate_data_folder_relative_name(
+            idx=idx, name=self.name, use_datetime=use_datetime, folder_pattern=self.folder_pattern
+        )
 
         return {
-            "created_at": use_datetime.isoformat(timespec="seconds"),
-            "metadata": {"name": self.name, "data_path": relative_folder_name, **metadata},
+            "created_at": use_datetime.astimezone().isoformat(timespec="seconds"),
+            "metadata": metadata,
             "data": self.node_data,  # TODO Add self.node_data
             "id": idx,
             "parents": [idx - 1] if idx > 1 else [],
@@ -278,23 +286,20 @@ class DataHandler:
 
         # Verify that the data folder has not been created and populated
 
-        if isinstance(self.path, Path) and self.path.exists():
-            if (self.path / NODE_FILENAME).exists():
-                raise FileExistsError(f"Data folder {self.path} already contains data")
+        data_path = Path(self.root_data_folder / node_contents["metadata"]["data_path"])
+        if data_path.exists():
+            if (data_path / NODE_FILENAME).exists():
+                raise FileExistsError(f"DataHandler: data folder {data_path} already contains data")
             else:
                 # The folder has been created but not populated, so we can use it
                 pass
         else:
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
 
-        # Optionally we can consider to move this to `DataHandler.generate_node_contents()`
-        node_contents["metadata"]["data_path"] = self.path_properties["relative_path"]
-
         data_folder = save_data(
             data_folder=self.path,
             data=data,
             data_filename=self.data_filename,
-            node_filename=NODE_FILENAME,
             node_contents=node_contents,
             data_processors=self.data_processors,
         )

@@ -57,7 +57,7 @@ def extract_data_folder_properties(
     if root_data_folder is not None:
         folder_path_str = str(data_folder.relative_to(root_data_folder))
     else:
-        folder_path_str = data_folder.name
+        folder_path_str = str(data_folder)
 
     folder_path_str = folder_path_str.replace("\\", "/")
 
@@ -67,7 +67,9 @@ def extract_data_folder_properties(
     properties = regex_match.groupdict()
     properties = {key: int(value) if value.isdigit() else value for key, value in properties.items()}
 
-    datetime_properties = {key: properties.pop(key) for key in ["year", "month", "day", "hour", "minute", "second"]}
+    datetime_properties = {
+        key: properties.pop(key) for key in ["year", "month", "day", "hour", "minute", "second"] if key in properties
+    }
     properties["created_at"] = datetime(**datetime_properties)
 
     properties["path"] = data_folder
@@ -156,6 +158,12 @@ def get_latest_data_folder(
         return None
 
 
+def generate_data_folder_relative_name(idx: int, name: str, use_datetime: datetime, folder_pattern: str) -> str:
+    relative_folder_name = folder_pattern.format(idx=idx, name=name)
+    relative_folder_name = use_datetime.strftime(relative_folder_name)
+    return relative_folder_name
+
+
 def create_data_folder(
     root_data_folder: Path,
     name: str,
@@ -194,8 +202,9 @@ def create_data_folder(
         else:
             idx = latest_folder_properties["idx"] + 1
 
-    relative_folder_name = folder_pattern.format(idx=idx, name=name)
-    relative_folder_name = use_datetime.strftime(relative_folder_name)
+    relative_folder_name = generate_data_folder_relative_name(
+        idx=idx, name=name, use_datetime=use_datetime, folder_pattern=folder_pattern
+    )
 
     data_folder = root_data_folder / relative_folder_name
 

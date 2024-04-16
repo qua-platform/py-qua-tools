@@ -30,9 +30,9 @@ def test_save_plot_basic(tmp_path, fig):
 
     assert len(list(tmp_path.iterdir())) == 0
 
-    save_data(data_folder=tmp_path, data=data, data_processors=[MatplotlibPlotSaver()])
+    save_data(data_folder=tmp_path, data=data, node_contents={}, data_processors=[MatplotlibPlotSaver()])
 
-    assert set(f.name for f in tmp_path.iterdir()) == set(["data.json", "c.png"])
+    assert set(f.name for f in tmp_path.iterdir()) == set(["data.json", "node.json", "c.png"])
 
     file_data = json.loads((tmp_path / "data.json").read_text())
 

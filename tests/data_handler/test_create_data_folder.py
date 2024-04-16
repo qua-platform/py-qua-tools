@@ -13,7 +13,7 @@ def test_create_data_folder(tmp_path):
 
 
 def test_create_data_folder_empty(tmp_path):
-    now = datetime.now()
+    now = datetime.now().replace(microsecond=0)
 
     properties = create_data_folder(tmp_path, name="my_test", use_datetime=now)
 
@@ -23,12 +23,7 @@ def test_create_data_folder_empty(tmp_path):
     properties_expected = {
         "idx": 1,
         "name": "my_test",
-        "year": now.year,
-        "month": now.month,
-        "day": now.day,
-        "hour": now.hour,
-        "minute": now.minute,
-        "second": now.second,
+        "created_at": now,
         "path": tmp_path / path,
         "relative_path": Path(path),
     }
@@ -37,7 +32,7 @@ def test_create_data_folder_empty(tmp_path):
 
 
 def test_create_successive_data_folder(tmp_path):
-    now = datetime.now()
+    now = datetime.now().replace(microsecond=0)
 
     properties = create_data_folder(tmp_path, name="my_test", use_datetime=now)
     path = DEFAULT_FOLDER_PATTERN.format(idx=1, name="my_test")
@@ -46,12 +41,7 @@ def test_create_successive_data_folder(tmp_path):
     properties_expected = {
         "idx": 1,
         "name": "my_test",
-        "year": now.year,
-        "month": now.month,
-        "day": now.day,
-        "hour": now.hour,
-        "minute": now.minute,
-        "second": now.second,
+        "created_at": now,
         "path": tmp_path / path,
         "relative_path": Path(path),
     }
@@ -66,12 +56,7 @@ def test_create_successive_data_folder(tmp_path):
     properties_expected = {
         "idx": 2,
         "name": "my_test",
-        "year": now.year,
-        "month": now.month,
-        "day": now.day,
-        "hour": now.hour,
-        "minute": now.minute,
-        "second": now.second,
+        "created_at": now,
         "path": tmp_path / path,
         "relative_path": Path(path),
     }
@@ -94,7 +79,7 @@ def test_performance_get_idxs(tmp_path):
 
 
 def test_create_data_folder_without_creating(tmp_path):
-    now = datetime.now()
+    now = datetime.now().replace(microsecond=0)
 
     for k in range(3):
         properties = create_data_folder(tmp_path, name="my_test", use_datetime=now, create=False)
@@ -105,12 +90,7 @@ def test_create_data_folder_without_creating(tmp_path):
         properties_expected = {
             "idx": 1,
             "name": "my_test",
-            "year": now.year,
-            "month": now.month,
-            "day": now.day,
-            "hour": now.hour,
-            "minute": now.minute,
-            "second": now.second,
+            "created_at": now,
             "path": tmp_path / path,
             "relative_path": path,
         }

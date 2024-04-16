@@ -41,13 +41,20 @@ def test_data_handler_metadata(tmp_path):
     expected_data_folder = now.strftime(expected_data_folder)
 
     assert (tmp_path / expected_data_folder / "data.json").exists()
-    assert (tmp_path / expected_data_folder / "metadata.json").exists()
+    assert (tmp_path / expected_data_folder / "node.json").exists()
 
     file_data = json.loads((tmp_path / expected_data_folder / "data.json").read_text())
-    file_metadata = json.loads((tmp_path / expected_data_folder / "metadata.json").read_text())
+    file_node = json.loads((tmp_path / expected_data_folder / "node.json").read_text())
 
     assert file_data == data
-    assert file_metadata == metadata
+    expected_file_node = {
+        "created_at": now.replace(microsecond=0).astimezone().isoformat(),
+        "metadata": {**metadata, "name": "my_data", "data_path": expected_data_folder},
+        "id": 1,
+        "data": {},
+        "parents": [],
+    }
+    assert file_node == expected_file_node
 
 
 def test_data_handler_custom_processors(tmp_path):
