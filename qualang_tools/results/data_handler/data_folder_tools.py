@@ -66,6 +66,10 @@ def extract_data_folder_properties(
         return None
     properties = regex_match.groupdict()
     properties = {key: int(value) if value.isdigit() else value for key, value in properties.items()}
+
+    datetime_properties = {key: properties.pop(key) for key in ["year", "month", "day", "hour", "minute", "second"]}
+    properties["created_at"] = datetime(**datetime_properties)
+
     properties["path"] = data_folder
     if root_data_folder is not None:
         properties["relative_path"] = data_folder.relative_to(root_data_folder)
@@ -195,20 +199,21 @@ def create_data_folder(
 
     data_folder = root_data_folder / relative_folder_name
 
-    if data_folder.exists():
-        raise FileExistsError(f"Data folder {data_folder} already exists.")
-
     if not create:
         return {
             "idx": idx,
             "name": name,
             "path": data_folder,
             "relative_path": data_folder.relative_to(root_data_folder),
-            **{attr: getattr(use_datetime, attr) for attr in ["year", "month", "day", "hour", "minute", "second"]},
+            "created_at": use_datetime,
         }
+
+    if data_folder.exists():
+        raise FileExistsError(f"Data folder {data_folder} already exists.")
 
     data_folder.mkdir(parents=True)
 
+    # TODO Remove datetime entries from properties
     properties = extract_data_folder_properties(data_folder, folder_pattern, root_data_folder)
     if properties is None:
         raise ValueError(f"Could not extract properties from data folder {data_folder}.")
