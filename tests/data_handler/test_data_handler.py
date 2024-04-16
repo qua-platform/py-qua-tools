@@ -40,6 +40,9 @@ def test_data_handler_metadata(tmp_path):
     expected_data_folder = DEFAULT_FOLDER_PATTERN.format(name="my_data", idx=1)
     expected_data_folder = now.strftime(expected_data_folder)
 
+    elems = list((tmp_path / expected_data_folder).iterdir())
+    assert set([elem.name for elem in elems]) == {"data.json", "node.json"}
+
     assert (tmp_path / expected_data_folder / "data.json").exists()
     assert (tmp_path / expected_data_folder / "node.json").exists()
 
