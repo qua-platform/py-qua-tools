@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Sequence, Union
 import warnings
 
 from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
-from .data_folder_tools import DEFAULT_FOLDER_PATTERN, create_data_folder
+from .data_folder_tools import DEFAULT_FOLDER_PATTERN, create_data_folder, get_latest_data_folder
 
 
 __all__ = ["save_data", "DataHandler"]
@@ -132,6 +132,28 @@ class DataHandler:
         self.path = path
         self.path_properties = None
 
+    def generate_node_contents(
+        self,
+        idx: Optional[int] = None,
+        use_datetime: Optional[datetime] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        if idx is None:
+            latest_folder_properties = get_latest_data_folder(self.root_data_folder, folder_pattern=self.folder_pattern)
+            idx = latest_folder_properties["idx"] + 1 if latest_folder_properties is not None else 1
+        if use_datetime is None:
+            use_datetime = datetime.now().astimezone()
+
+        parents = [idx - 1] if idx > 1 else []  # TODO Maxim verify that it's an empty list if no parents
+
+        return {
+            "created_at": use_datetime.isoformat(timespec="seconds"),
+            "metadata": {"name": self.name, **metadata},
+            "data": self.node_data,  # TODO Add self.node_data
+            "id": idx,
+            "parents": parents,
+        }
+
     def create_data_folder(
         self,
         name: Optional[str] = None,
@@ -232,12 +254,14 @@ class DataHandler:
             raise ValueError("DataHandler: name must be specified")
 
         if node_contents is None:
-            node_contents = generate_node_contents(idx=idx, use_datetime=use_datetime, name=name, metadata=metadata)
-        else:
-            if use_datetime is not None:
-                warnings.warn("DataHandler: use_datetime is ignored when node_contents is provided", UserWarning)
-            if idx is not None and idx != node_contents.get("idx"):
-                warnings.warn("DataHandler: idx is ignored when node_contents is provided", UserWarning)
+            node_contents = self.generate_node_contents(idx=idx, use_datetime=use_datetime, metadata=metadata)
+        elif use_datetime is not None:
+            warnings.warn("DataHandler: use_datetime is ignored when node_contents is provided", UserWarning)
+        elif idx is not None and idx != node_contents["id"]:
+            warnings.warn("DataHandler: idx is ignored when node_contents is provided", UserWarning)
+
+        idx = node_contents["id"]
+        use_datetime = datetime.fromisoformat(node_contents["created_at"])
 
         if self.path is None:
             self.create_data_folder(name=self.name, idx=idx, use_datetime=use_datetime)
@@ -248,9 +272,9 @@ class DataHandler:
         data_folder = save_data(
             data_folder=self.path,
             data=data,
-            metadata=metadata,
             data_filename=self.data_filename,
-            node_filename=self.node_filename,
+            node_filename=NODE_FILENAME,
+            node_contents=node_contents,
             data_processors=self.data_processors,
         )
 
