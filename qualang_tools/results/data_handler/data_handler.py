@@ -9,7 +9,7 @@ from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
 from .data_folder_tools import (
     DEFAULT_FOLDER_PATTERN,
     create_data_folder,
-    generate_data_folder_relative_name,
+    generate_data_folder_relative_pathname,
     get_latest_data_folder,
 )
 
@@ -158,7 +158,7 @@ class DataHandler:
         metadata = metadata.copy() if metadata is not None else {}
         metadata["name"] = self.name
 
-        metadata["data_path"] = generate_data_folder_relative_name(
+        metadata["data_path"] = generate_data_folder_relative_pathname(
             idx=idx, name=self.name, created_at=created_at, folder_pattern=self.folder_pattern
         )
 

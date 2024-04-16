@@ -158,7 +158,8 @@ def get_latest_data_folder(
         return None
 
 
-def generate_data_folder_relative_name(idx: int, name: str, created_at: datetime, folder_pattern: str) -> str:
+def generate_data_folder_relative_pathname(idx: int, name: str, created_at: datetime, folder_pattern: str) -> str:
+    """Generate the relative name of a data folder."""
     relative_folder_name = folder_pattern.format(idx=idx, name=name)
     relative_folder_name = created_at.strftime(relative_folder_name)
     return relative_folder_name
@@ -202,7 +203,7 @@ def create_data_folder(
         else:
             idx = latest_folder_properties["idx"] + 1
 
-    relative_folder_name = generate_data_folder_relative_name(
+    relative_folder_name = generate_data_folder_relative_pathname(
         idx=idx, name=name, created_at=created_at, folder_pattern=folder_pattern
     )
 
