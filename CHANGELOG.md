@@ -27,6 +27,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Deprecated
 - simulator - ``qualang_tools.simulator_tools`` has been deprecated and was moved to ``qualang_tools.simulator``.
 
+### Fixed
+- loops - An error will be raised when the logarithmic step is too small (from_array & qua_logspace with integers).
+
 ## [0.16.0] - 2024-01-25
 ### Fixed
 - ConfigBuilder - `Element` now correctly accepts default arguments.
