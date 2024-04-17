@@ -1,7 +1,6 @@
 # Tests for the video mode functionality
 import pytest
 from qm.qua import *
-from qm import QuantumMachinesManager, QuantumMachine
 import numpy as np
 from qualang_tools.video_mode import ParameterTable
 
@@ -140,3 +139,10 @@ def test_is_parameter_table_valid(param_dict):
 
         with pytest.raises(ValueError):
             var = param_table[param_name]
+
+
+def test_printing_table(param_dict):
+    param_table = ParameterTable(param_dict)
+    param_table_str = str(param_table)
+    for param_name in param_dict:
+        assert param_name in param_table_str
