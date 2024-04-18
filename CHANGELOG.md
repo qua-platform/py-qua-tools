@@ -4,15 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.17.0] - 2024-04-18
 ### Added
 - Video_mode - New module to update some pre-defined parameters of a QUA program while fetching data from the OPX.
 - simulator - ``create_simulator_controller_connections`` can now be used to create the connections between a subset of a large cluster.
 - results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/xarray arrays) to the local file storage.
 - callable_from_qua - Framework used to call Python functions within the core of a QUA program.
-- octave_tools - Added `calibrate_several_frequencies` to calibrate several frequencies (each pair (LO, IF) will be calibrated).
-- octave_tools - Added `get_calibration_parameters_from_db` get the most up-to-date correction parameters in the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
-- octave_tools - Added `set_correction_parameters_to_opx` set the most up-to-date correction parameters from the calibration database for the specified values of the Octave LO frequency, intermediate frequency and Octave gain.
-- octave_tools - Added `get_correction_for_each_LO_and_IF` get the correction matrix elements for a set of intermediate frequencies picked equally spaced in a given list in order to update the correction matrix while performing the IF sweep in QUA.
+- octave_tools - Added library of functions for manipulating the calibration database and updating the mixer correction parameters dynamically in Python or in QUA directly.
 - digital_filters - Added library of functions allowing the derivation of the digital filter taps to correct distortions.
 - macros - Added `long_wait` convenience macro to simplify waiting for longer than the maximum wait time.
 
@@ -326,8 +325,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...HEAD
-[0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
 [0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.14.0...v0.15.0
