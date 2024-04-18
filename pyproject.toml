@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "qualang-tools"
-version = "v0.16.0"
+version = "v0.17.0"
 description = "The qualang_tools package includes various tools related to QUA programs in Python"
 license = "BSD-3-Clause"
 authors = [
