@@ -77,7 +77,7 @@ class ParameterValue:
         self.length = 0 if not isinstance(value, (List, np.ndarray)) else len(value)
 
     def __repr__(self):
-        print(self.name, f"({self.value}, {self.type}) \n")
+        return f"{self.name}: ({self.value}, {self.type}) \n"
 
 
 class ParameterTable:
@@ -219,8 +219,10 @@ class ParameterTable:
             )
 
     def __repr__(self):
+        text = ""
         for parameter in self.table.values():
-            print(parameter)
+            text += parameter.__repr__()
+        return text
 
 
 class VideoMode:
