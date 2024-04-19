@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.17.1] - 2024-04-19
 ### Fixed
 - Only load DataHandler XarrayDataProcessor if xarray can be imported
 - Fix bug with the data folder path.
@@ -328,7 +330,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...HEAD
+[0.17.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
 [0.15.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.1...v0.15.2
