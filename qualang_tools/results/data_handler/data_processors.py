@@ -187,7 +187,7 @@ class XarraySaver(DataProcessor):
 
 
 try:
-    import xarray
+    import xarray  # noqa: F401
 
     DEFAULT_DATA_PROCESSORS.append(XarraySaver)
 except ImportError:
