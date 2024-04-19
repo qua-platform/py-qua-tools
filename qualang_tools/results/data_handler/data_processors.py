@@ -186,4 +186,9 @@ class XarraySaver(DataProcessor):
                 array.to_netcdf(data_folder / path.with_suffix(self.file_suffix))
 
 
-DEFAULT_DATA_PROCESSORS.append(XarraySaver)
+try:
+    import xarray  # noqa: F401
+
+    DEFAULT_DATA_PROCESSORS.append(XarraySaver)
+except ImportError:
+    pass
