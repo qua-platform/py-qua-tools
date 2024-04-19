@@ -7,8 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.17.1] - 2024-04-19
 ### Fixed
-- Only load DataHandler XarrayDataProcessor if xarray can be imported
-- Fix bug with the data folder path.
+- results/DataHandler - Only load DataHandler XarrayDataProcessor if xarray can be imported
+- results/DataHandler - Fix bug with the data folder path.
 
 ## [0.17.0] - 2024-04-18
 ### Added
