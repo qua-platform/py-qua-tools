@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- Only load DataHandler XarrayDataProcessor if xarray can be imported
 
 ## [0.17.0] - 2024-04-18
 ### Added
