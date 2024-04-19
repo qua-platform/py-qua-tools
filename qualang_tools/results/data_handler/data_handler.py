@@ -298,7 +298,7 @@ class DataHandler:
 
         # Verify that the data folder has not been created and populated
 
-        data_path = Path(self.root_data_folder / node_contents["metadata"]["data_path"])
+        data_path = Path(self.root_data_folder) / node_contents["metadata"]["data_path"]
         if data_path.exists():
             if (data_path / NODE_FILENAME).exists():
                 raise FileExistsError(f"DataHandler: data folder {data_path} already contains data")
