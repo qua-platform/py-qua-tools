@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Only load DataHandler XarrayDataProcessor if xarray can be imported
 - Fix bug with the data folder path.
+- Fix typo in the `baking` tool config lookup (`mwInput` -> `MWInput`)
 
 ## [0.17.0] - 2024-04-18
 ### Added
