@@ -47,12 +47,6 @@ correction matrix) corresponding to a given set of intermediate frequency, Octav
 The goal to give the user the ability to easily update the correction parameters while sweeping the LO frequency
 in Python for instance.
 
-The correction parameters are returned in the format of a dictionary:
-```
-{'offsets': {'I': I_offset, 'Q': Q_offset},
- 'correction_matrix': (c00, c01, c10, c11)}
-```
-
 If no calibration parameters are found in the database, the function will either:
 * not update the parameters and return the dictionary with empty values (verbose_level 0)
 * not update the parameters, return the dictionary with empty values and print a warning in the Python console (verbose_level 1)
@@ -205,7 +199,7 @@ Each set of correction parameters will be saved in the calibration database.
 ### Usage example
 
 ```python
-from qualang_tools.octave_tools import calibrate_several_frequencies
+from qualang_tools.octave_tools import octave_calibration_tool
 
 # Open the QMM
 qmm = QuantumMachinesManager()
@@ -224,7 +218,7 @@ df_external = f_max - f_min
 lo_frequencies = np.arange(f_min_external, f_max_external + df_external / 2, df_external)
 
 # Calibrate all the desired frequencies
-calibrate_several_frequencies(
+octave_calibration_tool(
     qm,
     element="qubit",
     lo_frequencies=lo_frequencies,
