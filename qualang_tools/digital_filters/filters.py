@@ -89,16 +89,44 @@ def calc_filter_taps(
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
 
-def exponential_decay(x, a, t):
+def exponential_decay(x, a, t, s):
     """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
 
     :param x: numpy array for the time vector in ns
     :param a: float for the exponential amplitude
     :param t: float for the exponential decay time in ns
+    :param s: float for the offset of the exponential decay
     :return: numpy array for the exponential decay
     """
-    return 1 + a * np.exp(-x / t)
+    return s * (1 + a * np.exp(-x / t))
 
+def dual_exponential_decay(x, a1, t1, a2, t2, s):
+    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+
+    :param x: numpy array for the time vector in ns
+    :param a1: float for the exponential amplitude
+    :param t1: float for the exponential decay time in ns
+    :param a2: float for the exponential amplitude
+    :param t2: float for the exponential decay time in ns
+    :param s: float for the offset of the exponential decay
+    :return: numpy array for the exponential decay
+    """
+    return s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2))
+
+def triple_exponential_decay(x, a1, t1, a2, t2, a3, t3, s):
+    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+
+    :param x: numpy array for the time vector in ns
+    :param a1: float for the exponential amplitude
+    :param t1: float for the exponential decay time in ns
+    :param a2: float for the exponential amplitude
+    :param t2: float for the exponential decay time in ns
+    :param a3: float for the exponential amplitude
+    :param t3: float for the exponential decay time in ns
+    :param s: float for the offset of the exponential decay
+    :return: numpy array for the exponential decay
+    """
+    return s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2) + a3 * np.exp(-x / t3))
 
 def high_pass_exponential(x, t):
     """Function representing the exponential decay defined as np.exp(-x / t).
