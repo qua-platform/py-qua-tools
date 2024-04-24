@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.17.2] - 2024-04-24
+### Added
+
+- digital_filters - dual_exponential and triple_exponential decay have the following formulas, `s * (1 + a1*np.exp(-x/t1)+ a2*np.exp(-x/t2))` and `s * (1 + a1*np.exp(-x/t1) + a2*np.exp(-x/t2) + a3*np.exp(-x/t3))`
+### Changed
+
+- digital_filters - exponential decay has now the following formular `s * (1 + a*np.exp(-x/tau))` where `s=1` by default
+
 ## [0.17.1] - 2024-04-19
 ### Fixed
 - results/DataHandler - Only load DataHandler XarrayDataProcessor if xarray can be imported

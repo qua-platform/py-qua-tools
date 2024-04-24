@@ -89,8 +89,8 @@ def calc_filter_taps(
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
 
-def exponential_decay(x, a, t, s):
-    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+def exponential_decay(x, a, t, s=1):
+    """Function representing the exponential decay defined as s * (1 + a * np.exp(-x / t)).
 
     :param x: numpy array for the time vector in ns
     :param a: float for the exponential amplitude
@@ -100,8 +100,8 @@ def exponential_decay(x, a, t, s):
     """
     return s * (1 + a * np.exp(-x / t))
 
-def dual_exponential_decay(x, a1, t1, a2, t2, s):
-    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+def dual_exponential_decay(x, a1, t1, a2, t2, s=1):
+    """Function representing the exponential decay defined as s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2)).
 
     :param x: numpy array for the time vector in ns
     :param a1: float for the exponential amplitude
@@ -113,8 +113,8 @@ def dual_exponential_decay(x, a1, t1, a2, t2, s):
     """
     return s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2))
 
-def triple_exponential_decay(x, a1, t1, a2, t2, a3, t3, s):
-    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+def triple_exponential_decay(x, a1, t1, a2, t2, a3, t3, s=1):
+    """Function representing the exponential decay defined as s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2) + a3 * np.exp(-x / t3)).
 
     :param x: numpy array for the time vector in ns
     :param a1: float for the exponential amplitude
