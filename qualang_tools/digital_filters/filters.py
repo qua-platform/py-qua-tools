@@ -109,10 +109,22 @@ def multi_exponential_decay(x, amplitudes, decay_times, s=1):
 
     # Triple exponential decay
     multi_exponential_decay(x, [a1, a2, a3], [t1, t2, t3], s)
-
     """
     decay = s * (1 + sum(a * np.exp(-x / t) for a, t in zip(amplitudes, decay_times)))
     return decay
+
+
+def exponential_decay(x, a, t):
+    """
+    Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+
+    :param x: numpy array for the time vector in ns
+    :param a: float for the exponential amplitude
+    :param t: float for the exponential decay time in ns
+    :return: numpy array for the exponential decay
+    """
+    return multi_exponential_decay(x, [a], [t])
+
 
 def high_pass_exponential(x, t):
     """Function representing the exponential decay defined as np.exp(-x / t).
