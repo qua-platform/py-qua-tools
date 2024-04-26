@@ -24,6 +24,28 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2**-15, plo
     :type plot: bool
     :return: List of tuples representing the integration weights
     """
+    return convert_integration_weights_with_sample_time(integration_weights, sample_time_ns=4, N=N, accuracy=accuracy, plot=plot)
+
+
+def convert_integration_weights_with_sample_time(integration_weights, sample_time_ns, N=100, accuracy=2**-15, plot=False):
+    """
+    Converts a list of integration weights, in which each sample corresponds to a specified sample time, to a list
+    of tuples with the format (weight, time_to_integrate_in_ns).
+
+    :param integration_weights: A list of integration weights.
+    :param sample_time_ns: The time between each sample in nanoseconds.
+    :param N:   Maximum number of tuples to return. The algorithm will first create a list of tuples, and then if it is
+                too long, it will run :func:`compress_integration_weights` on them.
+    :param accuracy:    The accuracy at which to calculate the integration weights. Default is 2^-15, which is
+                        the accuracy at which the OPX operates for the integration weights.
+    :param plot: If true, plots the integration weights before and after the conversion.
+    :type integration_weights: list[float]
+    :type sample_time_ns: float
+    :type N: int
+    :type accuracy: float
+    :type plot: bool
+    :return: List of tuples representing the integration weights
+    """
     integration_weights = np.array(integration_weights)
     integration_weights = _round_to_fixed_point_accuracy(integration_weights, accuracy)
     changes_indices = np.where(np.abs(np.diff(integration_weights)) > 0)[0].tolist()
@@ -32,7 +54,7 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2**-15, plo
     for curr_index in changes_indices + [len(integration_weights) - 1]:
         constant_part = (
             integration_weights[curr_index].tolist(),
-            round(4 * (curr_index - prev_index)),
+            round(sample_time_ns * (curr_index - prev_index)),
         )
         new_integration_weights.append(constant_part)
         prev_index = curr_index
@@ -40,7 +62,6 @@ def convert_integration_weights(integration_weights, N=100, accuracy=2**-15, plo
     new_integration_weights = compress_integration_weights(new_integration_weights, N=N, plot=plot)
 
     return new_integration_weights
-
 
 def compress_integration_weights(integration_weights, N=100, plot=False):
     """
