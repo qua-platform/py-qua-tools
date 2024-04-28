@@ -8,8 +8,11 @@ from qualang_tools.units import unit
 MAX_WAIT = 2**31 - 1  # units of clock cycles (4ns)
 
 
-def long_wait(wait_time: Union[int, np.integer], *elements: str,
-              threshold_for_looping: int = unit(coerce_to_integer=True).to_clock_cycles(1_000_000)):
+def long_wait(
+    wait_time: Union[int, np.integer],
+    *elements: str,
+    threshold_for_looping: int = unit(coerce_to_integer=True).to_clock_cycles(1_000_000),
+):
     """Perform a QUA wait command for longer than the current maximum wait time, 2^31-1.
 
     This macro unrolls into QUA for-loop of smaller waits if the maximum wait time is exceeded in `wait_time`.
