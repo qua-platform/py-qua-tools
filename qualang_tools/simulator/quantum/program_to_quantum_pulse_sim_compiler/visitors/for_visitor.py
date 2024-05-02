@@ -1,6 +1,6 @@
 from qualang_tools.simulator.quantum.program_ast.program_for import For
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.context import Context
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.visitors.expressions.expression_visitor import \
+from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.visitors.expression_visitors.expression_visitor import \
     ExpressionVisitor
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.visitors.visitor import Visitor
 

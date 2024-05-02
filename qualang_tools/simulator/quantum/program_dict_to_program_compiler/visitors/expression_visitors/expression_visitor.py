@@ -14,7 +14,6 @@ class ExpressionVisitor:
         elif expression_type == 'binaryOperation':
             # local import to avoid circular import
             from .operation_visitor import OperationVisitor
-
             return OperationVisitor().visit(expression['binaryOperation'])
 
         elif expression_type == 'variable':
@@ -26,7 +25,6 @@ class ExpressionVisitor:
         elif expression_type == 'libFunction':
             # local import to avoid circular import
             from .function_visitor import FunctionVisitor
-
             return FunctionVisitor().visit(expression['libFunction'])
 
         else:

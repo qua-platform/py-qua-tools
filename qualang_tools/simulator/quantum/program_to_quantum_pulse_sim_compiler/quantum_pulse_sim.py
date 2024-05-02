@@ -8,7 +8,7 @@ class QuantumPulseSimulator:
         self.backend = backend
         self.schedules = schedules
 
-    def run(self, num_shots: int):
+    def run(self, num_shots: int) -> List[List[float]]:
         job = self.backend.run(self.schedules, shots=num_shots)
         result = job.result()
 

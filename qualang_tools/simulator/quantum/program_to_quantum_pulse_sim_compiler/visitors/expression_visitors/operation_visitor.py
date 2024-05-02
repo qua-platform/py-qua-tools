@@ -27,11 +27,19 @@ class OperationVisitor:
 
         if op == 'ADD':
             return left + right
+        elif op == 'DIV':
+            return left / right
         elif op == 'MULT':
             return left * right
         elif op == 'SHR':
             return left >> right
+        elif op == 'GT':
+            return left > right
+        elif op == 'GET':
+            return left >= right
         elif op == 'LT':
             return left < right
+        elif op == 'LET':
+            return left <= right
         else:
             raise NotImplementedError(f'Unrecognised operation {op}')

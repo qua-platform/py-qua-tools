@@ -20,6 +20,6 @@ def restart_qubit_timelines(element: str, timelines: Timelines):
         if timeline[-1].qubit_index == qubit_index:
             timeline.append(Timeline(
                 qubit_index=qubit_index,
-                drive_channel=timeline[-1].drive_channel
+                pulse_channel=timeline[-1].pulse_channel
             ))
 

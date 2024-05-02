@@ -28,12 +28,12 @@ def transmon_pair() -> TransmonPair:
         TransmonSettings(
             resonant_frequency=4860000000.0,
             anharmonicity=-320000000.0,
-            rabi_frequency=3e7
+            rabi_frequency=4e7
         ),
         TransmonSettings(
             resonant_frequency=4970000000.0,
             anharmonicity=-320000000.0,
-            rabi_frequency=1.3e7
+            rabi_frequency=4.3e7
         ),
         coupling_strength=2000000.0
     )
@@ -45,7 +45,7 @@ def transmon_pair() -> TransmonPair:
 def transmon_pair_qua_config(transmon_pair) -> dict:
     u = unit(coerce_to_integer=True)
 
-    x90_amp = 0.2
+    x90_amp = 0.1283408
     x90_len = 220
 
     qubit_1_IF = 50 * u.MHz
@@ -92,6 +92,7 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
                 "intermediate_frequency": qubit_1_IF,
                 "operations": {
                     "x90": "x90_pulse",
+                    "y90": "y90_pulse",
                 },
             },
             "qubit_1t2": {
@@ -175,6 +176,14 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
                     "Q": "x90_Q_wf",
                 },
             },
+            "y90_pulse": {
+                "operation": "control",
+                "length": x90_len,
+                "waveforms": {
+                    "I": "y90_I_wf",
+                    "Q": "y90_Q_wf",
+                },
+            },
             "readout_pulse": {
                 "operation": "measurement",
                 "length": readout_len,
@@ -194,6 +203,8 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
             "zero_wf": {"type": "constant", "sample": 0.0},
             "x90_I_wf": {"type": "constant", "sample": x90_amp},
             "x90_Q_wf": {"type": "constant", "sample": 0.},
+            "y90_I_wf": {"type": "constant", "sample": 0.},
+            "y90_Q_wf": {"type": "constant", "sample": x90_amp},
             "readout_wf": {"type": "constant", "sample": readout_amp},
         },
         "digital_waveforms": {

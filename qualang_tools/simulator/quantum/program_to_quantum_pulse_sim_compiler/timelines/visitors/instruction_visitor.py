@@ -1,3 +1,5 @@
+from qiskit.pulse.channels import PulseChannel
+
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.delay import Delay
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.instruction import Instruction
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.measure import Measure
@@ -8,7 +10,7 @@ from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timel
 
 
 class InstructionVisitor(Visitor):
-    def visit(self, instruction: Instruction, drive_channel: int):
+    def visit(self, instruction: Instruction, pulse_channel: PulseChannel):
         # local imports to avoid circular dependency
         from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.visitors.delay_visitor import \
             DelayVisitor
@@ -30,6 +32,6 @@ class InstructionVisitor(Visitor):
         }
 
         if type(instruction) in visitors:
-            instruction.accept(visitors[type(instruction)], drive_channel)
+            instruction.accept(visitors[type(instruction)], pulse_channel)
         else:
             raise NotImplementedError(f"Unrecognized instruction type {instruction}")

@@ -7,7 +7,6 @@ class ExpressionVisitor:
         if isinstance(expression, Operation):
             # local import to avoid circular import
             from .operation_visitor import OperationVisitor
-
             return OperationVisitor().visit(expression, context)
 
         elif isinstance(expression, Reference):
@@ -17,7 +16,8 @@ class ExpressionVisitor:
             return eval(expression.value)
 
         elif isinstance(expression, Function):
-            raise NotImplementedError()
+            from .function_visitor import FunctionVisitor
+            return FunctionVisitor().visit(expression, context)
 
         else:
             raise NotImplementedError(f"Uncrecognised expression type {type(expression)}")

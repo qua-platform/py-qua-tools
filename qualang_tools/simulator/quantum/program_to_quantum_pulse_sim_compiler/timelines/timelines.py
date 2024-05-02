@@ -1,5 +1,6 @@
 from typing import List, Dict, Union
 
+from qiskit.pulse.channels import PulseChannel
 from qiskit.pulse.library import Pulse
 
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.delay import Delay
@@ -16,6 +17,7 @@ TimelineInstruction = Union[Instruction, InstructionContext]
 class TimelineInstructionBuilder:
     def __init__(self):
         self.current_time: float = 0
+        self.current_phase: float = 0.
         self.instructions: List[TimelineInstruction] = []
 
     def add_instruction(self, instruction: TimelineInstruction):
@@ -30,18 +32,19 @@ class TimelineInstructionBuilder:
     def delay(self, duration: int):
         self.add_instruction(Delay(duration))
 
-    def phase_offset(self, phase: float):
-        self.add_instruction(PhaseOffset(phase))
-
 
 class Timeline(TimelineInstructionBuilder):
-    def __init__(self, qubit_index: int, drive_channel: int):
+    def __init__(self, qubit_index: int, pulse_channel: PulseChannel):
         super().__init__()
         self.qubit_index: int = qubit_index
-        self.drive_channel: int = drive_channel
+        self.pulse_channel: PulseChannel = pulse_channel
 
     def measure(self):
         self.add_instruction(Measure(self.qubit_index))
+
+    def phase_offset(self, phase: float):
+        self.current_phase += phase
+        self.add_instruction(PhaseOffset(phase))
 
     def simultaneous(self) -> 'Simultaneous':
         from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.simultaneous import \
@@ -51,6 +54,8 @@ class Timeline(TimelineInstructionBuilder):
 
         return simultaneous
 
+    def is_empty(self):
+        return len(self.instructions) == 0
 
 Timelines = Dict[Element, List[Timeline]]
 
