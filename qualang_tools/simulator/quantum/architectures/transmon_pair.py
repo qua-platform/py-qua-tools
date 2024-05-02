@@ -20,3 +20,10 @@ class TransmonPair:
 
     def _interaction_hamiltonian(self) -> np.ndarray:
         return 2 * np.pi * self.coupling_strength * ((a0 + a0dag) @ (a1 + a1dag))
+
+    def transmon_1_drive_operator(self, quadrature="I"):
+        return np.kron(ident, self.transmon_1.drive_operator(quadrature))
+
+    def transmon_2_drive_operator(self, quadrature="I"):
+        return np.kron(self.transmon_2.drive_operator(quadrature), ident)
+
