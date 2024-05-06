@@ -89,15 +89,42 @@ def calc_filter_taps(
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
 
+def multi_exponential_decay(x, amplitudes, decay_times, s=1):
+    """
+    Function representing the multi-exponential decay defined as
+    s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2) + ... + an * np.exp(-x / tn)).
+
+    :param x: numpy array for the time vector in ns
+    :param amplitudes: list of floats for the exponential amplitudes [a1, a2, ..., an]
+    :param decay_times: list of floats for the exponential decay times in ns [t1, t2, ..., tn]
+    :param s: float for the offset of the exponential decay (default: 1)
+    :return: numpy array for the multi-exponential decay
+
+    examples:
+
+    # Single exponential decay
+    multi_exponential_decay(x, [a], [t], s)
+
+    # Dual exponential decay
+    multi_exponential_decay(x, [a1, a2], [t1, t2], s)
+
+    # Triple exponential decay
+    multi_exponential_decay(x, [a1, a2, a3], [t1, t2, t3], s)
+    """
+    decay = s * (1 + sum(a * np.exp(-x / t) for a, t in zip(amplitudes, decay_times)))
+    return decay
+
+
 def exponential_decay(x, a, t):
-    """Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
+    """
+    Function representing the exponential decay defined as 1 + a * np.exp(-x / t).
 
     :param x: numpy array for the time vector in ns
     :param a: float for the exponential amplitude
     :param t: float for the exponential decay time in ns
     :return: numpy array for the exponential decay
     """
-    return 1 + a * np.exp(-x / t)
+    return multi_exponential_decay(x, [a], [t])
 
 
 def high_pass_exponential(x, t):
