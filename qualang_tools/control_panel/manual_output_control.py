@@ -42,7 +42,6 @@ class ManualOutputControl:
         :param array-like elements_to_control: A list of elements to be controlled.
                                     If empty, all elements in the config are included.
         """
-        logger.setLevel("WARNING")
         self.qmm = QuantumMachinesManager(host=host, port=port)
         if close_previous:
             self.qmm.close_all_quantum_machines()
