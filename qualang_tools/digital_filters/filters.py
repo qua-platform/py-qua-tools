@@ -88,6 +88,7 @@ def calc_filter_taps(
 
     return _check_hardware_limitation(qop_version, feedforward_taps, list(feedback_taps))
 
+
 def multi_exponential_decay(x, amplitudes, decay_times, s=1):
     """
     Function representing the multi-exponential decay defined as
