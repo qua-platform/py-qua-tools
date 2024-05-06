@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-
+- Fix init of ManualOutputControl (remove old logger call).
 ## [0.17.3] - 2024-05-06
 ### Fixed
 - digital_filters - added `multi_exponential_decay` to `__init__` file.
