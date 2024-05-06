@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-## [0.17.2] - 2024-04-24
+## [0.17.2] - 2024-05-06
 ### Added
 
 - digital_filters - added `multi_exponential_decay` function which can be used to fit and extract the exponential decay coefficients when there are multiple time constants. It supports any number of exponential decays.
