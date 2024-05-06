@@ -6,3 +6,6 @@ class Operation(Expression):
         self.left = left
         self.right = right
         self.operation = operation
+
+    def __str__(self):
+        return f"{self.left} {self.operation} {self.right}"

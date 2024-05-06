@@ -121,7 +121,7 @@ def test_long_wait_time_simulation_multi_element(qmm, config, wait_time):
 
 def execute_program(qmm, config, prog, simulate=True, simulation_duration=10_000):
     if simulate:
-        job = qmm.simulate(
+        job = qmm.simulate_program(
             config,
             prog,
             SimulationConfig(

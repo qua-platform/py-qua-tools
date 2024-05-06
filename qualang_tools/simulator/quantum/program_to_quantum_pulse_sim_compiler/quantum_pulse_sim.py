@@ -8,6 +8,9 @@ class QuantumPulseSimulator:
         self.backend = backend
         self.schedules = schedules
 
+    def plot_schedule(self, index: int):
+        self.schedules[index].draw()
+
     def run(self, num_shots: int) -> List[List[float]]:
         job = self.backend.run(self.schedules, shots=num_shots)
         result = job.result()
@@ -18,12 +21,14 @@ class QuantumPulseSimulator:
             num_measured_qubits = len(list(counts.keys())[0])
             if num_measured_qubits == 1:
                 results.append((
-                    counts.get('1', 0) / num_shots,
+                    counts.get('0', 0) / num_shots,
                 ))
             elif num_measured_qubits == 2:
                 results.append((
-                    counts.get('01', 0) / num_shots + counts.get('11', 0) / num_shots,
-                    counts.get('10', 0) / num_shots + counts.get('11', 0) / num_shots,
+                    # 1 - zero population is better for reproducing leakage induced
+                    # readout errors assuming '2' is a valid state
+                    1 - (counts.get('10', 0) / num_shots + counts.get('00', 0) / num_shots),
+                    1 - (counts.get('01', 0) / num_shots + counts.get('00', 0) / num_shots),
                 ))
             else:
                 raise NotImplementedError(f"{num_measured_qubits} not supported yet.")

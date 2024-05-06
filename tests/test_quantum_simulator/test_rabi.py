@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from qm.qua import *
 
-from qualang_tools.simulator.quantum.simulate import simulate
+from qualang_tools.simulator.quantum.simulate import simulate_program
 
 
 def test_simultaneous_rabi(transmon_pair_backend, transmon_pair_qua_config, config_to_transmon_pair_backend_map):
@@ -18,13 +18,15 @@ def test_simultaneous_rabi(transmon_pair_backend, transmon_pair_qua_config, conf
             measure("readout", "resonator_1", None)
             measure("readout", "resonator_2", None)
 
-    results = simulate(
+    results = simulate_program(
         qua_program=prog,
         qua_config=transmon_pair_qua_config,
         qua_config_to_backend_map=config_to_transmon_pair_backend_map,
         backend=transmon_pair_backend,
-        num_shots=10_000
+        num_shots=10_000,
+        plot_second_schedule=True
     )
+    plt.show()
 
     for i, result in enumerate(results):
         plt.plot(np.arange(start, stop, step), results[i], '.-', label=f"Q{i}")

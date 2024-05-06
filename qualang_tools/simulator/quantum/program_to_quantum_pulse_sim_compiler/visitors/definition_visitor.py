@@ -15,5 +15,9 @@ class DefinitionVisitor:
             if definition.type not in default_values:
                 raise KeyError(f"Unrecognised variable type in definition {definition.type}")
             value = default_values[definition.type]
+        elif len(value) == 1:
+            value = value[0].value
+        else:
+            raise NotImplementedError("Unable to handle declarations with given value field.")
 
         return {definition.name: value}

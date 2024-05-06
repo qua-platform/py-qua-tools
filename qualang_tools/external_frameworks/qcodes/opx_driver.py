@@ -638,7 +638,7 @@ class OPX(Instrument):
         Simulate a given QUA program and store the simulated waveform into the simulated_wf attribute.
         """
         prog = self.get_prog()
-        self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
+        self.job = self.qmm.simulate_program(self.config, prog, SimulationConfig(self.sim_time() // 4))
         simulated_samples = self.job.get_simulated_samples()
         for con in [f"con{i}" for i in range(1, 10)]:
             if hasattr(simulated_samples, con):

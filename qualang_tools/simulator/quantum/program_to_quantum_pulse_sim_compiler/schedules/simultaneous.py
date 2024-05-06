@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.instruction import \
+from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.instruction import \
     InstructionContext, Instruction, TimedInstruction
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.timelines import \
-    TimelineInstructionBuilder, Timeline
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.visitors.visitor import Visitor
+from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.timelines import \
+    TimelineSingleBase
+from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.timeline_single import \
+    TimelineSingle
+from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.visitors.visitor import Visitor
 
 
-class Simultaneous(TimelineInstructionBuilder):
-    def __init__(self, parent_timeline: Timeline):
+class Simultaneous(TimelineSingle):
+    def __init__(self, parent_timeline: TimelineSingleBase):
         super().__init__()
-        self.parent_timeline: Timeline = parent_timeline
+        self.parent_timeline: TimelineSingleBase = parent_timeline
 
     def accept(self, visitor: Visitor, drive_channel: int):
         visitor.visit(self, drive_channel)

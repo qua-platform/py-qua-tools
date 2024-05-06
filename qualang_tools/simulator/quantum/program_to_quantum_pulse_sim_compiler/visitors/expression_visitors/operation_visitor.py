@@ -41,5 +41,7 @@ class OperationVisitor:
             return left < right
         elif op == 'LET':
             return left <= right
+        elif op == 'EQ':
+            return left == right
         else:
             raise NotImplementedError(f'Unrecognised operation {op}')

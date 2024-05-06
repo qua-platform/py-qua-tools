@@ -4,6 +4,7 @@ from .align_visitor import AlignVisitor
 from .assign_visitor import AssignVisitor
 from .for_visitor import ForVisitor
 from .frame_rotation_visitor import FrameRotationVisitor
+from .if_visitor import IfVisitor
 from .measure_visitor import MeasureVisitor
 from .play_visitor import PlayVisitor
 from .reset_frame_visitor import ResetFrameVisitor
@@ -19,12 +20,13 @@ node_types_and_visitors = {
     'align': AlignVisitor(),
     'assign': AssignVisitor(),
     'for': ForVisitor(),
-    'strictTiming': StrictTimingVisitor(),
+    'if': IfVisitor(),
     'measure': MeasureVisitor(),
     'play': PlayVisitor(),
     'resetFrame': ResetFrameVisitor(),
     'resetPhase': ResetPhaseVisitor(),
     'save': SaveVisitor(),
+    'strictTiming': StrictTimingVisitor(),
     'wait': WaitVisitor(),
     'zRotation': FrameRotationVisitor(),
 }

@@ -3,7 +3,7 @@ from typing import List
 from .expression_visitors.expression_visitor import ExpressionVisitor
 from .visitor import Visitor
 from ...program_ast.node import Node
-from ...program_ast.program_for import For
+from ...program_ast._for import For
 
 
 class StrictTimingVisitor(Visitor):

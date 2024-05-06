@@ -1,5 +1,4 @@
 from qualang_tools.simulator.quantum.program_ast.wait import Wait
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.timelines import get_timeline
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.visitors.expression_visitors.expression_visitor import \
     ExpressionVisitor
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.context import Context
@@ -12,13 +11,16 @@ class WaitVisitor(Visitor):
         if isinstance(time, float):
             time = cast_within_tolerance(time)
 
+        # convert into clock cycles from ns
+        time *= 4
+
         if node.elements == []:
-            for element in context.timelines:
-                timeline = get_timeline(element, context.timelines)
+            for element in context.schedules.get_elements():
+                timeline = context.schedules.get_timeline(element)
                 timeline.delay(time)
         else:
-            for e in node.elements:
-                timeline = get_timeline(e, context.timelines)
+            for element in node.elements:
+                timeline = context.schedules.get_timeline(element)
                 timeline.delay(time)
 
 

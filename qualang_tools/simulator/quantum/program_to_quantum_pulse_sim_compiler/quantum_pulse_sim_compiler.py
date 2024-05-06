@@ -1,7 +1,7 @@
 import qm
 from qiskit_dynamics import DynamicsBackend
 
-from .program_to_timeline_compiler import ProgramToTimelineCompiler
+from .program_to_timelines_compiler import ProgramToTimelinesCompiler
 from .quantum_pulse_sim import QuantumPulseSimulator
 from .timeline_to_schedule_compiler import TimelineToPulseScheduleCompiler
 from ..architectures.transmon_pair_backend_from_qua import ConfigToTransmonPairBackendMap
@@ -21,7 +21,7 @@ class Compiler:
         program_tree = ProgramTreeBuilder().build(program)
 
         # Compile the abstract syntax tree into an intermediate, pulse timeline representation
-        timelines = ProgramToTimelineCompiler().compile(self.config, program_tree, channel_map)
+        timelines = ProgramToTimelinesCompiler().compile(self.config, program_tree, channel_map)
 
         # Compile the pulse timelines into qiskit.pulse schedules
         schedules = TimelineToPulseScheduleCompiler().compile(timelines, backend)

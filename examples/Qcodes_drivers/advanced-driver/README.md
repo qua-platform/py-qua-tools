@@ -164,12 +164,13 @@ Setting the simulation ``parameter`` to True will remove the ``pause()`` command
 
 After defining how long (in nanoseconds) will the program be simulated using the ``sim_time()`` parameter, 
 you can start the simulation with the ``simulate()`` function. At the end, the simulated waveforms will be stored in the 
-``simulated_wf`` attribute of the OPX instrument. The simulated waveforms can also be plotted using the ``plot_simulated_wf()`` function as in: 
+``simulated_wf`` attribute of the OPX instrument. The simulated waveforms can also be plotted using the ``plot_simulated_wf()`` function as in:
+
 ```python
 # OPX simulation mode
 opx_instrument.simulation(True)
 opx_instrument.sim_time(11_000)  # Simulation duration in ns
-opx_instrument.simulate()
+opx_instrument.simulate_program()
 opx_instrument.plot_simulated_wf()
 ```
 ### Program execution

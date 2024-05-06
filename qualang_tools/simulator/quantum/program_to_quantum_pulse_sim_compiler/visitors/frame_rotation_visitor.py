@@ -1,7 +1,6 @@
 import numpy as np
 
 from qualang_tools.simulator.quantum.program_ast.frame_rotation_2pi import FrameRotation2Pi
-from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.timelines.timelines import get_timeline
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.visitors.expression_visitors.expression_visitor import \
     ExpressionVisitor
 from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.context import Context
@@ -14,5 +13,5 @@ class FrameRotationVisitor(Visitor):
         phase *= 2*np.pi
 
         for element in node.elements:
-            timeline = get_timeline(element, context.timelines)
+            timeline = context.schedules.get_timeline(element)
             timeline.phase_offset(phase)

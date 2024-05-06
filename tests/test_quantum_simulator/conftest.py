@@ -23,30 +23,81 @@ def transmon() -> Transmon:
 
 
 @pytest.fixture
-def transmon_pair() -> TransmonPair:
-    settings = TransmonPairSettings(
+def transmon_pair_settings() -> TransmonPairSettings:
+    return TransmonPairSettings(
         TransmonSettings(
             resonant_frequency=4860000000.0,
             anharmonicity=-320000000.0,
-            rabi_frequency=4e7
+            rabi_frequency=0.22e9
         ),
         TransmonSettings(
             resonant_frequency=4970000000.0,
             anharmonicity=-320000000.0,
-            rabi_frequency=4.3e7
+            rabi_frequency=0.26e9
         ),
-        coupling_strength=2000000.0
+        coupling_strength=0.002e9
     )
 
-    return TransmonPair(settings)
+
+def _freq_from_qua_config(element: str, config: dict) -> int:
+    element_config = config['elements'][element]
+    IF = element_config['intermediate_frequency']
+    channel_port = element_config['RF_inputs']['port']
+    LO = config['octaves'][channel_port[0]]['RF_outputs'][channel_port[1]]['LO_frequency']
+
+    return LO + IF
+
+
+@pytest.fixture
+def config_to_transmon_pair_backend_map(transmon_pair_qua_config, transmon_pair) -> ConfigToTransmonPairBackendMap:
+    qubit_1_freq = _freq_from_qua_config("qubit_1", transmon_pair_qua_config)
+    qubit_2_freq = _freq_from_qua_config("qubit_2", transmon_pair_qua_config)
+    return {
+        "qubit_1": TransmonPairBackendChannelIQ(
+            qubit_index=0,
+            carrier_frequency=qubit_1_freq,
+            operator_i=transmon_pair.transmon_1_drive_operator(quadrature='I'),
+            operator_q=transmon_pair.transmon_1_drive_operator(quadrature='Q'),
+            type=ChannelType.DRIVE
+        ),
+        "qubit_1t2": TransmonPairBackendChannelIQ(
+            qubit_index=0,
+            carrier_frequency=qubit_2_freq,
+            operator_i=transmon_pair.transmon_1_drive_operator(quadrature='I'),
+            operator_q=transmon_pair.transmon_1_drive_operator(quadrature='Q'),
+            type=ChannelType.CONTROL
+        ),
+        "qubit_2": TransmonPairBackendChannelIQ(
+            qubit_index=1,
+            carrier_frequency=qubit_2_freq,
+            operator_i=transmon_pair.transmon_2_drive_operator(quadrature='I'),
+            operator_q=transmon_pair.transmon_2_drive_operator(quadrature='Q'),
+            type=ChannelType.DRIVE
+        ),
+        "resonator_1": TransmonPairBackendChannelReadout(0),
+        "resonator_2": TransmonPairBackendChannelReadout(1),
+    }
+
+
+@pytest.fixture
+def transmon_pair(transmon_pair_settings):
+    transmon_pair = TransmonPair(transmon_pair_settings)
+    return transmon_pair
+
+
+@pytest.fixture
+def transmon_pair_backend(transmon_pair, config_to_transmon_pair_backend_map):
+    return TransmonPairBackendFromQUA(transmon_pair, config_to_transmon_pair_backend_map)
 
 
 @pytest.fixture
 def transmon_pair_qua_config(transmon_pair) -> dict:
     u = unit(coerce_to_integer=True)
 
-    x90_amp = 0.1283408
-    x90_len = 220
+    x90_q1_amp = 0.02
+    x90_q2_amp = 0.017
+
+    x90_len = 260 // 4
 
     qubit_1_IF = 50 * u.MHz
     qubit_1_LO = int(transmon_pair.transmon_1.resonant_frequency) - qubit_1_IF
@@ -91,13 +142,13 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
                 "RF_inputs": {"port": ("octave1", 3)},
                 "intermediate_frequency": qubit_1_IF,
                 "operations": {
-                    "x90": "x90_pulse",
-                    "y90": "y90_pulse",
+                    "x90": "x90_q1_pulse",
+                    "y90": "y90_q1_pulse",
                 },
             },
             "qubit_1t2": {
                 "RF_inputs": {"port": ("octave1", 3)},
-                "intermediate_frequency": qubit_1_IF,
+                "intermediate_frequency": qubit_2_IF,
                 "operations": {
                     "x90": "x90_pulse",
                 },
@@ -106,7 +157,7 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
                 "RF_inputs": {"port": ("octave1", 4)},
                 "intermediate_frequency": qubit_2_IF,
                 "operations": {
-                    "x90": "x90_pulse",
+                    "x90": "x90_q2_pulse",
                 },
             },
             "resonator_1": {
@@ -168,20 +219,36 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
             }
         },
         "pulses": {
-            "x90_pulse": {
+            "x90_q1_pulse": {
                 "operation": "control",
                 "length": x90_len,
                 "waveforms": {
-                    "I": "x90_I_wf",
-                    "Q": "x90_Q_wf",
+                    "I": "x90_q1_I_wf",
+                    "Q": "x90_q1_Q_wf",
                 },
             },
-            "y90_pulse": {
+            "y90_q1_pulse": {
                 "operation": "control",
                 "length": x90_len,
                 "waveforms": {
-                    "I": "y90_I_wf",
-                    "Q": "y90_Q_wf",
+                    "I": "y90_q1_I_wf",
+                    "Q": "y90_q1_Q_wf",
+                },
+            },
+            "x90_q2_pulse": {
+                "operation": "control",
+                "length": x90_len,
+                "waveforms": {
+                    "I": "x90_q2_I_wf",
+                    "Q": "x90_q2_Q_wf",
+                },
+            },
+            "y90_q2_pulse": {
+                "operation": "control",
+                "length": x90_len,
+                "waveforms": {
+                    "I": "y90_q2_I_wf",
+                    "Q": "y90_q2_Q_wf",
                 },
             },
             "readout_pulse": {
@@ -201,10 +268,16 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
         },
         "waveforms": {
             "zero_wf": {"type": "constant", "sample": 0.0},
-            "x90_I_wf": {"type": "constant", "sample": x90_amp},
-            "x90_Q_wf": {"type": "constant", "sample": 0.},
-            "y90_I_wf": {"type": "constant", "sample": 0.},
-            "y90_Q_wf": {"type": "constant", "sample": x90_amp},
+            # q1
+            "x90_q1_I_wf": {"type": "constant", "sample": x90_q1_amp},
+            "x90_q1_Q_wf": {"type": "constant", "sample": 0.},
+            "y90_q1_I_wf": {"type": "constant", "sample": 0.},
+            "y90_q1_Q_wf": {"type": "constant", "sample": x90_q1_amp},
+            # q2
+            "x90_q2_I_wf": {"type": "constant", "sample": x90_q2_amp},
+            "x90_q2_Q_wf": {"type": "constant", "sample": 0.},
+            "y90_q2_I_wf": {"type": "constant", "sample": 0.},
+            "y90_q2_Q_wf": {"type": "constant", "sample": x90_q2_amp},
             "readout_wf": {"type": "constant", "sample": readout_amp},
         },
         "digital_waveforms": {
@@ -212,44 +285,3 @@ def transmon_pair_qua_config(transmon_pair) -> dict:
         },
     }
 
-
-def _freq_from_qua_config(element: str, config: dict) -> int:
-    element_config = config['elements'][element]
-    IF = element_config['intermediate_frequency']
-    channel_port = element_config['RF_inputs']['port']
-    LO = config['octaves'][channel_port[0]]['RF_outputs'][channel_port[1]]['LO_frequency']
-
-    return LO + IF
-
-
-@pytest.fixture
-def config_to_transmon_pair_backend_map(transmon_pair_qua_config, transmon_pair) -> ConfigToTransmonPairBackendMap:
-    qubit_1_freq = _freq_from_qua_config("qubit_1", transmon_pair_qua_config)
-    qubit_2_freq = _freq_from_qua_config("qubit_2", transmon_pair_qua_config)
-    return {
-        "qubit_1": TransmonPairBackendChannelIQ(
-            qubit_index=0,
-            carrier_frequency=qubit_1_freq,
-            operator=transmon_pair.transmon_1_drive_operator(),
-            type=ChannelType.DRIVE
-        ),
-        "qubit_1t2": TransmonPairBackendChannelIQ(
-            qubit_index=0,
-            carrier_frequency=qubit_2_freq,
-            operator=transmon_pair.transmon_1_drive_operator(),
-            type=ChannelType.CONTROL
-        ),
-        "qubit_2": TransmonPairBackendChannelIQ(
-            qubit_index=1,
-            carrier_frequency=qubit_2_freq,
-            operator=transmon_pair.transmon_2_drive_operator(),
-            type=ChannelType.DRIVE
-        ),
-        "resonator_1": TransmonPairBackendChannelReadout(0),
-        "resonator_2": TransmonPairBackendChannelReadout(1),
-    }
-
-
-@pytest.fixture
-def transmon_pair_backend(transmon_pair, config_to_transmon_pair_backend_map):
-    return TransmonPairBackendFromQUA(transmon_pair, config_to_transmon_pair_backend_map)

@@ -170,13 +170,14 @@ In order to simulate the QUA program, the ``pause()`` command must be removed ot
 
 After defining how long (in nanoseconds) will the program be simulated using the ``sim_time()`` parameter, 
 you can start the simulation with the ``simulate()`` function. At the end, the simulated waveforms will be stored in the 
-``simulated_wf`` attribute of the OPX instrument. The simulated waveforms can also be plotted using the ``plot_simulated_wf()`` function as in: 
+``simulated_wf`` attribute of the OPX instrument. The simulated waveforms can also be plotted using the ``plot_simulated_wf()`` function as in:
+
 ```python
 # Add the custom sequence to the OPX
 opx_instrument.qua_program = OPX_0d_scan(simulate=True)
 # Simulate program
 opx_instrument.sim_time(10_000)
-opx_instrument.simulate()
+opx_instrument.simulate_program()
 opx_instrument.plot_simulated_wf()
 ```
 ### Program execution

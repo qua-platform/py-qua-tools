@@ -34,22 +34,25 @@ class TransmonPairBackendFromQUA(DynamicsBackend):
         control_index = -1
         for element, channel in self.config_to_backend_map.items():
             if isinstance(channel, TransmonPairBackendChannelIQ):
-                hamiltonian_operators.append(channel.operator)
-                if channel.type == ChannelType.DRIVE:
-                    drive_index += 1
-                    index = drive_index
-                elif channel.type == ChannelType.CONTROL:
-                    control_index += 1
-                    index = control_index
-                else:
-                    raise NotImplementedError(f"Unrecognized channel type {channel.type}")
-                channel_name = channel.type.value + str(index)
-                hamiltonian_channels.append(channel_name)
-                channel_carrier_freqs[channel_name] = channel.carrier_frequency
-                qubit_to_drive_channel_map[channel.qubit_index] = index
-                channel.assign_channel_index(index)
+                for quadrature, operator in zip("IQ", [channel.operator_i, channel.operator_q]):
+                    if channel.type == ChannelType.DRIVE:
+                        drive_index += 1
+                        index = drive_index
+                    elif channel.type == ChannelType.CONTROL:
+                        control_index += 1
+                        index = control_index
+                    else:
+                        raise NotImplementedError(f"Unrecognized channel type {channel.type}")
+                    hamiltonian_operators.append(operator)
+                    channel_name = channel.type.value + str(index)
+                    hamiltonian_channels.append(channel_name)
+                    channel_carrier_freqs[channel_name] = channel.carrier_frequency
+                    qubit_to_drive_channel_map[channel.qubit_index] = index
+                    channel.assign_channel_index(index, quadrature=quadrature)
+
             elif isinstance(channel, TransmonPairBackendChannelReadout):
                 channel.assign_channel_index(qubit_to_drive_channel_map[channel.qubit_index])
+
             else:
                 raise NotImplementedError()
 
