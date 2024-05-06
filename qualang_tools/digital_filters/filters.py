@@ -7,10 +7,12 @@ from enum import Enum
 
 
 class QOPVersion(Enum):
+    """A dictionary with the filter limitations for the QOP versions"""
+
     NONE = {
         "feedforward_max": np.inf,
         "feedback_max": np.inf,
-        "feedforward_length": lambda feedback_len: np.inf - 0 * feedback_len,
+        "feedforward_length": lambda feedback_len: np.inf,
     }
     QOP222 = {
         "feedforward_max": 2 - 2**-16,
@@ -31,7 +33,7 @@ class QOPVersion(Enum):
     @classmethod
     def get_options(cls):
         """Return the list of implemented QOP versions"""
-        return [cls.NONE.name, cls.QOP220.name, cls.QOP222.name]
+        return [x.name for x in cls]
 
 
 def calc_filter_taps(

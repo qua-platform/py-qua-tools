@@ -5,13 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [0.17.3] - 2024-05-06
+### Fixed
+- digital_filters - added `multi_exponential_decay` to `__init__` file.
+
 ## [0.17.2] - 2024-05-06
 ### Added
-
 - digital_filters - added `multi_exponential_decay` function which can be used to fit and extract the exponential decay coefficients when there are multiple time constants. It supports any number of exponential decays.
 
 ### Changed
-
 - digital_filters - `exponential_decay` function now internally uses the `multi_exponential_decay` function for calculation. The user-facing interface of `exponential_decay` remains unchanged, ensuring backward compatibility.
 - digital_filters - `multi_exponential_decay` function has the following formula: `s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2) + ... + an * np.exp(-x / tn))`, where `s=1` by default.
 
