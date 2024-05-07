@@ -1,15 +1,16 @@
 from typing import List
 
+from qiskit.pulse import Schedule
 from qiskit_dynamics import DynamicsBackend
 
 
 class QuantumPulseSimulator:
     def __init__(self, backend: DynamicsBackend, schedules: List):
         self.backend = backend
-        self.schedules = schedules
+        self.schedules: List[Schedule] = schedules
 
     def plot_schedule(self, index: int):
-        self.schedules[index].draw()
+        self.schedules[index].draw(show_waveform_info=True, time_unit='ns')
 
     def run(self, num_shots: int) -> List[List[float]]:
         job = self.backend.run(self.schedules, shots=num_shots)

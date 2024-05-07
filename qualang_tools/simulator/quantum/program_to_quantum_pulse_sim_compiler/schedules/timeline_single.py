@@ -62,9 +62,9 @@ class TimelineSingle(TimelineSingleBase, TimelineBuilder):
             self.current_time += instruction.duration
         self.instructions.append(instruction)
 
-    def play(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False):
+    def play(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False, name: str = None):
         from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.play import Play
-        self.add_instruction(Play(duration, shape, phase, limit_amplitude))
+        self.add_instruction(Play(duration, shape, phase, limit_amplitude, name))
 
     def reset_phase(self):
         from qualang_tools.simulator.quantum.program_to_quantum_pulse_sim_compiler.schedules.reset_phase import \

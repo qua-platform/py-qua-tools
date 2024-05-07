@@ -10,3 +10,4 @@ class Play(TimedInstruction):
     shape: Pulse
     phase: float = 0.
     limit_amp: bool = False
+    name: str = None

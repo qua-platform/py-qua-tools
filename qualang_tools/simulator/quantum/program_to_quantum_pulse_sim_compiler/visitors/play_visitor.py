@@ -15,7 +15,8 @@ class PlayVisitor(Visitor):
 
         length = None
         if node.duration is not None:
-            length = ExpressionVisitor().visit(node.duration, context)
+            # the argument to the play command is in clock cycles for some reason
+            length = 4 * ExpressionVisitor().visit(node.duration, context)
 
         amp_scaling_factor = None
         if node.amp is not None:
@@ -26,7 +27,7 @@ class PlayVisitor(Visitor):
         timeline = context.schedules.get_timeline(e)
 
         if isinstance(timeline, TimelineIQ):
-            timeline.play_i(length, I_shape)
-            timeline.play_q(length, Q_shape)
+            timeline.play_i(length, I_shape, name=node.operation)
+            timeline.play_q(length, Q_shape, name=node.operation)
         else:
             raise NotImplementedError()

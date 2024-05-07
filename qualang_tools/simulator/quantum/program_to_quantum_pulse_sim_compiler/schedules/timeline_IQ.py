@@ -24,11 +24,11 @@ class TimelineIQBase(TimelineBase):
 
 
 class TimelineIQ(TimelineIQBase, TimelineBuilder):
-    def play_i(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False):
-        self.I.play(duration, shape, phase, limit_amplitude)
+    def play_i(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False, name: str = None):
+        self.I.play(duration, shape, phase, limit_amplitude, name)
 
-    def play_q(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False):
-        self.Q.play(duration, shape, phase, limit_amplitude)
+    def play_q(self, duration: int, shape: Pulse, phase: float = 0., limit_amplitude: bool = False, name: str = None):
+        self.Q.play(duration, shape, phase, limit_amplitude, name)
 
     def reset_phase(self):
         self.I.reset_phase()
