@@ -10,7 +10,22 @@ class QuantumPulseSimulator:
         self.schedules: List[Schedule] = schedules
 
     def plot_schedule(self, index: int):
-        self.schedules[index].draw(show_waveform_info=True, time_unit='ns')
+        from qiskit.visualization import pulse_drawer_v2
+
+        pulse_drawer_v2(
+            program=self.schedules[index],
+            style=None,
+            backend=None,
+            time_range=None,
+            time_unit="ns",
+            disable_channels=None,
+            show_snapshot=True,
+            show_framechange=True,
+            show_waveform_info=True,
+            show_barrier=True,
+            plotter="mpl2d",
+            axis=None,
+        )
 
     def run(self, num_shots: int) -> List[List[float]]:
         job = self.backend.run(self.schedules, shots=num_shots)
