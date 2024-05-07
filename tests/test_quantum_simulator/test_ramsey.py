@@ -77,7 +77,6 @@ def test_ramsey_virtual_detuning(transmon_pair_backend, transmon_pair_qua_config
         qua_config_to_backend_map=config_to_transmon_pair_backend_map,
         backend=transmon_pair_backend,
         num_shots=10_000,
-        plot_second_schedule=True
     )
     plt.show()
 
@@ -89,13 +88,13 @@ def test_ramsey_virtual_detuning(transmon_pair_backend, transmon_pair_qua_config
     # make sure no single point is different to expected within 0.1 tolerance
     assert np.allclose(state_probabilities, expected_state_probabilities, atol=0.1)
 
-    for i, result in enumerate(results):
-        plt.plot(4*taus, results[i], label=f"Simulated Q{i}")
-        plt.plot(4*taus, expected_state_probabilities, label=f"Expected Q{i}")
-        plt.ylim(-0.05, 1.05)
-    plt.xlabel("Time [ns]")
-    plt.legend()
-    plt.show()
+    # for i, result in enumerate(results):
+    #     plt.plot(4*taus, results[i], label=f"Simulated Q{i}")
+    #     plt.plot(4*taus, expected_state_probabilities, label=f"Expected Q{i}")
+    #     plt.ylim(-0.05, 1.05)
+    # plt.xlabel("Time [ns]")
+    # plt.legend()
+    # plt.show()
 
 
 # def test_ramsey_real_detuning(transmon_pair_backend, transmon_pair_qua_config, config_to_transmon_pair_backend_map):

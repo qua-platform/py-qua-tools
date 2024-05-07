@@ -94,8 +94,8 @@ def transmon_pair_backend(transmon_pair, config_to_transmon_pair_backend_map):
 def transmon_pair_qua_config(transmon_pair) -> dict:
     u = unit(coerce_to_integer=True)
 
-    x90_q1_amp = 0.02
-    x90_q2_amp = 0.017
+    x90_q1_amp = 0.08
+    x90_q2_amp = 0.068
 
     x90_len = 260 // 4
 

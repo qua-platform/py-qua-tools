@@ -24,12 +24,20 @@ def test_simultaneous_rabi(transmon_pair_backend, transmon_pair_qua_config, conf
         qua_config_to_backend_map=config_to_transmon_pair_backend_map,
         backend=transmon_pair_backend,
         num_shots=10_000,
-        plot_second_schedule=True
     )
-    plt.show()
+    # plt.show()
 
-    for i, result in enumerate(results):
-        plt.plot(np.arange(start, stop, step), results[i], '.-', label=f"Q{i}")
-        plt.ylim(-0.05, 1.05)
-    plt.legend()
-    plt.show()
+    # make sure no single point is different to expected within 0.1 tolerance
+    q1_state_probabilities = np.array(results[0])
+    q2_state_probabilities = np.array(results[0])
+    amps = np.arange(start, stop, step)
+    expected_state_probabilities = np.sin(np.pi*amps/4) ** 2
+    assert np.allclose(q1_state_probabilities, expected_state_probabilities, atol=0.1)
+    assert np.allclose(q2_state_probabilities, expected_state_probabilities, atol=0.1)
+
+    # for i, result in enumerate(results):
+    #     plt.plot(np.arange(start, stop, step), results[i], '.-', label=f"Simulated Q{i}")
+    #     plt.ylim(-0.05, 1.05)
+    # plt.plot(np.arange(start, stop, step), expected_state_probabilities, '.-', label=f"Expected")
+    # plt.legend()
+    # plt.show()

@@ -21,7 +21,6 @@ def waveform_shape(node: Union[Play, Measure],
     if length is None:
         length = pulse['length']
 
-    length *= 4  # from clock-cycles to ns
     waveforms = pulse['waveforms']
 
     if set(waveforms.keys()) != {'I', 'Q'}:
