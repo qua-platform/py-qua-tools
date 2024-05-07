@@ -1,6 +1,7 @@
 from typing import List
 
 from qiskit.pulse import Schedule
+from qiskit.visualization.pulse_v2 import IQXDebugging
 from qiskit_dynamics import DynamicsBackend
 
 
@@ -10,11 +11,12 @@ class QuantumPulseSimulator:
         self.schedules: List[Schedule] = schedules
 
     def plot_schedule(self, index: int):
-        from qiskit.visualization import pulse_drawer_v2
+        from qiskit.visualization.pulse_v2 import draw
 
-        pulse_drawer_v2(
+        draw(
             program=self.schedules[index],
-            style=None,
+            style=IQXDebugging(),
+            # backend=self.backend,
             backend=None,
             time_range=None,
             time_unit="ns",

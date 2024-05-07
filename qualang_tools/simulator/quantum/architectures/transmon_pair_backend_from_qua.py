@@ -1,8 +1,7 @@
-from typing import Dict
+import jax
+from typing import Dict, Literal
 
 from qiskit_dynamics import Solver, DynamicsBackend
-
-from .backend_options import dt, solver_options
 from .from_qua_channels import TransmonPairBackendChannel, TransmonPairBackendChannelReadout, \
     TransmonPairBackendChannelIQ, ChannelType
 from .operators import dim
@@ -16,11 +15,23 @@ class TransmonPairBackendFromQUA(DynamicsBackend):
     def __init__(self,
                  transmon_pair: TransmonPair,
                  config_to_backend_map: ConfigToTransmonPairBackendMap,
+                 platform: Literal['cpu', 'gpu'] = 'cpu',
+                 _dt: float = 1 / 4.5e9,
                  **options):
+        jax.config.update("jax_enable_x64", True)
+        jax.config.update("jax_platform_name", platform)
+
+        self._dt = _dt
+
         self.transmon_pair = transmon_pair
         self.config_to_backend_map = config_to_backend_map
         solver = self._solver_from_map()
-        options = {**solver_options, **options}
+
+        options = {"method": "jax_odeint",
+                   "atol": 1e-6,
+                   "rtol": 1e-8,
+                   "hmax": self._dt,
+                   **options}
 
         super().__init__(solver=solver, subsystem_dims=[dim, dim], solver_options=options)
 
@@ -62,7 +73,7 @@ class TransmonPairBackendFromQUA(DynamicsBackend):
             rotating_frame=self.transmon_pair.system_hamiltonian(),
             hamiltonian_channels=hamiltonian_channels,
             channel_carrier_freqs=channel_carrier_freqs,
-            dt=dt,
+            dt=self._dt,
             array_library="jax",
         )
 

@@ -1,1 +1,1 @@
-from .transmon_backend import TransmonBackend, TransmonSettings
+from .transmon_settings import TransmonSettings
