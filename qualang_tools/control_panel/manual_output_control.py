@@ -11,7 +11,7 @@ from qm.qua import *
 
 
 def _round_to_fixed_point_accuracy(x, accuracy=2**-16):
-    return np.round(x / accuracy) * accuracy
+    return math(x / accuracy + 1) * accuracy
 
 
 class ManualOutputControl:
