@@ -47,6 +47,9 @@ class JobStub:
         self.result_handles = ResultHandlesStub()
         self.processing = True
 
+    def halt(self):
+        pass
+
     def fetch_all(self):
         return 1, 1, 1
 
