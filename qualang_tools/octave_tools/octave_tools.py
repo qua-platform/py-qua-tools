@@ -174,7 +174,7 @@ def get_correction_for_each_LO_and_IF(
     for lo in LO_list:
         if calibrate and qm is not None:
             qm.calibrate_element(element, {lo: tuple(IFs)})
-        elif qm is None:
+        elif calibrate and qm is None:
             raise Exception(
                 "The opened Quantum Machine object must be provided if the flag ```calibrate``` is set to True."
             )
