@@ -166,8 +166,8 @@ with program() as LO_sweep_prog:
     ...
     with for_(i, 0, i < len(lo_frequencies) + 1, i + 1):
         pause()  # This waits until it is resumed from python
-        set_dc_offset("qubit", "I", offset_I_qua)
-        set_dc_offset("qubit", "Q", offset_Q_qua)
+        set_dc_offset("qubit", "I", offset_I_qua[i])
+        set_dc_offset("qubit", "Q", offset_Q_qua[i])
         with for_(n, 0, n < n_avg, n + 1):
             with for_(*from_array(f, intermediate_frequencies)):
                 # Update the frequency of the digital oscillator linked to the qubit element
