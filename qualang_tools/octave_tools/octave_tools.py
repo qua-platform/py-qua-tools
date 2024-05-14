@@ -133,7 +133,7 @@ def get_correction_for_each_LO_and_IF(
     nb_of_updates: int,
     calibrate: bool = False,
     qm: QuantumMachine = None,
-    calibration_params: AutoCalibrationParams = None
+    calibration_params: AutoCalibrationParams = None,
 ):
     """Look in the calibration database for the calibration parameters corresponding to the provided set of LO
     frequencies, intermediate frequencies and gain.
