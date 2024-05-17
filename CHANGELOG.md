@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - unit - ``to_clock_cycles()`` now always returns an integer.
 ### Added
 - octave_tools - Added the possibility to pass the AutoCalibrationParams to ``get_correction_for_each_LO_and_IF()`` to customize the calibration parameters (IF_amplitude for instance).
+- data_handler - Added support for nested figures and arrays
 
 ## [0.17.4] - 2024-05-07
 ### Fixed

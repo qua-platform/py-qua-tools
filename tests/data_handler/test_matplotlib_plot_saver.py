@@ -37,3 +37,14 @@ def test_save_plot_basic(tmp_path, fig):
     file_data = json.loads((tmp_path / "data.json").read_text())
 
     assert file_data == {"a": 1, "b": 2, "c": "./c.png"}
+
+
+def test_matplotlib_nested_save(tmp_path, fig):
+    data = {"q0": {"fig": fig, "value": 42}}
+
+    save_data(data_folder=tmp_path, data=data, node_contents={}, data_processors=[MatplotlibPlotSaver()])
+
+    assert set(f.name for f in tmp_path.iterdir()) == set(["data.json", "node.json", "q0.fig.png"])
+
+    file_data = json.loads((tmp_path / "data.json").read_text())
+    assert file_data == {"q0": {"fig": "./q0.fig.png", "value": 42}}
