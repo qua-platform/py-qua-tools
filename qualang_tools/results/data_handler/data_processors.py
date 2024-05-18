@@ -4,10 +4,7 @@ from typing import Dict, Any, Generator, List, Tuple, Optional
 from matplotlib import pyplot as plt
 import numpy as np
 
-__all__ = ["DEFAULT_DATA_PROCESSORS", "DataProcessor", "MatplotlibPlotSaver", "NumpyArraySaver", "XarraySaver"]
-
-
-DEFAULT_DATA_PROCESSORS = []
+__all__ = ["DataProcessor", "MatplotlibPlotSaver", "NumpyArraySaver", "XarraySaver"]
 
 
 def iterate_nested_dict(
@@ -78,9 +75,6 @@ class MatplotlibPlotSaver(DataProcessor):
             fig.savefig(data_folder / path)
 
 
-DEFAULT_DATA_PROCESSORS.append(MatplotlibPlotSaver)
-
-
 class NumpyArraySaver(DataProcessor):
     merge_arrays: bool = True
     merged_array_name: str = "arrays.npz"
@@ -116,9 +110,6 @@ class NumpyArraySaver(DataProcessor):
         else:
             for path, arr in self.data_arrays.items():
                 np.save(data_folder / path.with_suffix(".npy"), arr)
-
-
-DEFAULT_DATA_PROCESSORS.append(NumpyArraySaver)
 
 
 class XarraySaver(DataProcessor):
@@ -184,11 +175,3 @@ class XarraySaver(DataProcessor):
         else:
             for path, array in self.data_arrays.items():
                 array.to_netcdf(data_folder / path.with_suffix(self.file_suffix))
-
-
-try:
-    import xarray  # noqa: F401
-
-    DEFAULT_DATA_PROCESSORS.append(XarraySaver)
-except ImportError:
-    pass
