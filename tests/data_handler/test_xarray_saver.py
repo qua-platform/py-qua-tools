@@ -138,7 +138,7 @@ def test_xarray_saver_no_merge_hdf5_nested(tmp_path):
     xr.load_dataset(tmp_path / "d.d1.nc")
 
 
-@pytest.mark.skipif(not module_installed("xarray"), reason="xarray not installed")
+@pytest.mark.skipif(not (module_installed("xarray") and module_installed("netCDF4")), reason="xarray not installed")
 def test_xarray_saver_merge_hdf5_nested(tmp_path):
     import xarray as xr
 
