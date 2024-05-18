@@ -48,3 +48,12 @@ def test_matplotlib_nested_save(tmp_path, fig):
 
     file_data = json.loads((tmp_path / "data.json").read_text())
     assert file_data == {"q0": {"fig": "./q0.fig.png", "value": 42}}
+
+
+def test_matplotlib_save_does_not_affect_data(fig):
+    matplotlib_plot_saver = MatplotlibPlotSaver()
+    data = {"a": 1, "b": 2, "c": fig}
+    processed_data = matplotlib_plot_saver.process(data)
+
+    assert data == {"a": 1, "b": 2, "c": fig}
+    assert processed_data == {"a": 1, "b": 2, "c": "./c.png"}

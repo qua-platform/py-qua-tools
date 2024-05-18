@@ -30,12 +30,37 @@ def iterate_nested_dict(
             yield from iterate_nested_dict(v, parent_keys=keys)
 
 
-def update_nested_dict(d, keys, value):
+def update_nested_dict(d: dict, keys: List[Any], value: Any) -> None:
+    """Update a nested dictionary with a new value
+
+    :param d: The dictionary to update
+    :param keys: The keys to the value to update
+    :param value: The new value to set
+    """
     subdict = d
     for key in keys[:-1]:
         subdict = subdict[key]
 
     subdict[keys[-1]] = value
+
+
+def copy_nested_dict(d: dict) -> dict:
+    """Copy a nested dictionary, but don't make copies of the values
+
+    This function will copy a nested dictionary, but will not make copies of the values. This is useful if copying the
+    values may be an expensive operation (e.g. large arrays).
+    If you also want to make copies of the values, use `copy.deepcopy`
+
+    :param d: The dictionary to copy
+    :return: A new dictionary with the same structure as `d`, but with the same values
+    """
+    new_dict = {}
+    for key, val in d.items():
+        if isinstance(val, dict):
+            new_dict[key] = copy_nested_dict(val)
+        else:
+            new_dict[key] = val
+    return new_dict
 
 
 class DataProcessor(ABC):
@@ -65,6 +90,8 @@ class MatplotlibPlotSaver(DataProcessor):
     def process(self, data):
         self.data_figures = {}
 
+        processed_data = copy_nested_dict(data)
+
         for keys, val in iterate_nested_dict(data):
             if not isinstance(val, plt.Figure):
                 continue
@@ -73,9 +100,9 @@ class MatplotlibPlotSaver(DataProcessor):
             path = Path(self.nested_separator.join(keys[:-1] + [str(file_end)]))
 
             self.data_figures[path] = val
-            update_nested_dict(data, keys, f"./{path}")
+            update_nested_dict(processed_data, keys, f"./{path}")
 
-        return data
+        return processed_data
 
     def post_process(self, data_folder: Path):
         for path, fig in self.data_figures.items():
@@ -100,6 +127,7 @@ class NumpyArraySaver(DataProcessor):
 
     def process(self, data):
         self.data_arrays = {}
+        processed_data = copy_nested_dict(data)
 
         for keys, val in iterate_nested_dict(data):
             if not isinstance(val, np.ndarray):
@@ -108,10 +136,10 @@ class NumpyArraySaver(DataProcessor):
             path = Path(self.nested_separator.join(keys))
             self.data_arrays[path] = val
             if self.merge_arrays:
-                update_nested_dict(data, keys, f"./{self.merged_array_name}#{path}")
+                update_nested_dict(processed_data, keys, f"./{self.merged_array_name}#{path}")
             else:
-                update_nested_dict(data, keys, f"./{path}.npy")
-        return data
+                update_nested_dict(processed_data, keys, f"./{path}.npy")
+        return processed_data
 
     def post_process(self, data_folder: Path):
         if self.merge_arrays:
@@ -151,6 +179,7 @@ class XarraySaver(DataProcessor):
         import xarray as xr
 
         self.data_arrays = {}
+        processed_data = copy_nested_dict(data)
 
         for keys, val in iterate_nested_dict(data):
             if not isinstance(val, xr.Dataset):
@@ -160,10 +189,10 @@ class XarraySaver(DataProcessor):
             self.data_arrays[path] = val
             if self.merge_arrays:
                 merged_array_name = Path(self.merged_array_name).with_suffix(self.file_suffix)
-                update_nested_dict(data, keys, f"./{merged_array_name}#{path}")
+                update_nested_dict(processed_data, keys, f"./{merged_array_name}#{path}")
             else:
-                update_nested_dict(data, keys, f"./{path}{self.file_suffix}")
-        return data
+                update_nested_dict(processed_data, keys, f"./{path}{self.file_suffix}")
+        return processed_data
 
     def save_merged_netcdf_arrays(self, path: Path, arrays: dict):
         for array_path, array in self.data_arrays.items():
