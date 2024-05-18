@@ -2133,4 +2133,4 @@ interplot = ["dill", "ipython", "pypiwin32"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "4c7d8c4f2bbeb0196656feb8d8adb1a21214a4d71c41a106c90fce525d898271"
+content-hash = "cd48bf5cc47a6d71ff33c23de52c03cabfa5ebbf5e39ddbeec6a3c69fc492a70"
