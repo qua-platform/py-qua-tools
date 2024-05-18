@@ -5,7 +5,7 @@ import shutil
 from typing import Any, Dict, Optional, Sequence, Union
 import warnings
 
-from .data_processors import DEFAULT_DATA_PROCESSORS, DataProcessor
+from .data_processors import DataProcessor
 from .data_folder_tools import (
     DEFAULT_FOLDER_PATTERN,
     create_data_folder,
@@ -106,7 +106,9 @@ class DataHandler:
         data_handler.save_data(data)
     """
 
-    default_data_processors = DEFAULT_DATA_PROCESSORS
+    from . import DEFAULT_DATA_PROCESSORS as _DEFAULT_DATA_PROCESSORS
+
+    default_data_processors = _DEFAULT_DATA_PROCESSORS
     root_data_folder: Path = None
     folder_pattern: str = DEFAULT_FOLDER_PATTERN
     data_filename: str = "data.json"
