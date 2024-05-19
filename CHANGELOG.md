@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-- control_panel - Fix rounding error that caused voltage drifts.
+### Fixed
+- control_panel - Fix rounding error in `ManualOutputControl` that caused voltage drifts.
+- octave_tools - Fix bug when setting calibrate to False in ``get_correction_for_each_LO_and_IF()``.
+- unit - ``to_clock_cycles()`` now always returns an integer.
+
+### Added
+- octave_tools - Added the possibility to pass the AutoCalibrationParams to ``get_correction_for_each_LO_and_IF()`` to customize the calibration parameters (IF_amplitude for instance).
 
 ## [0.17.4] - 2024-05-07
 ### Fixed

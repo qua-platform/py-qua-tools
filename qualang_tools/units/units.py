@@ -182,7 +182,7 @@ class unit:
                 f"Warning: the specified duration ({t}) to be converted to clock cycles in not an integer. It has been converted to int ({int(t)}) to avoid subsequent errors."
             )
             t = int(t * self.ns)
-        return t // 4
+        return int(t // 4)
 
     def demod2volts(
         self,

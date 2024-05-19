@@ -4,6 +4,7 @@ from typing import Union
 from qm.QmJob import QmJob
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.QuantumMachine import QuantumMachine
+from qm.octave.octave_mixer_calibration import AutoCalibrationParams
 
 
 def get_calibration_parameters_from_db(
@@ -132,6 +133,7 @@ def get_correction_for_each_LO_and_IF(
     nb_of_updates: int,
     calibrate: bool = False,
     qm: QuantumMachine = None,
+    calibration_params: AutoCalibrationParams = None,
 ):
     """Look in the calibration database for the calibration parameters corresponding to the provided set of LO
     frequencies, intermediate frequencies and gain.
@@ -145,6 +147,8 @@ def get_correction_for_each_LO_and_IF(
 
     If the flag ```calibrate``` is set to True (the opened Quantum Machine needs to be provided), then the specified element will be calibrated at the given frequencies
     (all LO frequencies and only the ``nb_of_updates``` intermediate frequencies).
+    Custom calibration parameters can be passed using the `calibration_params` dataclass. For instance:
+    ```calibration_params = AutoCalibrationParams(); calibration_params.if_amplitude = 0.25```
 
     The function will return the list on intermediate frequencies at which the correction matrix will be updated in the
     program, the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair (LO, IF).
@@ -158,6 +162,7 @@ def get_correction_for_each_LO_and_IF(
     :param nb_of_updates: number of intermediate frequencies to calibrate and for which the program will update the correction pmatrix.
     :param calibrate: calibrate all the frequencies involved to the scan (LO and IF for the specified gain). Default is False.
     :param qm: the quantum machine object. Default is None.
+    :param calibration_params: class containing the calibration parameters (if_amplitude, offset_frequency...). Default is None.
     :return: the list on intermediate frequencies at which the correction matrix will be updated in the
     program (size nb_of_updates), the 'I' and 'Q' offsets and the four coefficients of the correction matrix with one element for each pair
     (LO, IF) (size nb_of_updates*len(LO_list)): IFs, c00, c01, c10, c11, offset_I, offset_Q.
@@ -173,8 +178,8 @@ def get_correction_for_each_LO_and_IF(
 
     for lo in LO_list:
         if calibrate and qm is not None:
-            qm.calibrate_element(element, {lo: tuple(IFs)})
-        elif qm is None:
+            qm.calibrate_element(element, {lo: tuple(IFs)}, params=calibration_params)
+        elif calibrate and qm is None:
             raise Exception(
                 "The opened Quantum Machine object must be provided if the flag ```calibrate``` is set to True."
             )
