@@ -13,7 +13,8 @@ from qm.qua import *
 
 def _round_to_fixed_point_accuracy(x, accuracy=2**-16):
     return round(x / accuracy) * accuracy
-    
+
+
 def _floor_to_fixed_point_accuracy(x, accuracy=2**-16):
     return math.floor(x / accuracy) * accuracy
 
@@ -253,7 +254,9 @@ class ManualOutputControl:
                 return
         else:
             delta_value = value
-        self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(prev_value + delta_value * self.ANALOG_WAVEFORM_AMPLITUDE)
+        self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(
+            prev_value + delta_value * self.ANALOG_WAVEFORM_AMPLITUDE
+        )
 
         while not self.analog_job.is_paused():
             sleep(0.01)
