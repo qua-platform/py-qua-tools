@@ -10,7 +10,7 @@ Content:
 import numpy as np
 import warnings
 from qm.qua import Cast
-from qm.qua._dsl import _Variable
+from qm.qua import Variable
 
 
 def from_array(var, array):
@@ -27,7 +27,7 @@ def from_array(var, array):
     elif len(array) == 1:
         return var, array[0], var <= array[0], var + 1
     # Check QUA vs python variables
-    if not isinstance(var, _Variable):
+    if not isinstance(var, Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (not isinstance(array[0], (np.generic, int, float))) or (isinstance(array[0], bool)):
         raise Exception("The array must be an array of python variables.")
@@ -145,7 +145,7 @@ def qua_arange(var, start, stop, step):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Variable):
+    if not isinstance(var, Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))
@@ -186,7 +186,7 @@ def qua_linspace(var, start, stop, num):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Variable):
+    if not isinstance(var, Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))
@@ -227,7 +227,7 @@ def qua_logspace(var, start, stop, num):
     :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
     """
     # Check QUA vs python variables
-    if not isinstance(var, _Variable):
+    if not isinstance(var, Variable):
         raise Exception("The first argument must be a QUA variable.")
     if (
         (not isinstance(start, (np.generic, int, float)))

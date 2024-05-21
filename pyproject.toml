@@ -21,7 +21,7 @@ homepage = "https://github.com/qua-platform/py-qua-tools"
 python = ">=3.8,<3.12"
 matplotlib = "^3.4.2"
 numpy = "^1.17.0"
-qm-qua = "1.1.7"
+qm-qua = "^1.1.7"
 scipy = "^1.7.1"
 pandas = { version = ">=1.2.4", optional = true }
 dash = { version = "^2.0.0", optional = true }
