@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - octave_tools - Added the possibility to pass the AutoCalibrationParams to ``get_correction_for_each_LO_and_IF()`` to customize the calibration parameters (IF_amplitude for instance).
+- unit - ``volts2demod()`` function that does the inverse operation of ``demod2volts()``
 
 ## [0.17.4] - 2024-05-07
 ### Fixed
