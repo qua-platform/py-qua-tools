@@ -1,6 +1,7 @@
 """calling function libraries"""
 
 import copy
+import math
 from time import sleep
 
 import numpy as np
@@ -11,7 +12,11 @@ from qm.qua import *
 
 
 def _round_to_fixed_point_accuracy(x, accuracy=2**-16):
-    return np.round(x / accuracy) * accuracy
+    return round(x / accuracy) * accuracy
+
+
+def _floor_to_fixed_point_accuracy(x, accuracy=2**-16):
+    return math.floor(x / accuracy) * accuracy
 
 
 class ManualOutputControl:
@@ -242,19 +247,23 @@ class ManualOutputControl:
                 raise Exception(f"The absolute value of the amplitude must smaller than 0.5, {value} was given")
 
         prev_value = self.analog_data[element]["amplitude"]
-        self.analog_data[element]["amplitude"] = value
         if value != 0:
-            value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
-            value = _round_to_fixed_point_accuracy(value)
-            if value == 0:
+            delta_value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
+            delta_value = _round_to_fixed_point_accuracy(delta_value)
+            if delta_value == 0:
                 return
+        else:
+            delta_value = value
+        self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(
+            prev_value + delta_value * self.ANALOG_WAVEFORM_AMPLITUDE
+        )
 
         while not self.analog_job.is_paused():
             sleep(0.01)
 
         self.analog_qm.set_io_values(
             int(self.analog_elements.index(element)) + len(self.analog_elements),
-            float(value),
+            float(delta_value),
         )
         self.analog_job.resume()
 

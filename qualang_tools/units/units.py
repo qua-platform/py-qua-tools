@@ -202,6 +202,24 @@ class unit:
         else:
             return 4096 * data * self.V / duration
 
+    def volts2demod(
+        self,
+        value_in_volts: Union[float, ndarray],
+        duration: Union[float, int],
+        single_demod: bool = False,
+    ) -> Union[float, ndarray]:
+        """Converts the volts to demodulated data units.
+
+        :param value_in_volts: some value in volts. Must be a python variable or array.
+        :param duration: demodulation duration in ns.
+        :param single_demod: Flag to add the additional factor of 2 needed for single demod.
+        :return: the same value in demodulated data units.
+        """
+        if single_demod:
+            return (value_in_volts * duration) / (2 * 4096 * self.V)
+        else:
+            return (value_in_volts * duration) / (4096 * self.V)
+
     def raw2volts(self, data: Union[float, ndarray]) -> Union[float, ndarray]:
         """Converts the raw data to volts.
 

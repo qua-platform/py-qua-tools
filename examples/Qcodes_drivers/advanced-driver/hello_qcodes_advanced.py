@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import qcodes as qc
 from qcodes import initialise_or_create_database_at, load_or_create_experiment
 from qcodes.utils.dataset.doNd import do2d, do1d, do0d
