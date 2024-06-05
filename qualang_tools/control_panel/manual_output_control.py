@@ -248,22 +248,23 @@ class ManualOutputControl:
 
         prev_value = self.analog_data[element]["amplitude"]
         if value != 0:
-            delta_value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
-            delta_value = _round_to_fixed_point_accuracy(delta_value)
-            if delta_value == 0:
+            value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
+            value = _round_to_fixed_point_accuracy(value)
+            if value == 0:
                 return
+            self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(
+                prev_value + value * self.ANALOG_WAVEFORM_AMPLITUDE
+            )
         else:
-            delta_value = value
-        self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(
-            prev_value + delta_value * self.ANALOG_WAVEFORM_AMPLITUDE
-        )
+            self.analog_data[element]["amplitude"] = 0.0
+
 
         while not self.analog_job.is_paused():
             sleep(0.01)
 
         self.analog_qm.set_io_values(
             int(self.analog_elements.index(element)) + len(self.analog_elements),
-            float(delta_value),
+            float(value),
         )
         self.analog_job.resume()
 
