@@ -247,13 +247,10 @@ class ManualOutputControl:
                 raise Exception(f"The absolute value of the amplitude must smaller than 0.5, {value} was given")
 
         prev_value = self.analog_data[element]["amplitude"]
-        if value != 0:
-            delta_value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
-            delta_value = _round_to_fixed_point_accuracy(delta_value)
-            if delta_value == 0:
-                return
-        else:
-            delta_value = value
+        delta_value = (value - prev_value) * (1 / self.ANALOG_WAVEFORM_AMPLITUDE)
+        delta_value = _round_to_fixed_point_accuracy(delta_value)
+        if delta_value == 0:
+            return
         self.analog_data[element]["amplitude"] = _floor_to_fixed_point_accuracy(
             prev_value + delta_value * self.ANALOG_WAVEFORM_AMPLITUDE
         )
@@ -618,10 +615,7 @@ class ManualOutputControl:
             with switch_(input1):
                 for i in range(len(self.analog_elements)):
                     with case_(i):
-                        with if_(a == 0):
-                            ramp_to_zero(self.analog_elements[i], 1)
-                        with else_():
-                            play("play" * amp(a), self.analog_elements[i])
+                        play("play" * amp(a), self.analog_elements[i])
         with else_():
             freq = declare(int)
             assign(freq, input2)
