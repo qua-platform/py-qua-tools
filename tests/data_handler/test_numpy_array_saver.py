@@ -1,6 +1,6 @@
 import numpy as np
 
-from qualang_tools.results.data_handler.data_processors import DEFAULT_DATA_PROCESSORS, NumpyArraySaver
+from qualang_tools.results.data_handler import NumpyArraySaver
 
 
 def test_numpy_array_saver_process_merged():
