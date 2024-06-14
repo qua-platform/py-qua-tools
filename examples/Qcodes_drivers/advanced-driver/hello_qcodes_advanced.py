@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import numpy as np
 import qcodes as qc
