@@ -108,11 +108,11 @@ class VoltageGateSequence:
         return isinstance(var, (QuaVariable, QuaExpression))
 
     def add_step(
-            self,
-            level: list[Union[int, QuaExpression, QuaVariable]] = None,
-            duration: Union[int, QuaExpression, QuaVariable] = None,
-            voltage_point_name: str = None,
-            ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+        self,
+        level: list[Union[int, QuaExpression, QuaVariable]] = None,
+        duration: Union[int, QuaExpression, QuaVariable] = None,
+        voltage_point_name: str = None,
+        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
     ) -> None:
         """Add a voltage level to the pulse sequence.
         The voltage level is either identified by its voltage_point_name if added to the voltage_point dict beforehand, or by its level and duration.
