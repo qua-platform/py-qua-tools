@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.17.5] - 2024-06-26
 ### Fixed
 - control_panel - Fix voltage booking error introduced in the previous fix.
 - control_panel - Fix rounding error in `ManualOutputControl` that caused voltage drifts.
