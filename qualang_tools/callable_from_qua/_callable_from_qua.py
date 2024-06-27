@@ -3,7 +3,7 @@ import dataclasses
 from time import sleep
 from typing import List, Any, Dict
 from functools import wraps
-from qm.QmJob import QmJob
+from qm import QmJob
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
 from qm.exceptions import QmQuaException

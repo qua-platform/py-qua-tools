@@ -18,7 +18,7 @@ Note: `host`, `config` and `prog` are assumed to be supplied by user.
 
 ```python
 from qm import QuantumMachinesManager
-from qm.QmJob import QmJob
+from qm import QmJob
 from qualang_tools.multi_user import qm_session
 qmm = QuantumMachinesManager(host)
 
