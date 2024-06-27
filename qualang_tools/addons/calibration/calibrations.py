@@ -3,8 +3,8 @@ CALIBRATIONS
 """
 
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm.QuantumMachine import QuantumMachine
+from qm import QuantumMachinesManager
+from qm import QuantumMachine
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.units import unit

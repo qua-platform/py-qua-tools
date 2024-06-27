@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qm.QmJob import QmJob
 from qm.qua import *
 from qualang_tools.multi_user import qm_session

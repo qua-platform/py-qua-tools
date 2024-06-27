@@ -7,7 +7,7 @@ from qm.QmJob import QmJob
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
 from qm.exceptions import QmQuaException
-from qm.QuantumMachine import QuantumMachine
+from qm import QuantumMachine
 from qm.qua._dsl import _ResultSource, _Variable, align, _get_root_program_scope
 
 __all__ = ["ProgramAddon", "callable_from_qua"]

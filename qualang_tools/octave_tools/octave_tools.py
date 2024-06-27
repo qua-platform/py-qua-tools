@@ -3,7 +3,7 @@ from qm.octave.calibration_db import CalibrationDB
 from typing import Union
 from qm.QmJob import QmJob
 from qm.jobs.running_qm_job import RunningQmJob
-from qm.QuantumMachine import QuantumMachine
+from qm import QuantumMachine
 from qm.octave.octave_mixer_calibration import AutoCalibrationParams
 
 

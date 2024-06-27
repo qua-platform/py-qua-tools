@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from time import sleep
 
 from qm import QuantumMachine
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 
 msg = (
     "A quantum machine cannot be opened because an existing quantum machine, using the same ports, is currently "
