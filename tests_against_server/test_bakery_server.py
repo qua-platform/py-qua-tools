@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pytest
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qm import SimulationConfig
 import numpy as np
 from qualang_tools.bakery.bakery import baking

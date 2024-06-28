@@ -5,7 +5,7 @@ from qm.jobs.running_qm_job import RunningQmJob
 
 from qm.program import Program
 from qm.qua._dsl import _ProgramScope as _ProgramScope_qua
-from qm.QuantumMachine import QuantumMachine
+from qm import QuantumMachine
 from qm.simulate.interface import SimulationConfig
 
 

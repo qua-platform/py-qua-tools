@@ -1,5 +1,5 @@
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from configuration import *
 from qualang_tools.callable_from_qua import callable_from_qua, patch_qua_program_addons
 

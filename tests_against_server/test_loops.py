@@ -1,7 +1,7 @@
 import pytest
 from qualang_tools.loops import *
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from copy import deepcopy
 import numpy as np
 

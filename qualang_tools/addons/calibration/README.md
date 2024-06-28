@@ -30,7 +30,7 @@ Several options are also available for customizing the plots. All of them are wr
 
 
 ```python
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qualang_tools.addons.calibration.calibrations import *
 from configuration import * 
 

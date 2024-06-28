@@ -6,8 +6,8 @@ from time import sleep
 
 import numpy as np
 from qm import QuantumMachine
-from qm.QmJob import QmJob
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QmJob
+from qm import QuantumMachinesManager
 from qm.qua import *
 
 

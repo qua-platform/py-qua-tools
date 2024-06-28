@@ -9,7 +9,7 @@ import numpy as np
 from scipy import signal
 import plotly.graph_objects as go
 from matplotlib import pyplot as plt
-from qm.QmJob import QmJob
+from qm import QmJob
 from qualang_tools.plot.fitting import *
 
 
