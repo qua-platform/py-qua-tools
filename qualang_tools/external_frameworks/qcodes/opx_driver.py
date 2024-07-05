@@ -197,18 +197,41 @@ class OPX(Instrument):
         """
         idn = {"vendor": "Quantum Machines"}
         idn.update(self.get(idn_param))
-        if idn["server"][0] == "1":
-            idn["model"] = "OPX"
-        elif idn["server"][0] == "2":
-            idn["model"] = "OPX+"
-        else:
-            idn["model"] = ""
-        t = time.time() - (begin_time or self._t0)
+        try:
+            if idn["OPX"][0] == "1":
+                idn["model"] = "OPX"
+            elif idn["OPX"][0] == "2":
+                idn["model"] = "OPX+"
+            elif idn["OPX"][0] == "3":
+                idn["model"] = "OPX1000"
+            else:
+                idn["model"] = ""
+            t = time.time() - (begin_time or self._t0)
+            con_msg = (
+                "Connected to: {vendor} {model} in {t:.2f}s. "
+                "QOP Version = {OPX}, SDK Version = {qm-qua}.".format(t=t, **idn)
+            )
+        except (Exception,):
+            pass
+        try:
+            if idn["server"][0] == "1":
+                idn["model"] = "OPX"
+            elif idn["server"][0] == "2":
+                idn["model"] = "OPX+"
+            elif idn["server"][0] == "3":
+                idn["model"] = "OPX1000"
+            else:
+                idn["model"] = ""
+            t = time.time() - (begin_time or self._t0)
 
-        con_msg = (
-            "Connected to: {vendor} {model} in {t:.2f}s. "
-            "QOP Version = {server}, SDK Version = {client}.".format(t=t, **idn)
-        )
+            con_msg = (
+                "Connected to: {vendor} {model} in {t:.2f}s. "
+                "QOP Version = {server}, SDK Version = {client}.".format(t=t, **idn)
+            )
+        except (Exception,):
+            pass
+
+
         print(con_msg)
         self.log.info(f"Connected to instrument: {idn}")
 
@@ -218,7 +241,12 @@ class OPX(Instrument):
 
         :return: A dict containing the SDK version (client) and QOP version (server).
         """
-        return self.qmm.version()
+        print(self.qmm.version_dict())
+        try:
+            return self.qmm.version_dict()
+        except (Exception,):
+            return self.qmm.version()
+
 
     def set_config(self, config):
         """
