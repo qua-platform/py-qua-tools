@@ -1,8 +1,8 @@
 #############
 # VARIABLES #
 #############
-qop_ip = "127.0.0.1"
-cluster_name = "my_cluster"
+qop_ip = "172.16.33.107"
+cluster_name = "Beta_8"
 
 readout_len = 100
 readout_amp = 0.001
