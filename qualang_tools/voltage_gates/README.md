@@ -8,8 +8,8 @@ The `VoltageGateSequence` class facilitates the creation and management of compl
 
 ## Features
 
-- **Dynamic Voltage Control**: Define voltage levels (points) in gate-space and durations for multiple elements.
-- **Step and Ramp Support**: Add steps and ramps to the pulse sequence.
+- **Dynamic Voltage Control**: Defines voltage levels (points) in gate-space and durations for multiple elements.
+- **Step and Ramp Support**: Adds steps and ramps to the pulse sequence.
 - **Compensation Pulse**: Keeps track of average voltage levels for compensation pulses.
 - **Configuration Management**: Updates the provided configuration with necessary operations and waveforms for the sequence.
 
@@ -36,9 +36,37 @@ seq = VoltageGateSequence(configuration, elements)
 
 ## Methods
 
+### `add_points`
+
+Register a relevant voltage point. This function allows you to define and name specific voltage points in the charge stability map, which can be referenced later in the sequence. This corresponds to a meaningful location in charge space, such as those shown in the following image:
+![Schematic](.img/charge_stability.png)
+
+```python
+def add_points(self, name: str, coordinates: list, duration: int) -> None:
+```
+
+- **name**: Name of the voltage point.
+- **coordinates**: Voltage value of each gate element involved in the operation.
+- **duration**: How long should the voltages be maintained at this level in ns. Must be larger than 16ns and a multiple of 4ns.
+
+**Example Usage**:
+
+```python
+# Add a voltage point named "idle" with specific coordinates and duration
+seq.add_points(name="idle", coordinates=[-0.07, 0.25], duration=2000)
+seq.add_points(name="measurement", coordinates=[-0.13, 0.35], duration=1000)
+seq.add_points(name="initialization", coordinates=[-0.10, 0.30], duration=1500)
+```
+
+In the example above:
+- A voltage point named "idle" is added with specific voltage coordinates and a duration of 2000 nanoseconds.
+- A voltage point named "measurement" is added with specific voltage coordinates and a duration of 1000 nanoseconds.
+- A voltage point named "initialization" is added with specific voltage coordinates and a duration of 1500 nanoseconds.
+
+
 ### `add_step`
 
-Add a voltage level to the pulse sequence. This function allows you to specify a voltage level and duration for each gate, with optional ramping to the desired level.
+Add a voltage level to the pulse sequence. This function allows you to specify a voltage level and duration for each gate, with optional ramping to the desired level. The function also allows navigation between pre-defined voltage points.
 
 ```python
 def add_step(
@@ -50,8 +78,8 @@ def add_step(
 ) -> None:
 ```
 
-- **level**: Desired voltage level of the different gates composing the gate in Volts.
-- **duration**: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and larger than 16ns.
+- **level** (float or QUA variable): Desired voltage level of the different gates composing the gate in Volts.
+- **duration** (float or QUA variable): How long the voltage level should be maintained in ns. Must be a multiple of 4ns and larger than 16ns.
 - **voltage_point_name**: Name of the voltage level if added to the list of relevant points in the charge stability map.
 - **ramp_duration**: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
 
@@ -59,19 +87,19 @@ def add_step(
 
 ```python
 # Define points in the charge stability map [V1, V2]
-level_dephasing = [-0.07, 0.25]
-duration_dephasing = 2000  # nanoseconds
+level_idle = [-0.07, 0.25]
+duration_idle = 2000  # nanoseconds
 
-# Add a dephasing step
-seq.add_step(level=level_dephasing, duration=duration_dephasing)
+# Add an idle step
+seq.add_step(level=level_idle, duration=duration_idle)
 
 # Add a step using a voltage point name and ramp duration
-seq.add_step(voltage_point_name="dephasing", ramp_duration=200)
+seq.add_step(voltage_point_name="idle", ramp_duration=200)
 ```
 
 In the example above:
-- The first call to `add_step` adds a dephasing step with a specified voltage level and duration.
-- The second call adds a step using a predefined voltage point named "dephasing" with a specified ramp duration.
+- The first call to `add_step` adds an idle step with a specified voltage level and duration.
+- The second call adds a step using a predefined voltage point named "idle" with a specified ramp duration.
 
 ### `add_compensation_pulse`
 
@@ -113,28 +141,6 @@ seq.ramp_to_zero(duration=500)
 In the example above:
 - The `ramp_to_zero` function is used to ramp all gate voltages down to zero over a period of 500 nanoseconds.
 
-### `add_points`
-
-Register a relevant voltage point. This function allows you to define and name specific voltage points in the charge stability map, which can be referenced later in the sequence.
-
-```python
-def add_points(self, name: str, coordinates: list, duration: int) -> None:
-```
-
-- **name**: Name of the voltage point.
-- **coordinates**: Voltage value of each gate element involved in the operation.
-- **duration**: How long should the voltages be maintained at this level in ns. Must be larger than 16ns and a multiple of 4ns.
-
-**Example Usage**:
-
-```python
-# Add a voltage point named "dephasing" with specific coordinates and duration
-seq.add_points(name="dephasing", coordinates=[-0.07, 0.25], duration=2000)
-```
-
-In the example above:
-- A voltage point named "dephasing" is added with specific voltage coordinates and a duration of 2000 nanoseconds.
-
 ## Example Program
 
 Below is an example QUA program that demonstrates how to use the `VoltageGateSequence` class to find the Pauli Spin Blockade (PSB) region according to a specified protocol.
@@ -152,15 +158,15 @@ p5_voltages = np.linspace(-0.1, 0.1, 20)
 p6_voltages = np.linspace(-0.15, 0.15, 20)
 
 # Points in the charge stability map [V1, V2]
-level_dephasing = [-0.07, 0.25]
-duration_dephasing = 2000  # nanoseconds
+level_idle = [-0.07, 0.25]
+duration_idle = 2000  # nanoseconds
 
 # Local configuration
 local_config = copy.deepcopy(configuration)
 
 # Initialize VoltageGateSequence
 seq = VoltageGateSequence(local_config, ["P5_sticky", "P6_sticky"])
-seq.add_points("dephasing", level_dephasing, duration_dephasing)
+seq.add_points("idle", level_idle, duration_idle)
 
 # Number of shots
 n_shots = 100
@@ -180,7 +186,7 @@ with program() as PSB_search_prog:
         save(n, n_st)
         with for_each_((x, y), (p5_voltages.tolist(), p6_voltages.tolist())):
             # Play fast pulse
-            seq.add_step(voltage_point_name="dephasing", ramp_duration=200)
+            seq.add_step(voltage_point_name="idle", ramp_duration=200)
             seq.add_step(duration=1000, level=[x, y], ramp_duration=200)
             seq.add_compensation_pulse(duration=1000)
 
@@ -199,4 +205,4 @@ with program() as PSB_search_prog:
 ```
 ### Plot
 Here is the first iteration of the program:
-![Schematic](schematic.png)
+![Schematic](.img/pulse_diagram.png)
