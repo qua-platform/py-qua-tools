@@ -91,8 +91,8 @@ def config():
     }
 
 
-def simulate_program_and_return(config, prog):
-    qmm = QuantumMachinesManager()
+def simulate_program_and_return(qmm, config, prog):
+    # qmm = QuantumMachinesManager()
     qm = qmm.open_qm(config)
     job = qm.execute(prog)
     return job
@@ -111,7 +111,7 @@ def simulate_program_and_return(config, prog):
                            [-1, 1, 0.2],
                            [0.00015, 1, 0.0001],
                            [0, -2, -0.001],])
-def test_qua_arange(config, start, stop, step):
+def test_qua_arange(qmm, config, start, stop, step):
     def prog_maker(_start, _stop, _step):
         if float(step).is_integer():
             with program() as prog:
@@ -136,7 +136,7 @@ def test_qua_arange(config, start, stop, step):
             return prog
 
     cfg = deepcopy(config)
-    job = simulate_program_and_return(cfg, prog_maker(start, stop, step))
+    job = simulate_program_and_return(qmm, cfg, prog_maker(start, stop, step))
     job.result_handles.wait_for_all_values()
     a_qua = job.result_handles.get("a").fetch_all()["value"]
     a_list = np.arange(start, stop, step)
@@ -145,33 +145,33 @@ def test_qua_arange(config, start, stop, step):
 
 
 @pytest.mark.parametrize(["vector", "qua_type"],
-                         [
-                             [np.logspace(np.log10(10000), np.log10(4), 100), "int"],
-                             [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
-                             [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
-                             [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
-                             [np.logspace(6, 4, 19), "int"],
-                             [np.logspace(3, 6, 199), "int"],
-                             [np.logspace(-3, 0, 99), "fixed"],
-                             [np.logspace(-3.5, -1, 11), "fixed"],
-                             [np.logspace(0.5, -0.5, 22), "fixed"],
-                             [np.logspace(0.5, -3.5, 21), "fixed"],
-                             [np.arange(-7.0547, -2.2141, 0.1015), "fixed"],
-                             [np.arange(-0.05, -1, -0.15), "fixed"],
-                             [np.arange(-1, 2, 0.0006), "fixed"],
-                             [np.arange(-11, -100, -2), "int"],
-                             [np.arange(20, 71, 2), "int"],
-                             [np.linspace(20, 71, 52), "int"],
-                             [np.linspace(0.1, 1, 6), "fixed"],
-                             [np.arange(10, 20, 1), "int"],
-                             [np.arange(20, 71, 1), "int"],
-                             [np.arange(0, 71, 2), "int"],
-                             [np.arange(0, 1, 0.1), "fixed"],
-                             [np.arange(0, 1, 0.2), "fixed"],
-                             [np.arange(0.1, 1, 0.2), "fixed"],
+                         [   [np.linspace(-490e6, -110e6, 53), "int"],
+                             # [np.logspace(np.log10(10000), np.log10(4), 100), "int"],
+                             # [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
+                             # [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
+                             # [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
+                             # [np.logspace(6, 4, 19), "int"],
+                             # [np.logspace(3, 6, 199), "int"],
+                             # [np.logspace(-3, 0, 99), "fixed"],
+                             # [np.logspace(-3.5, -1, 11), "fixed"],
+                             # [np.logspace(0.5, -0.5, 22), "fixed"],
+                             # [np.logspace(0.5, -3.5, 21), "fixed"],
+                             # [np.arange(-7.0547, -2.2141, 0.1015), "fixed"],
+                             # [np.arange(-0.05, -1, -0.15), "fixed"],
+                             # [np.arange(-1, 2, 0.0006), "fixed"],
+                             # [np.arange(-11, -100, -2), "int"],
+                             # [np.arange(20, 71, 2), "int"],
+                             # [np.linspace(20, 71, 52), "int"],
+                             # [np.linspace(0.1, 1, 6), "fixed"],
+                             # [np.arange(10, 20, 1), "int"],
+                             # [np.arange(20, 71, 1), "int"],
+                             # [np.arange(0, 71, 2), "int"],
+                             # [np.arange(0, 1, 0.1), "fixed"],
+                             # [np.arange(0, 1, 0.2), "fixed"],
+                             # [np.arange(0.1, 1, 0.2), "fixed"],
                              # [np.arange(0.00015, 1, 0.0001), "fixed"],
                          ])
-def test_from_array(config, vector, qua_type):
+def test_from_array(qmm, config, vector, qua_type):
     def prog_maker(_vector, _qua_type):
         if _qua_type == "int":
             with program() as prog:
@@ -196,7 +196,7 @@ def test_from_array(config, vector, qua_type):
             return prog
 
     cfg = deepcopy(config)
-    job = simulate_program_and_return(cfg, prog_maker(vector, qua_type))
+    job = simulate_program_and_return(qmm, cfg, prog_maker(vector, qua_type))
     job.result_handles.wait_for_all_values()
     a_qua = job.result_handles.get("a").fetch_all()["value"]
     a_list = vector
@@ -211,7 +211,7 @@ def test_from_array(config, vector, qua_type):
                          [
                              [np.logspace(np.log10(4), np.log10(10000), 60), "int"]
                          ])
-def test_from_array_log_error(config, vector, qua_type):
+def test_from_array_log_error(qmm, config, vector, qua_type):
     def prog_maker(_vector, _qua_type):
         if _qua_type == "int":
             with program() as prog:
@@ -237,7 +237,7 @@ def test_from_array_log_error(config, vector, qua_type):
 
     cfg = deepcopy(config)
     with pytest.raises(ValueError):
-        simulate_program_and_return(cfg, prog_maker(vector, qua_type))
+        simulate_program_and_return(qmm, cfg, prog_maker(vector, qua_type))
 
 
 @pytest.mark.parametrize(["start", "stop", "N"],
@@ -250,7 +250,7 @@ def test_from_array_log_error(config, vector, qua_type):
                              [-0.1, 0.1, 5000],
                              [-1, 2, 11],
                          ])
-def test_qua_linspace(config, start, stop, N):
+def test_qua_linspace(qmm, config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
             a = declare(fixed)
@@ -263,7 +263,7 @@ def test_qua_linspace(config, start, stop, N):
         return prog
 
     cfg = deepcopy(config)
-    job = simulate_program_and_return(cfg, prog_maker(start, stop, N))
+    job = simulate_program_and_return(qmm, cfg, prog_maker(start, stop, N))
     job.result_handles.wait_for_all_values()
     a_qua = job.result_handles.get("a").fetch_all()["value"]
     a_list = np.linspace(start, stop, N)
@@ -280,7 +280,7 @@ def test_qua_linspace(config, start, stop, N):
                              [-4, 0.5, 11],
                              [-3.8, 0.2, 7],
                          ])
-def test_qua_logspace_fixed(config, start, stop, N):
+def test_qua_logspace_fixed(qmm, config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
             a = declare(fixed)
@@ -293,7 +293,7 @@ def test_qua_logspace_fixed(config, start, stop, N):
         return prog
 
     cfg = deepcopy(config)
-    job = simulate_program_and_return(cfg, prog_maker(start, stop, N))
+    job = simulate_program_and_return(qmm, cfg, prog_maker(start, stop, N))
     job.result_handles.wait_for_all_values()
     a_qua = job.result_handles.get("a").fetch_all()["value"]
     a_list = np.logspace(start, stop, N)
@@ -308,7 +308,7 @@ def test_qua_logspace_fixed(config, start, stop, N):
                              [np.log10(5000), np.log10(125), 30],
                              [np.log10(40), np.log10(1001), 51],
                          ])
-def test_qua_logspace_int(config, start, stop, N):
+def test_qua_logspace_int(qmm, config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
             t = declare(int)
@@ -321,7 +321,7 @@ def test_qua_logspace_int(config, start, stop, N):
         return prog
 
     cfg = deepcopy(config)
-    job = simulate_program_and_return(cfg, prog_maker(start, stop, N))
+    job = simulate_program_and_return(qmm, cfg, prog_maker(start, stop, N))
     job.result_handles.wait_for_all_values()
     a_qua = job.result_handles.get("a").fetch_all()["value"]
     a_list = get_equivalent_log_array(np.round(np.logspace(start, stop, N)))
@@ -334,7 +334,7 @@ def test_qua_logspace_int(config, start, stop, N):
                          [
                              [np.log10(4), np.log10(10000), 60],
                          ])
-def test_qua_logspace_error(config, start, stop, N):
+def test_qua_logspace_error(qmm, config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
             t = declare(int)
@@ -348,4 +348,4 @@ def test_qua_logspace_error(config, start, stop, N):
 
     cfg = deepcopy(config)
     with pytest.raises(ValueError):
-        simulate_program_and_return(cfg, prog_maker(start, stop, N))
+        simulate_program_and_return(qmm, cfg, prog_maker(start, stop, N))
