@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- results - Allow the data saver to create the root folder if it doesn't exist.
+
 ## [0.17.7] - 2024-08-20
 ### Added
 - VoltageGateSequence - The `VoltageGateSequence` class facilitates the creation and management of complex pulse sequences, allowing dynamic voltage control, ramping, and bias compensation across gate elements.
