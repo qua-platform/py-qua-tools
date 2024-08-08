@@ -108,7 +108,10 @@ def get_latest_data_folder(
         root_data_folder = Path(root_data_folder)
 
     if not root_data_folder.exists():
-        raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
+        try:
+            root_data_folder.mkdir(parents=True)
+        except (Exception,):
+            raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
 
     if current_folder_pattern is None:
         current_folder_pattern = folder_pattern
