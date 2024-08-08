@@ -321,7 +321,7 @@ synthesized.
 
 ## Coupling the baking tool to the add_compile feature
 
-QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in [the documentation](https://docs.quantum-machines.co/1.2.0/docs/Guides/features/#precompile-jobs).
+QUA allows you to pre_compile a job in order to save compilation time. This aspect is reminded in [the documentation](https://docs.quantum-machines.co/latest/docs/Guides/features/#precompile-jobs).
 It is possible to easily override waveforms by doing two things :
 1. Create a baking object ```b_ref ```setting ```override ``` parameters to True. Note that
 this will attach to each waveform created for all quantum elements involved in the context manager the flag ```is_overridable ``` 
