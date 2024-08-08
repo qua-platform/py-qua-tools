@@ -199,7 +199,7 @@ Q: [0.2, 0.2, 0.2, 0.3, 0.4, 0, 0, 0, 0.2, 0.2, 0.2, 0, 0, 0, 0, 0]
 ```
 ## Handling frame rotations and frequency detunings with baking
 As you may have seen in the first code snippet in this document, it is possible to perform a *frame_rotation* within the baking,
-    which does exactly the same thing as what is done in real time (see more info [here](https://docs.quantum-machines.co/1.2.0/docs/Introduction/qua_overview/#amplitude-transformations), that is that it multiplies the samples by a frame rotation matrix deduced from the provided angle.
+    which does exactly the same thing as what is done in real time (see more info [here](https://docs.quantum-machines.co/latest/docs/Introduction/qua_overview/#amplitude-transformations), that is that it multiplies the samples by a frame rotation matrix deduced from the provided angle.
     Here you can specify a different frame rotation at the nanosecond resolution, and modulate very short pulses with those changes of phase.
    
  We also allow the user to set a frequency detuning similarly. The user can use the method *set_detuning()* to add a detuning on top of the upconversion with the IF done by the OPX.
