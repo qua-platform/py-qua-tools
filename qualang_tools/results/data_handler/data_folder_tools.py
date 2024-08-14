@@ -110,6 +110,7 @@ def get_latest_data_folder(
     if not root_data_folder.exists():
         try:
             root_data_folder.mkdir(parents=True)
+            print(f"The provided root folder didn't exist, so it was created at {root_data_folder.name}.")
         except (Exception,):
             raise NotADirectoryError(f"Root data folder {root_data_folder} does not exist.")
 
