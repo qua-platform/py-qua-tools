@@ -367,7 +367,13 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
+[0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6
+[0.17.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.4...v0.17.5
+[0.17.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.3...v0.17.4
+[0.17.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.2...v0.17.3
+[0.17.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...v0.17.2
 [0.17.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
