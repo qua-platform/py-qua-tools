@@ -1,9 +1,10 @@
-from quam_libs.wiring.instruments import Instruments
+from qualang_tools.wirer.instruments import Instruments
 import pytest
 
 
 @pytest.fixture(params=["lf-fem", "opx+"])
 def instruments_qw_soprano(request) -> Instruments:
+    print(request.param)
     instruments = Instruments()
     if request.param == "lf-fem":
         instruments.add_lf_fem(con=1, slots=[1, 2, 3])

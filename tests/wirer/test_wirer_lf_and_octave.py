@@ -1,12 +1,9 @@
-from quam_libs.wiring.connectivity.connectivity import Connectivity
-from quam_libs.wiring.instruments import Instruments
-from quam_libs.wiring.visualizer.visualizer import visualize_chassis
-from quam_libs.wiring.wirer import allocate_wiring
-import pytest
+from qualang_tools.wirer.connectivity.connectivity import Connectivity
+from qualang_tools.wirer.visualizer.visualizer import visualize_chassis
+from qualang_tools.wirer.wirer import allocate_wiring
 from pprint import pprint
 
 visualize = False
-
 
 def test_rf_io_allocation(instruments_1octave):
     qubits = [1,2,3,4,5]

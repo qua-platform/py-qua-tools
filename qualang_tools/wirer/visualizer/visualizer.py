@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from quam_libs.wiring.connectivity.wiring_spec_enums import WiringLineType
+from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 
 # Define the chassis dimensions
 CHASSIS_WIDTH = 8

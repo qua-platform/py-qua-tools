@@ -1,6 +1,6 @@
 import pytest
 
-from qualang_tools.wiring.instruments import Instruments
+from qualang_tools.wirer.instruments import Instruments
 
 visualize = False
 

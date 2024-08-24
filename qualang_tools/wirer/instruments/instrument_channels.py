@@ -1,59 +1,8 @@
-from dataclasses import dataclass
-from typing import Union, Literal, Type
+from typing import Type
 
-
-@dataclass
-class InstrumentChannel:
-    con: int
-    port: int
-    slot: Union[None, int] = None
-    io_type: Literal["input", "output"] = None
-
-    def __str__(self):
-        return f'({", ".join([f"con{self.con}", f"{self.slot}" if self.slot else "", str(self.port)])})'
-
-
-@dataclass
-class InstrumentChannelInput(InstrumentChannel):
-    io_type: Literal["input", "output"] = "input"
-
-
-@dataclass
-class InstrumentChannelOutput(InstrumentChannel):
-    io_type: Literal["input", "output"] = "output"
-
-
-class InstrumentChannelLfFemInput(InstrumentChannelInput):
-    pass
-
-
-class InstrumentChannelLfFemOutput(InstrumentChannelOutput):
-    pass
-
-
-class InstrumentChannelMwFemInput(InstrumentChannelInput):
-    pass
-
-
-class InstrumentChannelMwFemOutput(InstrumentChannelOutput):
-    pass
-
-
-class InstrumentChannelOpxPlusInput(InstrumentChannelInput):
-    pass
-
-
-class InstrumentChannelOpxPlusOutput(InstrumentChannelOutput):
-    pass
-
-
-class InstrumentChannelOctaveInput(InstrumentChannelInput):
-    pass
-
-
-class InstrumentChannelOctaveOutput(InstrumentChannelOutput):
-    pass
-
+from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel, InstrumentChannelLfFemInput, \
+    InstrumentChannelLfFemOutput, InstrumentChannelMwFemInput, InstrumentChannelMwFemOutput, \
+    InstrumentChannelOpxPlusInput, InstrumentChannelOpxPlusOutput
 
 CHANNELS_OPX_PLUS = [InstrumentChannelOpxPlusInput, InstrumentChannelOpxPlusOutput]
 

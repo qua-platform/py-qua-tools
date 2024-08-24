@@ -1,4 +1,6 @@
 from typing import List, Union
+
+from .instrument_channel import InstrumentChannelOctaveInput, InstrumentChannelOctaveOutput
 from .instrument_channels import *
 from .constants import *
 

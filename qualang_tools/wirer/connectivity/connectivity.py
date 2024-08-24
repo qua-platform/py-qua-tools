@@ -1,15 +1,10 @@
 import copy
 from typing import Dict, List
 
+from .channel_spec import ChannelSpec
 from .element import Element, ElementId, QubitReference, QubitPairReference
 from .types import QubitsType, QubitPairsType
-from .wiring_spec import WiringSpec
-from .wiring_spec_enums import (
-    WiringFrequency,
-    WiringIOType,
-    WiringLineType,
-    WiringIOSpec,
-)
+from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
 
 class Connectivity:
@@ -25,68 +20,40 @@ class Connectivity:
         self.elements: Dict[ElementId, Element] = {}
         self.specs: List[WiringSpec] = []
 
-    def add_resonator_line(
-        self, qubits: QubitsType, con: int = None, slot: int = None, port: int = None
-    ):
-        elements = self._make_qubit_elements(qubits)
-        io_spec = WiringIOSpec(
-            type=WiringIOType.INPUT_AND_OUTPUT, con=con, slot=slot, port=port
-        )
-        return self.add_wiring_spec(
-            elements,
-            WiringFrequency.RF,
-            io_spec,
-            WiringLineType.RESONATOR,
-            shared_line=True,
-        )
+    def add_fixed_transmons(self, qubits: QubitsType):
+        self.add_resonator_line(qubits)
+        self.add_qubit_drive_lines(qubits)
 
-    def add_qubit_drive_lines(
-        self, qubits: QubitsType, con: int = None, slot: int = None, port: int = None
-    ):
-        elements = self._make_qubit_elements(qubits)
-        io_spec = WiringIOSpec(type=WiringIOType.OUTPUT, con=con, slot=slot, port=port)
-        return self.add_wiring_spec(
-            elements, WiringFrequency.RF, io_spec, WiringLineType.DRIVE
-        )
+    def add_flux_tunable_transmons(self, qubits: QubitsType):
+        self.add_resonator_line(qubits)
+        self.add_qubit_drive_lines(qubits)
+        self.add_qubit_flux_lines(qubits)
 
-    def add_qubit_flux_lines(
-        self, qubits: QubitsType, con: int = None, slot: int = None, port: int = None
-    ):
+    def add_resonator_line(self, qubits: QubitsType, channel_spec: ChannelSpec = None):
         elements = self._make_qubit_elements(qubits)
-        io_spec = WiringIOSpec(type=WiringIOType.OUTPUT, con=con, slot=slot, port=port)
-        return self.add_wiring_spec(
-            elements, WiringFrequency.DC, io_spec, WiringLineType.FLUX
-        )
+        return self.add_wiring_spec(WiringFrequency.RF, WiringIOType.INPUT_AND_OUTPUT, WiringLineType.RESONATOR, channel_spec, elements, shared_line=True)
 
-    def add_qubit_pair_flux_lines(
-        self,
-        qubit_pairs: QubitPairsType,
-        con: int = None,
-        slot: int = None,
-        port: int = None,
-    ):
+    def add_qubit_drive_lines(self, qubits: QubitsType, channel_spec: ChannelSpec = None):
+        elements = self._make_qubit_elements(qubits)
+        return self.add_wiring_spec(WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, channel_spec, elements)
+
+    def add_qubit_flux_lines(self, qubits: QubitsType, channel_spec: ChannelSpec = None):
+        elements = self._make_qubit_elements(qubits)
+        return self.add_wiring_spec(WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX, channel_spec, elements)
+
+    def add_qubit_pair_flux_lines(self, qubit_pairs: QubitPairsType, channel_spec: ChannelSpec = None):
         elements = self._make_qubit_pair_elements(qubit_pairs)
-        io_spec = WiringIOSpec(type=WiringIOType.OUTPUT, con=con, slot=slot, port=port)
-        return self.add_wiring_spec(
-            elements, WiringFrequency.DC, io_spec, WiringLineType.COUPLER
-        )
+        return self.add_wiring_spec(WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.COUPLER, channel_spec, elements)
 
-    def add_wiring_spec(
-        self,
-        elements: List[Element],
-        frequency: WiringFrequency,
-        io_spec: WiringIOSpec,
-        line_type: WiringLineType,
-        shared_line: bool = False,
-    ):
+    def add_wiring_spec(self, frequency: WiringFrequency, io_type: WiringIOType, line_type: WiringLineType,
+                        channel_spec: ChannelSpec, elements: List[Element], shared_line: bool = False, ):
         specs = []
         if shared_line:
-            spec = WiringSpec(frequency, io_spec, line_type, elements)
+            spec = WiringSpec(frequency, io_type, line_type, channel_spec, elements)
             specs.append(spec)
         else:
             for element in elements:
-                io_spec = copy.deepcopy(io_spec)
-                spec = WiringSpec(frequency, io_spec, line_type, element)
+                spec = WiringSpec(frequency, io_type, line_type, channel_spec, element)
                 specs.append(spec)
         self.specs.extend(specs)
 
