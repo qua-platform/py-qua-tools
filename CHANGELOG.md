@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- results - Allow the data saver to create the root folder if it doesn't exist.
+
+## [0.17.7] - 2024-08-20
+### Added
+- VoltageGateSequence - The `VoltageGateSequence` class facilitates the creation and management of complex pulse sequences, allowing dynamic voltage control, ramping, and bias compensation across gate elements.
 
 ## [0.17.6] - 2024-06-27
 ### Fixed
@@ -364,7 +370,13 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
+[0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6
+[0.17.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.4...v0.17.5
+[0.17.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.3...v0.17.4
+[0.17.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.2...v0.17.3
+[0.17.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...v0.17.2
 [0.17.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0
