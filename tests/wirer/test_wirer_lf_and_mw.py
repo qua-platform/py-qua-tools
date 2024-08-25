@@ -21,7 +21,7 @@ def test_5q_allocation(instruments_2lf_2mw):
     print(connectivity.elements)
 
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize_chassis(connectivity.elements, instruments_2lf_2mw.available_channels)
 
 
 def test_4rr_allocation(instruments_2lf_2mw):
@@ -52,4 +52,4 @@ def test_6rr_6xy_6flux_allocation():
     allocate_wiring(connectivity, instruments)
 
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize_chassis(connectivity.elements, instruments.available_channels)
