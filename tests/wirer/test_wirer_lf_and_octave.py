@@ -3,7 +3,7 @@ from qualang_tools.wirer.visualizer.visualizer import visualize_chassis
 from qualang_tools.wirer.wirer import allocate_wiring
 from pprint import pprint
 
-visualize = False
+visualize = True
 
 def test_rf_io_allocation(instruments_1octave):
     qubits = [1,2,3,4,5]
