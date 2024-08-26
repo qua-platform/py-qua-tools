@@ -47,8 +47,8 @@ def test_qw_soprano_2qb_allocation(instruments_1OPX1Octave):
 
     pprint(connectivity.elements)
 
-    if visualize:
-        visualize_chassis(connectivity.elements)
+    # if visualize:
+    #     visualize_chassis(connectivity.elements)
 
 def test_qw_soprano_2qb_among_5_allocation(instruments_1OPX1Octave):
     all_qubits = [1, 2, 3, 4, 5]

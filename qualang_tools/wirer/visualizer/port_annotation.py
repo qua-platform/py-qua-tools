@@ -1,3 +1,7 @@
+import re
+from collections import defaultdict
+from typing import List
+
 from matplotlib import patches
 from matplotlib.axes import Axes
 import matplotlib.colors as mcolors
@@ -19,18 +23,8 @@ class PortAnnotation:
         x, y = pos
         fill_color = self.color if self.labels else "none"
         ax.add_patch(patches.Circle((x, y), PORT_SIZE, edgecolor="black", facecolor=fill_color))
-        for i, label in enumerate(self.labels):
-            # port annotation
-            ax.text(
-                x,
-                y,
-                str(self.port),
-                ha="center",
-                va="center",
-                fontsize=10,
-                color=get_contrast_color(self.color),
-                # fontweight="bold",
-            )
+        labels = combine_labels_for_same_line_type(self.labels)
+        for i, label in enumerate(labels):
             # qubit line annotation
             ax.text(
                 x - PORT_SPACING_FACTOR / 1.75,
@@ -39,9 +33,19 @@ class PortAnnotation:
                 ha="right",
                 va="center",
                 fontsize=14,
-                # fontweight="bold",
                 color="black",
+                bbox=dict(facecolor="white", alpha=1, edgecolor="none"),
             )
+        # port annotation
+        ax.text(
+            x,
+            y,
+            str(self.port),
+            ha="center",
+            va="center",
+            fontsize=10,
+            color=get_contrast_color(self.color),
+        )
         ax.set_facecolor('lightgrey')
 
     def title_axes(self, ax: Axes):
@@ -67,3 +71,35 @@ def get_contrast_color(color):
 
     # Return 'black' if luminance is high (light color), 'white' if luminance is low (dark color)
     return 'black' if luminance > 0.5 else 'white'
+
+def combine_labels_for_same_line_type(labels: List[str]):
+    # Dictionary to group strings by line type
+    grouped_lines = defaultdict(list)
+
+    # Regular expression to parse the qubit line label
+    pattern = re.compile(r'q(\d+)\.(.+)')
+
+    # Parse each string and group by line type
+    for s in labels:
+        match = pattern.match(s)
+        if match:
+            index = int(match.group(1))  # Extract the qubit index
+            line_type = match.group(2)  # Extract the line type
+            grouped_lines[line_type].append(index)
+
+    # Result list to store the reduced strings
+    reduced_strings = []
+
+    # Process each line type group
+    for line_type, indices in grouped_lines.items():
+        smallest_index = min(indices)
+        largest_index = max(indices)
+        # Check if there's only one index
+        if smallest_index == largest_index:
+            reduced_string = f'q{smallest_index}.{line_type}'
+        else:
+            reduced_string = f'q{smallest_index}-{largest_index}.{line_type}'
+
+        reduced_strings.append(reduced_string)
+
+    return reduced_strings

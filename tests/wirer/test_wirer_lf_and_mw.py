@@ -2,7 +2,7 @@ from qualang_tools.wirer.connectivity.connectivity import Connectivity
 from qualang_tools.wirer.instruments import Instruments
 from qualang_tools.wirer.visualizer.visualizer import visualize_chassis
 from qualang_tools.wirer.wirer import allocate_wiring
-from qualang_tools.wirer.wirer.channel_specs import mw_fem_spec
+from qualang_tools.wirer.wirer.channel_specs import mw_fem_spec, ChannelSpecLfFemSingle
 
 visualize = True
 
