@@ -24,18 +24,6 @@ class PortAnnotation:
         fill_color = self.color if self.labels else "none"
         ax.add_patch(patches.Circle((x, y), PORT_SIZE, edgecolor="black", facecolor=fill_color))
         labels = combine_labels_for_same_line_type(self.labels)
-        for i, label in enumerate(labels):
-            # qubit line annotation
-            ax.text(
-                x - PORT_SPACING_FACTOR / 1.75,
-                y + (PORT_SPACING_FACTOR/2) * i,
-                label,
-                ha="right",
-                va="center",
-                fontsize=14,
-                color="black",
-                bbox=dict(facecolor="white", alpha=1, edgecolor="none"),
-            )
         # port annotation
         ax.text(
             x,
@@ -46,6 +34,18 @@ class PortAnnotation:
             fontsize=10,
             color=get_contrast_color(self.color),
         )
+        for i, label in enumerate(labels):
+            # qubit line annotation
+            ax.text(
+                x - PORT_SPACING_FACTOR / 1.75,
+                y + (PORT_SPACING_FACTOR / 1.75) * i,
+                label,
+                ha="right",
+                va="center",
+                fontsize=12,
+                color="black",
+                bbox=dict(facecolor="white", alpha=1, edgecolor="none"),
+            )
         ax.set_facecolor('lightgrey')
 
     def title_axes(self, ax: Axes):
@@ -89,17 +89,34 @@ def combine_labels_for_same_line_type(labels: List[str]):
 
     # Result list to store the reduced strings
     reduced_strings = []
-
     # Process each line type group
     for line_type, indices in grouped_lines.items():
-        smallest_index = min(indices)
-        largest_index = max(indices)
-        # Check if there's only one index
-        if smallest_index == largest_index:
-            reduced_string = f'q{smallest_index}.{line_type}'
-        else:
-            reduced_string = f'q{smallest_index}-{largest_index}.{line_type}'
+        indices.sort()
+        ranges = []
+        start = indices[0]
+        end = start
 
-        reduced_strings.append(reduced_string)
+        # Identify contiguous ranges of indices
+        for i in range(1, len(indices)):
+            if indices[i] == end + 1:
+                # Extend the current range
+                end = indices[i]
+            else:
+                # Save the current range and start a new one
+                if start == end:
+                    ranges.append(f'{start}')
+                else:
+                    ranges.append(f'{start}-{end}')
+                start = indices[i]
+                end = start
+
+        # Append the final range or index
+        if start == end:
+            ranges.append(f'{start}')
+        else:
+            ranges.append(f'{start}-{end}')
+
+        # Combine ranges into the final format
+        reduced_strings.extend([f"q{range}.{line_type}" for range in ranges])
 
     return reduced_strings
