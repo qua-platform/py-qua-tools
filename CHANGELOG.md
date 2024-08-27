@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - results - Allow the data saver to create the root folder if it doesn't exist.
 
+### Fixed
+- data_handler - Fix figure saving cutting off title text if it is long using `bbox_inches="tight"`.
+
 ## [0.17.7] - 2024-08-20
 ### Added
 - VoltageGateSequence - The `VoltageGateSequence` class facilitates the creation and management of complex pulse sequences, allowing dynamic voltage control, ramping, and bias compensation across gate elements.
