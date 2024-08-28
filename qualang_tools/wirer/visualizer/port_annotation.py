@@ -29,7 +29,7 @@ class PortAnnotation:
         labels = combine_labels_for_same_line_type(self.labels)
         # port annotation
         ax.text(
-            x - PORT_SPACING_FACTOR / 1.65,
+            x - PORT_SIZE * 1.3,
             y,
             str(self.port),
             ha="center",
@@ -38,19 +38,18 @@ class PortAnnotation:
             fontweight="bold",
             color="dimgrey",
         )
-        for i, label in enumerate(labels):
-            # qubit line annotation
-            ax.text(
-                x,
-                y + (PORT_SPACING_FACTOR / 1.75) * i,
-                label,
-                ha="center",
-                va="center",
-                fontsize=9,
-                color="black",
-                # fontweight="bold",
-                # bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
-            )
+        # qubit line annotation
+        ax.text(
+            x,
+            y,
+            "\n".join(labels),
+            ha="center",
+            va="center",
+            fontsize=9,
+            color="black",
+            # fontweight="bold",
+            # bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
+        )
         ax.set_facecolor('lightgrey')
 
     def title_axes(self, ax: Axes):
