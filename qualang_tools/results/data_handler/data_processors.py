@@ -106,7 +106,7 @@ class MatplotlibPlotSaver(DataProcessor):
 
     def post_process(self, data_folder: Path):
         for path, fig in self.data_figures.items():
-            fig.savefig(data_folder / path)
+            fig.savefig(data_folder / path, bbox_inches="tight")
 
 
 DEFAULT_DATA_PROCESSORS.append(MatplotlibPlotSaver)
