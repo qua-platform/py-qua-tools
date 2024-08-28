@@ -42,10 +42,10 @@ def prepare_available_channel_annotations(available_channels: InstrumentChannels
 
 def get_color_for_line_type(line_type) -> str:
     color_map = {
-        WiringLineType.FLUX: "blue",
-        WiringLineType.RESONATOR: "orange",
-        WiringLineType.DRIVE: "yellow",
-        WiringLineType.COUPLER: "purple"
+        WiringLineType.FLUX: "powderblue",
+        WiringLineType.RESONATOR: "peachpuff",
+        WiringLineType.DRIVE: "lemonchiffon",
+        WiringLineType.COUPLER: "thistle"
     }
     return color_map.get(line_type, "white")
 

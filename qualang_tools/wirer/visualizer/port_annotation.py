@@ -25,30 +25,31 @@ class PortAnnotation:
         pos = PORT_POSITIONS[self.instrument_id][self.io_type][self.port - 1]
         x, y = pos
         fill_color = self.color if self.labels else "none"
-        ax.add_patch(patches.Circle((x, y), PORT_SIZE, edgecolor="black", facecolor=fill_color))
+        ax.add_patch(patches.Circle((x, y), PORT_SIZE, edgecolor="dimgrey", facecolor=fill_color))
         labels = combine_labels_for_same_line_type(self.labels)
-        # # port annotation
-        # ax.text(
-        #     x,
-        #     y,
-        #     str(self.port),
-        #     ha="center",
-        #     va="center",
-        #     fontsize=10,
-        #     color=get_contrast_color(self.color),
-        # )
+        # port annotation
+        ax.text(
+            x - PORT_SPACING_FACTOR / 1.65,
+            y,
+            str(self.port),
+            ha="center",
+            va="center",
+            fontsize=8,
+            fontweight="bold",
+            color="dimgrey",
+        )
         for i, label in enumerate(labels):
             # qubit line annotation
             ax.text(
-                x, # - PORT_SPACING_FACTOR / 2.25,
+                x,
                 y + (PORT_SPACING_FACTOR / 1.75) * i,
                 label,
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=9,
                 color="black",
-                fontweight="bold",
-                bbox=dict(facecolor="white", alpha=1.0, edgecolor="none"),
+                # fontweight="bold",
+                # bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
             )
         ax.set_facecolor('lightgrey')
 
