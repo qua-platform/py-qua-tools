@@ -1,6 +1,6 @@
 from qualang_tools.wirer.connectivity.connectivity import Connectivity
 from qualang_tools.wirer.instruments import Instruments
-from qualang_tools.wirer.visualizer.visualizer import visualize_chassis
+from qualang_tools.wirer.visualizer.visualizer import visualize
 from qualang_tools.wirer.wirer import allocate_wiring
 from qualang_tools.wirer.wirer.channel_specs import mw_fem_spec, ChannelSpecLfFemSingle
 
@@ -11,17 +11,17 @@ def test_5q_allocation(instruments_2lf_2mw):
     qubit_pairs = [(1, 2), (2, 3), (3, 4), (4, 5)]
 
     connectivity = Connectivity()
-    connectivity.add_resonator_line(qubits=qubits, channel_spec=mw_fem_spec(slot=7))
-    connectivity.add_qubit_drive_lines(qubits=qubits, channel_spec=mw_fem_spec(slot=7))
+    connectivity.add_resonator_line(qubits=qubits)#, channel_spec=mw_fem_spec(slot=7))
+    connectivity.add_qubit_drive_lines(qubits=qubits)#, channel_spec=mw_fem_spec(slot=7))
     connectivity.add_qubit_flux_lines(qubits=qubits)
-    connectivity.add_qubit_pair_flux_lines(qubit_pairs=qubit_pairs)
+    connectivity.add_qubit_pair_flux_lines(qubit_pairs=qubit_pairs, channel_spec=ChannelSpecLfFemSingle(out_slot=2))
 
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
     print(connectivity.elements)
 
     if visualize:
-        visualize_chassis(connectivity.elements, instruments_2lf_2mw.available_channels)
+        visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
 
 def test_4rr_allocation(instruments_2lf_2mw):
@@ -35,7 +35,7 @@ def test_4rr_allocation(instruments_2lf_2mw):
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize(connectivity.elements)
 
 
 def test_6rr_6xy_6flux_allocation():
@@ -52,4 +52,4 @@ def test_6rr_6xy_6flux_allocation():
     allocate_wiring(connectivity, instruments)
 
     if visualize:
-        visualize_chassis(connectivity.elements, instruments.available_channels)
+        visualize(connectivity.elements, instruments.available_channels)

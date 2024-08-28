@@ -1,5 +1,5 @@
 from qualang_tools.wirer.connectivity.connectivity import Connectivity
-from qualang_tools.wirer.visualizer.visualizer import visualize_chassis
+from qualang_tools.wirer.visualizer.visualizer import visualize
 from qualang_tools.wirer.wirer import allocate_wiring
 from pprint import pprint
 
@@ -16,7 +16,7 @@ def test_rf_io_allocation(instruments_1octave):
 
     pprint(connectivity.elements)
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize(connectivity.elements)
 
 def test_qw_soprano_allocation(instruments_qw_soprano):
     qubits = [1, 2, 3, 4, 5]
@@ -31,7 +31,7 @@ def test_qw_soprano_allocation(instruments_qw_soprano):
     pprint(connectivity.elements)
 
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize(connectivity.elements)
 
 def test_qw_soprano_2qb_allocation(instruments_1OPX1Octave):
     active_qubits = [1, 2]
@@ -74,4 +74,4 @@ def test_qw_soprano_2qb_among_5_allocation(instruments_1OPX1Octave):
     pprint(connectivity.elements)
 
     if visualize:
-        visualize_chassis(connectivity.elements)
+        visualize(connectivity.elements)

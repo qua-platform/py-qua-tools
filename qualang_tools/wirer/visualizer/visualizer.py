@@ -56,7 +56,7 @@ def draw_annotations(manager: InstrumentFigureManager, annotations: List[PortAnn
         annotation.draw(ax)
         annotation.title_axes(ax)
 
-def visualize_chassis(qubit_dict, available_channels=None):
+def visualize(qubit_dict, available_channels=None):
     # Invert the qubit dictionary for easier annotation processing
     inverted_dict = invert_qubit_dict(qubit_dict)
 
