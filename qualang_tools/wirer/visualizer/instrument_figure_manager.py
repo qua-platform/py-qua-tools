@@ -23,17 +23,17 @@ class InstrumentFigureManager:
             if instrument_id == "OPX1000":
                 fig, axs = self._make_opx1000_figure()
                 self.figures[key] = {i+1: ax for i, ax in enumerate(axs)}
+                fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
             elif instrument_id == "OPX+":
-                raise NotImplementedError()
                 fig = self._make_opx_plus_figure()
                 self.figures[key] = fig.axes[0]
+                fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
             elif instrument_id == "Octave":
-                raise NotImplementedError()
                 fig = self._make_octave_figure()
                 self.figures[key] = fig.axes[0]
+                fig.suptitle(f"oct{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
             else:
                 raise NotImplementedError()
-            fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
 
         return self.figures[key][slot] if slot is not None else self.figures[key]
 
@@ -63,8 +63,9 @@ class InstrumentFigureManager:
             figsize=(INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["width"] * 2,
                      INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] * 2)
         )
-        ax.set_ylim([0.15, 1.15])
-        ax.set_xlim([0.15 * 8, 1.15 * 8])
+        ax.set_ylim([0.15 / 8 * 3, 1.15/ 8 * 3])
+        print(1.15/8*3)
+        ax.set_xlim([0.15 * 3, 1.15 * 3])
         ax.set_facecolor('darkgrey')
         ax.set_xticks([])
         ax.set_yticks([])

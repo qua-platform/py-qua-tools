@@ -1,13 +1,23 @@
+"""
+The purpose of this module is to compile a sequence of wiring specifications
+into potential channel specifications, then to allocate them to the first valid
+combination of instrument channels.
+"""
+from typing import List
+
 from .channel_specs import ChannelSpecLfFemSingle, ChannelSpecOpxPlusSingle, ChannelSpecMwFemSingle, \
-    ChannelSpecLfFemBaseband, ChannelSpecOctave, ChannelSpecOpxPlusBaseband
+    ChannelSpecLfFemBaseband, ChannelSpecOctave, ChannelSpecOpxPlusBaseband, ChannelSpecMwFemDigital, \
+    ChannelSpecLfFemDigital, ChannelSpecOctaveDigital, ChannelSpecOpxPlusDigital
 from .wirer_assign_channels_to_spec import assign_channels_to_spec
-from .wirer_exception import WirerException
+from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
+from ..connectivity.channel_spec import ChannelSpec
 from ..instruments import Instruments
 from ..connectivity import Connectivity
 from ..connectivity.wiring_spec import WiringSpec, WiringFrequency, WiringLineType
 
 
-def allocate_wiring(connectivity: Connectivity, instruments: Instruments):
+def allocate_wiring(connectivity: Connectivity, instruments: Instruments,
+                    block_used_channels: bool = True, clear_wiring_specifications: bool = True):
     line_type_fill_order = [
         WiringLineType.RESONATOR,
         WiringLineType.DRIVE,
@@ -19,10 +29,19 @@ def allocate_wiring(connectivity: Connectivity, instruments: Instruments):
     for line_type in line_type_fill_order:
         for spec in specs:
             if spec.line_type == line_type:
-                _allocate_channels(spec, instruments)
+                _allocate_wiring(spec, instruments)
+
+    if clear_wiring_specifications:
+        connectivity.specs = []
+
+    if not block_used_channels:
+        for channel_type, used_channels in instruments.used_channels.items():
+            for i, used_channel in enumerate(reversed(used_channels)):
+                instruments.available_channels.insert(0, used_channel)
+                instruments.used_channels.remove(used_channel)
 
 
-def _allocate_channels(spec: WiringSpec, instruments: Instruments):
+def _allocate_wiring(spec: WiringSpec, instruments: Instruments):
     if spec.frequency == WiringFrequency.DC:
         allocate_dc_channels(spec, instruments)
 
@@ -37,19 +56,12 @@ def allocate_dc_channels(spec: WiringSpec, instruments: Instruments):
     """
     Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
     """
-    if not spec.channel_specs:
-        spec.channel_specs = [
-            ChannelSpecLfFemSingle(),
-            ChannelSpecOpxPlusSingle()
-        ]
+    dc_specs = [
+        ChannelSpecLfFemSingle(),
+        ChannelSpecOpxPlusSingle()
+    ]
 
-    for channel_spec in spec.channel_specs:
-        channel_templates = spec.get_channel_template_from_spec(channel_spec)
-        if assign_channels_to_spec(spec, instruments, channel_templates, same_con=True, same_slot=True):
-            return
-
-    raise WirerException(spec)
-
+    allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
 
 def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
     """
@@ -57,16 +69,29 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
     combination of LF-FEM I/Q and Octave channels, or OPX+ I/Q and Octave
     channels.
     """
-    if not spec.channel_specs:
-        spec.channel_specs = [
-            ChannelSpecMwFemSingle(),
-            ChannelSpecLfFemBaseband() & ChannelSpecOctave(),
-            ChannelSpecOpxPlusBaseband() & ChannelSpecOctave(),
-        ]
+    rf_specs = [
+        ChannelSpecMwFemSingle() & ChannelSpecMwFemDigital(),
+        ChannelSpecLfFemBaseband() & ChannelSpecLfFemDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital(),
+        ChannelSpecOpxPlusBaseband() & ChannelSpecOpxPlusDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital()
+    ]
 
-    for channel_spec in spec.channel_specs:
-        channel_templates = spec.get_channel_template_from_spec(channel_spec)
-        if assign_channels_to_spec(spec, instruments, channel_templates, same_con=True, same_slot=True):
+    allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True)
+
+
+def allocate_channels(wiring_spec: WiringSpec, channel_specs: List[ChannelSpec],
+                      instruments: Instruments, same_con: bool, same_slot: bool):
+    mask_failures = 0
+    for channel_spec in channel_specs:
+        channel_spec = channel_spec.filter_by_wiring_spec(wiring_spec)
+        if wiring_spec.constraints:
+            constraints = wiring_spec.constraints.filter_by_wiring_spec(wiring_spec)
+            if not channel_spec.apply_constraints(constraints):
+                mask_failures += 1
+                continue
+        if assign_channels_to_spec(wiring_spec, instruments, channel_spec.channel_templates, same_con=same_con, same_slot=same_slot):
             return
 
-    raise WirerException(spec)
+    if mask_failures == len(channel_specs):
+        raise ConstraintsTooStrictException(wiring_spec, wiring_spec.constraints)
+    else:
+        raise NotEnoughChannelsException(wiring_spec)

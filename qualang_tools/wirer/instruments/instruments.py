@@ -1,6 +1,8 @@
 from typing import List, Union
 
-from .instrument_channel import InstrumentChannelOctaveInput, InstrumentChannelOctaveOutput
+from .instrument_channel import InstrumentChannelOctaveInput, InstrumentChannelOctaveOutput, \
+    InstrumentChannelOctaveDigitalInput, InstrumentChannelLfFemDigitalOutput, InstrumentChannelMwFemDigitalOutput, \
+    InstrumentChannelOpxPlusDigitalOutput
 from .instrument_channels import *
 from .constants import *
 
@@ -13,6 +15,7 @@ class Instruments:
     """
 
     def __init__(self):
+        self.used_channels = InstrumentChannels()
         self.available_channels = InstrumentChannels()
 
     def add_octave(self, indices: Union[List[int], int]):
@@ -28,41 +31,57 @@ class Instruments:
                 channel = InstrumentChannelOctaveOutput(con=index, port=port)
                 self.available_channels.add(channel)
 
-    def add_lf_fem(self, con: int, slots: Union[List[int], int]):
+            for port in range(1, NUM_OCTAVE_DIGITAL_INPUT_PORTS + 1):
+                channel = InstrumentChannelOctaveDigitalInput(con=index, port=port)
+                self.available_channels.add(channel)
+
+    def add_lf_fem(self, controller: int, slots: Union[List[int], int]):
         if isinstance(slots, int):
             slots = [slots]
 
         for slot in slots:
             for port in range(1, NUM_LF_FEM_INPUT_PORTS + 1):
-                channel = InstrumentChannelLfFemInput(con=con, slot=slot, port=port)
+                channel = InstrumentChannelLfFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
 
             for port in range(1, NUM_LF_FEM_OUTPUT_PORTS + 1):
-                channel = InstrumentChannelLfFemOutput(con=con, slot=slot, port=port)
+                channel = InstrumentChannelLfFemOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
 
-    def add_mw_fem(self, con: int, slots: Union[List[int], int]):
+            for port in range(1, NUM_LF_FEM_DIGITAL_OUTPUT_PORTS + 1):
+                channel = InstrumentChannelLfFemDigitalOutput(con=controller, slot=slot, port=port)
+                self.available_channels.add(channel)
+
+    def add_mw_fem(self, controller: int, slots: Union[List[int], int]):
         if isinstance(slots, int):
             slots = [slots]
 
         for slot in slots:
             for port in range(1, NUM_MW_FEM_INPUT_PORTS + 1):
-                channel = InstrumentChannelMwFemInput(con=con, slot=slot, port=port)
+                channel = InstrumentChannelMwFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
 
             for port in range(1, NUM_MW_FEM_OUTPUT_PORTS + 1):
-                channel = InstrumentChannelMwFemOutput(con=con, slot=slot, port=port)
+                channel = InstrumentChannelMwFemOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
 
-    def add_opx_plus(self, cons: Union[List[int], int]):
-        if isinstance(cons, int):
-            cons = [cons]
+            for port in range(1, NUM_MW_FEM_OUTPUT_PORTS + 1):
+                channel = InstrumentChannelMwFemDigitalOutput(con=controller, slot=slot, port=port)
+                self.available_channels.add(channel)
 
-        for con in cons:
+    def add_opx_plus(self, controllers: Union[List[int], int]):
+        if isinstance(controllers, int):
+            controllers = [controllers]
+
+        for controller in controllers:
             for port in range(1, NUM_OPX_PLUS_INPUT_PORTS + 1):
-                channel = InstrumentChannelOpxPlusInput(con=con, port=port)
+                channel = InstrumentChannelOpxPlusInput(con=controller, port=port)
                 self.available_channels.add(channel)
 
             for port in range(1, NUM_OPX_PLUS_OUTPUT_PORTS + 1):
-                channel = InstrumentChannelOpxPlusOutput(con=con, port=port)
+                channel = InstrumentChannelOpxPlusOutput(con=controller, port=port)
+                self.available_channels.add(channel)
+
+            for port in range(1, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1):
+                channel = InstrumentChannelOpxPlusDigitalOutput(con=controller, port=port)
                 self.available_channels.add(channel)

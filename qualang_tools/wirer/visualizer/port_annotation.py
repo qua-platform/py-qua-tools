@@ -9,47 +9,52 @@ import matplotlib.colors as mcolors
 from .constants import PORT_POSITIONS, PORT_SIZE, PORT_SPACING_FACTOR
 
 class PortAnnotation:
-    def __init__(self, labels, color, con, slot, io_type, port, instrument_id):
+    def __init__(self, labels, color, con, slot, port, io_type, signal_type, instrument_id):
         self.labels = labels
         self.color = color
         self.con = con
         self.slot = slot
-        self.io_type = io_type
         self.port = port
+        self.io_type = io_type
+        self.signal_type = signal_type
         self.instrument_id = instrument_id
 
     def draw(self, ax: Axes):
+        if self.signal_type == "digital":
+            return
         pos = PORT_POSITIONS[self.instrument_id][self.io_type][self.port - 1]
         x, y = pos
         fill_color = self.color if self.labels else "none"
         ax.add_patch(patches.Circle((x, y), PORT_SIZE, edgecolor="black", facecolor=fill_color))
         labels = combine_labels_for_same_line_type(self.labels)
-        # port annotation
-        ax.text(
-            x,
-            y,
-            str(self.port),
-            ha="center",
-            va="center",
-            fontsize=10,
-            color=get_contrast_color(self.color),
-        )
+        # # port annotation
+        # ax.text(
+        #     x,
+        #     y,
+        #     str(self.port),
+        #     ha="center",
+        #     va="center",
+        #     fontsize=10,
+        #     color=get_contrast_color(self.color),
+        # )
         for i, label in enumerate(labels):
             # qubit line annotation
             ax.text(
-                x - PORT_SPACING_FACTOR / 1.75,
+                x, # - PORT_SPACING_FACTOR / 2.25,
                 y + (PORT_SPACING_FACTOR / 1.75) * i,
                 label,
-                ha="right",
+                ha="center",
                 va="center",
                 fontsize=12,
                 color="black",
-                bbox=dict(facecolor="white", alpha=1, edgecolor="none"),
+                fontweight="bold",
+                bbox=dict(facecolor="white", alpha=1.0, edgecolor="none"),
             )
         ax.set_facecolor('lightgrey')
 
     def title_axes(self, ax: Axes):
-        ax.set_title(f"{self.slot}: {self.instrument_id}", fontweight="bold", y=-0.1, va="bottom")
+        if self.slot is not None:
+            ax.set_title(f"{self.slot}: {self.instrument_id}", fontweight="bold", y=-0.1, va="bottom")
 
 
 def get_contrast_color(color):

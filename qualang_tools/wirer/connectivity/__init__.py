@@ -1,1 +1,1 @@
-from .connectivity import Connectivity
+from .connectivity_transmon_interface import Connectivity
