@@ -54,7 +54,7 @@ class PortAnnotation:
 
     def title_axes(self, ax: Axes):
         if self.slot is not None:
-            ax.set_title(f"{self.slot}: {self.instrument_id}", fontweight="bold", y=-0.1, va="bottom")
+            ax.set_title(f"{self.slot}: {self.instrument_id}", y=-0.1, va="bottom")
 
 
 def get_contrast_color(color):
