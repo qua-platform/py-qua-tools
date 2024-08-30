@@ -64,7 +64,6 @@ class InstrumentFigureManager:
                      INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] * 2)
         )
         ax.set_ylim([0.15 / 8 * 3, 1.15/ 8 * 3])
-        print(1.15/8*3)
         ax.set_xlim([0.15 * 3, 1.15 * 3])
         ax.set_facecolor('darkgrey')
         ax.set_xticks([])

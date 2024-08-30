@@ -144,7 +144,7 @@ class InstrumentChannelOctaveOutput(
 class InstrumentChannelOctaveDigitalInput(
     InstrumentChannelDigital,
     InstrumentChannelOctave,
-    InstrumentChannelOutput,
+    InstrumentChannelInput,
     InstrumentChannel
 ): pass
 
