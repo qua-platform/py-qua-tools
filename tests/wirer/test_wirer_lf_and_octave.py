@@ -35,9 +35,9 @@ def test_qw_soprano_2qb_allocation(instruments_1OPX1Octave):
     active_qubits = [1, 2]
 
     connectivity = Connectivity()
-    connectivity.add_resonator_line(qubits=active_qubits, channel_spec=opx_iq_octave_spec(rf_out=1))
-    connectivity.add_qubit_drive_lines(qubits=[1], channel_spec=opx_iq_octave_spec(rf_out=2))
-    connectivity.add_qubit_drive_lines(qubits=[2], channel_spec=opx_iq_octave_spec(rf_out=4))
+    connectivity.add_resonator_line(qubits=active_qubits, constraints=octave_spec(rf_out=1))
+    connectivity.add_qubit_drive_lines(qubits=[1], constraints=opx_iq_octave_spec(rf_out=2))
+    connectivity.add_qubit_drive_lines(qubits=[2], constraints=opx_iq_octave_spec(rf_out=4))
     connectivity.add_qubit_flux_lines(qubits=active_qubits)
 
     allocate_wiring(connectivity, instruments_1OPX1Octave)

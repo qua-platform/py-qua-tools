@@ -1,6 +1,4 @@
 from collections import Counter
-from os import setsid
-from typing import List
 
 from qualang_tools.wirer.connectivity.wiring_spec import WiringSpec
 from qualang_tools.wirer.instruments.instrument_channel import AnyInstrumentChannel
