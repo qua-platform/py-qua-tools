@@ -1,6 +1,8 @@
+import pytest
+
 from qualang_tools.wirer import *
 
-visualize_flag = True
+visualize_flag = pytest.visualize_flag
 
 def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
     connectivity = Connectivity()

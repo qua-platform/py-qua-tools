@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Union, Literal, Callable
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannel:
     con: int
     port: int
@@ -18,40 +18,40 @@ class InstrumentChannel:
         )
 
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelInput:
     io_type: Literal["input", "output"] = "input"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOutput:
     io_type: Literal["input", "output"] = "output"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelDigital:
     signal_type = "digital"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelAnalog:
     signal_type = "analog"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelLfFem:
     instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "lf-fem"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelMwFem:
     instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "mw-fem"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOpxPlus:
     instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "opx+"
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOctave:
     instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "octave"
 
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelLfFemInput(
     InstrumentChannelAnalog,
     InstrumentChannelLfFem,
@@ -59,7 +59,7 @@ class InstrumentChannelLfFemInput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelLfFemOutput(
     InstrumentChannelAnalog,
     InstrumentChannelLfFem,
@@ -67,7 +67,7 @@ class InstrumentChannelLfFemOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelLfFemDigitalOutput(
     InstrumentChannelDigital,
     InstrumentChannelLfFem,
@@ -76,7 +76,7 @@ class InstrumentChannelLfFemDigitalOutput(
 ): pass
 
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelMwFemInput(
     InstrumentChannelAnalog,
     InstrumentChannelMwFem,
@@ -84,7 +84,7 @@ class InstrumentChannelMwFemInput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelMwFemOutput(
     InstrumentChannelAnalog,
     InstrumentChannelMwFem,
@@ -92,7 +92,7 @@ class InstrumentChannelMwFemOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelMwFemDigitalOutput(
     InstrumentChannelDigital,
     InstrumentChannelMwFem,
@@ -100,7 +100,7 @@ class InstrumentChannelMwFemDigitalOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOpxPlusInput(
     InstrumentChannelAnalog,
     InstrumentChannelOpxPlus,
@@ -108,7 +108,7 @@ class InstrumentChannelOpxPlusInput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOpxPlusOutput(
     InstrumentChannelAnalog,
     InstrumentChannelOpxPlus,
@@ -116,7 +116,7 @@ class InstrumentChannelOpxPlusOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOpxPlusDigitalOutput(
     InstrumentChannelDigital,
     InstrumentChannelOpxPlus,
@@ -124,7 +124,7 @@ class InstrumentChannelOpxPlusDigitalOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOctaveInput(
     InstrumentChannelAnalog,
     InstrumentChannelOctave,
@@ -132,7 +132,7 @@ class InstrumentChannelOctaveInput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOctaveOutput(
     InstrumentChannelAnalog,
     InstrumentChannelOctave,
@@ -140,7 +140,7 @@ class InstrumentChannelOctaveOutput(
     InstrumentChannel
 ): pass
 
-@dataclass
+@dataclass(eq=False)
 class InstrumentChannelOctaveDigitalInput(
     InstrumentChannelDigital,
     InstrumentChannelOctave,

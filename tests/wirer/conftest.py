@@ -2,6 +2,9 @@ from qualang_tools.wirer.instruments import Instruments
 import pytest
 
 
+def pytest_configure():
+    pytest.visualize_flag = False
+
 @pytest.fixture(params=["lf-fem", "opx+"])
 def instruments_qw_soprano(request) -> Instruments:
     print(request.param)

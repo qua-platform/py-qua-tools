@@ -1,6 +1,8 @@
+import pytest
+
 from qualang_tools.wirer import *
 
-visualize_flag = True
+visualize_flag = pytest.visualize_flag
 
 def test_5q_allocation(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
