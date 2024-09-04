@@ -82,6 +82,12 @@ class Instruments:
                 channel = InstrumentChannelOpxPlusOutput(con=controller, port=port)
                 self.available_channels.add(channel)
 
-            for port in range(1, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1):
+            # add odd first for octave connectivity (top row is more convenient)
+            for port in range(1, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1, 2):
+                channel = InstrumentChannelOpxPlusDigitalOutput(con=controller, port=port)
+                self.available_channels.add(channel)
+
+            # then add evens
+            for port in range(2, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1, 2):
                 channel = InstrumentChannelOpxPlusDigitalOutput(con=controller, port=port)
                 self.available_channels.add(channel)

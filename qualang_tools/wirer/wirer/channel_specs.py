@@ -147,3 +147,4 @@ opx_spec = ChannelSpecOpxPlusSingle
 opx_iq_spec = ChannelSpecOpxPlusBaseband
 opx_iq_octave_spec = ChannelSpecOpxPlusBasebandAndOctave
 octave_spec = ChannelSpecOctave
+opx_dig_spec = ChannelSpecOpxPlusDigital
