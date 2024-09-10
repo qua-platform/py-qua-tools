@@ -15,6 +15,7 @@ class WiringLineType(Enum):
     RESONATOR = "rr"
     DRIVE = "xy"
     FLUX = "z"
+    CHARGE = "q"
     COUPLER = "c"
 
 class WiringSpec:

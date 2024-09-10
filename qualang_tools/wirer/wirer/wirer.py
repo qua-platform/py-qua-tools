@@ -22,6 +22,7 @@ def allocate_wiring(connectivity: Connectivity, instruments: Instruments,
         WiringLineType.RESONATOR,
         WiringLineType.DRIVE,
         WiringLineType.FLUX,
+        WiringLineType.CHARGE,
         WiringLineType.COUPLER,
     ]
 

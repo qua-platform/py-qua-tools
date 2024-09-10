@@ -43,6 +43,7 @@ def prepare_available_channel_annotations(available_channels: InstrumentChannels
 def get_color_for_line_type(line_type) -> str:
     color_map = {
         WiringLineType.FLUX: "powderblue",
+        WiringLineType.CHARGE: "lavender",
         WiringLineType.RESONATOR: "peachpuff",
         WiringLineType.DRIVE: "lemonchiffon",
         WiringLineType.COUPLER: "thistle"

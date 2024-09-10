@@ -28,6 +28,12 @@ class Connectivity(ConnectivityBase):
                                     triggered, constraints, elements)
 
 
+    def add_qubit_charge_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
+        elements = self._make_qubit_elements(qubits)
+        return self.add_wiring_spec(WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.CHARGE,
+                                    False, constraints, elements)
+
+
     def add_qubit_flux_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX,
