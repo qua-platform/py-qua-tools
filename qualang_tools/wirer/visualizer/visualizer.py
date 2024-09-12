@@ -15,11 +15,11 @@ def invert_qubit_dict(qubit_dict) -> dict:
                 key = (channel.con, channel.slot, channel.port, channel.io_type, channel.signal_type, channel.instrument_id, channel_type)
                 if key not in inverted_dict:
                     inverted_dict[key] = []
-                annotation = f"q{qubit_ref.index if hasattr(qubit_ref, 'index') else f'{qubit_ref.control_index}{qubit_ref.target_index}'}.{channel_type.value}"
+                annotation = f"{element.id}.{channel_type if isinstance(channel_type, str) else channel_type.value}"
                 inverted_dict[key].append((annotation, channel))
     return inverted_dict
 
-def prepare_annotations(inverted_dict: dict) -> List[PortAnnotation]:
+def make_annotations(inverted_dict: dict) -> List[PortAnnotation]:
     annotations = []
     for key, values in inverted_dict.items():
         con, slot, port, io_type, signal_type, instrument_id, channel_type = key
@@ -30,12 +30,11 @@ def prepare_annotations(inverted_dict: dict) -> List[PortAnnotation]:
     return annotations
 
 
-def prepare_available_channel_annotations(available_channels: InstrumentChannels) -> List[PortAnnotation]:
+def make_unused_channel_annotations(available_channels: InstrumentChannels) -> List[PortAnnotation]:
     annotations = []
     for _, channel_list in available_channels.stack.items():
         for channel in channel_list:
-            color = get_color_for_line_type(None)
-            annotations.append(PortAnnotation([""], color, channel.con, channel.slot, channel.port, channel.io_type, channel.signal_type, channel.instrument_id))
+            annotations.append(PortAnnotation([""], "white", channel.con, channel.slot, channel.port, channel.io_type, channel.signal_type, channel.instrument_id))
 
     return annotations
 
@@ -46,9 +45,9 @@ def get_color_for_line_type(line_type) -> str:
         WiringLineType.CHARGE: "lavender",
         WiringLineType.RESONATOR: "peachpuff",
         WiringLineType.DRIVE: "lemonchiffon",
-        WiringLineType.COUPLER: "thistle"
+        WiringLineType.COUPLER: "thistle",
     }
-    return color_map.get(line_type, "white")
+    return color_map.get(line_type, "beige")
 
 
 def draw_annotations(manager: InstrumentFigureManager, annotations: List[PortAnnotation]):
@@ -62,13 +61,13 @@ def visualize(qubit_dict, available_channels=None):
     inverted_dict = invert_qubit_dict(qubit_dict)
 
     # Prepare annotations and labels
-    annotations = prepare_annotations(inverted_dict)
+    annotations = make_annotations(inverted_dict)
 
     # Manage figures and draw
     manager = InstrumentFigureManager()
 
     if available_channels is not None:
-        available_channel_annotations = prepare_available_channel_annotations(available_channels)
+        available_channel_annotations = make_unused_channel_annotations(available_channels)
         draw_annotations(manager, available_channel_annotations)
 
     draw_annotations(manager, annotations)

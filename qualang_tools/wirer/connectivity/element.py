@@ -6,6 +6,13 @@ from ..instruments.instrument_channel import AnyInstrumentChannel
 
 
 @dataclass(frozen=True)
+class Reference:
+    name: str
+
+    def __str__(self):
+        return self.name
+
+@dataclass(frozen=True)
 class QubitReference:
     index: int
 
@@ -22,13 +29,15 @@ class QubitPairReference:
 
 
 
-ElementId = Union[QubitReference, QubitPairReference]
+ElementId = Union[Reference, QubitReference, QubitPairReference]
 
 
-@dataclass
 class Element:
-    id: ElementId
-    channels: Dict[WiringLineType, List[AnyInstrumentChannel]] = field(default_factory=dict)
+    def __init__(self, id: Union[str, QubitReference, QubitPairReference]):
+        if isinstance(id, str):
+            id = Reference(id)
+        self.id = id
+        self.channels: Dict[WiringLineType, List[AnyInstrumentChannel]] = dict()
 
     def __str__(self):
         return str(self.channels)

@@ -91,6 +91,8 @@ def combine_labels_for_same_line_type(labels: List[str]):
             index = int(match.group(1))  # Extract the qubit index
             line_type = match.group(2)  # Extract the line type
             grouped_lines[line_type].append(index)
+        else:
+            return labels
 
     # Result list to store the reduced strings
     reduced_strings = []

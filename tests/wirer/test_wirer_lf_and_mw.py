@@ -33,7 +33,7 @@ def test_4rr_allocation(instruments_2lf_2mw):
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
     if visualize_flag:
-        visualize(connectivity.elements)
+        visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
 
 def test_6rr_6xy_6flux_allocation():

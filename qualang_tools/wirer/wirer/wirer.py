@@ -27,10 +27,17 @@ def allocate_wiring(connectivity: Connectivity, instruments: Instruments,
     ]
 
     specs = connectivity.specs
+
+    specs_with_untyped_lines = set()
     for line_type in line_type_fill_order:
         for spec in specs:
+            if spec.line_type not in line_type_fill_order:
+                specs_with_untyped_lines.add(spec)
             if spec.line_type == line_type:
                 _allocate_wiring(spec, instruments)
+
+    for spec in specs_with_untyped_lines:
+        _allocate_wiring(spec, instruments)
 
     if clear_wiring_specifications:
         connectivity.specs = []

@@ -6,10 +6,17 @@ class WiringFrequency(Enum):
     DC = "DC"
     RF = "RF"
 
+DC =  WiringFrequency.DC
+RF =  WiringFrequency.RF
+
 class WiringIOType(Enum):
     INPUT = "input"
     OUTPUT = "output"
     INPUT_AND_OUTPUT = "input/output"
+
+INPUT = WiringIOType.INPUT
+OUTPUT = WiringIOType.OUTPUT
+INPUT_AND_OUTPUT = WiringIOType.INPUT_AND_OUTPUT
 
 class WiringLineType(Enum):
     RESONATOR = "rr"
@@ -17,6 +24,12 @@ class WiringLineType(Enum):
     FLUX = "z"
     CHARGE = "q"
     COUPLER = "c"
+
+RESONATOR = WiringLineType.RESONATOR
+DRIVE = WiringLineType.DRIVE
+FLUX = WiringLineType.FLUX
+CHARGE = WiringLineType.CHARGE
+COUPLER = WiringLineType.COUPLER
 
 class WiringSpec:
     """

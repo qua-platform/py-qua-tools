@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from .channel_spec import ChannelSpec
 from .element import Element, ElementId, QubitReference, QubitPairReference
@@ -20,10 +20,14 @@ class ConnectivityBase:
         self.elements: Dict[ElementId, Element] = {}
         self.specs: List[WiringSpec] = []
 
-    def add_wiring_spec(self, frequency: WiringFrequency, io_type: WiringIOType, line_type: WiringLineType,
+    def add_wiring_spec(self, frequency: WiringFrequency, io_type: WiringIOType, line_type: Union[WiringLineType, str],
                         triggered: bool, constraints: ChannelSpec, elements: List[Element],
                         shared_line: bool = False, ):
         specs = []
+        for element in elements:
+            if element.id not in self.elements:
+                self._add_element(element)
+
         if shared_line:
             spec = WiringSpec(frequency, io_type, line_type, triggered, constraints, elements)
             specs.append(spec)
@@ -60,3 +64,10 @@ class ConnectivityBase:
             elements.append(self.elements[id])
 
         return elements
+
+    def _add_elements(self, elements: List[Element]):
+        for element in elements:
+            self._add_element(element)
+
+    def _add_element(self, element: Element):
+        self.elements[element.id] = element
