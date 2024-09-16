@@ -52,7 +52,7 @@ jobs:
       - name: Collect PyTest report
         id: collect-pytest-reports
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pytest-report
           path: ${{ env.JUNIT_REPORT_PATH }}
@@ -67,7 +67,7 @@ jobs:
           files: ${{env.JUNIT_REPORT_PATH}}/*.xml
 
       - name: Upload dist
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: python_pkg
           path: |
