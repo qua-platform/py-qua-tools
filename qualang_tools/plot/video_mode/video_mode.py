@@ -2,6 +2,8 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import logging
+
+from qualang_tools.plot.video_mode.data_acquirers import BaseDataAcquirer
 from .plotly_tools import xarray_to_plotly
 
 
@@ -13,9 +15,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class VideoMode:
-    def __init__(self, data_acquirer, integration_time=10e-6):
-        self.data_generator = data_acquirer
-        self.integration_time = integration_time
+    def __init__(self, data_acquirer: BaseDataAcquirer):
+        self.data_acquirer = data_acquirer
+
         self.paused = False
         self.iteration = 0
 
@@ -42,9 +44,9 @@ class VideoMode:
                         dcc.Input(
                             id=f"{xy}-span",
                             type="number",
-                            value=getattr(self.data_generator, f"{xy}_span"),
+                            value=getattr(self.data_acquirer, f"{xy}_span"),
                             min=0.01,
-                            max=getattr(self.data_generator, f"{xy}_span") * 2,
+                            max=getattr(self.data_acquirer, f"{xy}_span") * 2,
                             debounce=True,
                             style={
                                 "width": "55px",
@@ -76,7 +78,7 @@ class VideoMode:
                         dcc.Input(
                             id=f"{xy}-points",
                             type="number",
-                            value=getattr(self.data_generator, f"{xy}_points"),
+                            value=getattr(self.data_acquirer, f"{xy}_points"),
                             min=1,
                             max=501,
                             step=1,
@@ -103,7 +105,7 @@ class VideoMode:
                         dcc.Input(
                             id=f"{xy}-offset",
                             type="number",
-                            value=getattr(self.data_generator, f"{xy}_offset_parameter").get(),
+                            value=getattr(self.data_acquirer, f"{xy}_offset_parameter").get(),
                             debounce=True,
                             style={
                                 "width": "55px",
@@ -126,7 +128,7 @@ class VideoMode:
         )
 
     def create_layout(self):
-        self.fig = xarray_to_plotly(self.data_generator.xarr)
+        self.fig = xarray_to_plotly(self.data_acquirer.xarr)
 
         # Modify the layout with CSS to left-align and adjust input size
         self.app.layout = html.Div(
@@ -172,7 +174,7 @@ class VideoMode:
                                         dcc.Input(
                                             id="integration-time",
                                             type="number",
-                                            value=self.integration_time * 1e6,
+                                            value=self.data_acquirer.integration_time * 1e6,
                                             min=1,
                                             debounce=True,
                                             style={"width": "40px", "text-align": "right"},
@@ -202,7 +204,7 @@ class VideoMode:
                                         dcc.Input(
                                             id="num-averages",
                                             type="number",
-                                            value=self.integration_time * 1e6,
+                                            value=self.data_acquirer.num_averages,
                                             min=1,
                                             step=1,
                                             debounce=True,
@@ -235,12 +237,12 @@ class VideoMode:
 
     def clear_data(self):
         """Clears data history and resets averages."""
-        self.data_generator.data_history.clear()
+        self.data_acquirer.data_history.clear()
         logging.debug("Cleared all averages and data history.")
 
     @property
     def update_interval(self):
-        return self.integration_time * self.data_generator.x_points * self.data_generator.y_points * 1000
+        return self.data_acquirer.integration_time * self.data_acquirer.x_points * self.data_acquirer.y_points * 1000
 
     def add_callbacks(self):
         @self.app.callback(
@@ -278,14 +280,14 @@ class VideoMode:
                 return self.fig, f"Iteration: {self.iteration}", self.update_interval
 
             attrs = [
-                {"obj": self, "attr": "integration_time", "new": integration_time / 1e6},
-                {"obj": self.data_generator, "attr": "num_averages", "new": num_averages},
-                {"obj": self.data_generator, "attr": "x_span", "new": x_span},
-                {"obj": self.data_generator, "attr": "y_span", "new": y_span},
-                {"obj": self.data_generator, "attr": "x_points", "new": x_points},
-                {"obj": self.data_generator, "attr": "y_points", "new": y_points},
-                {"obj": self.data_generator.x_offset_parameter, "attr": "latest_value", "new": x_offset},
-                {"obj": self.data_generator.y_offset_parameter, "attr": "latest_value", "new": y_offset},
+                {"obj": self.data_acquirer, "attr": "integration_time", "new": integration_time / 1e6},
+                {"obj": self.data_acquirer, "attr": "num_averages", "new": num_averages},
+                {"obj": self.data_acquirer, "attr": "x_span", "new": x_span},
+                {"obj": self.data_acquirer, "attr": "y_span", "new": y_span},
+                {"obj": self.data_acquirer, "attr": "x_points", "new": x_points},
+                {"obj": self.data_acquirer, "attr": "y_points", "new": y_points},
+                {"obj": self.data_acquirer.x_offset_parameter, "attr": "latest_value", "new": x_offset},
+                {"obj": self.data_acquirer.y_offset_parameter, "attr": "latest_value", "new": y_offset},
             ]
 
             logging.debug(f"***Updating heatmap at iteration {n_intervals}")
@@ -304,7 +306,7 @@ class VideoMode:
                 else:
                     setattr(attr["obj"], attr["attr"], attr["new"])
 
-            updated_xarr = self.data_generator.update_data()
+            updated_xarr = self.data_acquirer.update_data()
             self.fig = xarray_to_plotly(updated_xarr)
 
             # Increment iteration counter and update frontend

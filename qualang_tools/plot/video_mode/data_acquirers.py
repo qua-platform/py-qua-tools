@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from qm.qua import *
 import xarray as xr
 import logging
 
@@ -12,13 +13,26 @@ logging.basicConfig(level=logging.DEBUG)
 
 class BaseDataAcquirer(ABC):
     def __init__(
-        self, x_offset_parameter, y_offset_parameter, x_span, y_span, num_averages=1, x_points=101, y_points=101
+        self,
+        *,
+        x_offset_parameter,
+        y_offset_parameter,
+        x_span,
+        y_span,
+        x_points=101,
+        y_points=101,
+        num_averages=1,
+        integration_time: float = 10e-6,
+        **kwargs,
     ):
+        assert not kwargs
+
         self.x_offset_parameter = x_offset_parameter
         self.y_offset_parameter = y_offset_parameter
         self.x_span = x_span
         self.y_span = y_span
         self.num_averages = num_averages
+        self.integration_time = integration_time
         self.x_points = x_points
         self.y_points = y_points
         self.data_history = []
@@ -47,6 +61,12 @@ class BaseDataAcquirer(ABC):
         y_min = y_offset - self.y_span / 2
         y_max = y_offset + self.y_span / 2
         return np.linspace(y_min, y_max, self.y_points)
+
+    @property
+    def integration_cycles(self):
+        integration_cycles = int(self.integration_time * 1e9)
+        integration_cycles -= integration_cycles % 4
+        return integration_cycles
 
     def update_voltage_ranges(self):
         self.xarr = self.xarr.assign_coords(x=self.x_vals, y=self.y_vals)
@@ -95,4 +115,72 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
+    def __init__(
+        self,
+        *,
+        x_element,
+        y_element,
+        x_offset_parameter,
+        y_offset_parameter,
+        x_span,
+        y_span,
+        num_averages=1,
+        x_points=101,
+        y_points=101,
+        **kwargs,
+    ):
+        self.x_element = x_element
+        self.y_element = y_element
+
+        super().__init__(
+            x_offset_parameter=x_offset_parameter,
+            y_offset_parameter=y_offset_parameter,
+            x_span=x_span,
+            y_span=y_span,
+            num_averages=num_averages,
+            x_points=x_points,
+            y_points=y_points,
+            **kwargs,
+        )
+
     def generate_program(self):
+        from qualang_tools.loops import from_array
+
+        x_vals = self.x_vals - self.x_offset_parameter.get()
+        y_vals = self.y_vals - self.y_offset_parameter.get()
+
+        assert self.integration_cycles >= 16
+
+        with program() as prog:
+            x_val = declare(fixed)
+            y_val = declare(fixed)
+            output_stream = declare_stream()
+
+            with infinite_loop_():
+                with for_(*from_array(x_val, x_vals)):
+                    set_dc_offset(self.x_element, "single", x_val)
+
+                    with for_(*from_array(y_val, y_vals)):
+                        set_dc_offset(self.y_element, "single", y_val)
+                        wait(self.integration_cycles)
+                        align()
+
+                        measured_val = self.measure()
+                        save(measured_val, output_stream)
+                        align()
+
+            with stream_processing():
+                # TODO Or save_all?
+                output_stream.buffer(self.x_points, self.y_points).save("output_data")
+
+        return prog
+
+    def measure(self):
+        measured_val = declare(fixed)
+
+        measure(
+            "readout",
+            self.readout_element,
+        )
+
+        return measured_val

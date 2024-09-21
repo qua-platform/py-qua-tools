@@ -18,7 +18,8 @@ if __name__ == "__main__":
         num_averages=5,
         x_points=101,
         y_points=101,
+        integration_time=10e-6
     )
 
-    live_plotter = VideoMode(data_acquirer=data_acquirer, integration_time=10e-6)
+    live_plotter = VideoMode(data_acquirer=data_acquirer)
     live_plotter.run()
