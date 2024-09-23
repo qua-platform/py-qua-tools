@@ -9,9 +9,7 @@ from qm import QuantumMachinesManager
 def qmm():
     config_file = Path.home() / ".qm_config.toml"
     if not config_file.exists():
-        raise FileNotFoundError(
-            "Could not locate ~/.qm_config.toml, cannot extract IP and port to execute tests"
-        )
+        raise FileNotFoundError("Could not locate ~/.qm_config.toml, cannot extract IP and port to execute tests")
 
     config = toml.load(config_file)
     if "qmm" not in config:
@@ -95,7 +93,6 @@ def config():
                 "length": 80,
                 "waveforms": {"I": "const_wf", "Q": "zero_wf"},
             },
-
         },
         "waveforms": {
             "zero_wf": {"type": "constant", "sample": 0.0},
@@ -110,7 +107,7 @@ def config():
                 {
                     "intermediate_frequency": 0,
                     "lo_frequency": 0,
-                    "correction": (1,0,0,1),
+                    "correction": (1, 0, 0, 1),
                 }
             ],
         },

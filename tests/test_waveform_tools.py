@@ -27,7 +27,7 @@ def test_drag_no_drag_gaussian_to_scipy(length, sampling_rate):
         anharmonicity=0,
         detuning=0,
         subtracted=False,
-        sampling_rate=sampling_rate
+        sampling_rate=sampling_rate,
     )
     I_sub_wf, Q_sub_wf = drag_gaussian_pulse_waveforms(
         amplitude=amp,
@@ -37,9 +37,9 @@ def test_drag_no_drag_gaussian_to_scipy(length, sampling_rate):
         anharmonicity=0,
         detuning=0,
         subtracted=True,
-        sampling_rate=sampling_rate
+        sampling_rate=sampling_rate,
     )
-    gauss = amp * gaussian(int(length * sampling_rate/1e9), sigma * sampling_rate / 1e9)
+    gauss = amp * gaussian(int(length * sampling_rate / 1e9), sigma * sampling_rate / 1e9)
     sub_gauss = gauss - gauss[0]
     assert (I_wf == gauss).all()
     assert (I_sub_wf == sub_gauss).all()
@@ -57,7 +57,7 @@ def test_drag_no_detune_symmetric(length, sampling_rate):
         anharmonicity=10e6,
         detuning=0,
         subtracted=False,
-        sampling_rate=sampling_rate
+        sampling_rate=sampling_rate,
     )
     I_cos_wf, Q_cos_wf = drag_cosine_pulse_waveforms(
         amplitude=amp, length=length, alpha=0.1, anharmonicity=10e6, detuning=0, sampling_rate=sampling_rate
@@ -83,12 +83,8 @@ def test_drag_no_detune_symmetric(length, sampling_rate):
 
     assert (np.array(I_gauss_first_half) == np.flip(I_gauss_second_half)).all()
     assert (np.array(Q_gauss_first_half) == -np.flip(Q_gauss_second_half)).all()
-    np.testing.assert_allclose(
-        I_cos_first_half, np.flip(I_cos_second_half), rtol=1e-7, atol=1e-7
-    )
-    np.testing.assert_allclose(
-        Q_cos_first_half, -np.flip(Q_cos_second_half), rtol=1e-7, atol=1e-7
-    )
+    np.testing.assert_allclose(I_cos_first_half, np.flip(I_cos_second_half), rtol=1e-7, atol=1e-7)
+    np.testing.assert_allclose(Q_cos_first_half, -np.flip(Q_cos_second_half), rtol=1e-7, atol=1e-7)
 
 
 def test_drag_detune():
@@ -141,14 +137,18 @@ def test_drag_zero_delta():
         Exception,
         match="Cannot create a DRAG pulse",
     ):
-        drag_cosine_pulse_waveforms(
-            amplitude=0.1, length=40, alpha=0.1, anharmonicity=0, detuning=0
-        )
+        drag_cosine_pulse_waveforms(amplitude=0.1, length=40, alpha=0.1, anharmonicity=0, detuning=0)
 
 
 @pytest.mark.parametrize(
     "flat_length, rise_fall_length, sampling_rate",
-    list(zip([0, 16, 16, 21, 21, 60, 60, 0, 16, 16, 21, 21, 60, 60], [8, 5, 10, 5, 10, 0, 10, 8, 5, 10, 5, 10, 0, 10], [1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9])),
+    list(
+        zip(
+            [0, 16, 16, 21, 21, 60, 60, 0, 16, 16, 21, 21, 60, 60],
+            [8, 5, 10, 5, 10, 0, 10, 8, 5, 10, 5, 10, 0, 10],
+            [1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 1e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9, 2e9],
+        )
+    ),
 )
 def test_flattop_flat_length(flat_length, rise_fall_length, sampling_rate):
     amp = 0.1
@@ -205,7 +205,12 @@ def test_flattop_flat_length(flat_length, rise_fall_length, sampling_rate):
 
     assert np.allclose(
         flattop_gaussian_rise + flattop_gaussian_fall,
-        (amp * gaussian(int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / 5 * sampling_rate / 1e9)).tolist(),
+        (
+            amp
+            * gaussian(
+                int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / 5 * sampling_rate / 1e9
+            )
+        ).tolist(),
         rtol=1e-10,
     )
     cosine_rise_part = (
@@ -238,7 +243,7 @@ def test_flattop_flat_length(flat_length, rise_fall_length, sampling_rate):
             np.linspace(2, 31, 30).astype(int).tolist(),
             np.linspace(-0.5, 0.5, 30).tolist(),
             np.linspace(0.5, -0.5, 30).tolist(),
-            [1e9]*15 + [2e9]*15,
+            [1e9] * 15 + [2e9] * 15,
         )
     ),
 )
