@@ -1,7 +1,7 @@
-from qualang_tools.plot.video_mode.plotly_tools import *
-from qualang_tools.plot.video_mode.voltage_parameters import *
-from qualang_tools.plot.video_mode.data_acquirers import *
-from qualang_tools.plot.video_mode.video_mode import *
+from qualang_tools.control_panel.video_mode.plotly_tools import *
+from qualang_tools.control_panel.video_mode.voltage_parameters import *
+from qualang_tools.control_panel.video_mode.data_acquirers import *
+from qualang_tools.control_panel.video_mode.video_mode import *
 
 
 if __name__ == "__main__":

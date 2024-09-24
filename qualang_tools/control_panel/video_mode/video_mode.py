@@ -3,7 +3,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import logging
 
-from qualang_tools.plot.video_mode.data_acquirers import BaseDataAcquirer
+from qualang_tools.control_panel.video_mode.data_acquirers import BaseDataAcquirer
 from .plotly_tools import xarray_to_plotly
 
 
