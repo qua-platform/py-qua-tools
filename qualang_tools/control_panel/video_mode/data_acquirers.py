@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 import numpy as np
+from qm import Program, QuantumMachine
+from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 import xarray as xr
 import logging
@@ -83,7 +86,7 @@ class BaseDataAcquirer(ABC):
     def acquire_data(self) -> np.ndarray:
         pass
 
-    def update_data(self):
+    def update_data(self, attrs):
         new_data = self.acquire_data()
 
         if new_data.shape != self.xarr.values.shape:
@@ -115,11 +118,14 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
+
     def __init__(
         self,
         *,
+        qm: QuantumMachine,
         x_element,
         y_element,
+        readout_element,
         x_offset_parameter,
         y_offset_parameter,
         x_span,
@@ -127,10 +133,16 @@ class OPXDataAcquirer(BaseDataAcquirer):
         num_averages=1,
         x_points=101,
         y_points=101,
+        readout_pulse_name: str = "readout",
         **kwargs,
     ):
+        self.qm = qm
         self.x_element = x_element
         self.y_element = y_element
+        self.readout_element = readout_element
+        self.readout_pulse_name = readout_pulse_name
+        self.program: Optional[Program] = None
+        self.job: Optional[RunningQmJob] = None
 
         super().__init__(
             x_offset_parameter=x_offset_parameter,
@@ -143,7 +155,18 @@ class OPXDataAcquirer(BaseDataAcquirer):
             **kwargs,
         )
 
-    def generate_program(self):
+    def update_data(self, attrs):
+        updated_attr_names = [attr["attr"] for attr in attrs if attr["changed"]]
+        if any(name in updated_attr_names for name in ["x_span", "y_span", "x_points", "y_points", "integration_time"]):
+            self.generate_program()
+            self.run_program()
+
+        return super().update_data(attrs)
+
+    def acquire_data(self) -> np.ndarray:
+        pass
+
+    def generate_program(self) -> Program:
         from qualang_tools.loops import from_array
 
         x_vals = self.x_vals - self.x_offset_parameter.get()
@@ -173,14 +196,26 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 # TODO Or save_all?
                 output_stream.buffer(self.x_points, self.y_points).save("output_data")
 
+        self.program = prog
+
         return prog
+
+    def run_program(self):
+        if self.program is None:
+            self.program = self.generate_program()
+
+        self.job = self.qm.execute(self.program)
 
     def measure(self):
         measured_val = declare(fixed)
 
         measure(
-            "readout",
+            self.readout_pulse_name,
             self.readout_element,
+            None,
+            demod.full("cos", measured_val),
+            # demod.full("sin", Q),
+            # TODO Do we also need sin?
         )
 
         return measured_val
