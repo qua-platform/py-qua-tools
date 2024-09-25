@@ -20,6 +20,7 @@ class VideoMode:
 
         self.paused = False
         self.iteration = 0
+        self._last_update_clicks = 0
 
         self.app = dash.Dash(__name__, title="Video Mode")
         self.create_layout()
@@ -209,7 +210,7 @@ class VideoMode:
                                             step=1,
                                             debounce=True,
                                             style={"width": "40px"},
-                                        ),  # Integration time in microseconds
+                                        ),
                                     ],
                                     style={"display": "flex", "margin-bottom": "10px"},
                                 ),
@@ -222,6 +223,7 @@ class VideoMode:
                         ),
                         self._create_axis_layout("x"),
                         self._create_axis_layout("y"),
+                        html.Button("Update", id="update-button", n_clicks=0, style={"margin-top": "20px"}),
                     ],
                     style={"width": "40%", "margin": "auto"},
                 ),
@@ -262,7 +264,9 @@ class VideoMode:
             ],
             [
                 Input("interval-component", "n_intervals"),
-                Input("live-heatmap", "clickData"),  # This listens to clicks on the graph
+                Input("update-button", "n_clicks"),
+            ],
+            [
                 Input("integration-time", "value"),
                 Input("num-averages", "value"),
                 Input("x-span", "value"),
@@ -275,7 +279,7 @@ class VideoMode:
         )
         def update_heatmap(
             n_intervals,
-            clickData,
+            n_update_clicks,
             integration_time,
             num_averages,
             x_span,
@@ -285,30 +289,6 @@ class VideoMode:
             x_offset,
             y_offset,
         ):
-            if self.paused:
-                logging.debug(f"Updates paused at iteration {self.iteration}")
-                return self.fig, f"Iteration: {self.iteration}", self.update_interval
-
-            # Handle click event with Ctrl key pressed
-            if clickData:
-                import json
-
-                print(json.dumps(clickData, indent=2))
-                point = clickData["points"][0]
-                x_clicked = point["x"]
-                y_clicked = point["y"]
-                modifiers = []
-                clickData.clear()
-                # modifiers = clickData["event"].get("modifiers", [])
-                # logging.debug(f"Clicked at ({x_clicked}, {y_clicked}) with modifiers: {modifiers}")
-
-                # Check if 'Control' was held during the click
-                if "ctrl" in modifiers:
-                    logging.debug(f"Setting x_offset to {x_clicked} and y_offset to {y_clicked}")
-                    self.data_acquirer.x_offset_parameter.set(x_clicked)
-                    self.data_acquirer.y_offset_parameter.set(y_clicked)
-                    self.clear_data()
-
             attrs = [
                 {"obj": self.data_acquirer, "attr": "integration_time", "new": integration_time / 1e6},
                 {"obj": self.data_acquirer, "attr": "num_averages", "new": num_averages},
@@ -320,32 +300,41 @@ class VideoMode:
                 {"obj": self.data_acquirer.y_offset_parameter, "attr": "latest_value", "new": y_offset},
             ]
 
-            logging.debug(f"***Updating heatmap at iteration {n_intervals}")
-            attrs_modified = False
-            for attr in attrs:
-                attr["old"] = getattr(attr["obj"], attr["attr"])
+            print(f"n_update_clicks: {n_update_clicks}")
 
-                attr["changed"] = attr["old"] != attr["new"]
+            if n_update_clicks > self._last_update_clicks:
+                self._last_update_clicks = n_update_clicks
+                attrs_modified = False
+                for attr in attrs:
+                    attr["old"] = getattr(attr["obj"], attr["attr"])
 
-                if not attr["changed"]:
-                    continue
+                    attr["changed"] = attr["old"] != attr["new"]
 
-                attrs_modified = True
+                    if not attr["changed"]:
+                        continue
 
-                logging.debug(f"Updating {attr['attr']} from {attr['old']} to {attr['new']}")
+                    attrs_modified = True
 
-                if attr["attr"] in ["x_offset", "y_offset"]:
-                    attr["obj"].set(attr["new"])
-                else:
-                    setattr(attr["obj"], attr["attr"], attr["new"])
-            if attrs_modified:
-                self.clear_data()
+                    logging.debug(f"Updating {attr['attr']} from {attr['old']} to {attr['new']}")
 
-            updated_xarr = self.data_acquirer.update_data(attrs)
-            self.fig = xarray_to_plotly(updated_xarr)
+                    if attr["attr"] in ["x_offset", "y_offset"]:
+                        attr["obj"].set(attr["new"])
+                    else:
+                        setattr(attr["obj"], attr["attr"], attr["new"])
+                if attrs_modified:
+                    self.clear_data()
+                    updated_xarr = self.data_acquirer.update_data()
+                return self.fig, f"Iteration: {self.iteration}", self.update_interval
+
+            if self.paused:
+                logging.debug(f"Updates paused at iteration {self.iteration}")
+                return self.fig, f"Iteration: {self.iteration}", self.update_interval
 
             # Increment iteration counter and update frontend
+            updated_xarr = self.data_acquirer.update_data()
+            self.fig = xarray_to_plotly(updated_xarr)
             self.iteration += 1
+            logging.debug(f"***Updating heatmap at iteration {n_intervals}")
             return self.fig, f"Iteration: {self.iteration}", self.update_interval
 
     def run(self):

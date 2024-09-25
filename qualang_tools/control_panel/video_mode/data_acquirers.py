@@ -8,7 +8,7 @@ import xarray as xr
 import logging
 
 
-__all__ = ["BaseDataAcquirer", "RandomDataAcquirer"]
+__all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -86,7 +86,7 @@ class BaseDataAcquirer(ABC):
     def acquire_data(self) -> np.ndarray:
         pass
 
-    def update_data(self, attrs):
+    def update_data(self):
         new_data = self.acquire_data()
 
         if new_data.shape != self.xarr.values.shape:
