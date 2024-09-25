@@ -300,8 +300,6 @@ class VideoMode:
                 {"obj": self.data_acquirer.y_offset_parameter, "attr": "latest_value", "new": y_offset},
             ]
 
-            print(f"n_update_clicks: {n_update_clicks}")
-
             if n_update_clicks > self._last_update_clicks:
                 self._last_update_clicks = n_update_clicks
                 attrs_modified = False
