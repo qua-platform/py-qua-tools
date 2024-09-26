@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Callable, Dict, Optional, Sequence
 import numpy as np
 from qm import Program, QuantumMachine
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 import xarray as xr
 import logging
+from qualang_tools.loops import from_array
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -118,29 +119,18 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
-
     def __init__(
         self,
         *,
         qm: QuantumMachine,
-        x_element,
-        y_element,
-        readout_element,
-        x_offset_parameter,
-        y_offset_parameter,
-        x_span,
-        y_span,
+        qua_inner_loop_action: Callable,
+        scan_function: Callable,
         num_averages=1,
-        x_points=101,
-        y_points=101,
-        readout_pulse_name: str = "readout",
         **kwargs,
     ):
         self.qm = qm
-        self.x_element = x_element
-        self.y_element = y_element
-        self.readout_element = readout_element
-        self.readout_pulse_name = readout_pulse_name
+        self.scan_function = scan_function
+        self.qua_inner_loop_action = qua_inner_loop_action
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
 
@@ -155,48 +145,53 @@ class OPXDataAcquirer(BaseDataAcquirer):
             **kwargs,
         )
 
-    def update_data(self, attrs):
+    def update_attrs(self, attrs):
         updated_attr_names = [attr["attr"] for attr in attrs if attr["changed"]]
         if any(name in updated_attr_names for name in ["x_span", "y_span", "x_points", "y_points", "integration_time"]):
             self.generate_program()
             self.run_program()
 
-        return super().update_data(attrs)
-
     def acquire_data(self) -> np.ndarray:
-        pass
+        if self.program is None:
+            self.program = self.generate_program()
+            self.run_program()
+        results = {
+            key: self.job.result_handles.get(key).fetch_all() for key in ["I", "Q", "n", "idxs_x", "idxs_y"]
+        }
+        # TODO: Process results
+        return results
 
     def generate_program(self) -> Program:
-        from qualang_tools.loops import from_array
-
         x_vals = self.x_vals - self.x_offset_parameter.get()
         y_vals = self.y_vals - self.y_offset_parameter.get()
 
         assert self.integration_cycles >= 16
 
         with program() as prog:
-            x_val = declare(fixed)
-            y_val = declare(fixed)
-            output_stream = declare_stream()
+            n = declare(int, 0)
+            n_stream = declare_stream()
+            idxs_streams = {"x": declare_stream(), "y": declare_stream()}
+            voltages_streams = {"x": declare_stream(), "y": declare_stream()}
+            IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
 
             with infinite_loop_():
-                with for_(*from_array(x_val, x_vals)):
-                    set_dc_offset(self.x_element, "single", x_val)
-
-                    with for_(*from_array(y_val, y_vals)):
-                        set_dc_offset(self.y_element, "single", y_val)
-                        wait(self.integration_cycles)
-                        align()
-
-                        measured_val = self.measure()
-                        save(measured_val, output_stream)
-                        align()
+                assign(n, n + 1)
+                self.scan_function(
+                    x_vals=x_vals,
+                    y_vals=y_vals,
+                    qua_inner_loop_action=self.qua_inner_loop_action,
+                    idxs_streams=idxs_streams,
+                    voltages_streams=voltages_streams,
+                    IQ_streams=IQ_streams,
+                )
 
             with stream_processing():
                 # TODO Or save_all?
-                output_stream.buffer(self.x_points, self.y_points).save("output_data")
-
-        self.program = prog
+                idxs_streams["x"].buffer(self.x_points * self.y_points).save("idxs_x")
+                idxs_streams["y"].buffer(self.x_points * self.y_points).save("idxs_y")
+                IQ_streams["I"].buffer(self.x_points * self.y_points).save("I")
+                IQ_streams["Q"].buffer(self.x_points * self.y_points).save("Q")
+                n_stream.save("n")
 
         return prog
 
@@ -206,16 +201,28 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         self.job = self.qm.execute(self.program)
 
-    def measure(self):
-        measured_val = declare(fixed)
+        # Wait until one buffer is filled{
+        for key in ["I", "Q", "n", "idxs_x", "idxs_y"]:
+            self.job.result_handles.get(key).wait_for_values(1)
 
+
+class InnerLoopAction:
+    def __init__(self):
+        pass
+
+    def __call__(self, idxs, voltages):
+        I = declare(fixed)
+        Q = declare(fixed)
+
+        set_dc_offset("elem_x", "single", voltages["x"])
+        set_dc_offset("elem_y", "single", voltages["y"])
+        align()
         measure(
-            self.readout_pulse_name,
-            self.readout_element,
+            "readout",
+            "readout_element",
             None,
-            demod.full("cos", measured_val),
-            # demod.full("sin", Q),
-            # TODO Do we also need sin?
+            demod.full("cos", I),
+            demod.full("sin", Q),
         )
 
-        return measured_val
+        return I, Q
