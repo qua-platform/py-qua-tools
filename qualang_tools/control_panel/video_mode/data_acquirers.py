@@ -43,13 +43,13 @@ class BaseDataAcquirer(ABC):
 
         logging.debug("Initializing DataGenerator")
 
-        self.xarr = xr.DataArray(
+        self.data_array = xr.DataArray(
             self.acquire_data(),
             coords=[("y", self.y_vals), ("x", self.x_vals)],
             attrs={"units": "V", "long_name": "Signal"},
         )
-        self.xarr.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-        self.xarr.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
+        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
         logging.debug("DataGenerator initialized with initial data")
 
     @property
@@ -73,7 +73,7 @@ class BaseDataAcquirer(ABC):
         return integration_cycles
 
     def update_voltage_ranges(self):
-        self.xarr = self.xarr.assign_coords(x=self.x_vals, y=self.y_vals)
+        self.data_array = self.data_array.assign_coords(x=self.x_vals, y=self.y_vals)
 
         x_vals = self.x_vals
         y_vals = self.y_vals
@@ -90,7 +90,7 @@ class BaseDataAcquirer(ABC):
     def update_data(self):
         new_data = self.acquire_data()
 
-        if new_data.shape != self.xarr.values.shape:
+        if new_data.shape != self.data_array.values.shape:
             self.data_history.clear()
 
         self.data_history.append(new_data)
@@ -101,16 +101,16 @@ class BaseDataAcquirer(ABC):
 
         averaged_data = np.mean(self.data_history, axis=0)
 
-        self.xarr = xr.DataArray(
+        self.data_array = xr.DataArray(
             averaged_data,
             coords=[("y", self.y_vals), ("x", self.x_vals)],
-            attrs=self.xarr.attrs,  # Preserve original attributes like units
+            attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
 
-        self.xarr.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-        self.xarr.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
-        logging.debug(f"Averaged data calculated with shape: {self.xarr.shape}")
-        return self.xarr
+        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
+        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+        logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
+        return self.data_array
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
@@ -155,9 +155,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         if self.program is None:
             self.program = self.generate_program()
             self.run_program()
-        results = {
-            key: self.job.result_handles.get(key).fetch_all() for key in ["I", "Q", "n", "idxs_x", "idxs_y"]
-        }
+        results = {key: self.job.result_handles.get(key).fetch_all() for key in ["I", "Q", "n", "idxs_x", "idxs_y"]}
         # TODO: Process results
         return results
 

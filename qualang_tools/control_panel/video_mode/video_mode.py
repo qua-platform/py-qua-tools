@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -17,9 +17,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class VideoMode:
-    def __init__(self, data_acquirer: BaseDataAcquirer, image_save_path: Union[str, Path] = "./video_mode_images"):
+    def __init__(
+        self,
+        data_acquirer: BaseDataAcquirer,
+        image_save_path: Union[str, Path] = "./images",
+        data_save_path: Union[str, Path] = "./data",
+    ):
         self.data_acquirer = data_acquirer
         self.image_save_path = Path(image_save_path)
+        self.data_save_path = Path(data_save_path)
         self.paused = False
         self.iteration = 0
         self._last_update_clicks = 0
@@ -132,7 +138,7 @@ class VideoMode:
         )
 
     def create_layout(self):
-        self.fig = xarray_to_plotly(self.data_acquirer.xarr)
+        self.fig = xarray_to_plotly(self.data_acquirer.data_array)
 
         # Modify the layout with CSS to left-align and adjust input size
         self.app.layout = html.Div(
@@ -353,10 +359,10 @@ class VideoMode:
             Output("save-button", "children"),
             [Input("save-button", "n_clicks")],
         )
-        def save_image(n_clicks):
+        def save(n_clicks):
             if n_clicks > self._last_save_clicks:
                 self._last_save_clicks = n_clicks
-                self.save_image()
+                self.save()
                 return "Saved!"
             return "Save"
 
@@ -364,20 +370,112 @@ class VideoMode:
         logging.debug("Starting Dash server")
         self.app.run_server(debug=True)
 
+    def save_data(self, idx: Optional[int] = None):
+        """
+        Save the current data to an HDF5 file.
+
+        This method saves the current data from the data acquirer to an HDF5 file in the specified data save path.
+        It automatically generates a unique filename by incrementing an index if not provided.
+
+        Args:
+            idx (Optional[int]): The index to use for the filename. If None, an available index is automatically determined.
+
+        Returns:
+            int: The index of the saved data file.
+
+        Raises:
+            ValueError: If the maximum number of data files (9999) has been reached.
+            FileExistsError: If a file with the generated name already exists.
+
+        Note:
+            - The data save path is created if it doesn't exist.
+            - The filename format is 'data_XXXX.h5', where XXXX is a four-digit index.
+        """
+        if not self.data_save_path.exists():
+            self.data_save_path.mkdir(parents=True)
+            logging.info(f"Created directory: {self.data_save_path}")
+
+        if idx is None:
+            idx = 1
+            while idx <= 9999 and (self.data_save_path / f"data_{idx}.h5").exists():
+                idx += 1
+
+        if idx > 9999:
+            raise ValueError("Maximum number of data files (9999) reached. Cannot save more.")
+
+        filename = f"data_{idx}.h5"
+        filepath = self.data_save_path / filename
+
+        if filepath.exists():
+            raise FileExistsError(f"File {filepath} already exists.")
+        self.data_acquirer.data_array.to_netcdf(filepath, engine="h5netcdf", format="NETCDF4")
+        logging.info(f"Data saved successfully: {filepath}")
+        logging.info("Data save operation completed.")
+        return idx
+
     def save_image(self):
+        """
+        Save the current image to a file.
+
+        This method saves the current figure as a PNG image in the specified image save path.
+        It automatically generates a unique filename by incrementing an index.
+
+        Returns:
+            int: The index of the saved image file.
+
+        Raises:
+            ValueError: If the maximum number of screenshots (9999) has been reached.
+
+        Note:
+            - The image save path is created if it doesn't exist.
+            - The filename format is 'data_image_XXXX.png', where XXXX is a four-digit index.
+        """
         logging.info("Attempting to save image...")
         if not self.image_save_path.exists():
             self.image_save_path.mkdir(parents=True)
             logging.info(f"Created directory: {self.image_save_path}")
 
         idx = 1
-        while idx <= 9999 and (self.image_save_path / f"data_image_{idx:04d}.png").exists():
+        while idx <= 9999 and (self.image_save_path / f"data_image_{idx}.png").exists():
             idx += 1
         if idx <= 9999:
-            filename = f"data_image_{idx:04d}.png"
+            filename = f"data_image_{idx}.png"
             filepath = self.image_save_path / filename
             self.fig.write_image(filepath)
             logging.info(f"Image saved successfully: {filepath}")
         else:
-            logging.warning("Maximum number of screenshots (9999) reached. Cannot save more.")
+            raise ValueError("Maximum number of screenshots (9999) reached. Cannot save more.")
         logging.info("Image save operation completed.")
+
+        return idx
+
+    def save(self):
+        """
+        Save both the current image and data.
+
+        This method saves the current figure as a PNG image and the current data as an HDF5 file.
+        It uses the same index for both files to maintain consistency.
+
+        Returns:
+            int: The index of the saved files.
+
+        Raises:
+            ValueError: If the maximum number of files (9999) has been reached.
+
+        Note:
+            - The image is saved first, followed by the data.
+            - If data saving fails due to a FileExistsError, a warning is logged instead of raising an exception.
+        """
+        logging.info("Attempting to save image and data...")
+
+        # Save image first
+        idx = self.save_image()
+
+        # Attempt to save data with the same index
+        try:
+            self.save_data(idx)
+        except FileExistsError:
+            logging.warning(f"Data file with index {idx} already exists. Image saved, but data was not overwritten.")
+
+        logging.info(f"Save operation completed with index: {idx}")
+        return idx
