@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import Union
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -15,12 +17,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class VideoMode:
-    def __init__(self, data_acquirer: BaseDataAcquirer):
+    def __init__(self, data_acquirer: BaseDataAcquirer, image_save_path: Union[str, Path] = "./video_mode_images"):
         self.data_acquirer = data_acquirer
-
+        self.image_save_path = Path(image_save_path)
         self.paused = False
         self.iteration = 0
         self._last_update_clicks = 0
+        self._last_save_clicks = 0
 
         self.app = dash.Dash(__name__, title="Video Mode")
         self.create_layout()
@@ -223,7 +226,18 @@ class VideoMode:
                         ),
                         self._create_axis_layout("x"),
                         self._create_axis_layout("y"),
-                        html.Button("Update", id="update-button", n_clicks=0, style={"margin-top": "20px"}),
+                        html.Div(  # Update and Save buttons
+                            [
+                                html.Button(
+                                    "Update",
+                                    id="update-button",
+                                    n_clicks=0,
+                                    style={"margin-top": "20px", "margin-right": "10px"},
+                                ),
+                                html.Button("Save", id="save-button", n_clicks=0, style={"margin-top": "20px"}),
+                            ],
+                            style={"display": "flex", "flex-direction": "row"},
+                        ),
                     ],
                     style={"width": "40%", "margin": "auto"},
                 ),
@@ -335,6 +349,35 @@ class VideoMode:
             logging.debug(f"***Updating heatmap at iteration {n_intervals}")
             return self.fig, f"Iteration: {self.iteration}", self.update_interval
 
+        @self.app.callback(
+            Output("save-button", "children"),
+            [Input("save-button", "n_clicks")],
+        )
+        def save_image(n_clicks):
+            if n_clicks > self._last_save_clicks:
+                self._last_save_clicks = n_clicks
+                self.save_image()
+                return "Saved!"
+            return "Save"
+
     def run(self):
         logging.debug("Starting Dash server")
         self.app.run_server(debug=True)
+
+    def save_image(self):
+        logging.info("Attempting to save image...")
+        if not self.image_save_path.exists():
+            self.image_save_path.mkdir(parents=True)
+            logging.info(f"Created directory: {self.image_save_path}")
+
+        idx = 1
+        while idx <= 9999 and (self.image_save_path / f"data_image_{idx:04d}.png").exists():
+            idx += 1
+        if idx <= 9999:
+            filename = f"data_image_{idx:04d}.png"
+            filepath = self.image_save_path / filename
+            self.fig.write_image(filepath)
+            logging.info(f"Image saved successfully: {filepath}")
+        else:
+            logging.warning("Maximum number of screenshots (9999) reached. Cannot save more.")
+        logging.info("Image save operation completed.")
