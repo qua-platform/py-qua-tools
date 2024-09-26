@@ -27,6 +27,7 @@ class BaseDataAcquirer(ABC):
         y_points=101,
         num_averages=1,
         integration_time: float = 10e-6,
+        pre_measurement_delay: float = 0,
         **kwargs,
     ):
         assert not kwargs
@@ -40,7 +41,7 @@ class BaseDataAcquirer(ABC):
         self.x_points = x_points
         self.y_points = y_points
         self.data_history = []
-
+        self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
 
         self.data_array = xr.DataArray(
@@ -83,6 +84,14 @@ class BaseDataAcquirer(ABC):
             f"y_vals=[{y_vals[0]}, {y_vals[1]}, ..., {y_vals[-1]}]"
         )
 
+    @property
+    def total_measurement_time(self):
+        return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points * 1000
+
+    @abstractmethod
+    def update_attrs(self, attrs):
+        pass
+
     @abstractmethod
     def acquire_data(self) -> np.ndarray:
         pass
@@ -114,6 +123,13 @@ class BaseDataAcquirer(ABC):
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
+    def update_attrs(self, attrs):
+        for attr in attrs:
+            if attr["attr"] in ["x_offset", "y_offset"]:
+                attr["obj"].set(attr["new"])
+        else:
+            setattr(attr["obj"], attr["attr"], attr["new"])
+
     def acquire_data(self):
         return np.random.rand(len(self.y_vals), len(self.x_vals))
 
@@ -146,8 +162,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         )
 
     def update_attrs(self, attrs):
-        updated_attr_names = [attr["attr"] for attr in attrs if attr["changed"]]
-        if any(name in updated_attr_names for name in ["x_span", "y_span", "x_points", "y_points", "integration_time"]):
+        if any(name in attrs for name in ["x_span", "y_span", "x_points", "y_points", "integration_time"]):
             self.generate_program()
             self.run_program()
 
@@ -178,6 +193,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     x_vals=x_vals,
                     y_vals=y_vals,
                     qua_inner_loop_action=self.qua_inner_loop_action,
+                    integration_time=self.integration_time,
+                    pre_measurement_delay=self.pre_measurement_delay,
                     idxs_streams=idxs_streams,
                     voltages_streams=voltages_streams,
                     IQ_streams=IQ_streams,
@@ -208,19 +225,21 @@ class InnerLoopAction:
     def __init__(self):
         pass
 
-    def __call__(self, idxs, voltages):
+    def __call__(self, idxs, voltages, integration_time, pre_measurement_delay):
         I = declare(fixed)
         Q = declare(fixed)
 
         set_dc_offset("elem_x", "single", voltages["x"])
         set_dc_offset("elem_y", "single", voltages["y"])
         align()
+        wait(pre_measurement_delay)
         measure(
             "readout",
             "readout_element",
             None,
             demod.full("cos", I),
             demod.full("sin", Q),
+            # duration=integration_time // 4,
         )
 
         return I, Q

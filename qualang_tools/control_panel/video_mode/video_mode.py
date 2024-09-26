@@ -264,7 +264,7 @@ class VideoMode:
 
     @property
     def update_interval(self):
-        return self.data_acquirer.integration_time * self.data_acquirer.x_points * self.data_acquirer.y_points * 1000
+        return self.data_acquirer.total_measurement_time
 
     def add_callbacks(self):
         @self.app.callback(
@@ -319,10 +319,10 @@ class VideoMode:
                 {"obj": self.data_acquirer.x_offset_parameter, "attr": "latest_value", "new": x_offset},
                 {"obj": self.data_acquirer.y_offset_parameter, "attr": "latest_value", "new": y_offset},
             ]
+            updated_attrs = []
 
             if n_update_clicks > self._last_update_clicks:
                 self._last_update_clicks = n_update_clicks
-                attrs_modified = False
                 for attr in attrs:
                     attr["old"] = getattr(attr["obj"], attr["attr"])
 
@@ -331,17 +331,13 @@ class VideoMode:
                     if not attr["changed"]:
                         continue
 
-                    attrs_modified = True
+                    updated_attrs.append(attr)
 
                     logging.debug(f"Updating {attr['attr']} from {attr['old']} to {attr['new']}")
 
-                    if attr["attr"] in ["x_offset", "y_offset"]:
-                        attr["obj"].set(attr["new"])
-                    else:
-                        setattr(attr["obj"], attr["attr"], attr["new"])
-                if attrs_modified:
+                if updated_attrs:
                     self.clear_data()
-                    updated_xarr = self.data_acquirer.update_data()
+                    updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
                 return self.fig, f"Iteration: {self.iteration}", self.update_interval
 
             if self.paused:
