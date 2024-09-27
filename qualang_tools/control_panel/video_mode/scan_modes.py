@@ -1,6 +1,7 @@
 from typing import Sequence, Callable
 
-from qm.qua import declare, declare_stream, save, assign, from_array, for_
+from qm.qua import declare, declare_stream, fixed, save, assign, for_
+from qualang_tools.loops import from_array
 
 
 def raster_scan(
@@ -12,7 +13,7 @@ def raster_scan(
     IQ_streams: dict,
 ):
     idxs = {"x": declare(int), "y": declare(int)}
-    voltages = {"x": declare_stream(), "y": declare_stream()}
+    voltages = {"x": declare(fixed), "y": declare(fixed)}
 
     assign(idxs["x"], 0)
     with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
@@ -44,7 +45,7 @@ def spiral_scan(
     idxs_pm = {"x": declare(int), "y": declare(int)}
     idx_offset = int((self.x_points - 1) / 2)
 
-    voltages = {"x": declare_stream(), "y": declare_stream()}
+    voltages = {"x": declare(fixed), "y": declare(fixed)}
 
     voltages_streams = {"x": declare_stream(), "y": declare_stream()}
     idxs_streams = {"x": declare_stream(), "y": declare_stream()}

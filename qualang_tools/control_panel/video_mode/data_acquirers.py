@@ -1,18 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional, Sequence
+from typing import Any, Callable, Dict, Optional
 import numpy as np
 from qm import Program, QuantumMachine
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 import xarray as xr
 import logging
-from qualang_tools.loops import from_array
+from time import sleep
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
 
 
 class BaseDataAcquirer(ABC):
@@ -44,8 +41,11 @@ class BaseDataAcquirer(ABC):
         self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
 
+        self.is_acquiring = False
+        self.num_acquisitions = 0
+
         self.data_array = xr.DataArray(
-            self.acquire_data(),
+            np.zeros((self.y_points, self.x_points)),
             coords=[("y", self.y_vals), ("x", self.x_vals)],
             attrs={"units": "V", "long_name": "Signal"},
         )
@@ -97,28 +97,37 @@ class BaseDataAcquirer(ABC):
         pass
 
     def update_data(self):
-        new_data = self.acquire_data()
+        if self.is_acquiring:
+            logging.debug("Already acquiring data, skipping update")
+            return self.data_array
 
-        if new_data.shape != self.data_array.values.shape:
-            self.data_history.clear()
+        try:
+            self.is_acquiring = True
+            new_data = self.acquire_data()
+            self.num_acquisitions += 1
 
-        self.data_history.append(new_data)
-        logging.debug(f"New data generated with shape: {new_data.shape}")
+            if new_data.shape != self.data_array.values.shape:
+                self.data_history.clear()
 
-        if len(self.data_history) > self.num_averages:
-            self.data_history.pop(0)
+            self.data_history.append(new_data)
+            logging.debug(f"New data generated with shape: {new_data.shape}")
 
-        averaged_data = np.mean(self.data_history, axis=0)
+            if len(self.data_history) > self.num_averages:
+                self.data_history.pop(0)
 
-        self.data_array = xr.DataArray(
-            averaged_data,
-            coords=[("y", self.y_vals), ("x", self.x_vals)],
-            attrs=self.data_array.attrs,  # Preserve original attributes like units
-        )
+            averaged_data = np.mean(self.data_history, axis=0)
 
-        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
-        logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
+            self.data_array = xr.DataArray(
+                averaged_data,
+                coords=[("y", self.y_vals), ("x", self.x_vals)],
+                attrs=self.data_array.attrs,  # Preserve original attributes like units
+            )
+
+            self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
+            self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+            logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
+        finally:
+            self.is_acquiring = False
         return self.data_array
 
 
@@ -131,17 +140,31 @@ class RandomDataAcquirer(BaseDataAcquirer):
             setattr(attr["obj"], attr["attr"], attr["new"])
 
     def acquire_data(self):
-        return np.random.rand(len(self.y_vals), len(self.x_vals))
+        sleep(0.5)
+        results = np.random.rand(len(self.y_vals), len(self.x_vals))
+
+        return results
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
+    stream_vars = ["I", "Q", "n", "idxs_x", "idxs_y", "x_vals", "y_vals"]
+
     def __init__(
         self,
         *,
         qm: QuantumMachine,
         qua_inner_loop_action: Callable,
         scan_function: Callable,
+        x_offset_parameter,
+        y_offset_parameter,
+        x_span,
+        y_span,
+        x_points=101,
+        y_points=101,
         num_averages=1,
+        integration_time: float = 10e-6,
+        pre_measurement_delay: float = 0,
+        measure_var: str = "I",
         **kwargs,
     ):
         self.qm = qm
@@ -149,6 +172,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
         self.qua_inner_loop_action = qua_inner_loop_action
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
+        self.measure_var = measure_var
+        self.results: Dict[str, Any] = {}
 
         super().__init__(
             x_offset_parameter=x_offset_parameter,
@@ -158,6 +183,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
             num_averages=num_averages,
             x_points=x_points,
             y_points=y_points,
+            integration_time=integration_time,
+            pre_measurement_delay=pre_measurement_delay,
             **kwargs,
         )
 
@@ -166,19 +193,14 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.generate_program()
             self.run_program()
 
-    def acquire_data(self) -> np.ndarray:
-        if self.program is None:
-            self.program = self.generate_program()
-            self.run_program()
-        results = {key: self.job.result_handles.get(key).fetch_all() for key in ["I", "Q", "n", "idxs_x", "idxs_y"]}
-        # TODO: Process results
-        return results
-
     def generate_program(self) -> Program:
         x_vals = self.x_vals - self.x_offset_parameter.get()
         y_vals = self.y_vals - self.y_offset_parameter.get()
 
         assert self.integration_cycles >= 16
+
+        self.qua_inner_loop_action.integration_time = self.integration_time
+        self.qua_inner_loop_action.pre_measurement_delay = self.pre_measurement_delay
 
         with program() as prog:
             n = declare(int, 0)
@@ -188,58 +210,59 @@ class OPXDataAcquirer(BaseDataAcquirer):
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
 
             with infinite_loop_():
-                assign(n, n + 1)
+                save(n, n_stream)
                 self.scan_function(
                     x_vals=x_vals,
                     y_vals=y_vals,
                     qua_inner_loop_action=self.qua_inner_loop_action,
-                    integration_time=self.integration_time,
-                    pre_measurement_delay=self.pre_measurement_delay,
                     idxs_streams=idxs_streams,
                     voltages_streams=voltages_streams,
                     IQ_streams=IQ_streams,
                 )
+                assign(n, n + 1)
+                wait(100000)
 
             with stream_processing():
-                # TODO Or save_all?
-                idxs_streams["x"].buffer(self.x_points * self.y_points).save("idxs_x")
-                idxs_streams["y"].buffer(self.x_points * self.y_points).save("idxs_y")
-                IQ_streams["I"].buffer(self.x_points * self.y_points).save("I")
-                IQ_streams["Q"].buffer(self.x_points * self.y_points).save("Q")
-                n_stream.save("n")
-
+                for var in self.stream_vars:
+                    if var == "n":
+                        n_stream.save("n")
+                    elif var == "idxs_x":
+                        idxs_streams["x"].buffer(self.x_points, self.y_points).save("idxs_x")
+                    elif var == "idxs_y":
+                        idxs_streams["y"].buffer(self.x_points, self.y_points).save("idxs_y")
+                    elif var == "x_vals":
+                        voltages_streams["x"].buffer(self.x_points, self.y_points).save("x_vals")
+                    elif var == "y_vals":
+                        voltages_streams["y"].buffer(self.x_points, self.y_points).save("y_vals")
+                    elif var == "I":
+                        IQ_streams["I"].buffer(self.x_points, self.y_points).save("I")
+                    elif var == "Q":
+                        IQ_streams["Q"].buffer(self.x_points, self.y_points).save("Q")
+                    else:
+                        raise ValueError(f"Invalid stream variable: {var}")
         return prog
 
-    def run_program(self):
+    def process_results(self, results: Dict[str, Any]) -> np.ndarray:
+        return results[self.measure_var]
+
+    def acquire_data(self) -> np.ndarray:
+        if self.program is None:
+            self.run_program()
+        self.results = {key: self.job.result_handles.get(key).fetch_all() for key in self.stream_vars}
+        logging.info(str({key: np.mean(np.abs(val)) for key, val in self.results.items()}))
+        result_array = self.process_results(self.results)
+
+        return result_array
+
+    def run_program(self, verify: bool = True):
         if self.program is None:
             self.program = self.generate_program()
 
         self.job = self.qm.execute(self.program)
 
+        if not verify:
+            return
+
         # Wait until one buffer is filled{
-        for key in ["I", "Q", "n", "idxs_x", "idxs_y"]:
+        for key in self.stream_vars:
             self.job.result_handles.get(key).wait_for_values(1)
-
-
-class InnerLoopAction:
-    def __init__(self):
-        pass
-
-    def __call__(self, idxs, voltages, integration_time, pre_measurement_delay):
-        I = declare(fixed)
-        Q = declare(fixed)
-
-        set_dc_offset("elem_x", "single", voltages["x"])
-        set_dc_offset("elem_y", "single", voltages["y"])
-        align()
-        wait(pre_measurement_delay)
-        measure(
-            "readout",
-            "readout_element",
-            None,
-            demod.full("cos", I),
-            demod.full("sin", Q),
-            # duration=integration_time // 4,
-        )
-
-        return I, Q

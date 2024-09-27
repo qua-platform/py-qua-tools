@@ -5,10 +5,6 @@ import logging
 __all__ = ["VoltageParameter"]
 
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-
 # VoltageParameter Class remains unchanged
 class VoltageParameter:
     def __init__(self, name, initial_value=0.0, units="V"):

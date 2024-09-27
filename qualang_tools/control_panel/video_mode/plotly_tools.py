@@ -5,9 +5,6 @@ import logging
 
 __all__ = ["xarray_to_plotly"]
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
 
 def xarray_to_plotly(da: xr.DataArray):
     x_label = da.coords["x"].attrs.get("long_name", "x")

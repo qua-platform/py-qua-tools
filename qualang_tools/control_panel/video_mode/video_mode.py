@@ -12,10 +12,6 @@ from .plotly_tools import xarray_to_plotly
 __all__ = ["VideoMode"]
 
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-
 class VideoMode:
     def __init__(
         self,
@@ -27,7 +23,6 @@ class VideoMode:
         self.image_save_path = Path(image_save_path)
         self.data_save_path = Path(data_save_path)
         self.paused = False
-        self.iteration = 0
         self._last_update_clicks = 0
         self._last_save_clicks = 0
 
@@ -338,18 +333,21 @@ class VideoMode:
                 if updated_attrs:
                     self.clear_data()
                     updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
-                return self.fig, f"Iteration: {self.iteration}", self.update_interval
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
 
             if self.paused:
-                logging.debug(f"Updates paused at iteration {self.iteration}")
-                return self.fig, f"Iteration: {self.iteration}", self.update_interval
+                logging.debug(f"Updates paused at iteration {self.data_acquirer.num_acquisitions}")
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
 
             # Increment iteration counter and update frontend
+            if self.data_acquirer.is_acquiring:
+                logging.debug("Data acquisition in progress. Not updating heatmap.")
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
+
             updated_xarr = self.data_acquirer.update_data()
             self.fig = xarray_to_plotly(updated_xarr)
-            self.iteration += 1
             logging.debug(f"***Updating heatmap at iteration {n_intervals}")
-            return self.fig, f"Iteration: {self.iteration}", self.update_interval
+            return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
 
         @self.app.callback(
             Output("save-button", "children"),
@@ -362,9 +360,9 @@ class VideoMode:
                 return "Saved!"
             return "Save"
 
-    def run(self):
+    def run(self, debug: bool = True, use_reloader: bool = False):
         logging.debug("Starting Dash server")
-        self.app.run_server(debug=True)
+        self.app.run_server(debug=debug, use_reloader=use_reloader)
 
     def save_data(self, idx: Optional[int] = None):
         """
