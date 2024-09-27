@@ -57,9 +57,9 @@ data_acquirer = OPXDataAcquirer(
     x_span=0.05,
     y_span=0.05,
     num_averages=5,
-    x_points=31,
-    y_points=31,
-    integration_time=100e-6,
+    x_points=101,
+    y_points=101,
+    integration_time=20e-6,
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
@@ -71,7 +71,7 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 
 
 # %%
-live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.5)
+live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.1)
 live_plotter.run(use_reloader=False)
 
 # %%

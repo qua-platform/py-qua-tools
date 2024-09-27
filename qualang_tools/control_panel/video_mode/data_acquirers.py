@@ -6,7 +6,7 @@ from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 import xarray as xr
 import logging
-from time import sleep
+from time import sleep, perf_counter
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -219,7 +219,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     IQ_streams=IQ_streams,
                 )
                 assign(n, n + 1)
-                wait(500000)
+                wait(5000000)
 
             with stream_processing():
                 for var in self.stream_vars:
@@ -247,9 +247,11 @@ class OPXDataAcquirer(BaseDataAcquirer):
     def acquire_data(self) -> np.ndarray:
         if self.program is None:
             self.run_program()
+
+        t0 = perf_counter()
         self.results = {key: self.job.result_handles.get(key).fetch_all() for key in self.stream_vars}
-        logging.info(str({key: np.mean(np.abs(val)) for key, val in self.results.items()}))
         result_array = self.process_results(self.results)
+        logging.info(f"Time to acquire data: {(perf_counter() - t0) * 1e3:.2f} ms")
 
         return result_array
 
