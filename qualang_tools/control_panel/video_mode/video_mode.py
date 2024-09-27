@@ -1,10 +1,9 @@
 from datetime import datetime
 from pathlib import Path
-from time import sleep
 from typing import Optional, Union
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash import dcc, html, Input, Output
+from dash_extensions.enrich import DashProxy, dcc, html, Output, Input, BlockingCallbackTransform
+
 import logging
 
 from qualang_tools.control_panel.video_mode.data_acquirers import BaseDataAcquirer
@@ -30,7 +29,7 @@ class VideoMode:
         self._last_save_clicks = 0
         self._update_interval = update_interval
 
-        self.app = dash.Dash(__name__, title="Video Mode")
+        self.app = DashProxy(__name__, title="Video Mode", transforms=[BlockingCallbackTransform(timeout=10)])
         self.create_layout()
 
     def _create_axis_layout(self, axis: str):
@@ -296,6 +295,7 @@ class VideoMode:
                 Input("x-offset", "value"),
                 Input("y-offset", "value"),
             ],
+            blocking=True,
         )
         def update_heatmap(
             n_intervals,
@@ -346,10 +346,6 @@ class VideoMode:
                 return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
             # Increment iteration counter and update frontend
-            if self.data_acquirer.is_acquiring:
-                logging.debug("Data acquisition in progress. Not updating heatmap.")
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
-
             updated_xarr = self.data_acquirer.update_data()
             self.fig = xarray_to_plotly(updated_xarr)
             logging.debug(

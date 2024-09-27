@@ -41,7 +41,6 @@ class BaseDataAcquirer(ABC):
         self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
 
-        self.is_acquiring = False
         self.num_acquisitions = 0
 
         self.data_array = xr.DataArray(
@@ -97,37 +96,29 @@ class BaseDataAcquirer(ABC):
         pass
 
     def update_data(self):
-        if self.is_acquiring:
-            logging.debug("Already acquiring data, skipping update")
-            return self.data_array
+        new_data = self.acquire_data()
+        self.num_acquisitions += 1
 
-        try:
-            self.is_acquiring = True
-            new_data = self.acquire_data()
-            self.num_acquisitions += 1
+        if new_data.shape != self.data_array.values.shape:
+            self.data_history.clear()
 
-            if new_data.shape != self.data_array.values.shape:
-                self.data_history.clear()
+        self.data_history.append(new_data)
+        logging.debug(f"New data generated with shape: {new_data.shape}")
 
-            self.data_history.append(new_data)
-            logging.debug(f"New data generated with shape: {new_data.shape}")
+        if len(self.data_history) > self.num_averages:
+            self.data_history.pop(0)
 
-            if len(self.data_history) > self.num_averages:
-                self.data_history.pop(0)
+        averaged_data = np.mean(self.data_history, axis=0)
 
-            averaged_data = np.mean(self.data_history, axis=0)
+        self.data_array = xr.DataArray(
+            averaged_data,
+            coords=[("y", self.y_vals), ("x", self.x_vals)],
+            attrs=self.data_array.attrs,  # Preserve original attributes like units
+        )
 
-            self.data_array = xr.DataArray(
-                averaged_data,
-                coords=[("y", self.y_vals), ("x", self.x_vals)],
-                attrs=self.data_array.attrs,  # Preserve original attributes like units
-            )
-
-            self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-            self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
-            logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
-        finally:
-            self.is_acquiring = False
+        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
+        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+        logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
         return self.data_array
 
 
@@ -140,6 +131,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
             setattr(attr["obj"], attr["attr"], attr["new"])
 
     def acquire_data(self):
+        sleep(1)
         results = np.random.rand(len(self.y_vals), len(self.x_vals))
 
         return results
