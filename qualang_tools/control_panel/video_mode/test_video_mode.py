@@ -1,5 +1,5 @@
 # %% Imports
-# from qualang_tools.control_panel.video_mode.plotly_tools import *
+from qualang_tools.control_panel.video_mode.plotly_tools import *
 import numpy as np
 from qualang_tools.control_panel.video_mode.voltage_parameters import *
 from qualang_tools.control_panel.video_mode.data_acquirers import *

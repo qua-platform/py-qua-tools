@@ -215,15 +215,21 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with stream_processing():
                 streams = {
-                    **{f"{var}_vals": stream for var, stream in voltages_streams.items()},
-                    **{f"{var}_idxs": stream for var, stream in idxs_streams.items()},
-                    **{var: stream for var, stream in IQ_streams.items()},
+                    "x_vals": voltages_streams["x"].buffer(self.x_points, self.y_points),
+                    "y_vals": voltages_streams["y"].buffer(self.x_points, self.y_points),
+                    "x_idxs": idxs_streams["x"].buffer(self.x_points, self.y_points),
+                    "y_idxs": idxs_streams["y"].buffer(self.x_points, self.y_points),
+                    "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
+                    "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
+                    "n": n_stream,
                 }
+                combined_stream = None
                 for var in self.stream_vars:
-                    if var == "n":
-                        n_stream.save("n")
+                    if combined_stream is None:
+                        combined_stream = streams[var]
                     else:
-                        streams[var].buffer(self.x_points, self.y_points).save(var)
+                        combined_stream = combined_stream.zip(streams[var])
+                combined_stream.save("combined")
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
@@ -234,7 +240,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
         t0 = perf_counter()
-        self.results = {key: self.job.result_handles.get(key).fetch_all() for key in self.stream_vars}
+        results_tuple = self.job.result_handles.get("combined").fetch_all()
+        self.results = dict(zip(self.stream_vars, results_tuple))
         result_array = self.process_results(self.results)
         logging.info(f"Time to acquire data: {(perf_counter() - t0) * 1e3:.2f} ms")
 
@@ -250,5 +257,4 @@ class OPXDataAcquirer(BaseDataAcquirer):
             return
 
         # Wait until one buffer is filled{
-        for key in self.stream_vars:
-            self.job.result_handles.get(key).wait_for_values(1)
+        self.job.result_handles.get("combined").wait_for_values(1)
