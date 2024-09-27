@@ -138,7 +138,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
-    stream_vars = ["I", "Q", "n", "idxs_x", "idxs_y", "x_vals", "y_vals"]
+    stream_vars = ["I", "Q", "n", "x_idxs", "y_idxs", "x_vals", "y_vals"]
 
     def __init__(
         self,
@@ -214,23 +214,16 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 wait(5000000)
 
             with stream_processing():
+                streams = {
+                    **{f"{var}_vals": stream for var, stream in voltages_streams.items()},
+                    **{f"{var}_idxs": stream for var, stream in idxs_streams.items()},
+                    **{var: stream for var, stream in IQ_streams.items()},
+                }
                 for var in self.stream_vars:
                     if var == "n":
                         n_stream.save("n")
-                    elif var == "idxs_x":
-                        idxs_streams["x"].buffer(self.x_points, self.y_points).save("idxs_x")
-                    elif var == "idxs_y":
-                        idxs_streams["y"].buffer(self.x_points, self.y_points).save("idxs_y")
-                    elif var == "x_vals":
-                        voltages_streams["x"].buffer(self.x_points, self.y_points).save("x_vals")
-                    elif var == "y_vals":
-                        voltages_streams["y"].buffer(self.x_points, self.y_points).save("y_vals")
-                    elif var == "I":
-                        IQ_streams["I"].buffer(self.x_points, self.y_points).save("I")
-                    elif var == "Q":
-                        IQ_streams["Q"].buffer(self.x_points, self.y_points).save("Q")
                     else:
-                        raise ValueError(f"Invalid stream variable: {var}")
+                        streams[var].buffer(self.x_points, self.y_points).save(var)
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
