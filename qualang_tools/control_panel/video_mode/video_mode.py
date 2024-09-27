@@ -1,4 +1,6 @@
+from datetime import datetime
 from pathlib import Path
+from time import sleep
 from typing import Optional, Union
 import dash
 from dash import dcc, html
@@ -18,6 +20,7 @@ class VideoMode:
         data_acquirer: BaseDataAcquirer,
         image_save_path: Union[str, Path] = "./images",
         data_save_path: Union[str, Path] = "./data",
+        update_interval: Optional[float] = None,
     ):
         self.data_acquirer = data_acquirer
         self.image_save_path = Path(image_save_path)
@@ -25,6 +28,7 @@ class VideoMode:
         self.paused = False
         self._last_update_clicks = 0
         self._last_save_clicks = 0
+        self._update_interval = update_interval
 
         self.app = dash.Dash(__name__, title="Video Mode")
         self.create_layout()
@@ -249,7 +253,7 @@ class VideoMode:
             ],
             style={"display": "flex", "flex-direction": "row", "height": "100%", "flex-wrap": "wrap"},
         )
-        logging.debug("Dash layout created")
+        logging.debug(f"Dash layout created, update interval: {self.update_interval} ms")
         self.add_callbacks()
 
     def clear_data(self):
@@ -259,7 +263,9 @@ class VideoMode:
 
     @property
     def update_interval(self):
-        return self.data_acquirer.total_measurement_time
+        if self._update_interval is None:
+            return self.data_acquirer.total_measurement_time * 1e3
+        return self._update_interval * 1e3
 
     def add_callbacks(self):
         @self.app.callback(
@@ -275,7 +281,6 @@ class VideoMode:
             [
                 Output("live-heatmap", "figure"),
                 Output("iteration-output", "children"),
-                Output("interval-component", "interval"),
             ],
             [
                 Input("interval-component", "n_intervals"),
@@ -304,6 +309,7 @@ class VideoMode:
             x_offset,
             y_offset,
         ):
+            logging.debug(f"Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
             attrs = [
                 {"obj": self.data_acquirer, "attr": "integration_time", "new": integration_time / 1e6},
                 {"obj": self.data_acquirer, "attr": "num_averages", "new": num_averages},
@@ -333,21 +339,23 @@ class VideoMode:
                 if updated_attrs:
                     self.clear_data()
                     updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
             if self.paused:
                 logging.debug(f"Updates paused at iteration {self.data_acquirer.num_acquisitions}")
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
             # Increment iteration counter and update frontend
             if self.data_acquirer.is_acquiring:
                 logging.debug("Data acquisition in progress. Not updating heatmap.")
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
             updated_xarr = self.data_acquirer.update_data()
             self.fig = xarray_to_plotly(updated_xarr)
-            logging.debug(f"***Updating heatmap at iteration {n_intervals}")
-            return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}", self.update_interval
+            logging.debug(
+                f"***Updating heatmap at iteration {n_intervals}, num_acquisitions: {self.data_acquirer.num_acquisitions}"
+            )
+            return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
         @self.app.callback(
             Output("save-button", "children"),

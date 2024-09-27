@@ -11,7 +11,9 @@ from qm import QuantumMachinesManager
 
 import logging
 
+# Update the logging configuration
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
 
 # %% Create config and connect to QM
 machine = BasicQuAM()
@@ -57,7 +59,7 @@ data_acquirer = OPXDataAcquirer(
     num_averages=5,
     x_points=31,
     y_points=31,
-    integration_time=50e-6,
+    integration_time=100e-6,
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
@@ -69,7 +71,7 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 
 
 # %%
-live_plotter = VideoMode(data_acquirer=data_acquirer)
+live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.5)
 live_plotter.run(use_reloader=False)
 
 # %%

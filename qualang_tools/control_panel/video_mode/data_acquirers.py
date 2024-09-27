@@ -86,7 +86,7 @@ class BaseDataAcquirer(ABC):
 
     @property
     def total_measurement_time(self):
-        return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points * 1000
+        return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points
 
     @abstractmethod
     def update_attrs(self, attrs):
@@ -140,7 +140,6 @@ class RandomDataAcquirer(BaseDataAcquirer):
             setattr(attr["obj"], attr["attr"], attr["new"])
 
     def acquire_data(self):
-        sleep(0.5)
         results = np.random.rand(len(self.y_vals), len(self.x_vals))
 
         return results
@@ -220,7 +219,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     IQ_streams=IQ_streams,
                 )
                 assign(n, n + 1)
-                wait(100000)
+                wait(500000)
 
             with stream_processing():
                 for var in self.stream_vars:
