@@ -16,21 +16,21 @@ def raster_scan(
     voltages = {"x": declare(fixed), "y": declare(fixed)}
 
     assign(idxs["x"], 0)
-    with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
-        save(idxs["x"], idxs_streams["x"])
-        save(voltages["x"], voltages_streams["x"])
+    with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
+        save(idxs["y"], idxs_streams["y"])
+        save(voltages["y"], voltages_streams["y"])
 
-        assign(idxs["y"], 0)
-        with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
-            save(idxs["y"], idxs_streams["y"])
-            save(voltages["y"], voltages_streams["y"])
+        assign(idxs["x"], 0)
+        with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
+            save(idxs["x"], idxs_streams["x"])
+            save(voltages["x"], voltages_streams["x"])
 
             I, Q = qua_inner_loop_action(idxs, voltages)
             save(I, IQ_streams["I"])
             save(Q, IQ_streams["Q"])
 
-            assign(idxs["y"], idxs["y"] + 1)  # type: ignore
-        assign(idxs["x"], idxs["x"] + 1)  # type: ignore
+            assign(idxs["x"], idxs["x"] + 1)  # type: ignore
+        assign(idxs["y"], idxs["y"] + 1)  # type: ignore
 
 
 def spiral_scan(

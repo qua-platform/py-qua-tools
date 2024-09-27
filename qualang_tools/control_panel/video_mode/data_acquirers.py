@@ -44,8 +44,8 @@ class BaseDataAcquirer(ABC):
         self.num_acquisitions = 0
 
         self.data_array = xr.DataArray(
-            np.zeros((self.y_points, self.x_points)),
-            coords=[("y", self.y_vals), ("x", self.x_vals)],
+            np.zeros((self.x_points, self.y_points)),
+            coords=[("x", self.x_vals), ("y", self.y_vals)],
             attrs={"units": "V", "long_name": "Signal"},
         )
         self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
@@ -87,8 +87,12 @@ class BaseDataAcquirer(ABC):
     def total_measurement_time(self):
         return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points
 
-    @abstractmethod
     def update_attrs(self, attrs):
+        for attr_name, attr in attrs.items():
+            if attr_name in ["x_offset", "y_offset"]:
+                attr["obj"].set(attr["new"])
+        else:
+            setattr(attr["obj"], attr_name, attr["new"])
         pass
 
     @abstractmethod
@@ -112,7 +116,7 @@ class BaseDataAcquirer(ABC):
 
         self.data_array = xr.DataArray(
             averaged_data,
-            coords=[("y", self.y_vals), ("x", self.x_vals)],
+            coords=[("x", self.x_vals), ("y", self.y_vals)],
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
 
@@ -123,12 +127,6 @@ class BaseDataAcquirer(ABC):
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
-    def update_attrs(self, attrs):
-        for attr in attrs:
-            if attr["attr"] in ["x_offset", "y_offset"]:
-                attr["obj"].set(attr["new"])
-        else:
-            setattr(attr["obj"], attr["attr"], attr["new"])
 
     def acquire_data(self):
         sleep(1)
@@ -180,8 +178,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
         )
 
     def update_attrs(self, attrs):
-        if any(name in attrs for name in ["x_span", "y_span", "x_points", "y_points", "integration_time"]):
-            self.generate_program()
+        super().update_attrs(attrs)
+        logging.info(f"Updated attrs: {attrs}")
+
+        requires_regeneration = ["x_span", "y_span", "x_points", "y_points", "integration_time"]
+        if any(attr in requires_regeneration for attr in attrs):
+            logging.info("Regenerating QUA program due to new parameters")
+            self.program = None
             self.run_program()
 
     def generate_program(self) -> Program:

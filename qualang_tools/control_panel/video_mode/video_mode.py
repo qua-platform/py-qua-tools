@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from time import sleep
 from typing import Optional, Union
 from dash import dcc, html, Input, Output
 from dash_extensions.enrich import DashProxy, dcc, html, Output, Input, BlockingCallbackTransform
@@ -94,38 +95,6 @@ class VideoMode:
                             style={
                                 "width": "40px",
                                 "text-align": "right",
-                            },
-                        ),
-                    ],
-                    style={"display": "flex", "margin-bottom": "10px"},
-                ),
-                html.Div(  # Offset
-                    [
-                        html.Label(
-                            "Offset:",
-                            style={
-                                "text-align": "right",
-                                "white-space": "nowrap",
-                                "margin-left": "15px",
-                                "margin-right": "5px",
-                            },
-                        ),
-                        dcc.Input(
-                            id=f"{xy}-offset",
-                            type="number",
-                            value=getattr(self.data_acquirer, f"{xy}_offset_parameter").get(),
-                            debounce=True,
-                            style={
-                                "width": "55px",
-                                "text-align": "right",
-                            },
-                        ),
-                        html.Label(
-                            "V",
-                            style={
-                                "text-align": "left",
-                                "white-space": "nowrap",
-                                "margin-left": "3px",
                             },
                         ),
                     ],
@@ -292,8 +261,6 @@ class VideoMode:
                 Input("y-span", "value"),
                 Input("x-points", "value"),
                 Input("y-points", "value"),
-                Input("x-offset", "value"),
-                Input("y-offset", "value"),
             ],
             blocking=True,
         )
@@ -306,35 +273,31 @@ class VideoMode:
             y_span,
             x_points,
             y_points,
-            x_offset,
-            y_offset,
         ):
             logging.debug(f"Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
-            attrs = [
-                {"obj": self.data_acquirer, "attr": "integration_time", "new": integration_time / 1e6},
-                {"obj": self.data_acquirer, "attr": "num_averages", "new": num_averages},
-                {"obj": self.data_acquirer, "attr": "x_span", "new": x_span},
-                {"obj": self.data_acquirer, "attr": "y_span", "new": y_span},
-                {"obj": self.data_acquirer, "attr": "x_points", "new": x_points},
-                {"obj": self.data_acquirer, "attr": "y_points", "new": y_points},
-                {"obj": self.data_acquirer.x_offset_parameter, "attr": "latest_value", "new": x_offset},
-                {"obj": self.data_acquirer.y_offset_parameter, "attr": "latest_value", "new": y_offset},
-            ]
-            updated_attrs = []
+            attrs = {
+                "integration_time": {"obj": self.data_acquirer, "new": integration_time / 1e6},
+                "num_averages": {"obj": self.data_acquirer, "new": num_averages},
+                "x_span": {"obj": self.data_acquirer, "new": x_span},
+                "y_span": {"obj": self.data_acquirer, "new": y_span},
+                "x_points": {"obj": self.data_acquirer, "new": x_points},
+                "y_points": {"obj": self.data_acquirer, "new": y_points},
+            }
+            updated_attrs = {}
 
             if n_update_clicks > self._last_update_clicks:
                 self._last_update_clicks = n_update_clicks
-                for attr in attrs:
-                    attr["old"] = getattr(attr["obj"], attr["attr"])
+                for attr_name, attr in attrs.items():
+                    attr["old"] = getattr(attr["obj"], attr_name)
 
                     attr["changed"] = attr["old"] != attr["new"]
 
                     if not attr["changed"]:
                         continue
 
-                    updated_attrs.append(attr)
+                    updated_attrs[attr_name] = attr
 
-                    logging.debug(f"Updating {attr['attr']} from {attr['old']} to {attr['new']}")
+                    logging.debug(f"Updating {attr_name} from {attr['old']} to {attr['new']}")
 
                 if updated_attrs:
                     self.clear_data()

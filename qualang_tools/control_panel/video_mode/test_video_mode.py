@@ -71,7 +71,7 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 
 
 # %%
-live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.1)
+live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
 live_plotter.run(use_reloader=False)
 
 # %%
