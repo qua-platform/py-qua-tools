@@ -28,5 +28,4 @@ def xarray_to_plotly(da: xr.DataArray):
         )
     )
     fig.update_layout(xaxis_title=xaxis_label, yaxis_title=yaxis_label)
-    logging.debug("Created Plotly figure from xarray DataArray")
     return fig

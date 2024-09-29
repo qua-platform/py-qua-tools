@@ -274,7 +274,7 @@ class VideoMode:
             x_points,
             y_points,
         ):
-            logging.debug(f"Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
+            logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
             attrs = {
                 "integration_time": {"obj": self.data_acquirer, "new": integration_time / 1e6},
                 "num_averages": {"obj": self.data_acquirer, "new": num_averages},
@@ -311,9 +311,7 @@ class VideoMode:
             # Increment iteration counter and update frontend
             updated_xarr = self.data_acquirer.update_data()
             self.fig = xarray_to_plotly(updated_xarr)
-            logging.debug(
-                f"***Updating heatmap at iteration {n_intervals}, num_acquisitions: {self.data_acquirer.num_acquisitions}"
-            )
+            logging.debug(f"Updating heatmap, num_acquisitions: {self.data_acquirer.num_acquisitions}")
             return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
         @self.app.callback(

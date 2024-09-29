@@ -1,34 +1,20 @@
+from contextlib import contextmanager
 from typing import Sequence, Callable
 
 from qm.qua import declare, declare_stream, fixed, save, assign, for_
 from qualang_tools.loops import from_array
 
 
-def raster_scan(
-    x_vals: Sequence[float],
-    y_vals: Sequence[float],
-    qua_inner_loop_action: Callable,
-    idxs_streams: dict,
-    voltages_streams: dict,
-    IQ_streams: dict,
-):
+@contextmanager
+def raster_scan(x_vals: Sequence[float], y_vals: Sequence[float]):
     idxs = {"x": declare(int), "y": declare(int)}
     voltages = {"x": declare(fixed), "y": declare(fixed)}
 
     assign(idxs["x"], 0)
     with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
-        save(idxs["y"], idxs_streams["y"])
-        save(voltages["y"], voltages_streams["y"])
-
         assign(idxs["x"], 0)
         with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
-            save(idxs["x"], idxs_streams["x"])
-            save(voltages["x"], voltages_streams["x"])
-
-            I, Q = qua_inner_loop_action(idxs, voltages)
-            save(I, IQ_streams["I"])
-            save(Q, IQ_streams["Q"])
-
+            yield idxs, voltages
             assign(idxs["x"], idxs["x"] + 1)  # type: ignore
         assign(idxs["y"], idxs["y"] + 1)  # type: ignore
 

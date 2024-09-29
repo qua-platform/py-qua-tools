@@ -107,7 +107,6 @@ class BaseDataAcquirer(ABC):
             self.data_history.clear()
 
         self.data_history.append(new_data)
-        logging.debug(f"New data generated with shape: {new_data.shape}")
 
         if len(self.data_history) > self.num_averages:
             self.data_history.pop(0)
@@ -122,7 +121,8 @@ class BaseDataAcquirer(ABC):
 
         self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
         self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
-        logging.debug(f"Averaged data calculated with shape: {self.data_array.shape}")
+        mean_abs_data = np.mean(np.abs(averaged_data))
+        logging.debug(f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}")
         return self.data_array
 
 
@@ -154,11 +154,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
         integration_time: float = 10e-6,
         pre_measurement_delay: float = 0,
         measure_var: str = "I",
+        final_delay: float = 30e-6,
         **kwargs,
     ):
         self.qm = qm
         self.scan_function = scan_function
         self.qua_inner_loop_action = qua_inner_loop_action
+        self.final_delay = final_delay
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
         self.measure_var = measure_var
@@ -205,16 +207,19 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with infinite_loop_():
                 save(n, n_stream)
-                self.scan_function(
-                    x_vals=x_vals,
-                    y_vals=y_vals,
-                    qua_inner_loop_action=self.qua_inner_loop_action,
-                    idxs_streams=idxs_streams,
-                    voltages_streams=voltages_streams,
-                    IQ_streams=IQ_streams,
-                )
-                assign(n, n + 1)
-                wait(5000000)
+                with self.scan_function(x_vals=x_vals, y_vals=y_vals) as (idxs, voltages):
+                    save(idxs["x"], idxs_streams["x"])
+                    save(idxs["y"], idxs_streams["y"])
+                    save(voltages["x"], voltages_streams["x"])
+                    save(voltages["y"], voltages_streams["y"])
+
+                    I, Q = self.qua_inner_loop_action(voltages)
+                    save(I, IQ_streams["I"])
+                    save(Q, IQ_streams["Q"])
+
+                self.qua_inner_loop_action.final_action()
+                wait(int(self.final_delay * 1e9) // 4)
+                assign(n, n + 1)  # ignore
 
             with stream_processing():
                 streams = {
