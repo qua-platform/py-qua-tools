@@ -1,78 +1,41 @@
-import traceback
-from functools import partial
-import json
-import pyperclip
 import logging
-import numpy as np
-import threading
-import sys
+from typing import Dict, Any
+from functools import partial
+import traceback
 
-from PyQt5 import QtGui
 from PyQt5.QtGui import QPalette, QFont
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PyQt5.QtWidgets import (
+    QFrame,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QGridLayout,
+    QSizePolicy,
+    QApplication,
+)
+from PyQt5.QtCore import Qt, pyqtSignal
 
+from .utils import get_exponent, get_first_digit
 
 logger = logging.getLogger(__name__)
-
-states = ["up_down", "left_right", "none"]
-
-
-def get_exponent(val: float):
-    """Get decimal exponent
-
-    Example:
-        >>> get_exponent(0.032)
-        -2
-
-    Args:
-        val: Val of which to get exponent
-
-    Returns:
-        Exponent
-    """
-    if val <= 0:
-        raise SyntaxError(f"Val {val} must be larger than zero")
-    else:
-        return int(np.floor(np.log10(val)))
-
-
-def get_first_digit(val: float):
-    """Get first nonzero digit.
-
-    Example:
-        >>> get_first_digit(0.032)
-        3
-
-    Args:
-        val: Val for which to get first nonzero digit
-
-    Returns:
-        First nonero digit.
-    """
-    first_digit = int(np.floor(val * 10 ** -get_exponent(val)))
-    return first_digit
 
 
 class VoltageSourceDialog(QFrame):
     state_change = pyqtSignal()
 
-    def __init__(self, parameter, idx=1, mini=True):
+    def __init__(self, parameter: Any, idx: int = 1, mini: bool = True):
         super().__init__()
-
         self.parameter = parameter
         self.idx = idx
         self.mini = mini
-
         self._state = "none"
         self.min_step = 0.0001
         self.max_step = 0.05
         self.modified_val = False
-
         self.setMaximumWidth(170)
-
         self.initUI()
-
         self.name_label.mousePressEvent = self.cycle_state
 
     @property
@@ -205,15 +168,12 @@ class VoltageSourceDialog(QFrame):
 
 
 class VoltageConfigDialog(QFrame):
-    def __init__(self, mini=False):
+    def __init__(self, mini: bool = False):
         super().__init__()
-
         self.mini = mini
-
         self.step = {"up_down": 0.001, "left_right": 0.001}
         self.min_step = 0.0001
         self.max_step = 0.05
-
         self.initUI()
 
     def initUI(self):
@@ -321,175 +281,9 @@ class VoltageConfigDialog(QFrame):
 
 
 class Separator(QFrame):
-    def __init__(self, mode="vertical"):
+    def __init__(self, mode: str = "vertical"):
         super().__init__()
-        if mode is "vertical":
-            frame_shape = QFrame.VLine
-        else:
-            frame_shape = QFrame.HLine
-
+        frame_shape = QFrame.VLine if mode == "vertical" else QFrame.HLine
         self.setFrameShape(frame_shape)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.setLineWidth(2)
-
-
-class VoltageControlDialog(QDialog):
-    def __init__(self, parameters, mini=False):
-        if len(parameters) > 10:
-            raise ValueError("Can use at most 10 voltage sources")
-        super().__init__(flags=Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
-        self.parameters = parameters
-        self.mini = mini
-
-        self.index_keys = {}
-        self.state_parameters = {state: [] for state in states}
-
-        # Dict of {parameter.name: VoltageSourceDialog}
-        self.voltage_source_dialogs = {}
-
-        self.initUI()
-        rect = QApplication.desktop().screenGeometry()
-
-        self.move(rect.height() * 7 // 10, rect.width() * 3 // 10)
-
-    def initUI(self):
-        if not self.mini:
-            self.layout = QHBoxLayout()
-        else:
-            self.layout = QVBoxLayout()
-        self.layout.setSpacing(0)
-        self.setLayout(self.layout)
-
-        self.config_widget = VoltageConfigDialog(mini=self.mini)
-        self.config_widget.ramp_button.clicked.connect(lambda clicked: self.ramp_voltages())
-        self.config_widget.ramp_button.clicked.connect(self._clear_focus)
-        self.config_widget.ramp_zero_button.clicked.connect(lambda clicked: self.ramp_voltages(0))
-        self.config_widget.ramp_zero_button.clicked.connect(self._clear_focus)
-
-        self.config_widget.copy_button = QPushButton("Copy from clipboard")
-        self.config_widget.copy_button.clicked.connect(self._copy_from_clipboard)
-        self.config_widget.copy_button.clicked.connect(self._clear_focus)
-        self.config_widget.layout.addWidget(self.config_widget.copy_button)
-
-        self.layout.addWidget(self.config_widget)
-
-        for k, parameter in enumerate(self.parameters):
-            idx = (k + 1) % 10
-            self.layout.addWidget(Separator())
-            voltage_source_dialog = VoltageSourceDialog(parameter, idx=idx, mini=self.mini)
-            self.layout.addWidget(voltage_source_dialog)
-            Qt_index_key = getattr(Qt, f"Key_{idx}")
-            self.index_keys[Qt_index_key] = voltage_source_dialog
-            self.voltage_source_dialogs[parameter.name] = voltage_source_dialog
-
-            voltage_source_dialog.state_change.connect(self.update_parameters)
-            self.config_widget.ramp_button.clicked.connect(voltage_source_dialog._reset_val_textbox)
-            self.config_widget.ramp_zero_button.clicked.connect(voltage_source_dialog._reset_val_textbox)
-
-    def keyPressEvent(self, event):
-        try:
-            if event.key() in self.index_keys:
-                # Change state of VoltageSource dialog
-                self.index_keys[event.key()].cycle_state()
-            elif event.key() == Qt.Key_Escape:
-                # Clear focus
-                self._clear_focus()
-            elif event.key() == Qt.Key_Up:
-                # Increase voltage for blue (up_down) dialogs
-                self.increase_voltages(self.state_parameters["up_down"], self.config_widget.step["up_down"])
-            elif event.key() == Qt.Key_Down:
-                # Decrease voltage for blue (up_down) dialogs
-                self.increase_voltages(self.state_parameters["up_down"], -self.config_widget.step["up_down"])
-            elif event.key() == Qt.Key_Right:
-                # Increase voltage for green (left_right) dialogs
-                self.increase_voltages(self.state_parameters["left_right"], self.config_widget.step["left_right"])
-            elif event.key() == Qt.Key_Left:
-                # Decrease voltage for green (left_right) dialogs
-                self.increase_voltages(self.state_parameters["left_right"], -self.config_widget.step["left_right"])
-            elif event.key() == Qt.Key_W:
-                self.config_widget.decrease_step("up_down")
-            elif event.key() == Qt.Key_S:
-                self.config_widget.increase_step("up_down")
-            elif event.key() == Qt.Key_A:
-                self.config_widget.increase_step("left_right")
-            elif event.key() == Qt.Key_D:
-                self.config_widget.decrease_step("left_right")
-        except:
-            traceback.print_exc()
-
-    def increase_voltages(self, parameters, val):
-        for parameter in parameters:
-            self.voltage_source_dialogs[parameter.name].increase_voltage(val)
-
-    def update_parameters(self):
-        logger.debug("updating parameters")
-        # Clear parameters from self.state_parameters
-        self.state_parameters = {state: [] for state in states}
-
-        # Iterate through VoltageSource dialogs and add them to state_parameters
-        for dialog in self.voltage_source_dialogs.values():
-            self.state_parameters[dialog.state].append(dialog.parameter)
-
-    def _copy_from_clipboard(self, *args):
-        clipboard_dict = json.loads(pyperclip.paste())
-        for parameter_name, val in clipboard_dict.items():
-            self.voltage_source_dialogs[parameter_name].val_textbox.setText(str(val))
-
-    def _clear_focus(self):
-        logger.debug("clearing focus")
-        focus_widget = QApplication.focusWidget()
-        if focus_widget is not None:
-            focus_widget.clearFocus()
-        for dialog in self.voltage_source_dialogs.values():
-            dialog._reset_val_textbox()
-
-    def ramp_voltages(self, voltage=None, parameters=None):
-        if voltage is not None:
-            if parameters is None:
-                parameters = self.parameters
-
-            for parameter in parameters:
-                parameter(voltage)
-        else:
-            for voltage_source_dialog in self.voltage_source_dialogs.values():
-                if voltage_source_dialog.modified_val:
-                    voltage_source_dialog.set_voltage(voltage_source_dialog.val_textbox.text())
-
-    def changeEvent(self, event):
-        # Correctly determines it is activated, but cannot clear focus
-        super().changeEvent(event)
-        if event.type() == QEvent.ActivationChange:
-            if self.windowState() == Qt.WindowNoState:
-                self._clear_focus()
-                for voltage_source_dialog in self.voltage_source_dialogs.values():
-                    voltage_source_dialog._reset_val_textbox()
-
-
-def start_voltage_control(use_thread=False, gui_name="Voltage control", *args, **kwargs):
-    window = VoltageControlDialog
-
-    if use_thread:
-        if any(t.name == gui_name for t in threading.enumerate()):
-            raise RuntimeError(f"GUI {gui_name} already exists. Exiting")
-        t = threading.Thread(
-            target=start_voltage_control,
-            name=gui_name,
-            args=(window, gui_name, *args),
-            kwargs={"use_thread": False, **kwargs},
-        )
-        t.start()
-        return t
-    else:
-        qApp = QApplication(sys.argv)
-        aw = window(*args, **kwargs)
-        aw.show()
-        qApp.exec_()
-        return qApp
-
-
-if __name__ == "__main__":
-    from qcodes.parameters import ManualParameter
-
-    # Create dummy parameters
-    parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(5)]
-    start_voltage_control(parameters=parameters, mini=True)
