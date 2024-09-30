@@ -43,7 +43,6 @@ class InnerLoopAction:
             None,
             demod.full("cosine", I),
             demod.full("sine", Q),
-            # duration=integration_time // 4,
         )
 
         return I, Q

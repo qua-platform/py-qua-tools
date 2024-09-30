@@ -152,9 +152,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_points=101,
         num_averages=1,
         integration_time: float = 10e-6,
-        pre_measurement_delay: float = 0,
+        pre_measurement_delay: Optional[float] = None,
         measure_var: str = "I",
-        final_delay: float = 30e-6,
+        final_delay: Optional[float] = None,
         **kwargs,
     ):
         self.qm = qm
@@ -218,7 +218,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     save(Q, IQ_streams["Q"])
 
                 self.qua_inner_loop_action.final_action()
-                wait(int(self.final_delay * 1e9) // 4)
+                if self.final_delay is not None:
+                    wait(int(self.final_delay * 1e9) // 4)
                 assign(n, n + 1)  # ignore
 
             with stream_processing():
