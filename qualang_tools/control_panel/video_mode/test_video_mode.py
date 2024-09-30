@@ -60,7 +60,6 @@ data_acquirer = OPXDataAcquirer(
     x_points=101,
     y_points=101,
     integration_time=20e-6,
-    final_delay=30e-3,
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
