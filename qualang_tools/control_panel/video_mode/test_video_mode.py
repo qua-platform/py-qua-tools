@@ -14,6 +14,7 @@ import logging
 # Update the logging configuration
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 # %% Create config and connect to QM
 machine = BasicQuAM()
@@ -36,7 +37,7 @@ qm = qmm.open_qm(config, close_other_machines=True)
 
 
 # %% Run OPXDataAcquirer
-from qualang_tools.control_panel.video_mode.scan_modes import raster_scan
+from qualang_tools.control_panel.video_mode.scan_modes import RasterScan, SpiralScan
 from qualang_tools.control_panel.video_mode.inner_loop_actions import InnerLoopActionQuam
 
 x_offset = VoltageParameter(name="X Voltage Offset", initial_value=0.0)
@@ -47,11 +48,12 @@ inner_loop_action = InnerLoopActionQuam(
     readout_element=machine.channels["ch_readout"],
     readout_pulse="readout",
 )
-
+# scan_mode = RasterScan()
+scan_mode = SpiralScan()
 data_acquirer = OPXDataAcquirer(
     qm=qm,
     qua_inner_loop_action=inner_loop_action,
-    scan_function=raster_scan,
+    scan_mode=scan_mode,
     x_offset_parameter=x_offset,
     y_offset_parameter=y_offset,
     x_span=0.02,
@@ -59,8 +61,8 @@ data_acquirer = OPXDataAcquirer(
     x_attenuation=0,
     y_attenuation=0,
     num_averages=5,
-    x_points=101,
-    y_points=101,
+    x_points=11,
+    y_points=11,
     integration_time=20e-6,
 )
 # %% Run program
@@ -75,5 +77,14 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 # %%
 live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
 live_plotter.run(use_reloader=False)
+
+# %%
+scan_mode.plot_scan(np.arange(11), np.arange(11))
+
+# %% Generate QUA script
+from qm import generate_qua_script
+
+qua_script = generate_qua_script(data_acquirer.generate_program(), config)
+print(qua_script)
 
 # %%

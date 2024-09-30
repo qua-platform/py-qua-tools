@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Optional
+import xarray as xr
+import logging
+from time import sleep, perf_counter
 import numpy as np
 from qm import Program, QuantumMachine
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
-import xarray as xr
-import logging
-from time import sleep, perf_counter
+from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -156,14 +157,14 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
-    stream_vars = ["I", "Q", "n", "x_idxs", "y_idxs", "x_vals", "y_vals"]
+    stream_vars = ["I", "Q", "n"]
 
     def __init__(
         self,
         *,
         qm: QuantumMachine,
         qua_inner_loop_action: Callable,
-        scan_function: Callable,
+        scan_mode: ScanMode,
         x_offset_parameter,
         y_offset_parameter,
         x_span,
@@ -174,13 +175,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_points=101,
         num_averages=1,
         integration_time: float = 10e-6,
-        pre_measurement_delay: Optional[float] = None,
+        pre_measurement_delay: float = 0,
         measure_var: str = "I",
         final_delay: Optional[float] = None,
         **kwargs,
     ):
         self.qm = qm
-        self.scan_function = scan_function
+        self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
         self.final_delay = final_delay
         self.program: Optional[Program] = None
@@ -227,18 +228,11 @@ class OPXDataAcquirer(BaseDataAcquirer):
         with program() as prog:
             n = declare(int, 0)
             n_stream = declare_stream()
-            idxs_streams = {"x": declare_stream(), "y": declare_stream()}
-            voltages_streams = {"x": declare_stream(), "y": declare_stream()}
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
 
             with infinite_loop_():
                 save(n, n_stream)
-                with self.scan_function(x_vals=x_vals, y_vals=y_vals) as (idxs, voltages):
-                    save(idxs["x"], idxs_streams["x"])
-                    save(idxs["y"], idxs_streams["y"])
-                    save(voltages["x"], voltages_streams["x"])
-                    save(voltages["y"], voltages_streams["y"])
-
+                for voltages in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
                     I, Q = self.qua_inner_loop_action(voltages)
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
@@ -246,14 +240,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 self.qua_inner_loop_action.final_action()
                 if self.final_delay is not None:
                     wait(int(self.final_delay * 1e9) // 4)
-                assign(n, n + 1)  # ignore
+                assign(n, n + 1)  # type: ignore
 
             with stream_processing():
                 streams = {
-                    "x_vals": voltages_streams["x"].buffer(self.x_points, self.y_points),
-                    "y_vals": voltages_streams["y"].buffer(self.x_points, self.y_points),
-                    "x_idxs": idxs_streams["x"].buffer(self.x_points, self.y_points),
-                    "y_idxs": idxs_streams["y"].buffer(self.x_points, self.y_points),
                     "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
                     "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
                     "n": n_stream,
@@ -264,7 +254,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
                         combined_stream = streams[var]
                     else:
                         combined_stream = combined_stream.zip(streams[var])
-                combined_stream.save("combined")
+                combined_stream.save("combined")  # type: ignore
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
@@ -275,8 +265,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
         t0 = perf_counter()
-        results_tuple = self.job.result_handles.get("combined").fetch_all()
-        self.results = dict(zip(self.stream_vars, results_tuple))
+        results_tuple = self.job.result_handles.get("combined").fetch_all()  # type: ignore
+        self.results = dict(zip(self.stream_vars, results_tuple))  # type: ignore
         result_array = self.process_results(self.results)
         logging.info(f"Time to acquire data: {(perf_counter() - t0) * 1e3:.2f} ms")
 
@@ -292,4 +282,4 @@ class OPXDataAcquirer(BaseDataAcquirer):
             return
 
         # Wait until one buffer is filled{
-        self.job.result_handles.get("combined").wait_for_values(1)
+        self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore
