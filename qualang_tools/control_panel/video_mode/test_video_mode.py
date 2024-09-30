@@ -48,6 +48,7 @@ inner_loop_action = InnerLoopActionQuam(
     y_element=machine.channels["ch2"],
     readout_element=machine.channels["ch_readout"],
     readout_pulse="readout",
+    integration_time=machine.channels["ch_readout"].operations["readout"].length,
 )
 # scan_mode = RasterScan()
 scan_mode = SpiralScan()
@@ -64,7 +65,6 @@ data_acquirer = OPXDataAcquirer(
     num_averages=5,
     x_points=11,
     y_points=11,
-    integration_time=20e-6,
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
@@ -90,6 +90,7 @@ print(qua_script)
 
 # %% Simulate results
 from qm import SimulationConfig
+
 prog = data_acquirer.generate_program()
 simulation_config = SimulationConfig(duration=30000)  # In clock cycles = 4ns
 job = qmm.simulate(config, prog, simulation_config)

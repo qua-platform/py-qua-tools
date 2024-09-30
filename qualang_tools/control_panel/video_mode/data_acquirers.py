@@ -26,8 +26,6 @@ class BaseDataAcquirer(ABC):
         x_points=101,
         y_points=101,
         num_averages=1,
-        integration_time: float = 10e-6,
-        pre_measurement_delay: float = 0,
         **kwargs,
     ):
         assert not kwargs
@@ -37,13 +35,11 @@ class BaseDataAcquirer(ABC):
         self.x_span = x_span
         self.y_span = y_span
         self.num_averages = num_averages
-        self.integration_time = integration_time
         self.x_points = x_points
         self.y_points = y_points
         self.x_attenuation = x_attenuation
         self.y_attenuation = y_attenuation
         self.data_history = []
-        self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
 
         self.num_acquisitions = 0
@@ -87,12 +83,6 @@ class BaseDataAcquirer(ABC):
         y_attenuation_factor = 10 ** (self.y_attenuation / 20)  # Convert dB to voltage scale
         return self.y_vals / y_attenuation_factor
 
-    @property
-    def integration_cycles(self):
-        integration_cycles = int(self.integration_time * 1e9)
-        integration_cycles -= integration_cycles % 4
-        return integration_cycles
-
     def update_voltage_ranges(self):
         self.data_array = self.data_array.assign_coords(x=self.x_vals, y=self.y_vals)
 
@@ -103,10 +93,6 @@ class BaseDataAcquirer(ABC):
             f"x_vals=[{x_vals[0]}, {x_vals[1]}, ..., {x_vals[-1]}], "
             f"y_vals=[{y_vals[0]}, {y_vals[1]}, ..., {y_vals[-1]}]"
         )
-
-    @property
-    def total_measurement_time(self):
-        return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points
 
     def update_attrs(self, attrs):
         for attr_name, attr in attrs.items():
@@ -174,8 +160,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
         x_points=101,
         y_points=101,
         num_averages=1,
-        integration_time: float = 10e-6,
-        pre_measurement_delay: float = 0,
         measure_var: str = "I",
         final_delay: Optional[float] = None,
         **kwargs,
@@ -199,8 +183,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
             num_averages=num_averages,
             x_points=x_points,
             y_points=y_points,
-            integration_time=integration_time,
-            pre_measurement_delay=pre_measurement_delay,
             **kwargs,
         )
 
@@ -208,7 +190,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         super().update_attrs(attrs)
         logging.info(f"Updated attrs: {attrs}")
 
-        requires_regeneration = ["x_span", "y_span", "x_points", "y_points", "integration_time"]
+        requires_regeneration = ["x_span", "y_span", "x_points", "y_points"]
         if any(attr in requires_regeneration for attr in attrs):
             logging.info("Regenerating QUA program due to new parameters")
             self.program = None
@@ -219,11 +201,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
         x_vals -= self.x_offset_parameter.get()
         y_vals = self.y_vals_unattenuated
         y_vals -= self.y_offset_parameter.get()
-
-        assert self.integration_cycles >= 16
-
-        self.qua_inner_loop_action.integration_time = self.integration_time
-        self.qua_inner_loop_action.pre_measurement_delay = self.pre_measurement_delay
 
         with program() as prog:
             n = declare(int, 0)

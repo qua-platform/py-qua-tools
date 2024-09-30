@@ -20,7 +20,7 @@ class VideoMode:
         data_acquirer: BaseDataAcquirer,
         image_save_path: Union[str, Path] = "./images",
         data_save_path: Union[str, Path] = "./data",
-        update_interval: Optional[float] = None,
+        update_interval: Optional[float] = 0.1,
     ):
         self.data_acquirer = data_acquirer
         self.image_save_path = Path(image_save_path)
@@ -28,7 +28,7 @@ class VideoMode:
         self.paused = False
         self._last_update_clicks = 0
         self._last_save_clicks = 0
-        self._update_interval = update_interval
+        self.update_interval = update_interval
 
         self.app = DashProxy(__name__, title="Video Mode", transforms=[BlockingCallbackTransform(timeout=10)])
         self.create_layout()
@@ -138,35 +138,35 @@ class VideoMode:
                         ),
                         html.Div(  # Integration + Averages
                             [
-                                html.Div(  # Integration
-                                    [
-                                        html.Label(
-                                            "Integration Time:",
-                                            style={
-                                                "text-align": "right",
-                                                "white-space": "nowrap",
-                                                "margin-right": "5px",
-                                            },
-                                        ),
-                                        dcc.Input(
-                                            id="integration-time",
-                                            type="number",
-                                            value=self.data_acquirer.integration_time * 1e6,
-                                            min=1,
-                                            debounce=True,
-                                            style={"width": "40px", "text-align": "right"},
-                                        ),  # Integration time in microseconds
-                                        html.Label(
-                                            "µs",
-                                            style={
-                                                "text-align": "left",
-                                                "white-space": "nowrap",
-                                                "margin-left": "3px",
-                                            },
-                                        ),
-                                    ],
-                                    style={"display": "flex", "margin-bottom": "10px"},
-                                ),
+                                # html.Div(  # Integration
+                                #     [
+                                #         html.Label(
+                                #             "Integration Time:",
+                                #             style={
+                                #                 "text-align": "right",
+                                #                 "white-space": "nowrap",
+                                #                 "margin-right": "5px",
+                                #             },
+                                #         ),
+                                #         dcc.Input(
+                                #             id="integration-time",
+                                #             type="number",
+                                #             value=self.data_acquirer.integration_time * 1e6,
+                                #             min=1,
+                                #             debounce=True,
+                                #             style={"width": "40px", "text-align": "right"},
+                                #         ),  # Integration time in microseconds
+                                #         html.Label(
+                                #             "µs",
+                                #             style={
+                                #                 "text-align": "left",
+                                #                 "white-space": "nowrap",
+                                #                 "margin-left": "3px",
+                                #             },
+                                #         ),
+                                #     ],
+                                #     style={"display": "flex", "margin-bottom": "10px"},
+                                # ),
                                 html.Div(
                                     [
                                         html.Label(
@@ -228,12 +228,6 @@ class VideoMode:
         """Clears data history and resets averages."""
         self.data_acquirer.data_history.clear()
         logging.debug("Cleared all averages and data history.")
-
-    @property
-    def update_interval(self):
-        if self._update_interval is None:
-            return self.data_acquirer.total_measurement_time * 1e3
-        return self._update_interval * 1e3
 
     def add_callbacks(self):
         @self.app.callback(
