@@ -20,6 +20,8 @@ class BaseDataAcquirer(ABC):
         y_offset_parameter,
         x_span,
         y_span,
+        x_attenuation: float = 0.0,
+        y_attenuation: float = 0.0,
         x_points=101,
         y_points=101,
         num_averages=1,
@@ -37,6 +39,8 @@ class BaseDataAcquirer(ABC):
         self.integration_time = integration_time
         self.x_points = x_points
         self.y_points = y_points
+        self.x_attenuation = x_attenuation
+        self.y_attenuation = y_attenuation
         self.data_history = []
         self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
@@ -65,6 +69,16 @@ class BaseDataAcquirer(ABC):
         y_min = y_offset - self.y_span / 2
         y_max = y_offset + self.y_span / 2
         return np.linspace(y_min, y_max, self.y_points)
+
+    @property
+    def x_vals_unattenuated(self):
+        x_attenuation_factor = 10 ** (self.x_attenuation / 20)  # Convert dB to voltage scale
+        return self.x_vals / x_attenuation_factor
+
+    @property
+    def y_vals_unattenuated(self):
+        y_attenuation_factor = 10 ** (self.y_attenuation / 20)  # Convert dB to voltage scale
+        return self.y_vals / y_attenuation_factor
 
     @property
     def integration_cycles(self):
@@ -148,6 +162,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_offset_parameter,
         x_span,
         y_span,
+        x_attenuation: float = 0.0,
+        y_attenuation: float = 0.0,
         x_points=101,
         y_points=101,
         num_averages=1,
@@ -171,6 +187,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
             y_offset_parameter=y_offset_parameter,
             x_span=x_span,
             y_span=y_span,
+            x_attenuation=x_attenuation,
+            y_attenuation=y_attenuation,
             num_averages=num_averages,
             x_points=x_points,
             y_points=y_points,
@@ -190,8 +208,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
     def generate_program(self) -> Program:
-        x_vals = self.x_vals - self.x_offset_parameter.get()
-        y_vals = self.y_vals - self.y_offset_parameter.get()
+        x_vals = self.x_vals_unattenuated
+        x_vals -= self.x_offset_parameter.get()
+        y_vals = self.y_vals_unattenuated
+        y_vals -= self.y_offset_parameter.get()
 
         assert self.integration_cycles >= 16
 
