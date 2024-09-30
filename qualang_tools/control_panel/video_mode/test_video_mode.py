@@ -18,13 +18,15 @@ logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
 # %% Create config and connect to QM
 machine = BasicQuAM()
 
-machine.channels["ch1"] = SingleChannel(opx_output=("con1", 1))
-machine.channels["ch2"] = SingleChannel(opx_output=("con1", 2))
-machine.channels["ch_readout"] = InOutSingleChannel(
-    opx_output=("con1", 3),
-    opx_input=("con1", 1),
-    intermediate_frequency=100e6,
-    operations={"readout": pulses.SquareReadoutPulse(length=1000, amplitude=0.1)},
+machine.channels["LP"] = SingleChannel(opx_output=("con1", 10))
+machine.channels["RP"] = SingleChannel(opx_output=("con1", 8))
+machine.channels["bottom_left_DQD_readout"] = InOutSingleChannel(
+    opx_output=("con1", 9),
+    opx_input=("con1", 2),
+    intermediate_frequency=140555556,
+    time_of_flight=260,
+    smearing=0,
+    operations={"readout": pulses.SquareReadoutPulse(length=20000, amplitude=0.1)},
 )
 
 qmm = QuantumMachinesManager(host="192.168.8.4", cluster_name="Cluster_1")
