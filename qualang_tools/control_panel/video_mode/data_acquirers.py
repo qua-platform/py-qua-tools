@@ -52,8 +52,14 @@ class BaseDataAcquirer(ABC):
             coords=[("x", self.x_vals), ("y", self.y_vals)],
             attrs={"units": "V", "long_name": "Signal"},
         )
-        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+        for axis, param in {"x": self.x_offset_parameter, "y": self.y_offset_parameter}.items():
+            if getattr(param, "label", None):
+                param_name = param.label
+            elif getattr(param, "name", None):
+                param_name = param.name
+            else:
+                param_name = "X_axis"
+            self.data_array.coords[axis].attrs.update({"units": "V", "long_name": param_name})
         logging.debug("DataGenerator initialized with initial data")
 
     @property
