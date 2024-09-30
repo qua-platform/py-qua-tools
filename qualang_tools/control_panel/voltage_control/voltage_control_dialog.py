@@ -1,5 +1,6 @@
 import logging
 import json
+from PyQt5.QtGui import QFont
 import pyperclip
 import traceback
 from typing import List, Dict, Any
@@ -17,8 +18,8 @@ STATES = ["up_down", "left_right", "none"]
 
 class VoltageControlDialog(QDialog):
     def __init__(self, parameters: List[Any], mini: bool = False):
-        if len(parameters) > 10:
-            raise ValueError("Can use at most 10 voltage sources")
+        # if len(parameters) > 10:
+        #     raise ValueError("Can use at most 10 voltage sources")
         super().__init__(flags=Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
         self.parameters = parameters
         self.mini = mini
@@ -51,12 +52,13 @@ class VoltageControlDialog(QDialog):
         self.layout.addWidget(self.config_widget)
 
         for k, parameter in enumerate(self.parameters):
-            idx = (k + 1) % 10
+            idx = (k + 1)
             self.layout.addWidget(Separator())
             voltage_source_dialog = VoltageSourceDialog(parameter, idx=idx, mini=self.mini)
             self.layout.addWidget(voltage_source_dialog)
-            Qt_index_key = getattr(Qt, f"Key_{idx}")
-            self.index_keys[Qt_index_key] = voltage_source_dialog
+            if idx < 10:
+                Qt_index_key = getattr(Qt, f"Key_{idx}")
+                self.index_keys[Qt_index_key] = voltage_source_dialog
             self.voltage_source_dialogs[parameter.name] = voltage_source_dialog
 
             voltage_source_dialog.state_change.connect(self.update_parameters)

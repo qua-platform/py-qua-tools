@@ -33,6 +33,7 @@ def start_voltage_control(use_thread: bool = False, gui_name: str = "Voltage con
         return t
     else:
         qApp = QApplication(sys.argv)
+
         aw = VoltageControlDialog(*args, **kwargs)
         aw.show()
         qApp.exec_()
@@ -44,5 +45,5 @@ if __name__ == "__main__":
     import numpy as np
 
     # Create dummy parameters
-    parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(5)]
+    parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(15)]
     start_voltage_control(parameters=parameters, mini=True)

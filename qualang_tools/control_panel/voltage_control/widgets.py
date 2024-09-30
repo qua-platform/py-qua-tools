@@ -3,7 +3,7 @@ from typing import Dict, Any
 from functools import partial
 import traceback
 
-from PyQt5.QtGui import QPalette, QFont
+from PyQt5.QtGui import QPalette, QFont, QColor
 from PyQt5.QtWidgets import (
     QFrame,
     QVBoxLayout,
@@ -14,12 +14,17 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QSizePolicy,
     QApplication,
+    QStyleFactory,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from .utils import get_exponent, get_first_digit
 
 logger = logging.getLogger(__name__)
+
+
+text_font = "Arial"
+font_size = 16
 
 
 class VoltageSourceDialog(QFrame):
@@ -35,6 +40,33 @@ class VoltageSourceDialog(QFrame):
         self.max_step = 0.05
         self.modified_val = False
         self.setMaximumWidth(170)
+        self.setStyleSheet(
+            """
+            QFrame {
+                background-color: #f0f0f0;
+                border-radius: 10px;
+                # padding: 10px;
+            }
+            QLabel {
+                color: #333333;
+            }
+            QLineEdit {
+                border: 1px solid #cccccc;
+                border-radius: 5px;
+                # padding: 3px;
+            }
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            """
+        )
         self.initUI()
         self.name_label.mousePressEvent = self.cycle_state
 
@@ -85,7 +117,7 @@ class VoltageSourceDialog(QFrame):
         self.name_label.setAlignment(Qt.AlignCenter)
 
         if not self.mini:
-            self.name_label.setFont(QFont("Times", 16, QFont.Bold))
+            self.name_label.setFont(QFont("Arial", 16, QFont.Bold))
             layout.addWidget(self.name_label)
 
         # Add editable voltage
@@ -94,26 +126,26 @@ class VoltageSourceDialog(QFrame):
 
         if not self.mini:
             val_descr_label = QLabel("Val:")
-            val_descr_label.setFont(QFont("Times", 12, QFont.Bold))
+            val_descr_label.setFont(QFont(text_font, font_size))
             val_hbox.addWidget(val_descr_label)
         else:
-            self.name_label.setFont(QFont("Times", 12, QFont.Bold))
+            self.name_label.setFont(QFont(text_font, font_size))
             val_hbox.addWidget(self.name_label)
 
         self.val_textbox = QLineEdit(f"{self.parameter.get_latest():.5g}")
         self.val_textbox.setAlignment(Qt.AlignCenter)
-        self.val_textbox.setFont(QFont("Times", 12, QFont.Bold))
+        self.val_textbox.setFont(QFont(text_font, font_size))
         self.val_textbox.returnPressed.connect(lambda: self.set_voltage(self.val_textbox.text()))
         val_hbox.addWidget(self.val_textbox)
 
         val_units_label = QLabel("V")
-        val_units_label.setFont(QFont("Times", 12, QFont.Bold))
+        val_units_label.setFont(QFont(text_font, font_size))
         val_hbox.addWidget(val_units_label)
 
         # Add current val
         self.current_val_label = QLabel(f"")
         self.current_val_label.setAlignment(Qt.AlignCenter)
-        self.current_val_label.setFont(QFont("Times", 12))
+        self.current_val_label.setFont(QFont(text_font, font_size))
         layout.addWidget(self.current_val_label)
 
         self.val_textbox.textChanged.connect(self._val_textbox_changed)
@@ -134,6 +166,23 @@ class VoltageSourceDialog(QFrame):
                     button.setMaximumWidth(width)
                     button.clicked.connect(partial(self.increase_voltage, val / 1000))
                     self.val_buttons[val] = button
+
+            # Modify button styles
+            for button in self.val_buttons.values():
+                button.setStyleSheet(
+                    """
+                    QPushButton {
+                        background-color: #4CAF50;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        padding: 5px;
+                    }
+                    QPushButton:hover {
+                        background-color: #45a049;
+                    }
+                """
+                )
 
     def _val_textbox_changed(self):
         try:
@@ -174,7 +223,35 @@ class VoltageConfigDialog(QFrame):
         self.step = {"up_down": 0.001, "left_right": 0.001}
         self.min_step = 0.0001
         self.max_step = 0.05
+        self.setStyleSheet(
+            """
+            QFrame {
+                background-color: #e6e6e6;
+                # border-radius: 10px;
+                padding: 10px;
+            }
+            QLabel {
+                color: #333333;
+            }
+            QLineEdit {
+                border: 1px solid #cccccc;
+                border-radius: 5px;
+                padding: 3px;
+            }
+            QPushButton {
+                background-color: #008CBA;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: #007B9A;
+            }
+        """
+        )
         self.initUI()
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     def initUI(self):
         self.layout = QVBoxLayout()
@@ -190,7 +267,7 @@ class VoltageConfigDialog(QFrame):
                 for key, pos in keys:
                     key_label = QLabel(key)
                     key_label.setAlignment(Qt.AlignCenter)
-                    key_label.setFont(QFont("Times", 12, QFont.Bold))
+                    key_label.setFont(QFont(text_font, font_size, QFont.Bold))
 
                     key_palette = QPalette()
                     key_palette.setColor(QPalette.Foreground, getattr(Qt, color))
@@ -205,7 +282,7 @@ class VoltageConfigDialog(QFrame):
 
             step_label = QLabel("Step:")
             step_label.setAlignment(Qt.AlignCenter)
-            step_label.setFont(QFont("Times", 12, QFont.Bold))
+            step_label.setFont(QFont(text_font, font_size, QFont.Bold))
             self.layout.addWidget(step_label)
 
         step_hbox = QHBoxLayout()
@@ -224,7 +301,7 @@ class VoltageConfigDialog(QFrame):
             step_hbox.addWidget(step_unit_label)
 
             for widget in [step_unit_label, self.step_textbox[state]]:
-                widget.setFont(QFont("Times", 10, QFont.Bold))
+                # widget.setFont(QFont(text_font, 16, QFont.Bold))
                 widget.setStyleSheet(f"color: {color};")
 
         self.layout.addStretch(1)
@@ -287,3 +364,10 @@ class Separator(QFrame):
         self.setFrameShape(frame_shape)
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.setLineWidth(2)
+        self.setStyleSheet(
+            """
+            QFrame {
+                background-color: #cccccc;
+            }
+        """
+        )
