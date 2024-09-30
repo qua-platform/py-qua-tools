@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
 import numpy as np
-from qm.qua import declare, declare_stream, fixed, save, assign, for_
+from qm.qua import declare, declare_stream, fixed, if_, save, assign, for_
 from qualang_tools.loops import from_array
 
 
@@ -100,15 +100,19 @@ class SpiralScan(ScanMode):
 
         with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
             # First take one step in the opposite XY direction
-            assign(x, x - x_step * movement_direction)
-            yield voltages
+            with if_(half_spiral_idx > 0):
+                assign(x, x - x_step * movement_direction)
+                yield voltages
 
-            with for_(k, 0, k < num_half_spirals, k + 1):  # type: ignore
+            with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
                 assign(y, y + y_step * movement_direction)
                 yield voltages
 
-            with for_(k, 0, k < num_half_spirals, k + 1):  # type: ignore
+            with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
                 assign(x, x + x_step * movement_direction)
                 yield voltages
 
             assign(movement_direction, -movement_direction)
+
+        assign(x, 0)
+        assign(y, 0)

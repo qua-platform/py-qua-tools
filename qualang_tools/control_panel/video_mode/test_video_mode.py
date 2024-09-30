@@ -1,6 +1,7 @@
 # %% Imports
 from qualang_tools.control_panel.video_mode.plotly_tools import *
 import numpy as np
+from matplotlib import pyplot as plt
 from qualang_tools.control_panel.video_mode.voltage_parameters import *
 from qualang_tools.control_panel.video_mode.data_acquirers import *
 from qualang_tools.control_panel.video_mode.video_mode import *
@@ -86,5 +87,17 @@ from qm import generate_qua_script
 
 qua_script = generate_qua_script(data_acquirer.generate_program(), config)
 print(qua_script)
+
+# %% Simulate results
+from qm import SimulationConfig
+prog = data_acquirer.generate_program()
+simulation_config = SimulationConfig(duration=30000)  # In clock cycles = 4ns
+job = qmm.simulate(config, prog, simulation_config)
+con1 = job.get_simulated_samples().con1
+
+con1.plot(analog_ports=["1", "2"])
+
+plt.figure()
+plt.plot(con1.analog["1"], con1.analog["2"])
 
 # %%
