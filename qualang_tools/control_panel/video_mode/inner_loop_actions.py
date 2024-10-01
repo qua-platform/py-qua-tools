@@ -8,7 +8,7 @@ class InnerLoopAction:
         x_element: str,
         y_element: str,
         readout_element: str,
-        integration_time: Optional[float] = None,
+        integration_time: float,
         readout_pulse: str = "readout",
         pre_measurement_delay: float = 0.0,
     ):
@@ -24,8 +24,6 @@ class InnerLoopAction:
         return self.integration_time + self.pre_measurement_delay
 
     def __call__(self, voltages):
-        if self.integration_time is None:
-            raise ValueError("Integration time must be set for inner loop action")
         I = declare(fixed)
         Q = declare(fixed)
 
@@ -45,7 +43,7 @@ class InnerLoopAction:
 
         return I, Q
 
-    def final_action(self):
+    def initial_action(self):
         set_dc_offset(self.x_elem, "single", 0)
         set_dc_offset(self.y_elem, "single", 0)
         align()
@@ -54,9 +52,6 @@ class InnerLoopAction:
 class InnerLoopActionQuam(InnerLoopAction):
 
     def __call__(self, voltages):
-        if self.integration_time is None:
-            raise ValueError("Integration time must be set for inner loop action")
-
         self.x_elem.set_dc_offset(voltages["x"])
         self.y_elem.set_dc_offset(voltages["y"])
 
@@ -69,7 +64,7 @@ class InnerLoopActionQuam(InnerLoopAction):
 
         return I, Q
 
-    def final_action(self):
+    def initial_action(self):
         self.x_elem.set_dc_offset(0)
         self.y_elem.set_dc_offset(0)
         align()

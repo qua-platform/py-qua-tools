@@ -168,7 +168,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         self.qm = qm
         self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
-        self.final_delay = final_delay
+        self.initial_delay = final_delay
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
         self.result_type = result_type
@@ -210,14 +210,15 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with infinite_loop_():
                 save(n, n_stream)
+
+                self.qua_inner_loop_action.initial_action()
+                if self.initial_delay is not None:
+                    wait(int(self.initial_delay * 1e9) // 4)
+                    
                 for voltages in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
                     I, Q = self.qua_inner_loop_action(voltages)
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
-
-                self.qua_inner_loop_action.final_action()
-                if self.final_delay is not None:
-                    wait(int(self.final_delay * 1e9) // 4)
                 assign(n, n + 1)  # type: ignore
 
             with stream_processing():
