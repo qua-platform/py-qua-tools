@@ -143,7 +143,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
-    stream_vars = ["I", "Q", "n"]
+    stream_vars = ["I", "Q"]
     result_types = ["I", "Q", "amplitude", "phase"]
 
     def __init__(
@@ -214,7 +214,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 self.qua_inner_loop_action.initial_action()
                 if self.initial_delay is not None:
                     wait(int(self.initial_delay * 1e9) // 4)
-                    
+
                 for voltages in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
                     I, Q = self.qua_inner_loop_action(voltages)
                     save(I, IQ_streams["I"])
@@ -248,7 +248,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         x_idxs, y_idxs = self.scan_mode.get_idxs(x_points=self.x_points, y_points=self.y_points)
         results_2D = np.zeros((self.y_points, self.x_points), dtype=float)
-        results_2D[y_idxs, x_idxs] = result
+        results_2D[x_idxs, y_idxs] = result
 
         return results_2D
 
