@@ -49,7 +49,26 @@ class InnerLoopAction:
         align()
 
 
-class InnerLoopActionQuam(InnerLoopAction):
+class InnerLoopActionQuam:
+    def __init__(
+        self,
+        x_element,
+        y_element,
+        readout_pulse,
+        pre_measurement_delay: float = 0.0,
+    ):
+        self.x_elem = x_element
+        self.y_elem = y_element
+        self.readout_pulse = readout_pulse
+        self.pre_measurement_delay = pre_measurement_delay
+
+    @property
+    def integration_time(self):
+        return self.readout_pulse.length
+
+    @property
+    def duration(self):
+        return self.integration_time + self.pre_measurement_delay
 
     def __call__(self, voltages):
         self.x_elem.set_dc_offset(voltages["x"])
@@ -60,7 +79,7 @@ class InnerLoopActionQuam(InnerLoopAction):
         if pre_measurement_delay_cycles >= 4:
             wait(pre_measurement_delay_cycles)
 
-        I, Q = self.readout_elem.measure(self.readout_pulse)
+        I, Q = self.readout_pulse.channel.measure(self.readout_pulse)
 
         return I, Q
 
