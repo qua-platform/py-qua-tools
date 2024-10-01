@@ -56,15 +56,16 @@ class SwitchRasterScan(ScanMode):
 
     @staticmethod
     def interleave_arr(arr: np.ndarray) -> np.ndarray:
-        mid_idx = (len(arr) + 1) // 2
-        arr1 = arr[:mid_idx]
-        arr2 = arr[mid_idx:]
-
-        interleaved = [elem for pair in zip(arr1, arr2) for elem in pair]
-        if len(arr1) > len(arr2):
-            interleaved.extend(arr1[len(arr2) :])
-        elif len(arr2) > len(arr1):
-            interleaved.extend(arr2[len(arr1) :])
+        mid_idx = len(arr) // 2
+        if len(arr) % 2:
+            interleaved = [arr[mid_idx]]
+            arr1 = arr[mid_idx + 1 :]
+            arr2 = arr[mid_idx - 1 :: -1]
+            interleaved += [elem for pair in zip(arr1, arr2) for elem in pair]
+        else:
+            arr1 = arr[mid_idx:]
+            arr2 = arr[mid_idx - 1 :: -1]
+            interleaved = [elem for pair in zip(arr1, arr2) for elem in pair]
         return np.array(interleaved)
 
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -80,40 +81,6 @@ class SwitchRasterScan(ScanMode):
         with for_each_(voltages["y"], self.interleave_arr(y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages
-
-
-class SwitchRaster(ScanMode):
-    def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
-        assert x_points == y_points, "Spiral only works for square grids"
-
-        num_half_spirals = x_points
-        x_idx = x_points // 2
-        y_idx = y_points // 2
-
-        idxs_x = [x_idx]
-        idxs_y = [y_idx]
-
-        for half_spiral_idx in range(num_half_spirals):
-            initial_direction_RL = "L" if half_spiral_idx % 2 else "R"
-            direction_UD = "U" if half_spiral_idx % 2 else "D"
-            direction_LR = "R" if half_spiral_idx % 2 else "L"
-
-            if half_spiral_idx:
-                x_idx += 1 if initial_direction_RL == "R" else -1
-                idxs_x.append(x_idx)
-                idxs_y.append(y_idx)
-
-            for _ in range(half_spiral_idx):
-                y_idx += 1 if direction_UD == "U" else -1
-                idxs_x.append(x_idx)
-                idxs_y.append(y_idx)
-
-            for _ in range(half_spiral_idx):
-                x_idx += 1 if direction_LR == "R" else -1
-                idxs_x.append(x_idx)
-                idxs_y.append(y_idx)
-
-        return np.array(idxs_x), np.array(idxs_y)
 
     def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
         movement_direction = declare(fixed)

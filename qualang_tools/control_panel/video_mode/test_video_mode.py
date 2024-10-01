@@ -101,3 +101,9 @@ plt.figure()
 plt.plot(con1.analog["1"], con1.analog["2"])
 
 # %%
+from qualang_tools.control_panel.video_mode.scan_modes import SwitchRasterScan
+import numpy as np
+scan_mode = SwitchRasterScan()
+print(scan_mode.interleave_arr(np.arange(10)))
+scan_mode.plot_scan(10, 10)
+# %%
