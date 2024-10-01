@@ -39,7 +39,6 @@ class VoltageSourceDialog(QFrame):
         self.min_step = 0.0001
         self.max_step = 0.05
         self.modified_val = False
-        self.setMaximumWidth(170)
         self.setStyleSheet(
             """
             QFrame {
@@ -114,6 +113,9 @@ class VoltageSourceDialog(QFrame):
         self.name_label = QLabel(f"{self.idx}: {self.parameter.name}")
         self.name_label.setAlignment(Qt.AlignCenter)
 
+        # Modify the name_label to expand horizontally
+        self.name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
         if not self.mini:
             self.name_label.setFont(QFont("Arial", 16, QFont.Bold))
             layout.addWidget(self.name_label)
@@ -182,6 +184,8 @@ class VoltageSourceDialog(QFrame):
                 """
                 )
 
+        self.val_textbox.setMaximumWidth(140)  # Limit the width of the input box
+
     def _val_textbox_changed(self):
         try:
             textbox_val = float(self.val_textbox.text())
@@ -198,7 +202,7 @@ class VoltageSourceDialog(QFrame):
 
     def set_voltage(self, val):
         try:
-            val = round(float(val), 6)
+            val = round(float(val), 8)
             self.parameter(val)
         except:
             pass
@@ -315,7 +319,7 @@ class VoltageConfigDialog(QFrame):
 
     def set_step(self, state, val):
         try:
-            val = round(float(val), 6)
+            val = round(float(val), 8)
             if val > self.max_step:
                 val = self.max_step
             elif val < self.min_step:
