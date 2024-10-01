@@ -45,9 +45,6 @@ class VoltageSourceDialog(QFrame):
                 background-color: #f0f0f0;
                 border-radius: 10px;
             }
-            QLabel {
-                color: #333333;
-            }
             QLineEdit {
                 border: 1px solid #cccccc;
                 border-radius: 5px;
@@ -184,7 +181,9 @@ class VoltageSourceDialog(QFrame):
                 """
                 )
 
-        self.val_textbox.setMaximumWidth(140)  # Limit the width of the input box
+        self.val_textbox.setMaximumWidth(100)  # Limit the width of the input box
+        self.val_textbox.setMinimumWidth(60)
+        self.val_textbox.setAlignment(Qt.AlignRight)
 
     def _val_textbox_changed(self):
         try:
@@ -293,7 +292,9 @@ class VoltageConfigDialog(QFrame):
         for k, (state, color) in enumerate([("up_down", "blue"), ("left_right", "darkGreen")]):
             step_hbox.addStretch(0.8)
             self.step_textbox[state] = QLineEdit(str(self.step[state]))
-            self.step_textbox[state].setMaximumWidth(55)
+            self.step_textbox[state].setMaximumWidth(85)
+            self.step_textbox[state].setMinimumWidth(55)
+            self.step_textbox[state].setAlignment(Qt.AlignRight)
             step_hbox.addWidget(self.step_textbox[state])
             self.step_textbox[state].returnPressed.connect(lambda: self.set_step(state, self.step_textbox.text()))
             step_unit_label = QLabel("V")
