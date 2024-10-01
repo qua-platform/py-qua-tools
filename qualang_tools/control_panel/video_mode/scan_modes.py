@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
 import numpy as np
-from qm.qua import declare, declare_stream, fixed, if_, save, assign, for_
+from qm.qua import declare, declare_stream, fixed, if_, save, assign, for_, for_each_
 from qualang_tools.loops import from_array
 
 
@@ -76,7 +76,8 @@ class SwitchRasterScan(ScanMode):
     def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
-        with for_(*from_array(voltages["y"], self.interleave_arr(y_vals))):  # type: ignore
+        # with for_(*from_array(voltages["y"], self.interleave_arr(y_vals))):  # type: ignore
+        with for_each_(voltages["y"], self.interleave_arr(y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages
 
