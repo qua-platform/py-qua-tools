@@ -46,4 +46,4 @@ if __name__ == "__main__":
 
     # Create dummy parameters
     parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(15)]
-    start_voltage_control(parameters=parameters, mini=True, use_thread=True)
+    start_voltage_control(parameters=parameters, mini=True, use_thread=False)
