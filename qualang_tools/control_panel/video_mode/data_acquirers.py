@@ -200,8 +200,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
     def generate_program(self) -> Program:
         x_vals = self.x_vals_unattenuated
         y_vals = self.y_vals_unattenuated
-        x_vals -= self.x_offset_parameter.get()
-        y_vals -= self.y_offset_parameter.get()
+        x_vals -= self.x_offset_parameter.get_latest()
+        y_vals -= self.y_offset_parameter.get_latest()
 
         with program() as prog:
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
@@ -218,8 +218,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with stream_processing():
                 streams = {
-                    "I": IQ_streams["I"].buffer(self.x_points * self.y_points),
-                    "Q": IQ_streams["Q"].buffer(self.x_points * self.y_points),
+                    "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
+                    "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
                 }
                 combined_stream = None
                 for var in self.stream_vars:
