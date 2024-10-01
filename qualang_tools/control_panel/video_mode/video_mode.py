@@ -249,7 +249,6 @@ class VideoMode:
                 Input("update-button", "n_clicks"),
             ],
             [
-                Input("integration-time", "value"),
                 Input("num-averages", "value"),
                 Input("x-span", "value"),
                 Input("y-span", "value"),
@@ -261,7 +260,6 @@ class VideoMode:
         def update_heatmap(
             n_intervals,
             n_update_clicks,
-            integration_time,
             num_averages,
             x_span,
             y_span,
@@ -270,7 +268,6 @@ class VideoMode:
         ):
             logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
             attrs = {
-                "integration_time": {"obj": self.data_acquirer, "new": integration_time / 1e6},
                 "num_averages": {"obj": self.data_acquirer, "new": num_averages},
                 "x_span": {"obj": self.data_acquirer, "new": x_span},
                 "y_span": {"obj": self.data_acquirer, "new": y_span},

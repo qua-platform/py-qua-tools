@@ -56,7 +56,7 @@ class SpiralScan(ScanMode):
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         assert x_points == y_points, "Spiral only works for square grids"
 
-        num_half_spirals = x_points - 1
+        num_half_spirals = x_points
         x_idx = x_points // 2
         y_idx = y_points // 2
 

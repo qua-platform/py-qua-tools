@@ -65,6 +65,7 @@ data_acquirer = OPXDataAcquirer(
     num_averages=5,
     x_points=11,
     y_points=11,
+    result_type="abs",
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
@@ -80,7 +81,7 @@ live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
 live_plotter.run(use_reloader=False)
 
 # %%
-scan_mode.plot_scan(np.arange(11), np.arange(11))
+scan_mode.plot_scan(11, 11)
 
 # %% Generate QUA script
 from qm import generate_qua_script

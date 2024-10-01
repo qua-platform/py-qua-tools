@@ -144,6 +144,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 class OPXDataAcquirer(BaseDataAcquirer):
     stream_vars = ["I", "Q", "n"]
+    result_types = ["I", "Q", "amplitude", "phase"]
 
     def __init__(
         self,
@@ -160,7 +161,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         x_points=101,
         y_points=101,
         num_averages=1,
-        measure_var: str = "I",
+        result_type: str = "I",
         final_delay: Optional[float] = None,
         **kwargs,
     ):
@@ -170,7 +171,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         self.final_delay = final_delay
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
-        self.measure_var = measure_var
+        self.result_type = result_type
         self.results: Dict[str, Any] = {}
 
         super().__init__(
@@ -221,8 +222,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with stream_processing():
                 streams = {
-                    "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
-                    "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
+                    "I": IQ_streams["I"].buffer(self.x_points * self.y_points),
+                    "Q": IQ_streams["Q"].buffer(self.x_points * self.y_points),
                     "n": n_stream,
                 }
                 combined_stream = None
@@ -235,7 +236,20 @@ class OPXDataAcquirer(BaseDataAcquirer):
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
-        return results[self.measure_var]
+        if self.result_type in ["I", "Q"]:
+            result = results[self.result_type]
+        elif self.result_type == "abs":
+            result = np.abs(results["I"] + 1j * results["Q"])
+        elif self.result_type == "phase":
+            result = np.angle(results["I"] + 1j * results["Q"])
+        else:
+            raise ValueError(f"Invalid result type: {self.result_type}")
+
+        x_idxs, y_idxs = self.scan_mode.get_idxs(x_points=self.x_points, y_points=self.y_points)
+        results_2D = np.zeros((self.y_points, self.x_points), dtype=float)
+        results_2D[y_idxs, x_idxs] = result
+
+        return results_2D
 
     def acquire_data(self) -> np.ndarray:
         if self.program is None:
