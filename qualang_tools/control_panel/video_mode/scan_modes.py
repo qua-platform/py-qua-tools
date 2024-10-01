@@ -86,7 +86,7 @@ class SpiralScan(ScanMode):
         return np.array(idxs_x), np.array(idxs_y)
 
     def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
-        movement_direction = declare(fixed, value=1.0)
+        movement_direction = declare(fixed)
         half_spiral_idx = declare(int)
         k = declare(int)
         x = declare(fixed, value=0.0)
@@ -94,9 +94,11 @@ class SpiralScan(ScanMode):
         voltages = {"x": x, "y": y}
 
         assert len(x_vals) == len(y_vals), "x_vals and y_vals must have the same length"
-        num_half_spirals = len(x_vals) - 1
+        num_half_spirals = len(x_vals)
         x_step = x_vals[1] - x_vals[0]
         y_step = y_vals[1] - y_vals[0]
+
+        assign(movement_direction, -1.0)
 
         with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
             # First take one step in the opposite XY direction

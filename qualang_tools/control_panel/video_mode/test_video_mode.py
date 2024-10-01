@@ -20,15 +20,14 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 # %% Create config and connect to QM
 machine = BasicQuAM()
 
-machine.channels["LP"] = SingleChannel(opx_output=("con1", 10))
-machine.channels["RP"] = SingleChannel(opx_output=("con1", 8))
-machine.channels["bottom_left_DQD_readout"] = InOutSingleChannel(
-    opx_output=("con1", 9),
-    opx_input=("con1", 2),
-    intermediate_frequency=140555556,
-    time_of_flight=260,
-    smearing=0,
-    operations={"readout": pulses.SquareReadoutPulse(length=20000, amplitude=0.1)},
+machine.channels["ch1"] = SingleChannel(opx_output=("con1", 1))
+machine.channels["ch2"] = SingleChannel(opx_output=("con1", 2))
+readout_pulse = pulses.SquareReadoutPulse(id="readout", length=1000, amplitude=0.1)
+machine.channels["ch_readout"] = InOutSingleChannel(
+    opx_output=("con1", 3),
+    opx_input=("con1", 1),
+    intermediate_frequency=100e6,
+    operations={"readout": readout_pulse},
 )
 
 qmm = QuantumMachinesManager(host="192.168.8.4", cluster_name="Cluster_1")
@@ -48,9 +47,7 @@ y_offset = VoltageParameter(name="Y Voltage Offset", initial_value=0.0)
 inner_loop_action = InnerLoopActionQuam(
     x_element=machine.channels["ch1"],
     y_element=machine.channels["ch2"],
-    readout_element=machine.channels["ch_readout"],
-    readout_pulse="readout",
-    integration_time=machine.channels["ch_readout"].operations["readout"].length,
+    readout_pulse=readout_pulse,
 )
 # scan_mode = RasterScan()
 scan_mode = SpiralScan()
@@ -95,7 +92,7 @@ print(qua_script)
 from qm import SimulationConfig
 
 prog = data_acquirer.generate_program()
-simulation_config = SimulationConfig(duration=30000)  # In clock cycles = 4ns
+simulation_config = SimulationConfig(duration=100000)  # In clock cycles = 4ns
 job = qmm.simulate(config, prog, simulation_config)
 con1 = job.get_simulated_samples().con1
 
