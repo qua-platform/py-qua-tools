@@ -46,7 +46,7 @@ class BaseDataAcquirer(ABC):
 
         self.data_array = xr.DataArray(
             np.zeros((self.x_points, self.y_points)),
-            coords=[("x", self.x_vals), ("y", self.y_vals)],
+            coords=[("x", self.x_vals_offset), ("y", self.y_vals_offset)],
             attrs={"units": "V", "long_name": "Signal"},
         )
         for axis, param in {"x": self.x_offset_parameter, "y": self.y_offset_parameter}.items():
@@ -61,17 +61,11 @@ class BaseDataAcquirer(ABC):
 
     @property
     def x_vals(self):
-        x_offset = self.x_offset_parameter.get_latest()
-        x_min = x_offset - self.x_span / 2
-        x_max = x_offset + self.x_span / 2
-        return np.linspace(x_min, x_max, self.x_points)
+        return np.linspace(-self.x_span / 2, self.x_span / 2, self.x_points)
 
     @property
     def y_vals(self):
-        y_offset = self.y_offset_parameter.get_latest()
-        y_min = y_offset - self.y_span / 2
-        y_max = y_offset + self.y_span / 2
-        return np.linspace(y_min, y_max, self.y_points)
+        return np.linspace(-self.y_span / 2, self.y_span / 2, self.y_points)
 
     @property
     def x_vals_unattenuated(self):
@@ -82,6 +76,14 @@ class BaseDataAcquirer(ABC):
     def y_vals_unattenuated(self):
         y_attenuation_factor = 10 ** (self.y_attenuation / 20)  # Convert dB to voltage scale
         return self.y_vals * y_attenuation_factor
+
+    @property
+    def x_vals_offset(self):
+        return self.x_vals + self.x_offset_parameter.get_latest()
+
+    @property
+    def y_vals_offset(self):
+        return self.y_vals + self.y_offset_parameter.get_latest()
 
     def update_voltage_ranges(self):
         self.data_array = self.data_array.assign_coords(x=self.x_vals, y=self.y_vals)
@@ -122,7 +124,7 @@ class BaseDataAcquirer(ABC):
 
         self.data_array = xr.DataArray(
             averaged_data,
-            coords=[("x", self.x_vals), ("y", self.y_vals)],
+            coords=[("x", self.x_vals_offset), ("y", self.y_vals_offset)],
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
 
@@ -200,8 +202,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
     def generate_program(self) -> Program:
         x_vals = self.x_vals_unattenuated
         y_vals = self.y_vals_unattenuated
-        x_vals -= self.x_offset_parameter.get_latest()
-        y_vals -= self.y_offset_parameter.get_latest()
 
         with program() as prog:
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
