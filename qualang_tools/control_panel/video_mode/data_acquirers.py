@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Literal, Optional
 import xarray as xr
 import logging
 from time import sleep, perf_counter
@@ -161,7 +161,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         x_points=101,
         y_points=101,
         num_averages=1,
-        result_type: str = "I",
+        result_type: Literal["I", "Q", "abs", "phase"] = "I",
         final_delay: Optional[float] = None,
         **kwargs,
     ):
