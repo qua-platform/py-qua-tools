@@ -79,7 +79,7 @@ class InnerLoopActionQuam:
         if pre_measurement_delay_cycles >= 4:
             wait(pre_measurement_delay_cycles)
 
-        I, Q = self.readout_pulse.channel.measure(self.readout_pulse)
+        I, Q = self.readout_pulse.channel.measure(self.readout_pulse.id)
 
         return I, Q
 
