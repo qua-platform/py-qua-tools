@@ -204,13 +204,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_vals -= self.y_offset_parameter.get()
 
         with program() as prog:
-            n = declare(int, 0)
-            n_stream = declare_stream()
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
 
             with infinite_loop_():
-                save(n, n_stream)
-
                 self.qua_inner_loop_action.initial_action()
                 if self.initial_delay is not None:
                     wait(int(self.initial_delay * 1e9) // 4)
@@ -225,7 +221,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 streams = {
                     "I": IQ_streams["I"].buffer(self.x_points * self.y_points),
                     "Q": IQ_streams["Q"].buffer(self.x_points * self.y_points),
-                    "n": n_stream,
                 }
                 combined_stream = None
                 for var in self.stream_vars:
