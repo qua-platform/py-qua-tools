@@ -199,8 +199,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
     def generate_program(self) -> Program:
         x_vals = self.x_vals_unattenuated
-        x_vals -= self.x_offset_parameter.get()
         y_vals = self.y_vals_unattenuated
+        x_vals -= self.x_offset_parameter.get()
         y_vals -= self.y_offset_parameter.get()
 
         with program() as prog:
