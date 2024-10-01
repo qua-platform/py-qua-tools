@@ -67,8 +67,7 @@ data_acquirer = OPXDataAcquirer(
     result_type="abs",
 )
 # %% Run program
-data_acquirer.stream_vars = ["I", "Q"]
-data_acquirer.run_program(verify=True)
+data_acquirer.run_program()
 
 # %%
 results = data_acquirer.acquire_data()
