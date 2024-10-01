@@ -82,45 +82,6 @@ class SwitchRasterScan(ScanMode):
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
-        movement_direction = declare(fixed)
-        half_spiral_idx = declare(int)
-        k = declare(int)
-        x = declare(fixed)
-        y = declare(fixed)
-        voltages = {"x": x, "y": y}
-
-        assert len(x_vals) == len(
-            y_vals
-        ), f"x_vals and y_vals must have the same length ({len(x_vals)} != {len(y_vals)})"
-        num_half_spirals = len(x_vals)
-        x_step = x_vals[1] - x_vals[0]
-        y_step = y_vals[1] - y_vals[0]
-
-        assign(movement_direction, -1.0)
-        assign(x, 0.0)
-        assign(y, 0.0)
-        yield voltages
-
-        with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
-            # First take one step in the opposite XY direction
-            with if_(half_spiral_idx > 0):
-                assign(x, x - x_step * movement_direction)
-                yield voltages
-
-            with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
-                assign(y, y + y_step * movement_direction)
-                yield voltages
-
-            with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
-                assign(x, x + x_step * movement_direction)
-                yield voltages
-
-            assign(movement_direction, -movement_direction)
-
-        assign(x, 0)
-        assign(y, 0)
-
 
 class SpiralScan(ScanMode):
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
