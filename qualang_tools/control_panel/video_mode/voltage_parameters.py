@@ -25,3 +25,6 @@ class VoltageParameter:
         updated_value = self.get()  # Return the value after setting
         logging.debug(f"Setting {self.name} to {new_value}: Actual value is {updated_value} {self.units}")
         return updated_value
+
+    def get_latest(self):
+        return self.latest_value
