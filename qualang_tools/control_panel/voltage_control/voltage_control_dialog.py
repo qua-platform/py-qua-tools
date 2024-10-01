@@ -52,10 +52,17 @@ class VoltageControlDialog(QDialog):
         self.layout.addWidget(self.config_widget)
 
         for k, parameter in enumerate(self.parameters):
-            idx = (k + 1)
+            idx = k + 1
             self.layout.addWidget(Separator())
             voltage_source_dialog = VoltageSourceDialog(parameter, idx=idx, mini=self.mini)
-            self.layout.addWidget(voltage_source_dialog)
+            
+            # Wrap the VoltageSourceDialog in a QHBoxLayout to make it expand properly
+            dialog_layout = QHBoxLayout()
+            dialog_layout.addWidget(voltage_source_dialog)
+            dialog_layout.setContentsMargins(0, 0, 0, 0)
+            
+            self.layout.addLayout(dialog_layout)
+            
             if idx < 10:
                 Qt_index_key = getattr(Qt, f"Key_{idx}")
                 self.index_keys[Qt_index_key] = voltage_source_dialog

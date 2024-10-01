@@ -39,21 +39,15 @@ class VoltageSourceDialog(QFrame):
         self.min_step = 0.0001
         self.max_step = 0.05
         self.modified_val = False
-        self.setMaximumWidth(170)
         self.setStyleSheet(
             """
             QFrame {
                 background-color: #f0f0f0;
                 border-radius: 10px;
-                # padding: 10px;
-            }
-            QLabel {
-                color: #333333;
             }
             QLineEdit {
                 border: 1px solid #cccccc;
                 border-radius: 5px;
-                # padding: 3px;
             }
             QPushButton {
                 background-color: #4CAF50;
@@ -115,6 +109,9 @@ class VoltageSourceDialog(QFrame):
         # Set parameter name
         self.name_label = QLabel(f"{self.idx}: {self.parameter.name}")
         self.name_label.setAlignment(Qt.AlignCenter)
+
+        # Modify the name_label to expand horizontally
+        self.name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         if not self.mini:
             self.name_label.setFont(QFont("Arial", 16, QFont.Bold))
@@ -184,6 +181,10 @@ class VoltageSourceDialog(QFrame):
                 """
                 )
 
+        self.val_textbox.setMaximumWidth(100)  # Limit the width of the input box
+        self.val_textbox.setMinimumWidth(60)
+        self.val_textbox.setAlignment(Qt.AlignRight)
+
     def _val_textbox_changed(self):
         try:
             textbox_val = float(self.val_textbox.text())
@@ -200,7 +201,7 @@ class VoltageSourceDialog(QFrame):
 
     def set_voltage(self, val):
         try:
-            val = round(float(val), 6)
+            val = round(float(val), 8)
             self.parameter(val)
         except:
             pass
@@ -227,7 +228,6 @@ class VoltageConfigDialog(QFrame):
             """
             QFrame {
                 background-color: #e6e6e6;
-                # border-radius: 10px;
                 padding: 10px;
             }
             QLabel {
@@ -292,7 +292,9 @@ class VoltageConfigDialog(QFrame):
         for k, (state, color) in enumerate([("up_down", "blue"), ("left_right", "darkGreen")]):
             step_hbox.addStretch(0.8)
             self.step_textbox[state] = QLineEdit(str(self.step[state]))
-            self.step_textbox[state].setMaximumWidth(55)
+            self.step_textbox[state].setMaximumWidth(85)
+            self.step_textbox[state].setMinimumWidth(55)
+            self.step_textbox[state].setAlignment(Qt.AlignRight)
             step_hbox.addWidget(self.step_textbox[state])
             self.step_textbox[state].returnPressed.connect(lambda: self.set_step(state, self.step_textbox.text()))
             step_unit_label = QLabel("V")
@@ -318,7 +320,7 @@ class VoltageConfigDialog(QFrame):
 
     def set_step(self, state, val):
         try:
-            val = round(float(val), 6)
+            val = round(float(val), 8)
             if val > self.max_step:
                 val = self.max_step
             elif val < self.min_step:
