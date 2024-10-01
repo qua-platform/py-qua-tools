@@ -162,13 +162,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_points=101,
         num_averages=1,
         result_type: Literal["I", "Q", "abs", "phase"] = "I",
-        final_delay: Optional[float] = None,
+        initial_delay: Optional[float] = None,
         **kwargs,
     ):
         self.qm = qm
         self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
-        self.initial_delay = final_delay
+        self.initial_delay = initial_delay
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
         self.result_type = result_type
