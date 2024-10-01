@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Optional
+import xarray as xr
+import logging
+from time import sleep, perf_counter
 import numpy as np
 from qm import Program, QuantumMachine
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
-import xarray as xr
-import logging
-from time import sleep, perf_counter
+from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -20,11 +21,11 @@ class BaseDataAcquirer(ABC):
         y_offset_parameter,
         x_span,
         y_span,
+        x_attenuation: float = 0.0,
+        y_attenuation: float = 0.0,
         x_points=101,
         y_points=101,
         num_averages=1,
-        integration_time: float = 10e-6,
-        pre_measurement_delay: float = 0,
         **kwargs,
     ):
         assert not kwargs
@@ -34,11 +35,11 @@ class BaseDataAcquirer(ABC):
         self.x_span = x_span
         self.y_span = y_span
         self.num_averages = num_averages
-        self.integration_time = integration_time
         self.x_points = x_points
         self.y_points = y_points
+        self.x_attenuation = x_attenuation
+        self.y_attenuation = y_attenuation
         self.data_history = []
-        self.pre_measurement_delay = pre_measurement_delay
         logging.debug("Initializing DataGenerator")
 
         self.num_acquisitions = 0
@@ -48,8 +49,14 @@ class BaseDataAcquirer(ABC):
             coords=[("x", self.x_vals), ("y", self.y_vals)],
             attrs={"units": "V", "long_name": "Signal"},
         )
-        self.data_array.coords["x"].attrs.update({"units": "V", "long_name": self.x_offset_parameter.name})
-        self.data_array.coords["y"].attrs.update({"units": "V", "long_name": self.y_offset_parameter.name})
+        for axis, param in {"x": self.x_offset_parameter, "y": self.y_offset_parameter}.items():
+            if getattr(param, "label", None):
+                param_name = param.label
+            elif getattr(param, "name", None):
+                param_name = param.name
+            else:
+                param_name = "X_axis"
+            self.data_array.coords[axis].attrs.update({"units": "V", "long_name": param_name})
         logging.debug("DataGenerator initialized with initial data")
 
     @property
@@ -67,10 +74,14 @@ class BaseDataAcquirer(ABC):
         return np.linspace(y_min, y_max, self.y_points)
 
     @property
-    def integration_cycles(self):
-        integration_cycles = int(self.integration_time * 1e9)
-        integration_cycles -= integration_cycles % 4
-        return integration_cycles
+    def x_vals_unattenuated(self):
+        x_attenuation_factor = 10 ** (self.x_attenuation / 20)  # Convert dB to voltage scale
+        return self.x_vals / x_attenuation_factor
+
+    @property
+    def y_vals_unattenuated(self):
+        y_attenuation_factor = 10 ** (self.y_attenuation / 20)  # Convert dB to voltage scale
+        return self.y_vals / y_attenuation_factor
 
     def update_voltage_ranges(self):
         self.data_array = self.data_array.assign_coords(x=self.x_vals, y=self.y_vals)
@@ -82,10 +93,6 @@ class BaseDataAcquirer(ABC):
             f"x_vals=[{x_vals[0]}, {x_vals[1]}, ..., {x_vals[-1]}], "
             f"y_vals=[{y_vals[0]}, {y_vals[1]}, ..., {y_vals[-1]}]"
         )
-
-    @property
-    def total_measurement_time(self):
-        return (self.integration_time + self.pre_measurement_delay) * self.x_points * self.y_points
 
     def update_attrs(self, attrs):
         for attr_name, attr in attrs.items():
@@ -136,34 +143,35 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
-    stream_vars = ["I", "Q", "n", "x_idxs", "y_idxs", "x_vals", "y_vals"]
+    stream_vars = ["I", "Q", "n"]
+    result_types = ["I", "Q", "amplitude", "phase"]
 
     def __init__(
         self,
         *,
         qm: QuantumMachine,
         qua_inner_loop_action: Callable,
-        scan_function: Callable,
+        scan_mode: ScanMode,
         x_offset_parameter,
         y_offset_parameter,
         x_span,
         y_span,
+        x_attenuation: float = 0.0,
+        y_attenuation: float = 0.0,
         x_points=101,
         y_points=101,
         num_averages=1,
-        integration_time: float = 10e-6,
-        pre_measurement_delay: Optional[float] = None,
-        measure_var: str = "I",
+        result_type: str = "I",
         final_delay: Optional[float] = None,
         **kwargs,
     ):
         self.qm = qm
-        self.scan_function = scan_function
+        self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
-        self.final_delay = final_delay
+        self.initial_delay = final_delay
         self.program: Optional[Program] = None
         self.job: Optional[RunningQmJob] = None
-        self.measure_var = measure_var
+        self.result_type = result_type
         self.results: Dict[str, Any] = {}
 
         super().__init__(
@@ -171,11 +179,11 @@ class OPXDataAcquirer(BaseDataAcquirer):
             y_offset_parameter=y_offset_parameter,
             x_span=x_span,
             y_span=y_span,
+            x_attenuation=x_attenuation,
+            y_attenuation=y_attenuation,
             num_averages=num_averages,
             x_points=x_points,
             y_points=y_points,
-            integration_time=integration_time,
-            pre_measurement_delay=pre_measurement_delay,
             **kwargs,
         )
 
@@ -183,53 +191,40 @@ class OPXDataAcquirer(BaseDataAcquirer):
         super().update_attrs(attrs)
         logging.info(f"Updated attrs: {attrs}")
 
-        requires_regeneration = ["x_span", "y_span", "x_points", "y_points", "integration_time"]
+        requires_regeneration = ["x_span", "y_span", "x_points", "y_points"]
         if any(attr in requires_regeneration for attr in attrs):
             logging.info("Regenerating QUA program due to new parameters")
             self.program = None
             self.run_program()
 
     def generate_program(self) -> Program:
-        x_vals = self.x_vals - self.x_offset_parameter.get()
-        y_vals = self.y_vals - self.y_offset_parameter.get()
-
-        assert self.integration_cycles >= 16
-
-        self.qua_inner_loop_action.integration_time = self.integration_time
-        self.qua_inner_loop_action.pre_measurement_delay = self.pre_measurement_delay
+        x_vals = self.x_vals_unattenuated
+        x_vals -= self.x_offset_parameter.get()
+        y_vals = self.y_vals_unattenuated
+        y_vals -= self.y_offset_parameter.get()
 
         with program() as prog:
             n = declare(int, 0)
             n_stream = declare_stream()
-            idxs_streams = {"x": declare_stream(), "y": declare_stream()}
-            voltages_streams = {"x": declare_stream(), "y": declare_stream()}
             IQ_streams = {"I": declare_stream(), "Q": declare_stream()}
 
             with infinite_loop_():
                 save(n, n_stream)
-                with self.scan_function(x_vals=x_vals, y_vals=y_vals) as (idxs, voltages):
-                    save(idxs["x"], idxs_streams["x"])
-                    save(idxs["y"], idxs_streams["y"])
-                    save(voltages["x"], voltages_streams["x"])
-                    save(voltages["y"], voltages_streams["y"])
 
+                self.qua_inner_loop_action.initial_action()
+                if self.initial_delay is not None:
+                    wait(int(self.initial_delay * 1e9) // 4)
+                    
+                for voltages in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
                     I, Q = self.qua_inner_loop_action(voltages)
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
-
-                self.qua_inner_loop_action.final_action()
-                if self.final_delay is not None:
-                    wait(int(self.final_delay * 1e9) // 4)
-                assign(n, n + 1)  # ignore
+                assign(n, n + 1)  # type: ignore
 
             with stream_processing():
                 streams = {
-                    "x_vals": voltages_streams["x"].buffer(self.x_points, self.y_points),
-                    "y_vals": voltages_streams["y"].buffer(self.x_points, self.y_points),
-                    "x_idxs": idxs_streams["x"].buffer(self.x_points, self.y_points),
-                    "y_idxs": idxs_streams["y"].buffer(self.x_points, self.y_points),
-                    "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
-                    "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
+                    "I": IQ_streams["I"].buffer(self.x_points * self.y_points),
+                    "Q": IQ_streams["Q"].buffer(self.x_points * self.y_points),
                     "n": n_stream,
                 }
                 combined_stream = None
@@ -238,19 +233,32 @@ class OPXDataAcquirer(BaseDataAcquirer):
                         combined_stream = streams[var]
                     else:
                         combined_stream = combined_stream.zip(streams[var])
-                combined_stream.save("combined")
+                combined_stream.save("combined")  # type: ignore
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
-        return results[self.measure_var]
+        if self.result_type in ["I", "Q"]:
+            result = results[self.result_type]
+        elif self.result_type == "abs":
+            result = np.abs(results["I"] + 1j * results["Q"])
+        elif self.result_type == "phase":
+            result = np.angle(results["I"] + 1j * results["Q"])
+        else:
+            raise ValueError(f"Invalid result type: {self.result_type}")
+
+        x_idxs, y_idxs = self.scan_mode.get_idxs(x_points=self.x_points, y_points=self.y_points)
+        results_2D = np.zeros((self.y_points, self.x_points), dtype=float)
+        results_2D[y_idxs, x_idxs] = result
+
+        return results_2D
 
     def acquire_data(self) -> np.ndarray:
         if self.program is None:
             self.run_program()
 
         t0 = perf_counter()
-        results_tuple = self.job.result_handles.get("combined").fetch_all()
-        self.results = dict(zip(self.stream_vars, results_tuple))
+        results_tuple = self.job.result_handles.get("combined").fetch_all()  # type: ignore
+        self.results = dict(zip(self.stream_vars, results_tuple))  # type: ignore
         result_array = self.process_results(self.results)
         logging.info(f"Time to acquire data: {(perf_counter() - t0) * 1e3:.2f} ms")
 
@@ -266,4 +274,4 @@ class OPXDataAcquirer(BaseDataAcquirer):
             return
 
         # Wait until one buffer is filled{
-        self.job.result_handles.get("combined").wait_for_values(1)
+        self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore

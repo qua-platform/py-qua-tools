@@ -1,6 +1,7 @@
 # %% Imports
 from qualang_tools.control_panel.video_mode.plotly_tools import *
 import numpy as np
+from matplotlib import pyplot as plt
 from qualang_tools.control_panel.video_mode.voltage_parameters import *
 from qualang_tools.control_panel.video_mode.data_acquirers import *
 from qualang_tools.control_panel.video_mode.video_mode import *
@@ -14,6 +15,7 @@ import logging
 # Update the logging configuration
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 # %% Create config and connect to QM
 machine = BasicQuAM()
@@ -38,7 +40,7 @@ qm = qmm.open_qm(config, close_other_machines=True)
 
 
 # %% Run OPXDataAcquirer
-from qualang_tools.control_panel.video_mode.scan_modes import raster_scan
+from qualang_tools.control_panel.video_mode.scan_modes import RasterScan, SpiralScan
 from qualang_tools.control_panel.video_mode.inner_loop_actions import InnerLoopActionQuam
 
 x_offset = VoltageParameter(name="X Voltage Offset", initial_value=0.0)
@@ -48,20 +50,24 @@ inner_loop_action = InnerLoopActionQuam(
     y_element=machine.channels["ch2"],
     readout_element=machine.channels["ch_readout"],
     readout_pulse="readout",
+    integration_time=machine.channels["ch_readout"].operations["readout"].length,
 )
-
+# scan_mode = RasterScan()
+scan_mode = SpiralScan()
 data_acquirer = OPXDataAcquirer(
     qm=qm,
     qua_inner_loop_action=inner_loop_action,
-    scan_function=raster_scan,
+    scan_mode=scan_mode,
     x_offset_parameter=x_offset,
     y_offset_parameter=y_offset,
-    x_span=0.05,
-    y_span=0.05,
+    x_span=0.02,
+    y_span=0.02,
+    x_attenuation=0,
+    y_attenuation=0,
     num_averages=5,
-    x_points=101,
-    y_points=101,
-    integration_time=20e-6,
+    x_points=11,
+    y_points=11,
+    result_type="abs",
 )
 # %% Run program
 data_acquirer.stream_vars = ["I", "Q"]
@@ -75,5 +81,27 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 # %%
 live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
 live_plotter.run(use_reloader=False)
+
+# %%
+scan_mode.plot_scan(11, 11)
+
+# %% Generate QUA script
+from qm import generate_qua_script
+
+qua_script = generate_qua_script(data_acquirer.generate_program(), config)
+print(qua_script)
+
+# %% Simulate results
+from qm import SimulationConfig
+
+prog = data_acquirer.generate_program()
+simulation_config = SimulationConfig(duration=30000)  # In clock cycles = 4ns
+job = qmm.simulate(config, prog, simulation_config)
+con1 = job.get_simulated_samples().con1
+
+con1.plot(analog_ports=["1", "2"])
+
+plt.figure()
+plt.plot(con1.analog["1"], con1.analog["2"])
 
 # %%
