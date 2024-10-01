@@ -248,7 +248,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         x_idxs, y_idxs = self.scan_mode.get_idxs(x_points=self.x_points, y_points=self.y_points)
         results_2D = np.zeros((self.y_points, self.x_points), dtype=float)
-        results_2D[x_idxs, y_idxs] = result
+        results_2D[y_idxs, x_idxs] = result
 
         return results_2D
 
