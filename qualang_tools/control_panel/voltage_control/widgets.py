@@ -45,7 +45,6 @@ class VoltageSourceDialog(QFrame):
             QFrame {
                 background-color: #f0f0f0;
                 border-radius: 10px;
-                # padding: 10px;
             }
             QLabel {
                 color: #333333;
@@ -53,7 +52,6 @@ class VoltageSourceDialog(QFrame):
             QLineEdit {
                 border: 1px solid #cccccc;
                 border-radius: 5px;
-                # padding: 3px;
             }
             QPushButton {
                 background-color: #4CAF50;
@@ -227,7 +225,6 @@ class VoltageConfigDialog(QFrame):
             """
             QFrame {
                 background-color: #e6e6e6;
-                # border-radius: 10px;
                 padding: 10px;
             }
             QLabel {
