@@ -215,7 +215,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     I, Q = self.qua_inner_loop_action(voltages)
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
-                assign(n, n + 1)  # type: ignore
 
             with stream_processing():
                 streams = {
