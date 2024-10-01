@@ -76,12 +76,12 @@ class BaseDataAcquirer(ABC):
     @property
     def x_vals_unattenuated(self):
         x_attenuation_factor = 10 ** (self.x_attenuation / 20)  # Convert dB to voltage scale
-        return self.x_vals / x_attenuation_factor
+        return self.x_vals * x_attenuation_factor
 
     @property
     def y_vals_unattenuated(self):
         y_attenuation_factor = 10 ** (self.y_attenuation / 20)  # Convert dB to voltage scale
-        return self.y_vals / y_attenuation_factor
+        return self.y_vals * y_attenuation_factor
 
     def update_voltage_ranges(self):
         self.data_array = self.data_array.assign_coords(x=self.x_vals, y=self.y_vals)
