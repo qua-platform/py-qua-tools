@@ -89,8 +89,8 @@ class SpiralScan(ScanMode):
         movement_direction = declare(fixed)
         half_spiral_idx = declare(int)
         k = declare(int)
-        x = declare(fixed, value=0.0)
-        y = declare(fixed, value=0.0)
+        x = declare(fixed)
+        y = declare(fixed)
         voltages = {"x": x, "y": y}
 
         assert len(x_vals) == len(y_vals), "x_vals and y_vals must have the same length"
@@ -99,6 +99,9 @@ class SpiralScan(ScanMode):
         y_step = y_vals[1] - y_vals[0]
 
         assign(movement_direction, -1.0)
+        assign(x, 0.0)
+        assign(y, 0.0)
+        yield voltages
 
         with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
             # First take one step in the opposite XY direction
