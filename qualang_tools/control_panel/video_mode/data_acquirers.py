@@ -218,8 +218,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with stream_processing():
                 streams = {
-                    "I": IQ_streams["I"].buffer(self.x_points, self.y_points),
-                    "Q": IQ_streams["Q"].buffer(self.x_points, self.y_points),
+                    "I": IQ_streams["I"].buffer(self.x_points * self.y_points),
+                    "Q": IQ_streams["Q"].buffer(self.x_points * self.y_points),
                 }
                 combined_stream = None
                 for var in self.stream_vars:
