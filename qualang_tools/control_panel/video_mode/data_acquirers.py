@@ -61,14 +61,14 @@ class BaseDataAcquirer(ABC):
 
     @property
     def x_vals(self):
-        x_offset = self.x_offset_parameter.latest_value
+        x_offset = self.x_offset_parameter.get_latest()
         x_min = x_offset - self.x_span / 2
         x_max = x_offset + self.x_span / 2
         return np.linspace(x_min, x_max, self.x_points)
 
     @property
     def y_vals(self):
-        y_offset = self.y_offset_parameter.latest_value
+        y_offset = self.y_offset_parameter.get_latest()
         y_min = y_offset - self.y_span / 2
         y_max = y_offset + self.y_span / 2
         return np.linspace(y_min, y_max, self.y_points)
