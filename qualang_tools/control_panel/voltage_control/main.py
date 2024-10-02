@@ -26,8 +26,8 @@ def start_voltage_control(use_thread: bool = False, gui_name: str = "Voltage con
         t = threading.Thread(
             target=start_voltage_control,
             name=gui_name,
-            args=(VoltageControlDialog, gui_name, *args),
-            kwargs={"use_thread": False, **kwargs},
+            args=args,
+            kwargs={"use_thread": False, "gui_name": gui_name, **kwargs},
         )
         t.start()
         return t
@@ -46,4 +46,4 @@ if __name__ == "__main__":
 
     # Create dummy parameters
     parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(15)]
-    start_voltage_control(parameters=parameters, mini=True)
+    start_voltage_control(parameters=parameters, mini=True, use_thread=False)
