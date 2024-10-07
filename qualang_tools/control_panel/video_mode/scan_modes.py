@@ -8,6 +8,11 @@ from qualang_tools.loops import from_array
 
 
 class ScanMode(ABC):
+    """Abstract base class for scan modes, e.g. raster scan, spiral scan, etc.
+
+    The scan mode is used to generate the scan pattern for the video mode.
+    """
+
     @abstractmethod
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         pass
@@ -39,6 +44,11 @@ class ScanMode(ABC):
 
 
 class RasterScan(ScanMode):
+    """Raster scan mode.
+
+    The raster scan mode is a simple scan mode that scans the grid in a raster pattern.
+    """
+
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         x_idxs = np.tile(np.arange(x_points), y_points)
         y_idxs = np.repeat(np.arange(y_points), x_points)
@@ -53,6 +63,12 @@ class RasterScan(ScanMode):
 
 
 class SwitchRasterScan(ScanMode):
+    """Switch raster scan mode.
+
+    The switch raster scan mode is a scan mode that scans the grid in a raster pattern,
+    but the direction of the scan is switched after each row or column.
+    This is useful when the scan length is similar to the bias tee frequency.
+    """
 
     @staticmethod
     def interleave_arr(arr: np.ndarray) -> np.ndarray:
@@ -84,6 +100,11 @@ class SwitchRasterScan(ScanMode):
 
 
 class SpiralScan(ScanMode):
+    """Spiral scan mode.
+
+    The spiral scan mode is a scan mode that scans the grid in a spiral pattern.
+    """
+
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         assert x_points == y_points, "Spiral only works for square grids"
 
