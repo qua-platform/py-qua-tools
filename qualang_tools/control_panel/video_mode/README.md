@@ -44,10 +44,12 @@ from qualang_tools.control_panel.video_mode.inner_loop_actions import InnerLoopA
 inner_loop_action = InnerLoopAction(
     x_element="output_ch1",  # Must be a valid QUA element
     y_element="output_ch2",  # Must be a valid QUA element
+    integration_time=10e-6,  # Integration time in seconds
     readout_element="measure_ch",  # Must be a valid QUA element
-    readout_pulse=readout_pulse,  # Name of the readout pulse registered in the readout_element
+    readout_pulse="readout",  # Name of the readout pulse registered in the readout_element
 )
 ```
+Note that this `InnerLoopAction` assumes that the `readout_pulse` has two integration weights called `cos` and `sin`
 
 Next we define the sweep axes, which define the values that the 2D scan will take as coordinates.
 
@@ -131,3 +133,14 @@ live_plotter = VideoMode(data_acquirer=data_acquirer)
 live_plotter.run()
 ```
 
+# Debugging
+
+To see the logs which include useful debug information, you can update the logging configuration.
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+```

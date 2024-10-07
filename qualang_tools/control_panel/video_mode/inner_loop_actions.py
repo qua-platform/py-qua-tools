@@ -37,8 +37,8 @@ class InnerLoopAction:
             self.readout_pulse,
             self.readout_elem,
             None,
-            demod.full("cosine", I),
-            demod.full("sine", Q),
+            demod.full("cos", I),
+            demod.full("sin", Q),
         )
 
         return I, Q
