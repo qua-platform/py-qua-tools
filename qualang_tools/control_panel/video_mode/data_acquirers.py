@@ -165,7 +165,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         y_axis: The y-axis of the data acquirer.
         num_averages: The number of averages to take as a rolling average.
         result_type: The type of result to acquire.
-        initial_delay: The initial delay before acquiring data.
+        initial_delay: The initial delay before starting each scan.
     """
 
     stream_vars = ["I", "Q"]
