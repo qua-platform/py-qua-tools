@@ -3,17 +3,10 @@ name = "qualang-tools"
 version = "v0.17.7"
 description = "The qualang_tools package includes various tools related to QUA programs in Python"
 license = "BSD-3-Clause"
-authors = [
-      "QM <qua-libs@quantum-machines.co>",
-]
-packages = [
-    { include = "qualang_tools" }
-]
-include = [
-]
-exclude = [
-    "**/tests/**",
-]
+authors = ["QM <qua-libs@quantum-machines.co>"]
+packages = [{ include = "qualang_tools" }]
+include = []
+exclude = ["**/tests/**"]
 readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
@@ -29,6 +22,7 @@ dash-html-components = { version = "^2.0.0", optional = true }
 dash-core-components = { version = "^2.0.0", optional = true }
 dash-bootstrap-components = { version = "^1.0.0", optional = true }
 dash-cytoscape = { version = "^0.3.0", optional = true }
+dash-extensions = { version = "^1.0.0", optional = true }
 dash-table = { version = "^5.0.0", optional = true }
 dash-dangerously-set-inner-html = { version = "^0.0.2", optional = true }
 docutils = { version = ">=0.14.0", optional = true }
@@ -49,8 +43,20 @@ setuptools = "^69.0.2"
 
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]
-configbuilder = ["pandas", "dash", "dash-html-components", "dash-core-components", "dash-bootstrap-components", "dash-cytoscape", "dash-table", "dash-dangerously-set-inner-html", "docutils", "waitress"]
+configbuilder = [
+    "pandas",
+    "dash",
+    "dash-html-components",
+    "dash-core-components",
+    "dash-bootstrap-components",
+    "dash-cytoscape",
+    "dash-table",
+    "dash-dangerously-set-inner-html",
+    "docutils",
+    "waitress",
+]
 datahandler = ["xarray", "netcdf4"]
+videomode = ["dash", "dash-extensions", "xarray"]
 
 [tool.black]
 line-length = 120

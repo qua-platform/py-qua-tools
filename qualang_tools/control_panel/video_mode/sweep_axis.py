@@ -18,6 +18,7 @@ class SweepAxis:
         span: Span of the axis.
         points: Number of points in the sweep.
         label: Label of the axis.
+        units: Units of the axis.
         offset_parameter: Offset parameter of the axis.
         attenuation: Attenuation of the axis (0 by default)
     """
@@ -26,6 +27,7 @@ class SweepAxis:
     span: float
     points: int
     label: Optional[str] = None
+    units: Optional[str] = None
     offset_parameter: Optional[VoltageParameter] = None
     attenuation: float = 0
 

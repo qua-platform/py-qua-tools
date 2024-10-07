@@ -82,7 +82,12 @@ def create_input_field(id, label, value, debounce=True, input_style=None, div_st
 
 
 def create_axis_layout(
-    axis: Literal["x", "y"], span: float, points: int, min_span: float, max_span: Optional[float] = None
+    axis: Literal["x", "y"],
+    span: float,
+    points: int,
+    min_span: float,
+    max_span: Optional[float] = None,
+    units: Optional[str] = None,
 ):
     return html.Div(
         [
@@ -95,7 +100,7 @@ def create_axis_layout(
                 max=max_span,
                 input_style={"width": "55px"},
                 div_style={"display": "flex", "margin-bottom": "10px"},
-                unit="V",
+                unit=units,
             ),
             create_input_field(
                 id=f"{axis.lower()}-points",

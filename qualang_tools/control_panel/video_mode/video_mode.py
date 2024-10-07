@@ -112,6 +112,7 @@ class VideoMode:
                             points=self.data_acquirer.x_axis.points,
                             min_span=0.01,
                             max_span=None,
+                            units=self.data_acquirer.x_axis.units,
                         ),
                         create_axis_layout(
                             "y",
@@ -119,6 +120,7 @@ class VideoMode:
                             points=self.data_acquirer.y_axis.points,
                             min_span=0.01,
                             max_span=None,
+                            units=self.data_acquirer.y_axis.units,
                         ),
                         html.Div(  # Update and Save buttons
                             [

@@ -80,7 +80,7 @@ class BaseDataAcquirer(ABC):
         )
         for axis in [self.x_axis, self.y_axis]:
             label = axis.label or axis.name
-            self.data_array.coords[axis.name].attrs.update({"units": "V", "long_name": label})
+            self.data_array.coords[axis.name].attrs.update({"units": axis.units, "long_name": label})
         logging.debug("DataGenerator initialized with initial data")
 
     def update_attrs(self, attrs: List[Dict[str, Any]]):
@@ -131,12 +131,9 @@ class BaseDataAcquirer(ABC):
             ],
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
-        self.data_array.coords[self.x_axis.name].attrs.update(
-            {"units": "V", "long_name": self.x_axis.label or self.x_axis.name}
-        )
-        self.data_array.coords[self.y_axis.name].attrs.update(
-            {"units": "V", "long_name": self.y_axis.label or self.y_axis.name}
-        )
+        for axis in [self.x_axis, self.y_axis]:
+            label = axis.label or axis.name
+            self.data_array.coords[axis.name].attrs.update({"units": axis.units, "long_name": label})
         mean_abs_data = np.mean(np.abs(averaged_data))
         logging.debug(f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}")
         return self.data_array
