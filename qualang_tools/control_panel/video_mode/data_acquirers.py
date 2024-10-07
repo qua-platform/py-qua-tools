@@ -4,7 +4,7 @@ import xarray as xr
 import logging
 from time import sleep, perf_counter
 import numpy as np
-from qm import Program, QuantumMachine
+from qm import Program, QuantumMachine, QuantumMachinesManager
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
@@ -12,6 +12,31 @@ from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
+
+
+def dicts_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Check if two dictionaries are equal.
+
+    This method checks if two dictionaries are equal by comparing their keys and values recursively.
+    """
+    if d1.keys() != d2.keys():
+        return False
+    for key, value in d1.items():
+        if isinstance(value, dict):
+            if not dicts_equal(value, d2[key]):
+                return False
+        elif isinstance(value, list):
+            if not isinstance(d2[key], list) or len(value) != len(d2[key]):
+                return False
+            for v1, v2 in zip(value, d2[key]):
+                if isinstance(v1, dict):
+                    if not dicts_equal(v1, v2):
+                        return False
+                elif v1 != v2:
+                    return False
+        elif value != d2[key]:
+            return False
+    return True
 
 
 class BaseDataAcquirer(ABC):
@@ -284,3 +309,36 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         # Wait until one buffer is filled{
         self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore
+
+
+class OPXQuamDataAcquirer(OPXDataAcquirer):
+    def __init__(
+        self,
+        *,
+        qmm: QuantumMachinesManager,
+        machine: Any,
+        qua_inner_loop_action: Callable,
+        scan_mode: ScanMode,
+        x_axis: SweepAxis,
+        y_axis: SweepAxis,
+        num_averages=1,
+        result_type: Literal["I", "Q", "abs", "phase"] = "I",
+        initial_delay: Optional[float] = None,
+        **kwargs,
+    ):
+        self.qmm = qmm
+        self.machine = machine
+
+        qm = self.qmm.open_qm(self.machine.generate_config())
+
+        super().__init__(
+            qm=qm,
+            qua_inner_loop_action=qua_inner_loop_action,
+            scan_mode=scan_mode,
+            x_axis=x_axis,
+            y_axis=y_axis,
+            num_averages=num_averages,
+            result_type=result_type,
+            initial_delay=initial_delay,
+            **kwargs,
+        )
