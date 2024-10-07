@@ -7,7 +7,7 @@ from dash_extensions.enrich import DashProxy, dcc, html, Output, Input, Blocking
 import logging
 
 from qualang_tools.control_panel.video_mode.data_acquirers import BaseDataAcquirer
-from .plotly_tools import xarray_to_plotly
+from .dash_tools import create_axis_layout, create_input_field, xarray_to_plotly
 
 
 __all__ = ["VideoMode"]
@@ -42,77 +42,6 @@ class VideoMode:
 
         self.app = DashProxy(__name__, title="Video Mode", transforms=[BlockingCallbackTransform(timeout=10)])
         self.create_layout()
-
-    def _create_axis_layout(self, axis: str):
-        xy = axis.lower()
-        XY = axis.upper()
-        return html.Div(
-            [
-                html.Label(XY, style={"text-align": "left"}),
-                html.Div(  # span
-                    [
-                        html.Label(
-                            "Span:",
-                            style={
-                                "text-align": "right",
-                                "white-space": "nowrap",
-                                "margin-left": "15px",
-                                "margin-right": "5px",
-                            },
-                        ),
-                        dcc.Input(
-                            id=f"{xy}-span",
-                            type="number",
-                            value=getattr(self.data_acquirer, f"{xy}_span"),
-                            min=0.01,
-                            max=getattr(self.data_acquirer, f"{xy}_span") * 2,
-                            debounce=True,
-                            style={
-                                "width": "55px",
-                                "text-align": "right",
-                            },
-                        ),
-                        html.Label(
-                            "V",
-                            style={
-                                "text-align": "left",
-                                "white-space": "nowrap",
-                                "margin-left": "3px",
-                            },
-                        ),
-                    ],
-                    style={"display": "flex", "margin-bottom": "10px"},
-                ),
-                html.Div(  # Points
-                    [
-                        html.Label(
-                            "Points:",
-                            style={
-                                "text-align": "right",
-                                "white-space": "nowrap",
-                                "margin-left": "15px",
-                                "margin-right": "5px",
-                            },
-                        ),
-                        dcc.Input(
-                            id=f"{xy}-points",
-                            type="number",
-                            value=getattr(self.data_acquirer, f"{xy}_points"),
-                            min=1,
-                            max=501,
-                            step=1,
-                            debounce=True,
-                            style={
-                                "width": "40px",
-                                "text-align": "right",
-                            },
-                        ),
-                    ],
-                    style={"display": "flex", "margin-bottom": "10px"},
-                ),
-            ],
-            style={"display": "flex", "flex-direction": "row", "flex-wrap": "wrap"},
-        )
 
     def create_layout(self):
         """
@@ -164,40 +93,33 @@ class VideoMode:
                                 "margin-bottom": "20px",
                             },
                         ),
-                        html.Div(  # Integration + Averages
-                            [
-                                html.Div(
-                                    [
-                                        html.Label(
-                                            "Averages:",
-                                            style={
-                                                "text-align": "left",
-                                                "white-space": "nowrap",
-                                                "margin-left": "15px",
-                                                "margin-right": "5px",
-                                            },
-                                        ),
-                                        dcc.Input(
-                                            id="num-averages",
-                                            type="number",
-                                            value=self.data_acquirer.num_averages,
-                                            min=1,
-                                            step=1,
-                                            debounce=True,
-                                            style={"width": "40px"},
-                                        ),
-                                    ],
-                                    style={"display": "flex", "margin-bottom": "10px"},
-                                ),
-                            ],
-                            style={
+                        create_input_field(
+                            "num-averages",
+                            "Averages",
+                            self.data_acquirer.num_averages,
+                            min=1,
+                            step=1,
+                            debounce=True,
+                            div_style={
                                 "display": "flex",
                                 "flex-direction": "row",
                                 "flex-wrap": "wrap",
                             },
                         ),
-                        self._create_axis_layout("x"),
-                        self._create_axis_layout("y"),
+                        create_axis_layout(
+                            "x",
+                            span=self.data_acquirer.x_span,
+                            points=self.data_acquirer.x_points,
+                            min_span=0.01,
+                            max_span=self.data_acquirer.x_span * 2,
+                        ),
+                        create_axis_layout(
+                            "y",
+                            span=self.data_acquirer.y_span,
+                            points=self.data_acquirer.y_points,
+                            min_span=0.01,
+                            max_span=self.data_acquirer.y_span * 2,
+                        ),
                         html.Div(  # Update and Save buttons
                             [
                                 html.Button(
