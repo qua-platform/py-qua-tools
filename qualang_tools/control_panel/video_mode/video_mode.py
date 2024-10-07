@@ -1,6 +1,5 @@
 from datetime import datetime
 from pathlib import Path
-from time import sleep
 from typing import Optional, Union
 from dash import dcc, html, Input, Output
 from dash_extensions.enrich import DashProxy, dcc, html, Output, Input, BlockingCallbackTransform
@@ -15,16 +14,27 @@ __all__ = ["VideoMode"]
 
 
 class VideoMode:
+    """
+    A class for visualizing and controlling data acquisition in video mode.
+
+    This class provides a dashboard interface for visualizing and controlling data acquisition in video mode.
+    It uses Dash for the web interface and Plotly for the heatmap visualization.
+
+    Attributes:
+        data_acquirer (BaseDataAcquirer): The data acquirer object that provides the data to be visualized.
+        save_path (Union[str, Path]): The path where data and images will be saved.
+        update_interval (float): The interval at which the data is updated in the dashboard (in seconds).
+            If the previous update was not finished in the given interval, the update will be skipped.
+    """
+
     def __init__(
         self,
         data_acquirer: BaseDataAcquirer,
-        image_save_path: Union[str, Path] = "./images",
-        data_save_path: Union[str, Path] = "./data",
-        update_interval: Optional[float] = 0.1,
+        save_path: Union[str, Path] = "./video_mode_output",
+        update_interval: float = 0.1,
     ):
         self.data_acquirer = data_acquirer
-        self.image_save_path = Path(image_save_path)
-        self.data_save_path = Path(data_save_path)
+        self.save_path = Path(save_path)
         self.paused = False
         self._last_update_clicks = 0
         self._last_save_clicks = 0
@@ -105,6 +115,24 @@ class VideoMode:
         )
 
     def create_layout(self):
+        """
+        Create the layout for the video mode dashboard.
+
+        This method sets up the Dash layout for the video mode control panel. It includes:
+        - A graph to display the heatmap of acquired data
+        - Controls for X and Y parameters (offset, span, points)
+        - Buttons for pausing/resuming data acquisition and saving data
+        - Display for the current iteration count
+        - Input for setting the number of averages
+
+        The layout is designed to be responsive and user-friendly, with aligned input fields
+        and clear labeling. It uses a combination of Dash core components and HTML elements
+        to create an intuitive interface for controlling and visualizing the data acquisition
+        process.
+
+        Returns:
+            None: The method sets up the `self.app.layout` attribute but doesn't return anything.
+        """
         self.fig = xarray_to_plotly(self.data_acquirer.data_array)
 
         # Modify the layout with CSS to left-align and adjust input size
@@ -138,35 +166,6 @@ class VideoMode:
                         ),
                         html.Div(  # Integration + Averages
                             [
-                                # html.Div(  # Integration
-                                #     [
-                                #         html.Label(
-                                #             "Integration Time:",
-                                #             style={
-                                #                 "text-align": "right",
-                                #                 "white-space": "nowrap",
-                                #                 "margin-right": "5px",
-                                #             },
-                                #         ),
-                                #         dcc.Input(
-                                #             id="integration-time",
-                                #             type="number",
-                                #             value=self.data_acquirer.integration_time * 1e6,
-                                #             min=1,
-                                #             debounce=True,
-                                #             style={"width": "40px", "text-align": "right"},
-                                #         ),  # Integration time in microseconds
-                                #         html.Label(
-                                #             "µs",
-                                #             style={
-                                #                 "text-align": "left",
-                                #                 "white-space": "nowrap",
-                                #                 "margin-left": "3px",
-                                #             },
-                                #         ),
-                                #     ],
-                                #     style={"display": "flex", "margin-bottom": "10px"},
-                                # ),
                                 html.Div(
                                     [
                                         html.Label(
@@ -341,20 +340,23 @@ class VideoMode:
             - The data save path is created if it doesn't exist.
             - The filename format is 'data_XXXX.h5', where XXXX is a four-digit index.
         """
-        if not self.data_save_path.exists():
-            self.data_save_path.mkdir(parents=True)
-            logging.info(f"Created directory: {self.data_save_path}")
+        data_save_path = self.save_path / "data"
+        logging.info(f"Attempting to save data to folder: {data_save_path}")
+
+        if not data_save_path.exists():
+            data_save_path.mkdir(parents=True)
+            logging.info(f"Created directory: {data_save_path}")
 
         if idx is None:
             idx = 1
-            while idx <= 9999 and (self.data_save_path / f"data_{idx}.h5").exists():
+            while idx <= 9999 and (data_save_path / f"data_{idx}.h5").exists():
                 idx += 1
 
         if idx > 9999:
             raise ValueError("Maximum number of data files (9999) reached. Cannot save more.")
 
         filename = f"data_{idx}.h5"
-        filepath = self.data_save_path / filename
+        filepath = data_save_path / filename
 
         if filepath.exists():
             raise FileExistsError(f"File {filepath} already exists.")
@@ -380,17 +382,18 @@ class VideoMode:
             - The image save path is created if it doesn't exist.
             - The filename format is 'data_image_XXXX.png', where XXXX is a four-digit index.
         """
-        logging.info("Attempting to save image...")
-        if not self.image_save_path.exists():
-            self.image_save_path.mkdir(parents=True)
-            logging.info(f"Created directory: {self.image_save_path}")
+        image_save_path = self.save_path / "images"
+        logging.info(f"Attempting to save image to folder: {image_save_path}")
+        if not image_save_path.exists():
+            image_save_path.mkdir(parents=True)
+            logging.info(f"Created directory: {image_save_path}")
 
         idx = 1
-        while idx <= 9999 and (self.image_save_path / f"data_image_{idx}.png").exists():
+        while idx <= 9999 and (image_save_path / f"data_image_{idx}.png").exists():
             idx += 1
         if idx <= 9999:
             filename = f"data_image_{idx}.png"
-            filepath = self.image_save_path / filename
+            filepath = image_save_path / filename
             self.fig.write_image(filepath)
             logging.info(f"Image saved successfully: {filepath}")
         else:
@@ -416,7 +419,9 @@ class VideoMode:
             - The image is saved first, followed by the data.
             - If data saving fails due to a FileExistsError, a warning is logged instead of raising an exception.
         """
-        logging.info("Attempting to save image and data...")
+        if not self.save_path.exists():
+            self.save_path.mkdir(parents=True)
+            logging.info(f"Created directory: {self.save_path}")
 
         # Save image first
         idx = self.save_image()
