@@ -23,7 +23,8 @@ class BaseDataAcquirer(ABC):
         num_averages=1,
         **kwargs,
     ):
-        assert not kwargs
+        if kwargs:
+            raise ValueError(f"Unexpected kwargs for DataAcquirer: {kwargs}")
 
         self.x_axis = x_axis
         self.y_axis = y_axis
