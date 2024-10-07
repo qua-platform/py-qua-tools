@@ -208,10 +208,10 @@ def octave_calibration_tool(
     :param lo_frequencies: single value or list of LO frequencies to calibrate in Hz.
     :param intermediate_frequencies: single value or list of Intermediate frequencies to calibrate in Hz.
     """
-    if not isinstance(lo_frequencies, Union[list, np.ndarray]):
+    if not isinstance(lo_frequencies, (list, np.ndarray)):
         lo_frequencies = [lo_frequencies]
 
-    if not isinstance(intermediate_frequencies, Union[list, np.ndarray]):
+    if not isinstance(intermediate_frequencies, (list, np.ndarray)):
         intermediate_frequencies = [intermediate_frequencies]
 
     for lo in lo_frequencies:
