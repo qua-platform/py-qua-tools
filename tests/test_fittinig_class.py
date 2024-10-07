@@ -3,6 +3,7 @@ import pytest
 
 from qualang_tools.plot.fitting import Fit
 
+
 @pytest.mark.parametrize("a", [5, 10, -1])
 @pytest.mark.parametrize("b", [1, 11, 0])
 def test_linear(a, b):
@@ -12,7 +13,8 @@ def test_linear(a, b):
     y = a * x + b
     out = fit.linear(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
+
 
 @pytest.mark.parametrize("amp", [0.2, 0.3, 0.4])
 @pytest.mark.parametrize("T1", [10, 50, 100])
@@ -20,10 +22,10 @@ def test_linear(a, b):
 def test_T1(amp, T1, final_offset):
     fit = Fit()
     x = np.linspace(0, 100, 100)
-    y = amp * np.exp(-x * (1/T1)) + final_offset
+    y = amp * np.exp(-x * (1 / T1)) + final_offset
     out = fit.T1(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("final_offset", [0.01, 0.05])
@@ -38,13 +40,12 @@ def test_ramsey(final_offset, T2, amp, initial_offset, f, phase):
     tau_max = 800
     d_tau = 16
     x = np.arange(tau_min, tau_max + 0.1, d_tau)
-    y = final_offset * (1 - np.exp(-x * (1/T2))) + amp / 2 * (
-            np.exp(-x * (1/T2))
-            * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
-            )
+    y = final_offset * (1 - np.exp(-x * (1 / T2))) + amp / 2 * (
+        np.exp(-x * (1 / T2)) * (initial_offset * 2 + np.cos(2 * np.pi * f * x + phase))
+    )
     out = fit.ramsey(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("kc", [3, 5])
@@ -54,10 +55,10 @@ def test_ramsey(final_offset, T2, amp, initial_offset, f, phase):
 def test_transmission_resonator_spectroscopy(kc, k, f, offset):
     fit = Fit()
     x = np.linspace(0, 100, 100)
-    y = ((kc/k) / (1 + (4 * ((x - f) ** 2) / (k ** 2)))) + offset
+    y = ((kc / k) / (1 + (4 * ((x - f) ** 2) / (k**2)))) + offset
     out = fit.transmission_resonator_spectroscopy(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("kc", [3, 5])
@@ -68,10 +69,10 @@ def test_transmission_resonator_spectroscopy(kc, k, f, offset):
 def test_reflection_resonator_spectroscopy(kc, k, f, offset, slope):
     fit = Fit()
     x = np.linspace(0, 100, 100)
-    y = offset-((kc/k) / (1 + (4 * ((x - f) ** 2) / (k ** 2)))) + slope * x
+    y = offset - ((kc / k) / (1 + (4 * ((x - f) ** 2) / (k**2)))) + slope * x
     out = fit.reflection_resonator_spectroscopy(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("offset", [0.01, 0.05])
@@ -85,8 +86,8 @@ def test_rabi(offset, T, amp, f, phase):
     tau_max = 800
     d_tau = 16
     x = np.arange(tau_min, tau_max + 0.1, d_tau)
-    y = amp * (np.sin(0.5 * (2 * np.pi * f) * x + phase))**2 * np.exp(-x / T) + offset
+    y = amp * (np.sin(0.5 * (2 * np.pi * f) * x + phase)) ** 2 * np.exp(-x / T) + offset
 
     out = fit.rabi(x_data=x, y_data=y)
 
-    np.testing.assert_allclose(out['fit_func'](x), y, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(out["fit_func"](x), y, rtol=1e-5, atol=1e-5)
