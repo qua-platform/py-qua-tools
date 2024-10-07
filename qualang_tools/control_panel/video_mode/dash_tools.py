@@ -17,10 +17,18 @@ def xarray_to_plotly(da: xr.DataArray):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure with the data.
     """
-    x_label = da.coords["x"].attrs.get("long_name", "x")
-    x_unit = da.coords["x"].attrs.get("units", "")
-    y_label = da.coords["y"].attrs.get("long_name", "y")
-    y_unit = da.coords["y"].attrs.get("units", "")
+    if len(da.coords) != 2:
+        raise ValueError("DataArray must have exactly 2 coordinates.")
+
+    coords_iter = iter(da.coords.items())
+    x_label, x_coord = next(coords_iter)
+    x_label = x_coord.attrs.get("long_name", x_label)
+    x_unit = x_coord.attrs.get("units", "")
+
+    y_label, y_coord = next(coords_iter)
+    y_label = y_coord.attrs.get("long_name", y_label)
+    y_unit = y_coord.attrs.get("units", "")
+
     z_label = da.attrs.get("long_name", da.name or "Value")
     z_unit = da.attrs.get("units", "")
 
@@ -31,8 +39,8 @@ def xarray_to_plotly(da: xr.DataArray):
     fig = go.Figure(
         go.Heatmap(
             z=da.values,
-            x=da.coords["x"].values,
-            y=da.coords["y"].values,
+            x=x_coord.values,
+            y=y_coord.values,
             colorscale="plasma",
             colorbar=dict(title=zaxis_label),
         )
@@ -73,7 +81,9 @@ def create_input_field(id, label, value, debounce=True, input_style=None, div_st
     return html.Div(elements, style=div_style)
 
 
-def create_axis_layout(axis: Literal["x", "y"], span: float, points: int, min_span: float, max_span: Optional[float] = None):
+def create_axis_layout(
+    axis: Literal["x", "y"], span: float, points: int, min_span: float, max_span: Optional[float] = None
+):
     return html.Div(
         [
             html.Label(axis.upper(), style={"text-align": "left"}),

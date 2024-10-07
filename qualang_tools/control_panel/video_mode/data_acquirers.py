@@ -85,10 +85,12 @@ class BaseDataAcquirer(ABC):
 
         self.data_array = xr.DataArray(
             averaged_data,
-            coords=[("x", self.x_axis.sweep_values_with_offset), ("y", self.y_axis.sweep_values_with_offset)],
+            coords=[
+                (self.x_axis.name, self.x_axis.sweep_values_with_offset),
+                (self.y_axis.name, self.y_axis.sweep_values_with_offset),
+            ],
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
-
         self.data_array.coords[self.x_axis.name].attrs.update(
             {"units": "V", "long_name": self.x_axis.label or self.x_axis.name}
         )
