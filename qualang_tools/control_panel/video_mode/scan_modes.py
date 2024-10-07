@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from contextlib import contextmanager
-from typing import Any, Dict, Iterator, Sequence, Callable, Tuple, Generator
-from matplotlib import pyplot as plt
-from matplotlib.ticker import MultipleLocator
-
+from typing import Any, Dict, Iterator, Sequence, Tuple, Generator
 import numpy as np
-from qm.qua import declare, declare_stream, fixed, if_, save, assign, for_, for_each_
+from matplotlib import figure, axes, pyplot as plt
+from matplotlib.ticker import MultipleLocator
+from qm.qua import declare, fixed, if_, assign, for_, for_each_
 from qualang_tools.loops import from_array
 
 
@@ -14,7 +12,7 @@ class ScanMode(ABC):
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         pass
 
-    def plot_scan(self, x_points: int, y_points: int) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_scan(self, x_points: int, y_points: int) -> Tuple[figure.Figure, axes.Axes]:
         idxs_x, idxs_y = self.get_idxs(x_points, y_points)
 
         u = np.diff(idxs_x)
