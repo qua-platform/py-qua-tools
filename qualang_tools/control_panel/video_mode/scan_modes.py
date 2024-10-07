@@ -159,19 +159,19 @@ class SpiralScan(ScanMode):
 
         with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
             # First take one step in the opposite XY direction
-            with if_(half_spiral_idx > 0):
-                assign(x, x - x_step * movement_direction)
+            with if_(half_spiral_idx > 0):  # type: ignore
+                assign(x, x - x_step * movement_direction)  # type: ignore
                 yield voltages
 
             with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
-                assign(y, y + y_step * movement_direction)
+                assign(y, y + y_step * movement_direction)  # type: ignore
                 yield voltages
 
             with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
-                assign(x, x + x_step * movement_direction)
+                assign(x, x + x_step * movement_direction)  # type: ignore
                 yield voltages
 
-            assign(movement_direction, -movement_direction)
+            assign(movement_direction, -movement_direction)  # type: ignore
 
         assign(x, 0)
         assign(y, 0)
