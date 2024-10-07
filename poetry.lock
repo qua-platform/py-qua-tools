@@ -185,6 +185,17 @@ files = [
 ]
 
 [[package]]
+name = "cachelib"
+version = "0.9.0"
+description = "A collection of cache libraries in the same API interface."
+optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "cachelib-0.9.0-py3-none-any.whl", hash = "sha256:811ceeb1209d2fe51cd2b62810bd1eccf70feba5c52641532498be5c675493b3"},
+    {file = "cachelib-0.9.0.tar.gz", hash = "sha256:38222cc7c1b79a23606de5c2607f4925779e37cdcea1c2ad21b8bae94b5425a5"},
+]
+
+[[package]]
 name = "certifi"
 version = "2024.8.30"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -491,6 +502,27 @@ files = [
 ]
 
 [[package]]
+name = "dash-extensions"
+version = "1.0.15"
+description = "Extensions for Plotly Dash."
+optional = true
+python-versions = "<4,>=3.8"
+files = [
+    {file = "dash_extensions-1.0.15-py3-none-any.whl", hash = "sha256:4cb04dfeb20d95498a780dc16109bdb283ff98855d412973748e108360f12fbe"},
+    {file = "dash_extensions-1.0.15.tar.gz", hash = "sha256:01401ae67a00407a458827149549b549cea2c58db77dc5d5bc144e275aed3217"},
+]
+
+[package.dependencies]
+dash = ">=2.15.0"
+dataclass-wizard = ">=0.22.2,<0.23.0"
+Flask-Caching = ">=2.1.0,<3.0.0"
+jsbeautifier = ">=1.14.3,<2.0.0"
+more-itertools = ">=9.0.0,<10.0.0"
+
+[package.extras]
+mantine = ["dash-mantine-components (>=0.14.3,<0.15.0)"]
+
+[[package]]
 name = "dash-html-components"
 version = "2.0.0"
 description = "Vanilla HTML components for Dash"
@@ -511,6 +543,25 @@ files = [
     {file = "dash_table-5.0.0-py3-none-any.whl", hash = "sha256:19036fa352bb1c11baf38068ec62d172f0515f73ca3276c79dee49b95ddc16c9"},
     {file = "dash_table-5.0.0.tar.gz", hash = "sha256:18624d693d4c8ef2ddec99a6f167593437a7ea0bf153aa20f318c170c5bc7308"},
 ]
+
+[[package]]
+name = "dataclass-wizard"
+version = "0.22.3"
+description = "Marshal dataclasses to/from JSON. Use field properties with initial values. Construct a dataclass schema with JSON input."
+optional = true
+python-versions = "*"
+files = [
+    {file = "dataclass-wizard-0.22.3.tar.gz", hash = "sha256:4c46591782265058f1148cfd1f54a3a91221e63986fdd04c9d59f4ced61f4424"},
+    {file = "dataclass_wizard-0.22.3-py2.py3-none-any.whl", hash = "sha256:63751203e54b9b9349212cc185331da73c1adc99c51312575eb73bb5c00c1962"},
+]
+
+[package.dependencies]
+typing-extensions = {version = ">=3.7.4.2", markers = "python_version <= \"3.9\""}
+
+[package.extras]
+dev = ["Sphinx (==5.3.0)", "bump2version (==1.0.1)", "coverage (>=6.2)", "dataclass-factory (==2.12)", "dataclasses-json (==0.5.6)", "flake8 (>=3)", "jsons (==1.6.1)", "pip (>=21.3.1)", "pytest (==7.0.1)", "pytest-cov (==3.0.0)", "pytest-mock (>=3.6.1)", "pytimeparse (==1.1.8)", "sphinx-issues (==3.0.1)", "sphinx-issues (==4.0.0)", "tox (==3.24.5)", "twine (==3.8.0)", "watchdog[watchmedo] (==2.1.6)", "wheel (==0.37.1)", "wheel (==0.42.0)"]
+timedelta = ["pytimeparse (>=1.1.7)"]
+yaml = ["PyYAML (>=5.3)"]
 
 [[package]]
 name = "datadog-api-client"
@@ -676,11 +727,24 @@ profile = ["gprof2dot (>=2022.7.29)"]
 
 [[package]]
 name = "docutils"
-version = "0.21"
+version = "0.20.1"
 description = "Docutils -- Python Documentation Utilities"
 optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "docutils-0.20.1-py3-none-any.whl", hash = "sha256:96f387a2c5562db4476f09f13bbab2192e764cac08ebbf3a34a95d9b1e4a59d6"},
+    {file = "docutils-0.20.1.tar.gz", hash = "sha256:f08a4e276c3a1583a86dce3e34aba3fe04d02bba2dd51ed16106244e8a923e3b"},
+]
+
+[[package]]
+name = "editorconfig"
+version = "0.12.4"
+description = "EditorConfig File Locator and Interpreter for Python"
+optional = true
 python-versions = "*"
-files = []
+files = [
+    {file = "EditorConfig-0.12.4.tar.gz", hash = "sha256:24857fa1793917dd9ccf0c7810a07e05404ce9b823521c7dce22a4fb5d125f80"},
+]
 
 [[package]]
 name = "exceptiongroup"
@@ -748,6 +812,21 @@ Werkzeug = ">=3.0.0"
 [package.extras]
 async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
+
+[[package]]
+name = "flask-caching"
+version = "2.3.0"
+description = "Adds caching support to Flask applications."
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "Flask_Caching-2.3.0-py3-none-any.whl", hash = "sha256:51771c75682e5abc1483b78b96d9131d7941dc669b073852edfa319dd4e29b6e"},
+    {file = "flask_caching-2.3.0.tar.gz", hash = "sha256:d7e4ca64a33b49feb339fcdd17e6ba25f5e01168cf885e53790e885f83a4d2cf"},
+]
+
+[package.dependencies]
+cachelib = ">=0.9.0,<0.10.0"
+Flask = "*"
 
 [[package]]
 name = "fonttools"
@@ -1156,6 +1235,20 @@ files = [
 ]
 
 [[package]]
+name = "jsbeautifier"
+version = "1.15.1"
+description = "JavaScript unobfuscator and beautifier."
+optional = true
+python-versions = "*"
+files = [
+    {file = "jsbeautifier-1.15.1.tar.gz", hash = "sha256:ebd733b560704c602d744eafc839db60a1ee9326e30a2a80c4adb8718adc1b24"},
+]
+
+[package.dependencies]
+editorconfig = ">=0.12.2"
+six = ">=1.13.0"
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.7"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -1473,6 +1566,17 @@ files = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "9.1.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "more-itertools-9.1.0.tar.gz", hash = "sha256:cabaa341ad0389ea83c17a94566a53ae4c9d07349861ecb14dc6d0345cf9ac5d"},
+    {file = "more_itertools-9.1.0-py3-none-any.whl", hash = "sha256:d2bc7f02446e86a68911e58ded76d6561eea00cddfb2a91e7019bbb586c799f3"},
+]
+
+[[package]]
 name = "multidict"
 version = "6.1.0"
 description = "multidict implementation"
@@ -1683,8 +1787,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -2627,8 +2731,9 @@ type = ["pytest-mypy"]
 configbuilder = ["dash", "dash-bootstrap-components", "dash-core-components", "dash-cytoscape", "dash-dangerously-set-inner-html", "dash-html-components", "dash-table", "docutils", "pandas", "waitress"]
 datahandler = ["xarray"]
 interplot = ["dill", "ipython", "pypiwin32"]
+videomode = ["dash", "dash-extensions", "xarray"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "ed127d93cdab63deccb2817c147b36cebee04abe96393d0e1a73f51da0d4f962"
+content-hash = "d67ae3f71325e193bd7d9254d79166e93c3713b9dfb0b9750b7e75986349cc5c"
