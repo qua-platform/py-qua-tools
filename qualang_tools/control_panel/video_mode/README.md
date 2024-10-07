@@ -60,7 +60,7 @@ x_axis = SweepAxis(
 )
 y_axis = SweepAxis(name="voltage_gate2", span=0.03, points=51)
 ```
-The `SweepAxis` contains additional attributes, some are highlighted below in `Advanced Usage`.
+The `SweepAxis` contains additional attributes, such as attenuation and a voltage offset, the latter of which is described in `Advanced Usage`.
 
 Next we define the data acquirer, which is the object that will handle the data acquisition.
 ```python
@@ -111,4 +111,23 @@ The video mode plot should now correctly show the sweep axes with the correct of
 
 Note that if the offset voltage is changed, it will need to be changed in the same kernel where the video mode is running. One solution for this is using the `VoltageControl` module in py-qua-tools.
 
+
+### Simulated Video Mode
+Below is an example of how to run the video mode without an actual OPX.
+In this case, we will use the `RandomDataAcquirer` class, which simply displays uniformly-sampled random data.
+```python
+from qualang_tools.control_panel.video_mode import *
+
+x_axis = SweepAxis(name="X", span=0.1, points=101)
+y_axis = SweepAxis(name="Y", span=0.1, points=101)
+
+data_acquirer = RandomDataAcquirer(
+    x_axis=x_axis,
+    y_axis=y_axis,
+    num_averages=5,
+)
+
+live_plotter = VideoMode(data_acquirer=data_acquirer)
+live_plotter.run()
+```
 
