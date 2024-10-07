@@ -7,8 +7,9 @@ __all__ = ["VoltageParameter"]
 
 # VoltageParameter Class remains unchanged
 class VoltageParameter:
-    def __init__(self, name, initial_value=0.0, units="V"):
+    def __init__(self, name, label=None, initial_value=0.0, units="V"):
         self.name = name
+        self.label = label
         self.latest_value = initial_value
         self._value = initial_value
         self.units = units

@@ -3,6 +3,7 @@ from qualang_tools.control_panel.video_mode.dash_tools import *
 import numpy as np
 from matplotlib import pyplot as plt
 from qualang_tools.control_panel.video_mode.voltage_parameters import *
+from qualang_tools.control_panel.video_mode.sweep_axis import *
 from qualang_tools.control_panel.video_mode.data_acquirers import *
 from qualang_tools.control_panel.video_mode.video_mode import *
 
@@ -49,21 +50,14 @@ inner_loop_action = InnerLoopActionQuam(
     y_element=machine.channels["ch2"],
     readout_pulse=readout_pulse,
 )
-# scan_mode = RasterScan()
+
 scan_mode = SpiralScan()
 data_acquirer = OPXDataAcquirer(
     qm=qm,
     qua_inner_loop_action=inner_loop_action,
     scan_mode=scan_mode,
-    x_offset_parameter=x_offset,
-    y_offset_parameter=y_offset,
-    x_span=0.02,
-    y_span=0.02,
-    x_attenuation=0,
-    y_attenuation=0,
-    num_averages=5,
-    x_points=11,
-    y_points=11,
+    x_axis=SweepAxis("x", span=0.03, points=11, offset_parameter=x_offset),
+    y_axis=SweepAxis("y", span=0.03, points=11, offset_parameter=y_offset),
     result_type="abs",
 )
 # %% Run program
@@ -78,32 +72,35 @@ print(f"Mean of results: {np.mean(np.abs(results))}")
 live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
 live_plotter.run(use_reloader=False)
 
-# # %%
-# scan_mode.plot_scan(11, 11)
+# %%
+scan_mode.plot_scan(11, 11)
 
-# # %% Generate QUA script
-# from qm import generate_qua_script
+# %% Generate QUA script
+from qm import generate_qua_script
 
-# qua_script = generate_qua_script(data_acquirer.generate_program(), config)
-# print(qua_script)
+qua_script = generate_qua_script(data_acquirer.generate_program(), config)
+print(qua_script)
 
-# # %% Simulate results
-# from qm import SimulationConfig
+# %% Simulate results
+from qm import SimulationConfig
 
-# prog = data_acquirer.generate_program()
-# simulation_config = SimulationConfig(duration=100000)  # In clock cycles = 4ns
-# job = qmm.simulate(config, prog, simulation_config)
-# con1 = job.get_simulated_samples().con1
+prog = data_acquirer.generate_program()
+simulation_config = SimulationConfig(duration=100000)  # In clock cycles = 4ns
+job = qmm.simulate(config, prog, simulation_config)
+con1 = job.get_simulated_samples().con1
 
-# con1.plot(analog_ports=["1", "2"])
+con1.plot(analog_ports=["1", "2"])
 
-# plt.figure()
-# plt.plot(con1.analog["1"], con1.analog["2"])
+plt.figure()
+plt.plot(con1.analog["1"], con1.analog["2"])
 
-# # %%
-# from qualang_tools.control_panel.video_mode.scan_modes import SwitchRasterScan
-# import numpy as np
-# scan_mode = SwitchRasterScan()
-# print(scan_mode.interleave_arr(np.arange(10)))
-# scan_mode.plot_scan(10, 10)
-# # %%
+plt.figure()
+data_acquirer.scan_mode.plot_scan(data_acquirer.x_axis.points, data_acquirer.y_axis.points)
+
+# %%
+from qualang_tools.control_panel.video_mode.scan_modes import SwitchRasterScan
+import numpy as np
+scan_mode = SwitchRasterScan()
+print(scan_mode.interleave_arr(np.arange(10)))
+scan_mode.plot_scan(10, 10)
+# %%

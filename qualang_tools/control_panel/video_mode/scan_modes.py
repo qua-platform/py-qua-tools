@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from typing import Dict, Iterator, Sequence, Callable, Tuple, Generator
+from typing import Any, Dict, Iterator, Sequence, Callable, Tuple, Generator
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
@@ -14,7 +14,7 @@ class ScanMode(ABC):
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         pass
 
-    def plot_scan(self, x_points: int, y_points: int):
+    def plot_scan(self, x_points: int, y_points: int) -> Tuple[plt.Figure, plt.Axes]:
         idxs_x, idxs_y = self.get_idxs(x_points, y_points)
 
         u = np.diff(idxs_x)
@@ -33,9 +33,11 @@ class ScanMode(ABC):
         ax.yaxis.set_minor_locator(MultipleLocator(abs(np.max(v))))
         plt.show()
 
+        return fig, ax
+
     @abstractmethod
     def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Iterator[None]:
-        yield
+        pass
 
 
 class RasterScan(ScanMode):
@@ -44,7 +46,7 @@ class RasterScan(ScanMode):
         y_idxs = np.repeat(np.arange(y_points), x_points)
         return x_idxs, y_idxs
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
+    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Iterator[None]:
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
         with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
@@ -74,7 +76,7 @@ class SwitchRasterScan(ScanMode):
         y_idxs = np.repeat(y_idxs, x_points)
         return x_idxs, y_idxs
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
+    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Generator[Dict[str, Any], None, None]:
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
         # with for_(*from_array(voltages["y"], self.interleave_arr(y_vals))):  # type: ignore

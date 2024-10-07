@@ -108,17 +108,17 @@ class VideoMode:
                         ),
                         create_axis_layout(
                             "x",
-                            span=self.data_acquirer.x_span,
-                            points=self.data_acquirer.x_points,
+                            span=self.data_acquirer.x_axis.span,
+                            points=self.data_acquirer.x_axis.points,
                             min_span=0.01,
-                            max_span=self.data_acquirer.x_span * 2,
+                            max_span=None,
                         ),
                         create_axis_layout(
                             "y",
-                            span=self.data_acquirer.y_span,
-                            points=self.data_acquirer.y_points,
+                            span=self.data_acquirer.y_axis.span,
+                            points=self.data_acquirer.y_axis.points,
                             min_span=0.01,
-                            max_span=self.data_acquirer.y_span * 2,
+                            max_span=None,
                         ),
                         html.Div(  # Update and Save buttons
                             [
@@ -138,11 +138,11 @@ class VideoMode:
                 dcc.Graph(
                     id="live-heatmap", figure=self.fig, style={"width": "55%", "height": "100%", "min-width": "500px"}
                 ),
-                dcc.Interval(id="interval-component", interval=self.update_interval, n_intervals=0),
+                dcc.Interval(id="interval-component", interval=self.update_interval * 1000, n_intervals=0),
             ],
             style={"display": "flex", "flex-direction": "row", "height": "100%", "flex-wrap": "wrap"},
         )
-        logging.debug(f"Dash layout created, update interval: {self.update_interval} ms")
+        logging.debug(f"Dash layout created, update interval: {self.update_interval*1000} ms")
         self.add_callbacks()
 
     def clear_data(self):
@@ -188,28 +188,30 @@ class VideoMode:
             y_points,
         ):
             logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
-            attrs = {
-                "num_averages": {"obj": self.data_acquirer, "new": num_averages},
-                "x_span": {"obj": self.data_acquirer, "new": x_span},
-                "y_span": {"obj": self.data_acquirer, "new": y_span},
-                "x_points": {"obj": self.data_acquirer, "new": x_points},
-                "y_points": {"obj": self.data_acquirer, "new": y_points},
-            }
-            updated_attrs = {}
+            attrs = [
+                dict(obj=self.data_acquirer, key="num_averages", new=num_averages),
+                dict(obj=self.data_acquirer.x_axis, key="span", new=x_span),
+                dict(obj=self.data_acquirer.y_axis, key="span", new=y_span),
+                dict(obj=self.data_acquirer.x_axis, key="points", new=x_points),
+                dict(obj=self.data_acquirer.y_axis, key="points", new=y_points),
+            ]
+            updated_attrs = []
 
             if n_update_clicks > self._last_update_clicks:
                 self._last_update_clicks = n_update_clicks
-                for attr_name, attr in attrs.items():
-                    attr["old"] = getattr(attr["obj"], attr_name)
-
+                for attr in attrs:
+                    attr["old"] = getattr(attr["obj"], attr["key"])
                     attr["changed"] = attr["old"] != attr["new"]
 
                     if not attr["changed"]:
                         continue
 
-                    updated_attrs[attr_name] = attr
+                    if attr["new"] is None:
+                        continue
 
-                    logging.debug(f"Updating {attr_name} from {attr['old']} to {attr['new']}")
+                    updated_attrs.append(attr)
+
+                    logging.debug(f"Updating {attr['key']} from {attr['old']} to {attr['new']}")
 
                 if updated_attrs:
                     self.clear_data()

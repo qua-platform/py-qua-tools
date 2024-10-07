@@ -1,3 +1,4 @@
+from typing import Literal, Optional
 from dash import html
 from dash_extensions.enrich import dcc
 import plotly.graph_objects as go
@@ -72,7 +73,7 @@ def create_input_field(id, label, value, debounce=True, input_style=None, div_st
     return html.Div(elements, style=div_style)
 
 
-def create_axis_layout(axis, span, points, min_span, max_span):
+def create_axis_layout(axis: Literal["x", "y"], span: float, points: int, min_span: float, max_span: Optional[float] = None):
     return html.Div(
         [
             html.Label(axis.upper(), style={"text-align": "left"}),
