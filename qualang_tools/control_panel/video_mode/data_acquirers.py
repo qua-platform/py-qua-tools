@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional
 import xarray as xr
 import logging
 from time import sleep, perf_counter
@@ -15,6 +15,17 @@ __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
 
 
 class BaseDataAcquirer(ABC):
+    """Base class for data acquirers.
+
+    This class defines the interface for data acquirers, which are responsible for acquiring data from a device.
+    Subclasses must implement the `acquire_data` method to provide the actual data acquisition logic.
+
+    Args:
+        x_axis: The x-axis of the data acquirer.
+        y_axis: The y-axis of the data acquirer.
+        num_averages: The number of averages to take as a rolling average.
+    """
+
     def __init__(
         self,
         *,
@@ -47,29 +58,33 @@ class BaseDataAcquirer(ABC):
             self.data_array.coords[axis.name].attrs.update({"units": "V", "long_name": label})
         logging.debug("DataGenerator initialized with initial data")
 
-    def update_voltage_ranges(self):
-        self.data_array = self.data_array.assign_coords(
-            {axis.name: axis.sweep_values for axis in [self.x_axis, self.y_axis]}
-        )
+    def update_attrs(self, attrs: List[Dict[str, Any]]):
+        """Update the attributes of the data array.
 
-        x_vals = self.x_axis.sweep_values
-        y_vals = self.y_axis.sweep_values
-        logging.debug(
-            f"Updated voltage ranges: "
-            f"x_vals=[{x_vals[0]}, {x_vals[1]}, ..., {x_vals[-1]}], "
-            f"y_vals=[{y_vals[0]}, {y_vals[1]}, ..., {y_vals[-1]}]"
-        )
+        This method updates the attributes of the data array with the provided attributes.
+        This method is invoked from the Dash app when the user updates the parameters in the control panel.
 
-    def update_attrs(self, attrs):
+        Args:
+            attrs: The attributes to update.
+        """
         for attr in attrs:
             setattr(attr["obj"], attr["key"], attr["new"])
         pass
 
     @abstractmethod
     def acquire_data(self) -> np.ndarray:
+        """Acquire data from the device.
+
+        This method must be implemented by subclasses to provide the actual data acquisition logic.
+        """
         pass
 
     def update_data(self):
+        """Update the data array with the new data.
+
+        This method acquires new data from the device and updates the data array.
+        It also performs a rolling average of the data to reduce noise.
+        """
         new_data = self.acquire_data()
         self.num_acquisitions += 1
 
@@ -103,14 +118,34 @@ class BaseDataAcquirer(ABC):
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
+    """Data acquirer that acquires random data."""
 
     def acquire_data(self):
+        """Acquire random data.
+
+        This method acquires random data from the simulated device.
+        """
         sleep(1)
         results = np.random.rand(self.x_axis.points, self.y_axis.points)
         return results
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
+    """Data acquirer for OPX devices.
+
+    This class is responsible for acquiring data from OPX devices.
+
+    Args:
+        qm: The QuantumMachine instance.
+        qua_inner_loop_action: The inner loop action to execute.
+        scan_mode: The scan mode to use.
+        x_axis: The x-axis of the data acquirer.
+        y_axis: The y-axis of the data acquirer.
+        num_averages: The number of averages to take as a rolling average.
+        result_type: The type of result to acquire.
+        initial_delay: The initial delay before acquiring data.
+    """
+
     stream_vars = ["I", "Q"]
     result_types = ["I", "Q", "amplitude", "phase"]
 
@@ -143,7 +178,15 @@ class OPXDataAcquirer(BaseDataAcquirer):
             **kwargs,
         )
 
-    def update_attrs(self, attrs):
+    def update_attrs(self, attrs: List[Dict[str, Any]]):
+        """Update the attributes of the data array.
+
+        This method updates the attributes of the data array with the provided attributes.
+        This method is invoked from the Dash app when the user updates the parameters in the control panel.
+
+        Args:
+            attrs: The attributes to update.
+        """
         super().update_attrs(attrs)
         logging.info(f"Updated attrs: {attrs}")
 
@@ -154,6 +197,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
     def generate_program(self) -> Program:
+        """Generate a QUA program to acquire data from the device."""
         x_vals = self.x_axis.sweep_values_unattenuated
         y_vals = self.y_axis.sweep_values_unattenuated
 
@@ -185,6 +229,12 @@ class OPXDataAcquirer(BaseDataAcquirer):
         return prog
 
     def process_results(self, results: Dict[str, Any]) -> np.ndarray:
+        """Process the results from the device.
+
+        This method processes the results from the device and returns a 2D array.
+        The class variable `result_type` determines the type of result to acquire.
+        The `scan_mode` determines the order in which the data is acquired and sorted
+        """
         if self.result_type in ["I", "Q"]:
             result = results[self.result_type]
         elif self.result_type == "abs":
@@ -201,6 +251,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
         return results_2D
 
     def acquire_data(self) -> np.ndarray:
+        """Acquire data from the device.
+
+        This method acquires data from the device and returns a 2D array.
+        """
         if self.program is None:
             self.run_program()
 
@@ -213,6 +267,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
         return result_array
 
     def run_program(self, verify: bool = True):
+        """Run the QUA program.
+
+        This method runs the QUA program and returns the results.
+
+        Args:
+            verify: Whether to verify that data can be acquired once started.
+        """
         if self.program is None:
             self.program = self.generate_program()
 
