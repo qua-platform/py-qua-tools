@@ -5,7 +5,7 @@ import pytest
 
 
 def pytest_configure():
-    pytest.visualize_flag = False
+    pytest.visualize_flag = True
     pytest.channels_are_equal = lambda x, y: type(x) == type(y) and asdict(x) == asdict(y)
 
 @pytest.fixture(params=["lf-fem", "opx+"])
@@ -20,7 +20,7 @@ def instruments_qw_soprano(request) -> Instruments:
     return instruments
 
 @pytest.fixture(params=["opx+"])
-def instruments_1OPX1Octave(request) -> Instruments:
+def instruments_1opx_1octave(request) -> Instruments:
     instruments = Instruments()
     if request.param == "lf-fem":
         instruments.add_lf_fem(controller=1, slots=[1])

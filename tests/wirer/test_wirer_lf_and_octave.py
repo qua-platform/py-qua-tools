@@ -13,7 +13,7 @@ from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel
 
 visualize_flag = pytest.visualize_flag
 
-def test_rf_io_allocation(instruments_1OPX1Octave):
+def test_rf_io_allocation(instruments_1opx_1octave):
     qubits = [1, 2, 3, 4]
 
 
@@ -21,10 +21,10 @@ def test_rf_io_allocation(instruments_1OPX1Octave):
     connectivity.add_resonator_line(qubits=qubits)
     connectivity.add_qubit_drive_lines(qubits=qubits)
 
-    allocate_wiring(connectivity, instruments_1OPX1Octave)
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     if visualize_flag:
-        visualize(connectivity.elements, available_channels=instruments_1OPX1Octave.available_channels)
+        visualize(connectivity.elements, available_channels=instruments_1opx_1octave.available_channels)
 
     for qubit in qubits:
         # resonator lines should be the same because only 1 feedline
@@ -65,7 +65,7 @@ def test_qw_soprano_allocation(instruments_qw_soprano):
 
     # should run without error
 
-def test_qw_soprano_2qb_allocation(instruments_1OPX1Octave):
+def test_qw_soprano_2qb_allocation(instruments_1opx_1octave):
     active_qubits = [1, 2]
 
     connectivity = Connectivity()
@@ -74,14 +74,14 @@ def test_qw_soprano_2qb_allocation(instruments_1OPX1Octave):
     connectivity.add_qubit_drive_lines(qubits=[2], constraints=opx_iq_octave_spec(rf_out=4))
     connectivity.add_qubit_flux_lines(qubits=active_qubits)
 
-    allocate_wiring(connectivity, instruments_1OPX1Octave)
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     if visualize_flag:
-        visualize(connectivity.elements, available_channels=instruments_1OPX1Octave.available_channels)
+        visualize(connectivity.elements, available_channels=instruments_1opx_1octave.available_channels)
 
     # should run without error
 
-def test_qw_soprano_2qb_among_5_allocation(instruments_1OPX1Octave):
+def test_qw_soprano_2qb_among_5_allocation(instruments_1opx_1octave):
     all_qubits = [1, 2, 3, 4]
     active_qubits = [1, 2]
     other_qubits = list(set(all_qubits) - set(active_qubits))
@@ -94,15 +94,15 @@ def test_qw_soprano_2qb_among_5_allocation(instruments_1OPX1Octave):
     connectivity.add_qubit_drive_lines(qubits=[2], constraints=q2_ch)
     connectivity.add_qubit_flux_lines(qubits=active_qubits)
 
-    allocate_wiring(connectivity, instruments_1OPX1Octave, block_used_channels=False)
+    allocate_wiring(connectivity, instruments_1opx_1octave, block_used_channels=False)
 
     connectivity.add_resonator_line(qubits=other_qubits)
     connectivity.add_qubit_drive_lines(qubits=other_qubits)
     connectivity.add_qubit_flux_lines(qubits=other_qubits)
 
-    allocate_wiring(connectivity, instruments_1OPX1Octave)
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     if visualize_flag:
-        visualize(connectivity.elements, instruments_1OPX1Octave.available_channels)
+        visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
     # should run without error

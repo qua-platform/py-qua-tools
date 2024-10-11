@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from qualang_tools.wirer.visualizer.constants import INSTRUMENT_FIGURE_DIMENSIONS, instrument_id_mapping
+from qualang_tools.wirer.visualizer.layout import INSTRUMENT_FIGURE_DIMENSIONS, instrument_id_mapping
 
 
 def _key(instrument_id: str, con: int):
