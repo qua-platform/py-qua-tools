@@ -23,8 +23,8 @@ def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
 
         allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
 
-    if visualize_flag:
-        visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
+    # if visualize_flag:
+    visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
     for qubit in [1, 3]:
         # resonator lines re-used for qubits 1 & 3
