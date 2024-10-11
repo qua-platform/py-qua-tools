@@ -47,23 +47,23 @@ def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
             ][i])
 
 
-def test_alternating_blocking_of_used_channels(instruments_2lf_2mw):
+def test_alternating_blocking_of_used_channels(instruments_1opx_1octave):
     connectivity = Connectivity()
 
     connectivity.add_qubit_drive_lines(qubits=1)
-    allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
+    allocate_wiring(connectivity, instruments_1opx_1octave, block_used_channels=False)
 
     connectivity.add_qubit_drive_lines(qubits=2)
-    allocate_wiring(connectivity, instruments_2lf_2mw)
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     connectivity.add_qubit_drive_lines(qubits=3)
-    allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
+    allocate_wiring(connectivity, instruments_1opx_1octave, block_used_channels=False)
 
     connectivity.add_qubit_drive_lines(qubits=4)
-    allocate_wiring(connectivity, instruments_2lf_2mw)
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     if visualize_flag:
-        visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
+        visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
     expected_ports = [
         1,  # q1 allocated to 1, but channel isn't blocked
