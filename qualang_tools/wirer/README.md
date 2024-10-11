@@ -84,7 +84,7 @@ instruments.add_mw_fem(controller=1, slots=[2])
 ```
 <details>
 <summary>Image</summary>
-![empty opx1000](.img/empty_opx1000.png "Empty OPX")
+<img alt="Empty OPX1000" src=".img/empty_opx1000.png">
 </details>
 
 ```python
