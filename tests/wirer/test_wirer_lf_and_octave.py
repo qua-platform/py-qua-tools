@@ -7,15 +7,20 @@ from pprint import pprint
 
 from qualang_tools.wirer.connectivity.element import QubitReference
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
-from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelOpxPlusInput, \
-    InstrumentChannelOpxPlusOutput, InstrumentChannelOpxPlusDigitalOutput, InstrumentChannelOctaveInput, \
-    InstrumentChannelOctaveDigitalInput, InstrumentChannelOctaveOutput
+from qualang_tools.wirer.instruments.instrument_channel import (
+    InstrumentChannelOpxPlusInput,
+    InstrumentChannelOpxPlusOutput,
+    InstrumentChannelOpxPlusDigitalOutput,
+    InstrumentChannelOctaveInput,
+    InstrumentChannelOctaveDigitalInput,
+    InstrumentChannelOctaveOutput,
+)
 
 visualize_flag = pytest.visualize_flag
 
+
 def test_rf_io_allocation(instruments_1opx_1octave):
     qubits = [1, 2, 3, 4]
-
 
     connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=qubits)
@@ -28,26 +33,33 @@ def test_rf_io_allocation(instruments_1opx_1octave):
 
     for qubit in qubits:
         # resonator lines should be the same because only 1 feedline
-        for i, channel in enumerate(connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.RESONATOR]):
-            assert pytest.channels_are_equal(channel, [
-                InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
-                InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
-                InstrumentChannelOpxPlusOutput(con=1, port=1, slot=None),
-                InstrumentChannelOpxPlusOutput(con=1, port=2, slot=None),
-                # InstrumentChannelOpxPlusDigitalOutput(con=1, port=1, slot=None),
-                InstrumentChannelOctaveInput(con=1, port=1, slot=None),
-                InstrumentChannelOctaveOutput(con=1, port=1, slot=None),
-                # InstrumentChannelOctaveDigitalInput(con=1, port=1, slot=None)
-            ][i])
+        for i, channel in enumerate(
+            connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.RESONATOR]
+        ):
+            assert pytest.channels_are_equal(
+                channel,
+                [
+                    InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
+                    InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
+                    InstrumentChannelOpxPlusOutput(con=1, port=1, slot=None),
+                    InstrumentChannelOpxPlusOutput(con=1, port=2, slot=None),
+                    # InstrumentChannelOpxPlusDigitalOutput(con=1, port=1, slot=None),
+                    InstrumentChannelOctaveInput(con=1, port=1, slot=None),
+                    InstrumentChannelOctaveOutput(con=1, port=1, slot=None),
+                    # InstrumentChannelOctaveDigitalInput(con=1, port=1, slot=None)
+                ][i],
+            )
 
         # drive lines should be allocated sequentially
         for i, channel in enumerate(connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.DRIVE]):
-            assert pytest.channels_are_equal(channel, [
-                InstrumentChannelOpxPlusOutput(con=1, port=1+2*qubit, slot=None),
-                InstrumentChannelOpxPlusOutput(con=1, port=2+2*qubit, slot=None),
-                InstrumentChannelOctaveOutput(con=1, port=1+qubit, slot=None),
-            ][i])
-
+            assert pytest.channels_are_equal(
+                channel,
+                [
+                    InstrumentChannelOpxPlusOutput(con=1, port=1 + 2 * qubit, slot=None),
+                    InstrumentChannelOpxPlusOutput(con=1, port=2 + 2 * qubit, slot=None),
+                    InstrumentChannelOctaveOutput(con=1, port=1 + qubit, slot=None),
+                ][i],
+            )
 
 
 def test_qw_soprano_allocation(instruments_qw_soprano):
@@ -65,6 +77,7 @@ def test_qw_soprano_allocation(instruments_qw_soprano):
 
     # should run without error
 
+
 def test_qw_soprano_2qb_allocation(instruments_1opx_1octave):
     active_qubits = [1, 2]
 
@@ -80,6 +93,7 @@ def test_qw_soprano_2qb_allocation(instruments_1opx_1octave):
         visualize(connectivity.elements, available_channels=instruments_1opx_1octave.available_channels)
 
     # should run without error
+
 
 def test_qw_soprano_2qb_among_5_allocation(instruments_1opx_1octave):
     all_qubits = [1, 2, 3, 4]

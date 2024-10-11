@@ -9,6 +9,7 @@ from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel
 
 visualize_flag = pytest.visualize_flag
 
+
 def test_triggered_wiring_spec_generates_digital_channels(instruments_2lf_2mw):
     connectivity = Connectivity()
     qubits = [1, 2]

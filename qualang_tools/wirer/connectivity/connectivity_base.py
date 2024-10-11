@@ -20,9 +20,16 @@ class ConnectivityBase:
         self.elements: Dict[ElementId, Element] = {}
         self.specs: List[WiringSpec] = []
 
-    def add_wiring_spec(self, frequency: WiringFrequency, io_type: WiringIOType, line_type: Union[WiringLineType, str],
-                        triggered: bool, constraints: ChannelSpec, elements: List[Element],
-                        shared_line: bool = False, ):
+    def add_wiring_spec(
+        self,
+        frequency: WiringFrequency,
+        io_type: WiringIOType,
+        line_type: Union[WiringLineType, str],
+        triggered: bool,
+        constraints: ChannelSpec,
+        elements: List[Element],
+        shared_line: bool = False,
+    ):
         specs = []
         for element in elements:
             if element.id not in self.elements:

@@ -1,10 +1,6 @@
-import enum
-
 import pytest
 
 from qualang_tools.wirer import visualize, Connectivity, lf_fem_spec, allocate_wiring, Instruments
-from qualang_tools.wirer.connectivity.element import QubitReference
-from qualang_tools.wirer.connectivity.wiring_spec import *
 
 
 @pytest.mark.skip(reason="plotting")
@@ -38,6 +34,7 @@ def test_4q_allocation_visualization(instruments_1opx_1octave):
 
     visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
+
 @pytest.mark.skip(reason="plotting")
 def test_empty_opx1000_visualization():
     instruments = Instruments()
@@ -47,6 +44,7 @@ def test_empty_opx1000_visualization():
     allocate_wiring(connectivity, instruments)
     visualize(connectivity.elements, instruments.available_channels)
 
+
 @pytest.mark.skip(reason="plotting")
 def test_empty_opx_octave_visualization(instruments_1opx_1octave):
     connectivity = Connectivity()
@@ -54,6 +52,7 @@ def test_empty_opx_octave_visualization(instruments_1opx_1octave):
     visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
 
+@pytest.mark.skip(reason="plotting")
 def test_basic_superconducting_qubit_example(instruments_1opx_1octave):
     connectivity = Connectivity()
     # Define arbitrary set of qubits and qubit pairs for convenience

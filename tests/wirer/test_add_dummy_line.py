@@ -17,7 +17,12 @@ def test_add_dummy_line(instruments_2lf_2mw):
 
     dummy_element = Element(id="test")
     connectivity.add_wiring_spec(
-        frequency=DC, io_type=INPUT_AND_OUTPUT, line_type='ch', triggered=False, constraints=None, elements=[dummy_element]
+        frequency=DC,
+        io_type=INPUT_AND_OUTPUT,
+        line_type="ch",
+        triggered=False,
+        constraints=None,
+        elements=[dummy_element],
     )
 
     allocate_wiring(connectivity, instruments_2lf_2mw)
@@ -26,9 +31,11 @@ def test_add_dummy_line(instruments_2lf_2mw):
         visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
     # regression test
-    test_element = connectivity.elements[Reference('test')]
-    for i, channel in enumerate(test_element.channels['ch']):
-        assert pytest.channels_are_equal(channel, [
-            InstrumentChannelLfFemInput(con=1, port=1, slot=1),
-            InstrumentChannelLfFemOutput(con=1, port=6, slot=1)
-        ][i])
+    test_element = connectivity.elements[Reference("test")]
+    for i, channel in enumerate(test_element.channels["ch"]):
+        assert pytest.channels_are_equal(
+            channel,
+            [InstrumentChannelLfFemInput(con=1, port=1, slot=1), InstrumentChannelLfFemOutput(con=1, port=6, slot=1)][
+                i
+            ],
+        )

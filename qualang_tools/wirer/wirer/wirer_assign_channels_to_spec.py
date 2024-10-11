@@ -13,9 +13,7 @@ def assign_channels_to_spec(
     same_con: bool = False,
     same_slot: bool = False,
 ) -> bool:
-    candidate_channels = _assign_channels_to_spec(
-        spec, instruments, channel_templates, same_con, same_slot
-    )
+    candidate_channels = _assign_channels_to_spec(spec, instruments, channel_templates, same_con, same_slot)
 
     # if candidate channels satisfy all the required channel types
     if len(candidate_channels) == len(channel_templates):
@@ -74,8 +72,7 @@ def _assign_channels_to_spec(
         # recursive case: allocate remaining channels
         else:
             templates_with_same_instr = [
-                template for template in channel_templates[1:]
-                if template.instrument_id == channel.instrument_id
+                template for template in channel_templates[1:] if template.instrument_id == channel.instrument_id
             ]
             with MultiObjectTempAttrUpdater(templates_with_same_instr, con=channel.con, slot=channel.slot):
                 # recursively allocate the remaining channels

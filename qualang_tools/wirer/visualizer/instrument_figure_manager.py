@@ -22,7 +22,7 @@ class InstrumentFigureManager:
         if key not in self.figures:
             if instrument_id == "OPX1000":
                 fig, axs = self._make_opx1000_figure()
-                self.figures[key] = {i+1: ax for i, ax in enumerate(axs)}
+                self.figures[key] = {i + 1: ax for i, ax in enumerate(axs)}
                 fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
             elif instrument_id == "OPX+":
                 fig = self._make_opx_plus_figure()
@@ -40,37 +40,44 @@ class InstrumentFigureManager:
     @staticmethod
     def _make_opx1000_figure() -> Tuple[Figure, List[Axes]]:
         fig, axs = plt.subplots(
-            nrows=1, ncols=8,
-            figsize=(INSTRUMENT_FIGURE_DIMENSIONS["OPX1000"]["width"] * 2,
-                     INSTRUMENT_FIGURE_DIMENSIONS["OPX1000"]["height"] * 2)
+            nrows=1,
+            ncols=8,
+            figsize=(
+                INSTRUMENT_FIGURE_DIMENSIONS["OPX1000"]["width"] * 2,
+                INSTRUMENT_FIGURE_DIMENSIONS["OPX1000"]["height"] * 2,
+            ),
         )
         for i, ax in enumerate(axs.flat):
             ax.set_ylim([0.15, 1.15])
             ax.set_xlim([0.15 / 8 * 3, 1.15 / 8 * 3])
-            ax.set_facecolor('darkgrey')
+            ax.set_facecolor("darkgrey")
             ax.set_xticks([])
             ax.set_yticks([])
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-            ax.set_aspect('equal')
+            ax.set_aspect("equal")
         fig.subplots_adjust(wspace=0)
 
         return fig, axs
 
     @staticmethod
     def _make_opx_plus_figure() -> Figure:
-        fig, ax = plt.subplots(1, 1,
-            figsize=(INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["width"] * 2,
-                     INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] * 2)
+        fig, ax = plt.subplots(
+            1,
+            1,
+            figsize=(
+                INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["width"] * 2,
+                INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] * 2,
+            ),
         )
-        ax.set_ylim([0.15 / 8 * 3, 1.15/ 8 * 3])
+        ax.set_ylim([0.15 / 8 * 3, 1.15 / 8 * 3])
         ax.set_xlim([0.15 * 3, 1.15 * 3])
-        ax.set_facecolor('darkgrey')
+        ax.set_facecolor("darkgrey")
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
 
         return fig
 

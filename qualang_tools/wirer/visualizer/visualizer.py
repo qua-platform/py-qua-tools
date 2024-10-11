@@ -7,17 +7,27 @@ from qualang_tools.wirer.instruments.instrument_channels import InstrumentChanne
 from qualang_tools.wirer.visualizer.instrument_figure_manager import InstrumentFigureManager
 from qualang_tools.wirer.visualizer.port_annotation import PortAnnotation
 
+
 def invert_qubit_dict(qubit_dict) -> dict:
     inverted_dict = {}
     for qubit_ref, element in qubit_dict.items():
         for channel_type, channels in element.channels.items():
             for channel in channels:
-                key = (channel.con, channel.slot, channel.port, channel.io_type, channel.signal_type, channel.instrument_id, channel_type)
+                key = (
+                    channel.con,
+                    channel.slot,
+                    channel.port,
+                    channel.io_type,
+                    channel.signal_type,
+                    channel.instrument_id,
+                    channel_type,
+                )
                 if key not in inverted_dict:
                     inverted_dict[key] = []
                 annotation = f"{element.id}.{channel_type if isinstance(channel_type, str) else channel_type.value}"
                 inverted_dict[key].append((annotation, channel))
     return inverted_dict
+
 
 def make_annotations(inverted_dict: dict) -> List[PortAnnotation]:
     annotations = []
@@ -34,7 +44,18 @@ def make_unused_channel_annotations(available_channels: InstrumentChannels) -> L
     annotations = []
     for _, channel_list in available_channels.stack.items():
         for channel in channel_list:
-            annotations.append(PortAnnotation([""], "white", channel.con, channel.slot, channel.port, channel.io_type, channel.signal_type, channel.instrument_id))
+            annotations.append(
+                PortAnnotation(
+                    [""],
+                    "white",
+                    channel.con,
+                    channel.slot,
+                    channel.port,
+                    channel.io_type,
+                    channel.signal_type,
+                    channel.instrument_id,
+                )
+            )
 
     return annotations
 
@@ -55,6 +76,7 @@ def draw_annotations(manager: InstrumentFigureManager, annotations: List[PortAnn
         ax = manager.get_ax(annotation.con, annotation.slot, annotation.instrument_id)
         annotation.draw(ax)
         annotation.title_axes(ax)
+
 
 def visualize(qubit_dict, available_channels=None):
     # Invert the qubit dictionary for easier annotation processing

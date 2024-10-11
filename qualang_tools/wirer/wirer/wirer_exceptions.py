@@ -15,6 +15,7 @@ class ConstraintsTooStrictException(Exception):
         )
         super(ConstraintsTooStrictException, self).__init__(message)
 
+
 class NotEnoughChannelsException(Exception):
     def __init__(self, wiring_spec: WiringSpec):
         message = (

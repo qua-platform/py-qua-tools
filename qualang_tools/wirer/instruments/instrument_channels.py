@@ -1,12 +1,25 @@
 from dataclasses import asdict
 from typing import Type
 
-from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel, InstrumentChannelLfFemInput, \
-    InstrumentChannelLfFemOutput, InstrumentChannelMwFemInput, InstrumentChannelMwFemOutput, \
-    InstrumentChannelOpxPlusInput, InstrumentChannelOpxPlusOutput, AnyInstrumentChannel, \
-    InstrumentChannelLfFemDigitalOutput, InstrumentChannelMwFemDigitalOutput, InstrumentChannelOpxPlusDigitalOutput
+from qualang_tools.wirer.instruments.instrument_channel import (
+    InstrumentChannel,
+    InstrumentChannelLfFemInput,
+    InstrumentChannelLfFemOutput,
+    InstrumentChannelMwFemInput,
+    InstrumentChannelMwFemOutput,
+    InstrumentChannelOpxPlusInput,
+    InstrumentChannelOpxPlusOutput,
+    AnyInstrumentChannel,
+    InstrumentChannelLfFemDigitalOutput,
+    InstrumentChannelMwFemDigitalOutput,
+    InstrumentChannelOpxPlusDigitalOutput,
+)
 
-CHANNELS_OPX_PLUS = [InstrumentChannelOpxPlusInput, InstrumentChannelOpxPlusOutput, InstrumentChannelOpxPlusDigitalOutput]
+CHANNELS_OPX_PLUS = [
+    InstrumentChannelOpxPlusInput,
+    InstrumentChannelOpxPlusOutput,
+    InstrumentChannelOpxPlusDigitalOutput,
+]
 
 CHANNELS_OPX_1000 = [
     InstrumentChannelLfFemInput,
@@ -60,9 +73,7 @@ class InstrumentChannels:
         elif type(channel) in CHANNELS_OPX_PLUS:
             for channel_type in CHANNELS_OPX_1000:
                 if channel_type in self.stack:
-                    raise ValueError(
-                        f"Can't add an OPX+ to a setup with an OPX1000 FEM."
-                    )
+                    raise ValueError(f"Can't add an OPX+ to a setup with an OPX1000 FEM.")
 
     def insert(self, pos: int, channel: InstrumentChannel):
         self.check_if_already_occupied(channel)

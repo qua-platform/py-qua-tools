@@ -6,7 +6,7 @@ from .channel_specs import (
     ChannelSpecOpxPlusSingle,
     ChannelSpecOpxPlusBaseband,
     ChannelSpecOpxPlusBasebandAndOctave,
-    ChannelSpecOctave
+    ChannelSpecOctave,
 )
 
 mw_fem_spec = ChannelSpecMwFemSingle

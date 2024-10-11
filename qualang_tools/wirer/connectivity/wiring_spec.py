@@ -6,17 +6,21 @@ class WiringFrequency(Enum):
     DC = "DC"
     RF = "RF"
 
-DC =  WiringFrequency.DC
-RF =  WiringFrequency.RF
+
+DC = WiringFrequency.DC
+RF = WiringFrequency.RF
+
 
 class WiringIOType(Enum):
     INPUT = "input"
     OUTPUT = "output"
     INPUT_AND_OUTPUT = "input/output"
 
+
 INPUT = WiringIOType.INPUT
 OUTPUT = WiringIOType.OUTPUT
 INPUT_AND_OUTPUT = WiringIOType.INPUT_AND_OUTPUT
+
 
 class WiringLineType(Enum):
     RESONATOR = "rr"
@@ -25,11 +29,13 @@ class WiringLineType(Enum):
     CHARGE = "q"
     COUPLER = "c"
 
+
 RESONATOR = WiringLineType.RESONATOR
 DRIVE = WiringLineType.DRIVE
 FLUX = WiringLineType.FLUX
 CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
+
 
 class WiringSpec:
     """
@@ -43,8 +49,8 @@ class WiringSpec:
         io_type: WiringIOType,
         line_type: WiringLineType,
         triggered: bool,
-        constraints: 'ChannelSpec',
-        elements: Union['Element', List['Element']],
+        constraints: "ChannelSpec",
+        elements: Union["Element", List["Element"]],
     ):
         self.frequency = frequency
         self.io_type = io_type
@@ -53,4 +59,4 @@ class WiringSpec:
         self.constraints = constraints
         if not isinstance(elements, list):
             elements = [elements]
-        self.elements: List['Element'] = elements
+        self.elements: List["Element"] = elements

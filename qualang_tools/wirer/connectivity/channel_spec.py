@@ -5,11 +5,12 @@ from qualang_tools.wirer.instruments.instrument_channel import AnyInstrumentChan
 
 
 class ChannelSpec:
-    """ A specification for fixed channel requirements. """
+    """A specification for fixed channel requirements."""
+
     def __init__(self):
         self.channel_templates = None
 
-    def __and__(self, other: 'ChannelSpec') -> 'ChannelSpec':
+    def __and__(self, other: "ChannelSpec") -> "ChannelSpec":
         combined_channel_spec = ChannelSpec()
         combined_channel_spec.channel_templates = self.channel_templates + other.channel_templates
         return combined_channel_spec
@@ -17,22 +18,26 @@ class ChannelSpec:
     def is_empty(self):
         return self.channel_templates is None or self.channel_templates == []
 
-    def filter_by_wiring_spec(self, wiring_spec: WiringSpec) -> 'ChannelSpec':
+    def filter_by_wiring_spec(self, wiring_spec: WiringSpec) -> "ChannelSpec":
         """
         Filters out channels from the specification if:
             1. Their I/O type is not required by the wiring specification
             2. They are digital but the wiring specification doesn't require triggering
         """
+
         def filter_func(channel: AnyInstrumentChannel):
-            analog_channel_matches_io_type = channel.signal_type == "digital" or channel.io_type in wiring_spec.io_type.value
+            analog_channel_matches_io_type = (
+                channel.signal_type == "digital" or channel.io_type in wiring_spec.io_type.value
+            )
             digital_channel_only_if_triggered = channel.signal_type == "analog" or wiring_spec.triggered
             return analog_channel_matches_io_type and digital_channel_only_if_triggered
+
         filtered_channel_spec = ChannelSpec()
         filtered_channel_spec.channel_templates = list(filter(filter_func, self.channel_templates))
 
         return filtered_channel_spec
 
-    def apply_constraints(self, constraints: 'ChannelSpec') -> bool:
+    def apply_constraints(self, constraints: "ChannelSpec") -> bool:
         """
         Attempt to constrain the channel specifications according to the
         filled attributes of all the specs in the `constraints` list.

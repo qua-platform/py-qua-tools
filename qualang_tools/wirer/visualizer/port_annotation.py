@@ -9,6 +9,7 @@ import matplotlib.colors as mcolors
 
 from .layout import PORT_POSITIONS, PORT_SIZE
 
+
 class PortAnnotation:
     def __init__(self, labels, color, con, slot, port, io_type, signal_type, instrument_id):
         self.labels = labels
@@ -34,15 +35,24 @@ class PortAnnotation:
         else:
             port_size = PORT_SIZE
             port_label_distance = PORT_SIZE * 1.3
-            ax.text(x - port_label_distance, y, str(self.port), ha="center", va="center", fontsize=8, fontweight="bold", color=outline_colour)
+            ax.text(
+                x - port_label_distance,
+                y,
+                str(self.port),
+                ha="center",
+                va="center",
+                fontsize=8,
+                fontweight="bold",
+                color=outline_colour,
+            )
             bbox = None
 
         ax.add_patch(patches.Circle((x, y), port_size, edgecolor=outline_colour, facecolor=fill_color))
         labels = combine_labels_for_same_line_type(self.labels)
 
         # qubit line annotation
-        ax.text( x, y, "\n".join(labels), ha="center", va="center", fontsize=9, color="black", bbox=bbox)
-        ax.set_facecolor('lightgrey')
+        ax.text(x, y, "\n".join(labels), ha="center", va="center", fontsize=9, color="black", bbox=bbox)
+        ax.set_facecolor("lightgrey")
 
         if self.instrument_id == "octave" and self.signal_type == "analog":
             for port in [2 * self.port, 2 * self.port - 1]:
@@ -62,6 +72,7 @@ class PortAnnotation:
         if self.slot is not None:
             ax.set_title(f"{self.slot}: {self.instrument_id}", y=-0.1, va="bottom")
 
+
 def get_contrast_color(color):
     """
     Returns black or white depending on the luminance of the input color.
@@ -80,14 +91,15 @@ def get_contrast_color(color):
     luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
 
     # Return 'black' if luminance is high (light color), 'white' if luminance is low (dark color)
-    return 'black' if luminance > 0.5 else 'white'
+    return "black" if luminance > 0.5 else "white"
+
 
 def combine_labels_for_same_line_type(labels: List[str]):
     # Dictionary to group strings by line type
     grouped_lines = defaultdict(list)
 
     # Regular expression to parse the qubit line label
-    pattern = re.compile(r'q(\d+)\.(.+)')
+    pattern = re.compile(r"q(\d+)\.(.+)")
 
     # Parse each string and group by line type
     for s in labels:
@@ -116,17 +128,17 @@ def combine_labels_for_same_line_type(labels: List[str]):
             else:
                 # Save the current range and start a new one
                 if start == end:
-                    ranges.append(f'{start}')
+                    ranges.append(f"{start}")
                 else:
-                    ranges.append(f'{start}-{end}')
+                    ranges.append(f"{start}-{end}")
                 start = indices[i]
                 end = start
 
         # Append the final range or index
         if start == end:
-            ranges.append(f'{start}')
+            ranges.append(f"{start}")
         else:
-            ranges.append(f'{start}-{end}')
+            ranges.append(f"{start}-{end}")
 
         # Combine ranges into the final format
         reduced_strings.extend([f"q{range}.{line_type}" for range in ranges])

@@ -12,12 +12,14 @@ class Reference:
     def __str__(self):
         return self.name
 
+
 @dataclass(frozen=True)
 class QubitReference:
     index: int
 
     def __str__(self):
         return f"q{self.index}"
+
 
 @dataclass(frozen=True)
 class QubitPairReference:
@@ -26,7 +28,6 @@ class QubitPairReference:
 
     def __str__(self):
         return f"q{self.control_index}-{self.target_index}"
-
 
 
 ElementId = Union[Reference, QubitReference, QubitPairReference]

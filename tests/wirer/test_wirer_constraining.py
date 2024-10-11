@@ -5,17 +5,23 @@ import pytest
 from qualang_tools.wirer import *
 from qualang_tools.wirer.connectivity.element import QubitReference
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
-from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelOpxPlusInput, \
-    InstrumentChannelOpxPlusOutput, InstrumentChannelOpxPlusDigitalOutput, InstrumentChannelOctaveInput, \
-    InstrumentChannelOctaveDigitalInput, InstrumentChannelOctaveOutput
+from qualang_tools.wirer.instruments.instrument_channel import (
+    InstrumentChannelOpxPlusInput,
+    InstrumentChannelOpxPlusOutput,
+    InstrumentChannelOpxPlusDigitalOutput,
+    InstrumentChannelOctaveInput,
+    InstrumentChannelOctaveDigitalInput,
+    InstrumentChannelOctaveOutput,
+)
 
 visualize_flag = pytest.visualize_flag
+
 
 def test_opx_plus_resonator_constraining():
     # Define the available instrument setup
     instruments = Instruments()
-    instruments.add_opx_plus(controllers = [1])
-    instruments.add_octave(indices = 1)
+    instruments.add_opx_plus(controllers=[1])
+    instruments.add_octave(indices=1)
 
     q1_res_ch = opx_iq_octave_spec(out_port_i=9, out_port_q=10, rf_out=1)
 
@@ -32,16 +38,20 @@ def test_opx_plus_resonator_constraining():
 
     # resonator lines should be hard-coded to I=9, Q=10, rf_out=1
     for i, channel in enumerate(connectivity.elements[QubitReference(index=1)].channels[WiringLineType.RESONATOR]):
-        assert pytest.channels_are_equal(channel, [
-            InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
-            InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
-            InstrumentChannelOpxPlusOutput(con=1, port=9, slot=None),
-            InstrumentChannelOpxPlusOutput(con=1, port=10, slot=None),
-            InstrumentChannelOpxPlusDigitalOutput(con=1, port=1, slot=None),
-            InstrumentChannelOctaveInput(con=1, port=1, slot=None),
-            InstrumentChannelOctaveOutput(con=1, port=1, slot=None),
-            InstrumentChannelOctaveDigitalInput(con=1, port=1, slot=None)
-        ][i])
+        assert pytest.channels_are_equal(
+            channel,
+            [
+                InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
+                InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
+                InstrumentChannelOpxPlusOutput(con=1, port=9, slot=None),
+                InstrumentChannelOpxPlusOutput(con=1, port=10, slot=None),
+                InstrumentChannelOpxPlusDigitalOutput(con=1, port=1, slot=None),
+                InstrumentChannelOctaveInput(con=1, port=1, slot=None),
+                InstrumentChannelOctaveOutput(con=1, port=1, slot=None),
+                InstrumentChannelOctaveDigitalInput(con=1, port=1, slot=None),
+            ][i],
+        )
+
 
 def test_fix_attribute_equality():
     """
