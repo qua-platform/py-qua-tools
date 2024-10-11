@@ -21,7 +21,7 @@ class ChannelSpecMwFemSingle(ChannelSpec):
 
 class ChannelSpecLfFemSingle(ChannelSpec):
     def __init__(self, con: int = None,
-                 in_slot: int = None,in_port: int = None,
+                 in_slot: int = None, in_port: int = None,
                  out_slot: int = None, out_port: int = None):
 
         super().__init__()
@@ -70,7 +70,7 @@ class ChannelSpecOpxPlusBaseband(ChannelSpec):
 
 
 class ChannelSpecOctave(ChannelSpec):
-    def __init__(self, index: int = None, rf_out: int = None, rf_in: int = None):
+    def __init__(self, index: int = None, rf_in: int = None, rf_out: int = None):
         super().__init__()
         self.channel_templates = [
             InstrumentChannelOctaveInput(con=index, port=rf_in),
@@ -83,7 +83,7 @@ class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
                  con: int = None, slot: int = None,
                  in_port_i: int = None, in_port_q: int = None,
                  out_port_i: int = None, out_port_q: int = None,
-                 octave_index: int = None, rf_out: int = None, rf_in: int = None):
+                 octave_index: int = None, rf_in: int = None, rf_out: int = None):
         super().__init__()
         self.channel_templates = [
             InstrumentChannelLfFemInput(con=con, slot=slot, port=in_port_i),
@@ -100,7 +100,7 @@ class ChannelSpecOpxPlusBasebandAndOctave(ChannelSpec):
                  con: int = None,
                  in_port_i: int = None, in_port_q: int = None,
                  out_port_i: int = None, out_port_q: int = None,
-                 octave_index: int = None, rf_out: int = None, rf_in: int = None):
+                 octave_index: int = None, rf_in: int = None, rf_out: int = None):
         super().__init__()
         self.channel_templates = [
             InstrumentChannelOpxPlusInput(con=con, port=in_port_i),
