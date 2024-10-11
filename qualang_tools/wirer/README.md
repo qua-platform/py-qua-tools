@@ -1,11 +1,14 @@
 # Table of Contents
-1. [Description](#Description)
-2. [Overview](#Overview)
-3. [Features](#Features)
-4. [Usage](#Usage)
-    1. [Instruments](#Instruments)
-        1. [Common Setups](#Common Setups)
-        2. [Disjoint Setups](#Disjoint Setups)
+1. [Description](#description)
+2. [Overview](#overview)
+3. [Features](#features)
+4. [Usage](#usage)
+    1. [Instruments](#instruments)
+        1. [Common Setups](#common-setups)
+        2. [Disjoint Setups](#common-setups)
+    2. [Connectivity](#connectivity)
+    3. [Allocation](#allocation)
+    3. [Visualization](#visualization)
 
 # Description
 The `wirer` module provides a way to auto-assignin channels for a collection of Quantum elements given a specific QM instrument setup.
@@ -49,7 +52,7 @@ instruments = Instruments()
 ```
 Using the "builder" pattern, you are able to define and add instruments to the container, line-by-line. 
 
-### Common Scenarios
+### Common Setups
 Below are examples of some instrument setups:
 ```python
 # Single OPX+
@@ -95,3 +98,7 @@ instruments.add_octave(indices=[1, 3, 8])
 ```
 
 ## Connectivity
+
+## Allocation
+
+## Visualization
