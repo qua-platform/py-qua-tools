@@ -1,5 +1,3 @@
-from configuration.make_wiring import instruments
-
 # Table of Contents
 1. [Description](#description)
 2. [Overview](#overview)
