@@ -3,6 +3,9 @@
 2. [Overview](#Overview)
 3. [Features](#Features)
 4. [Usage](#Usage)
+    1. [Instruments](#Instruments)
+        1. [Common Setups](#Common Setups)
+        2. [Disjoint Setups](#Disjoint Setups)
 
 # Description
 The `wirer` module provides a way to auto-assignin channels for a collection of Quantum elements given a specific QM instrument setup.
@@ -22,8 +25,9 @@ graph TD
     end
 ```
 Resulting in something like this:
-![octave example](.img/overview_octave.png "Octave Example")
-![opx plus example](.img/overview_opx_plus.png "OPX+ Example")
+
+[//]: # (![octave example]&#40;.img/overview_octave.png "Octave Example"&#41;)
+[//]: # (![opx plus example]&#40;.img/overview_opx_plus.png "OPX+ Example"&#41;)
 ![opx1000 example](.img/overview_opx1000.png "OPX+ Example")
 # Features
 The wirer tool supports the following features:
