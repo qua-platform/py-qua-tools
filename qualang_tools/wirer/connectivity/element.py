@@ -25,7 +25,7 @@ class QubitPairReference:
     target_index: int
 
     def __str__(self):
-        return f"q{self.control_index}{self.target_index}"
+        return f"q{self.control_index}-{self.target_index}"
 
 
 
