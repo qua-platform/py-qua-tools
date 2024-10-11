@@ -25,6 +25,6 @@ def test_1q_allocation_flux_charge(instruments_2lf_2mw):
         assert len(charge_channels) == 1
 
         for i, channel in enumerate(charge_channels):
-            assert asdict(channel) == asdict([
+            assert pytest.channels_are_equal(channel, [
                 InstrumentChannelLfFemOutput(con=1, port=qubit_index, slot=1)
             ][i])

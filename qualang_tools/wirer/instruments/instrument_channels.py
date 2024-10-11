@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Type
 
 from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel, InstrumentChannelLfFemInput, \
@@ -97,6 +98,12 @@ class InstrumentChannels:
 
     def __iter__(self):
         return iter(self.stack)
+
+    def __contains__(self, item: InstrumentChannel):
+        for channel_type in self.stack:
+            if asdict(item) in [asdict(channel) for channel in self.stack[channel_type]]:
+                return True
+        return False
 
     def items(self):
         return self.stack.items()

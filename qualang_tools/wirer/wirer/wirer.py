@@ -3,6 +3,7 @@ The purpose of this module is to compile a sequence of wiring specifications
 into potential channel specifications, then to allocate them to the first valid
 combination of instrument channels.
 """
+import copy
 from typing import List
 
 from .channel_specs import ChannelSpecLfFemSingle, ChannelSpecOpxPlusSingle, ChannelSpecMwFemSingle, \
@@ -28,6 +29,8 @@ def allocate_wiring(connectivity: Connectivity, instruments: Instruments,
 
     specs = connectivity.specs
 
+    used_channel_cache = copy.deepcopy(instruments.used_channels)
+
     specs_with_untyped_lines = set()
     for line_type in line_type_fill_order:
         for spec in specs:
@@ -45,8 +48,9 @@ def allocate_wiring(connectivity: Connectivity, instruments: Instruments,
     if not block_used_channels:
         for channel_type, used_channels in instruments.used_channels.items():
             for i, used_channel in enumerate(reversed(used_channels)):
-                instruments.available_channels.insert(0, used_channel)
-                instruments.used_channels.remove(used_channel)
+                if used_channel not in used_channel_cache:
+                    instruments.available_channels.insert(0, used_channel)
+                    instruments.used_channels.remove(used_channel)
 
 
 def _allocate_wiring(spec: WiringSpec, instruments: Instruments):

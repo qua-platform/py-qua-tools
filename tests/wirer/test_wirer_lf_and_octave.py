@@ -29,7 +29,7 @@ def test_rf_io_allocation(instruments_1OPX1Octave):
     for qubit in qubits:
         # resonator lines should be the same because only 1 feedline
         for i, channel in enumerate(connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.RESONATOR]):
-            assert asdict(channel) == asdict([
+            assert pytest.channels_are_equal(channel, [
                 InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
                 InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
                 InstrumentChannelOpxPlusOutput(con=1, port=1, slot=None),
@@ -42,7 +42,7 @@ def test_rf_io_allocation(instruments_1OPX1Octave):
 
         # drive lines should be allocated sequentially
         for i, channel in enumerate(connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.DRIVE]):
-            assert asdict(channel) == asdict([
+            assert pytest.channels_are_equal(channel, [
                 InstrumentChannelOpxPlusOutput(con=1, port=1+2*qubit, slot=None),
                 InstrumentChannelOpxPlusOutput(con=1, port=2+2*qubit, slot=None),
                 InstrumentChannelOctaveOutput(con=1, port=1+qubit, slot=None),

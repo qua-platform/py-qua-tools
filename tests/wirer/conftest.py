@@ -1,9 +1,12 @@
+from dataclasses import asdict
+
 from qualang_tools.wirer.instruments import Instruments
 import pytest
 
 
 def pytest_configure():
     pytest.visualize_flag = False
+    pytest.channels_are_equal = lambda x, y: type(x) == type(y) and asdict(x) == asdict(y)
 
 @pytest.fixture(params=["lf-fem", "opx+"])
 def instruments_qw_soprano(request) -> Instruments:

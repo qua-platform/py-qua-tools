@@ -32,7 +32,7 @@ def test_opx_plus_resonator_constraining():
 
     # resonator lines should be hard-coded to I=9, Q=10, rf_out=1
     for i, channel in enumerate(connectivity.elements[QubitReference(index=1)].channels[WiringLineType.RESONATOR]):
-        assert asdict(channel) == asdict([
+        assert pytest.channels_are_equal(channel, [
             InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
             InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
             InstrumentChannelOpxPlusOutput(con=1, port=9, slot=None),
