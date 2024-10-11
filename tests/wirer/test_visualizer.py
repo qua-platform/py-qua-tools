@@ -1,6 +1,6 @@
 import pytest
 
-from qualang_tools.wirer import visualize, Connectivity, lf_fem_spec, allocate_wiring
+from qualang_tools.wirer import visualize, Connectivity, lf_fem_spec, allocate_wiring, Instruments
 
 
 @pytest.mark.skip(reason="plotting")
@@ -32,4 +32,18 @@ def test_4q_allocation_visualization(instruments_1opx_1octave):
 
     allocate_wiring(connectivity, instruments_1opx_1octave)
 
+    visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
+
+# @pytest.mark.skip(reason="plotting")
+def test_empty_opx1000_visualization():
+    instruments = Instruments()
+    instruments.add_lf_fem(controller=1, slots=1)
+    instruments.add_mw_fem(controller=1, slots=2)
+    connectivity = Connectivity()
+    allocate_wiring(connectivity, instruments)
+    visualize(connectivity.elements, instruments.available_channels)
+
+def test_empty_opx_octave_visualization(instruments_1opx_1octave):
+    connectivity = Connectivity()
+    allocate_wiring(connectivity, instruments_1opx_1octave)
     visualize(connectivity.elements, instruments_1opx_1octave.available_channels)

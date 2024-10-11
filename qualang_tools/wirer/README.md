@@ -29,8 +29,6 @@ graph TD
 ```
 Resulting in something like this:
 
-[//]: # (![octave example]&#40;.img/overview_octave.png "Octave Example"&#41;)
-[//]: # (![opx plus example]&#40;.img/overview_opx_plus.png "OPX+ Example"&#41;)
 ![opx1000 example](.img/overview_opx1000.png "OPX+ Example")
 # Features
 The wirer tool supports the following features:
@@ -63,6 +61,12 @@ instruments.add_opx_plus(con=1)
 instruments.add_opx_plus(controllers=1)
 instruments.add_octave(indices=1)
 ```
+<details>
+<summary>Image</summary>
+![empty octave](.img/empty_octave.png "Empty Octave")
+![empty opx+](.img/empty_opx_plus.png "Empty OPX")
+</details>
+
 ```python
 # Multiple OPXs and Octaves
 instruments.add_opx_plus(controllers=[1, 2])
@@ -78,6 +82,11 @@ instruments.add_octave(indices=1)
 instruments.add_lf_fem(controller=1, slots=[1])
 instruments.add_mw_fem(controller=1, slots=[2])
 ```
+<details>
+<summary>Image</summary>
+![empty opx1000](.img/empty_opx1000.png "Empty OPX")
+</details>
+
 ```python
 # Multiple LF-FEMs and MW-FEMs
 instruments.add_lf_fem(controller=1, slots=[1,2,3,4,5])
