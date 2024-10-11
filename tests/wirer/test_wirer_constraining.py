@@ -1,6 +1,13 @@
+from dataclasses import asdict
+
 import pytest
 
 from qualang_tools.wirer import *
+from qualang_tools.wirer.connectivity.element import QubitReference
+from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
+from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelOpxPlusInput, \
+    InstrumentChannelOpxPlusOutput, InstrumentChannelOpxPlusDigitalOutput, InstrumentChannelOctaveInput, \
+    InstrumentChannelOctaveDigitalInput, InstrumentChannelOctaveOutput
 
 visualize_flag = pytest.visualize_flag
 
@@ -22,6 +29,19 @@ def test_opx_plus_resonator_constraining():
 
     if visualize_flag:
         visualize(connectivity.elements, instruments.available_channels)
+
+    # resonator lines should be hard-coded to I=9, Q=10, rf_out=1
+    for i, channel in enumerate(connectivity.elements[QubitReference(index=1)].channels[WiringLineType.RESONATOR]):
+        assert asdict(channel) == asdict([
+            InstrumentChannelOpxPlusInput(con=1, port=1, slot=None),
+            InstrumentChannelOpxPlusInput(con=1, port=2, slot=None),
+            InstrumentChannelOpxPlusOutput(con=1, port=9, slot=None),
+            InstrumentChannelOpxPlusOutput(con=1, port=10, slot=None),
+            InstrumentChannelOpxPlusDigitalOutput(con=1, port=1, slot=None),
+            InstrumentChannelOctaveInput(con=1, port=1, slot=None),
+            InstrumentChannelOctaveOutput(con=1, port=1, slot=None),
+            InstrumentChannelOctaveDigitalInput(con=1, port=1, slot=None)
+        ][i])
 
 def test_fix_attribute_equality():
     """

@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 import pytest
 from qualang_tools.wirer import Connectivity, allocate_wiring, visualize
 from qualang_tools.wirer.connectivity.element import Element, Reference
@@ -22,7 +24,13 @@ def test_add_dummy_line(instruments_2lf_2mw):
 
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
-    print(connectivity.elements)
-
     if pytest.visualize_flag:
         visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
+
+    # regression test
+    test_element = connectivity.elements[Reference('test')]
+    for i, channel in enumerate(test_element.channels['ch']):
+        assert asdict(channel) == asdict([
+            InstrumentChannelLfFemInput(con=1, port=1, slot=1),
+            InstrumentChannelLfFemOutput(con=1, port=6, slot=1)
+        ][i])
