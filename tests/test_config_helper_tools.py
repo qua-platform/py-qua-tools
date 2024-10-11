@@ -11,9 +11,7 @@ def config0():
         c = np.cos(phi)
         s = np.sin(phi)
         N = 1 / ((1 - g**2) * (2 * c**2 - 1))
-        return [
-            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
-        ]
+        return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
         "version": 1,
@@ -151,18 +149,14 @@ def test_update_integration_weight(config0):
     conf = deepcopy(config0)
     config = QuaConfig(conf)
     # Test update with only one operation using these iw
-    config.update_integration_weight(
-        "resonator", "readout", "cos", [(1, 180)], [(0, 180)]
-    )
+    config.update_integration_weight("resonator", "readout", "cos", [(1, 180)], [(0, 180)])
     assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 180)
     assert conf["integration_weights"]["cosine_weights"]["sine"][0] == (0, 180)
     # Add another operation using the same iw
     config.copy_operation("resonator", "readout", "short_readout")
     # Test update with two operations using these iw anf force_update=False
     try:
-        config.update_integration_weight(
-            "resonator", "readout", "cos", [(1, 80)], [(0, 80)]
-        )
+        config.update_integration_weight("resonator", "readout", "cos", [(1, 80)], [(0, 80)])
     except Exception as e:
         assert (
             e.__str__()
@@ -170,9 +164,7 @@ def test_update_integration_weight(config0):
         )
         assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 180)
     # Test update with two operations using these iw anf force_update=True
-    config.update_integration_weight(
-        "resonator", "readout", "cos", [(1, 80)], [(0, 80)], True
-    )
+    config.update_integration_weight("resonator", "readout", "cos", [(1, 80)], [(0, 80)], True)
     assert conf["integration_weights"]["cosine_weights"]["cosine"][0] == (1, 80)
     assert conf["integration_weights"]["cosine_weights"]["sine"][0] == (0, 80)
 
@@ -181,9 +173,7 @@ def test_add_control_operation_iq(config0):
     conf = deepcopy(config0)
     config = QuaConfig(conf)
 
-    config.add_control_operation_iq(
-        "qubit", "gate", list(gaussian(112, 20)), [0.0 for _ in range(112)]
-    )
+    config.add_control_operation_iq("qubit", "gate", list(gaussian(112, 20)), [0.0 for _ in range(112)])
     assert "gate" in config["elements"]["qubit"]["operations"]
     assert "qubit_gate_pulse" in conf["pulses"]
     assert "qubit_gate_wf_i" in conf["waveforms"]
@@ -213,9 +203,7 @@ def test_update_update_waveforms(config0):
     assert config["waveforms"]["flux_line_bias_single_wf"]["sample"] == 1.1
     assert config["pulses"]["flux_line_bias_pulse"]["length"] == 175
     config.update_waveforms("flux_line", "bias", (list(gaussian(112, 20)),))
-    assert config["waveforms"]["flux_line_bias_single_wf"]["samples"] == list(
-        gaussian(112, 20)
-    )
+    assert config["waveforms"]["flux_line_bias_single_wf"]["samples"] == list(gaussian(112, 20))
 
 
 def test_transform_negative_delays(negative_delay_config):
@@ -246,9 +234,7 @@ def test_transform_negative_delays(negative_delay_config):
         "mixers": {},
     }
 
-    test_config = transform_negative_delays(
-        negative_delay_config, create_new_config=True
-    )
+    test_config = transform_negative_delays(negative_delay_config, create_new_config=True)
     # Test that initial config has not been changed
     assert initial_config == negative_delay_config
     # Test that the updated config is correct

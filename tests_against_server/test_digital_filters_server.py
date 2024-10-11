@@ -11,6 +11,7 @@ import numpy as np
 from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms
 from qualang_tools.units import unit
 import matplotlib.pyplot as plt
+
 #######################
 # AUXILIARY FUNCTIONS #
 #######################
@@ -478,6 +479,7 @@ A = -0.1
 tau_lp = 100
 # feedforward, feedback = single_exponential_correction(A, tau_lp)
 from scipy.signal.windows import hann
+
 # feedforward, feedback = calc_filter_taps(delay=11, Ts=2)
 # feedforward, feedback = calc_filter_taps(exponential=[(A, tau_lp)], highpass=[t_hp], delay=5.1)
 feedforward, feedback = calc_filter_taps(delay=10.1, highpass=[t_hp])
@@ -489,7 +491,8 @@ feedforward, feedback = calc_filter_taps(delay=10.1, highpass=[t_hp])
 # feedback = [-feedback[0]]
 config["controllers"]["con1"]["analog_outputs"][5] = {
     "offset": 0.0,
-    "filter": {"feedforward": feedforward, "feedback": feedback}}
+    "filter": {"feedforward": feedforward, "feedback": feedback},
+}
 
 ###################
 # The QUA program #
@@ -521,9 +524,19 @@ if simulate:
     t = np.arange(0, len(samples.analog["5"]), 1)
     dt = np.where(samples.analog["5"] != 0)[0][0]
     plt.figure()
-    plt.plot(t[dt:const_flux_len+dt], const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)), 'b',label="Pulse before correction")
-    plt.plot(t, samples.analog["5"], 'g--', label="OPX pulse with correction")
-    plt.plot(t[dt:const_flux_len+dt], samples.analog["5"][dt:const_flux_len+dt] * (np.exp(-t[:const_flux_len] / t_hp)), 'r',label="Pulse after correction")
+    plt.plot(
+        t[dt : const_flux_len + dt],
+        const_flux_amp * (np.exp(-t[:const_flux_len] / t_hp)),
+        "b",
+        label="Pulse before correction",
+    )
+    plt.plot(t, samples.analog["5"], "g--", label="OPX pulse with correction")
+    plt.plot(
+        t[dt : const_flux_len + dt],
+        samples.analog["5"][dt : const_flux_len + dt] * (np.exp(-t[:const_flux_len] / t_hp)),
+        "r",
+        label="Pulse after correction",
+    )
     plt.legend()
 
     # plt.figure()

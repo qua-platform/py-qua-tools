@@ -9,6 +9,7 @@ import numpy as np
 # Patch to add the callable from qua functions to the main SDK
 patch_qua_program_addons()
 
+
 # Define your callable_from_qua functions
 # Note that this framework can be easily adapted to update parameters from other instruments using their dedicated API
 @callable_from_qua

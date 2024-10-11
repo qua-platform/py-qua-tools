@@ -6,6 +6,7 @@ from qualang_tools.callable_from_qua import callable_from_qua, patch_qua_program
 # Patch to add the callable from qua functions to the main SDK
 patch_qua_program_addons()
 
+
 # Define your callable_from_qua functions
 @callable_from_qua
 def qua_print(*args):
