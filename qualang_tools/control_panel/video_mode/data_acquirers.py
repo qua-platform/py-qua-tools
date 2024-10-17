@@ -187,7 +187,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
     ):
         self.qmm = qmm
         self.qua_config = qua_config
-        self.qm = None
+        self.qm = self.qmm.open_qm(self.qua_config)
 
         self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
@@ -302,8 +302,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
         """
         if self.program is None:
             self.program = self.generate_program()
-
-        self.qm = self.qmm.open_qm(self.qua_config)
 
         self.job = self.qm.execute(self.program)
 
