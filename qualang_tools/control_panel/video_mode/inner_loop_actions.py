@@ -21,7 +21,7 @@ class InnerLoopAction:
         y_element: str,
         readout_element: str,
         readout_pulse: str = "readout",
-        pre_measurement_delay: float = 0.0,
+        pre_measurement_delay: float = 1e-6,
     ):
         self.x_elem = x_element
         self.y_elem = y_element
