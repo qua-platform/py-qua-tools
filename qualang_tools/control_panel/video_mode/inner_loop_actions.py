@@ -1,8 +1,20 @@
-from typing import Optional
 from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure
 
 
 class InnerLoopAction:
+    """Inner loop action for the video mode: set voltages and measure.
+
+    This class is responsible for performing the inner loop action for the video mode.
+    It is used to set the voltages and measure the readout pulse.
+
+    Args:
+        x_element: The name of the element along the x-axis to set the voltage.
+        y_element: The name of the element along the y-axis to set the voltage.
+        readout_element: The name of the element to measure.
+        readout_pulse: The name of the pulse to measure.
+        pre_measurement_delay: The delay before the measurement.
+    """
+
     def __init__(
         self,
         x_element: str,
@@ -44,6 +56,18 @@ class InnerLoopAction:
 
 
 class InnerLoopActionQuam:
+    """Inner loop action for the video mode: set voltages and measure.
+
+    This class is responsible for performing the inner loop action for the video mode.
+    It is used to set the voltages and measure the readout pulse.
+
+    Args:
+        x_element: The QUAM Channel object along the x-axis.
+        y_element: The QUAM Channel object along the y-axis.
+        readout_pulse: The QUAM Pulse object to measure.
+        pre_measurement_delay: The optional delay before the measurement.
+    """
+
     def __init__(
         self,
         x_element,
