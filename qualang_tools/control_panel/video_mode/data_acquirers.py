@@ -240,6 +240,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
 
+                self.qua_inner_loop_action.final_action()
+
             with stream_processing():
                 streams = {
                     "I": IQ_streams["I"].buffer(self.x_axis.points * self.y_axis.points),
