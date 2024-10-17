@@ -174,7 +174,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
     def __init__(
         self,
         *,
-        qm: QuantumMachine,
+        qmm: QuantumMachinesManager,
+        qua_config: Dict[str, Any],
         qua_inner_loop_action: Callable,
         scan_mode: ScanMode,
         x_axis: SweepAxis,
@@ -184,7 +185,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
         initial_delay: Optional[float] = None,
         **kwargs,
     ):
-        self.qm = qm
+        self.qmm = qmm
+        self.qua_config = qua_config
+        self.qm = None
+
         self.scan_mode = scan_mode
         self.qua_inner_loop_action = qua_inner_loop_action
         self.initial_delay = initial_delay
@@ -299,6 +303,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
         if self.program is None:
             self.program = self.generate_program()
 
+        self.qm = self.qmm.open_qm(self.qua_config)
+
         self.job = self.qm.execute(self.program)
 
         if not verify:
@@ -339,13 +345,12 @@ class OPXQuamDataAcquirer(OPXDataAcquirer):
         initial_delay: Optional[float] = None,
         **kwargs,
     ):
-        self.qmm = qmm
         self.machine = machine
-
-        qm = self.qmm.open_qm(self.machine.generate_config())
+        qua_config = machine.generate_config()
 
         super().__init__(
-            qm=qm,
+            qmm=qmm,
+            qua_config=qua_config,
             qua_inner_loop_action=qua_inner_loop_action,
             scan_mode=scan_mode,
             x_axis=x_axis,
