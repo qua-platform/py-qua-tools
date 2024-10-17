@@ -3,7 +3,7 @@ from typing import Any, Dict, Iterator, Sequence, Tuple, Generator
 import numpy as np
 from matplotlib import figure, axes, pyplot as plt
 from matplotlib.ticker import MultipleLocator
-from qm.qua import declare, fixed, if_, assign, for_, for_each_
+from qm.qua import declare, fixed, if_, assign, for_, for_each_, QuaVariableType
 from qualang_tools.loops import from_array
 
 
@@ -39,7 +39,9 @@ class ScanMode(ABC):
         return fig, ax
 
     @abstractmethod
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Iterator[None]:
+    def scan(
+        self, x_vals: Sequence[float], y_vals: Sequence[float]
+    ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         pass
 
 
@@ -54,12 +56,14 @@ class RasterScan(ScanMode):
         y_idxs = np.repeat(np.arange(y_points), x_points)
         return x_idxs, y_idxs
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Iterator[None]:
+    def scan(
+        self, x_vals: Sequence[float], y_vals: Sequence[float]
+    ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
         with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
-                yield voltages
+                yield voltages["x"], voltages["y"]
 
 
 class SwitchRasterScan(ScanMode):
@@ -90,13 +94,14 @@ class SwitchRasterScan(ScanMode):
         y_idxs = np.repeat(y_idxs, x_points)
         return x_idxs, y_idxs
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]) -> Generator[Dict[str, Any], None, None]:
+    def scan(
+        self, x_vals: Sequence[float], y_vals: Sequence[float]
+    ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
-        # with for_(*from_array(voltages["y"], self.interleave_arr(y_vals))):  # type: ignore
         with for_each_(voltages["y"], self.interleave_arr(y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
-                yield voltages
+                yield voltages["x"], voltages["y"]
 
 
 class SpiralScan(ScanMode):
@@ -137,7 +142,9 @@ class SpiralScan(ScanMode):
 
         return np.array(idxs_x), np.array(idxs_y)
 
-    def scan(self, x_vals: Sequence[float], y_vals: Sequence[float]):
+    def scan(
+        self, x_vals: Sequence[float], y_vals: Sequence[float]
+    ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         movement_direction = declare(fixed)
         half_spiral_idx = declare(int)
         k = declare(int)
@@ -155,21 +162,21 @@ class SpiralScan(ScanMode):
         assign(movement_direction, -1.0)
         assign(x, 0.0)
         assign(y, 0.0)
-        yield voltages
+        yield voltages["x"], voltages["y"]
 
         with for_(half_spiral_idx, 0, half_spiral_idx < num_half_spirals, half_spiral_idx + 1):  # type: ignore
             # First take one step in the opposite XY direction
             with if_(half_spiral_idx > 0):  # type: ignore
                 assign(x, x - x_step * movement_direction)  # type: ignore
-                yield voltages
+                yield voltages["x"], voltages["y"]
 
             with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
                 assign(y, y + y_step * movement_direction)  # type: ignore
-                yield voltages
+                yield voltages["x"], voltages["y"]
 
             with for_(k, 0, k < half_spiral_idx, k + 1):  # type: ignore
                 assign(x, x + x_step * movement_direction)  # type: ignore
-                yield voltages
+                yield voltages["x"], voltages["y"]
 
             assign(movement_direction, -movement_direction)  # type: ignore
 

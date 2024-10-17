@@ -1,4 +1,5 @@
-from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure
+from typing import Tuple
+from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType
 
 
 class InnerLoopAction:
@@ -29,12 +30,11 @@ class InnerLoopAction:
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
 
-    def __call__(self, voltages):
-        I = declare(fixed)
-        Q = declare(fixed)
+    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+        outputs = {"I": declare(fixed), "Q": declare(fixed)}
 
-        set_dc_offset(self.x_elem, "single", voltages["x"])
-        set_dc_offset(self.y_elem, "single", voltages["y"])
+        set_dc_offset(self.x_elem, "single", x)
+        set_dc_offset(self.y_elem, "single", y)
         align()
         pre_measurement_delay_cycles = int(self.pre_measurement_delay * 1e9 // 4)
         if pre_measurement_delay_cycles >= 4:
@@ -43,11 +43,11 @@ class InnerLoopAction:
             self.readout_pulse,
             self.readout_elem,
             None,
-            demod.full("cos", I),
-            demod.full("sin", Q),
+            demod.full("cos", outputs["I"]),
+            demod.full("sin", outputs["Q"]),
         )
 
-        return I, Q
+        return outputs["I"], outputs["Q"]
 
     def initial_action(self):
         set_dc_offset(self.x_elem, "single", 0)
@@ -80,9 +80,9 @@ class InnerLoopActionQuam:
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
 
-    def __call__(self, voltages):
-        self.x_elem.set_dc_offset(voltages["x"])
-        self.y_elem.set_dc_offset(voltages["y"])
+    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+        self.x_elem.set_dc_offset(x)
+        self.y_elem.set_dc_offset(y)
 
         align()
         pre_measurement_delay_cycles = int(self.pre_measurement_delay * 1e9 // 4)

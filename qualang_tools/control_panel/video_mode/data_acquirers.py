@@ -4,7 +4,7 @@ import xarray as xr
 import logging
 from time import sleep, perf_counter
 import numpy as np
-from qm import Program, QuantumMachine, QuantumMachinesManager
+from qm import Program, QuantumMachinesManager
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
@@ -235,8 +235,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 if self.initial_delay is not None:
                     wait(int(self.initial_delay * 1e9) // 4)
 
-                for voltages in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
-                    I, Q = self.qua_inner_loop_action(voltages)
+                for x, y in self.scan_mode.scan(x_vals=x_vals, y_vals=y_vals):
+                    I, Q = self.qua_inner_loop_action(x, y)
                     save(I, IQ_streams["I"])
                     save(Q, IQ_streams["Q"])
 
