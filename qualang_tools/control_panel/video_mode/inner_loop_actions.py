@@ -1,8 +1,19 @@
+from abc import ABC, abstractmethod
 from typing import Tuple
 from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType
 
 
-class InnerLoopAction:
+class InnerLoopAction(ABC):
+    @abstractmethod
+    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+        pass
+
+    @abstractmethod
+    def initial_action(self):
+        pass
+
+
+class BasicInnerLoopAction(InnerLoopAction):
     """Inner loop action for the video mode: set voltages and measure.
 
     This class is responsible for performing the inner loop action for the video mode.
@@ -55,7 +66,7 @@ class InnerLoopAction:
         align()
 
 
-class InnerLoopActionQuam:
+class InnerLoopActionQuam(InnerLoopAction):
     """Inner loop action for the video mode: set voltages and measure.
 
     This class is responsible for performing the inner loop action for the video mode.

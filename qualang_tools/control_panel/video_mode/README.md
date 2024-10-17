@@ -25,7 +25,10 @@ We will go through a simple example to demonstrate the video mode. Most of the c
 
 If you don't have access to an OPX but still want to try the video mode, see the `Simulated Video Mode`section in `Advanced Usage`
 
-First, we assume that the machine is already connected, meaning that we have a `qmm` and `qm` object.
+First, we assume that a `QuantumMachinesManager` is already connected with variable `qmm`, with a corresponding `qua_config` dictionary.
+
+
+### Scan mode
 
 Next we define the scan mode, which in this case is a raster scan.
 ```python
@@ -33,12 +36,45 @@ from qualang_tools.control_panel.video_mode import scan_modes
 scan_mode = scan_modes.RasterScan()
 ```
 
-Next we define the inner loop action, which in this case is a QUA program that performs a measure of the readout pulse.
+This scan can be visualized by calling
+```python
+scan_mode.plot_scan(x_points, y_points)
+```
+where `x_points` and `y_points` are the number of sweep points along each axis.
+
+### Inner loop action
+
+The user has full freedom in the definition of the most inner loop sequence performed by the OPX which is defined under the `__call__()` method of an `InnerLoopAction` subclass.
+
+For example, the `BasicInnerLoopAction` performs a reflectometry measurement after updating the offsets of the x and y elements and waiting for a pre-measurement delay:
+
+```python
+def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+    outputs = {"I": declare(fixed), "Q": declare(fixed)}
+
+    set_dc_offset(self.x_elem, "single", x)
+    set_dc_offset(self.y_elem, "single", y)
+    align()
+    pre_measurement_delay_cycles = int(self.pre_measurement_delay * 1e9 // 4)
+    if pre_measurement_delay_cycles >= 4:
+        wait(pre_measurement_delay_cycles)
+    measure(
+        self.readout_pulse,
+        self.readout_elem,
+        None,
+        demod.full("cos", outputs["I"]),
+        demod.full("sin", outputs["Q"]),
+    )
+
+    return outputs["I"], outputs["Q"]
+```
+
+For this tutorial we will instantiate the `BasicInnerLoopAction` class:
+
 ```python
 # Define the inner loop action
-# In this case 
 from qualang_tools.control_panel.video_mode.inner_loop_actions import InnerLoopAction
-inner_loop_action = InnerLoopAction(
+inner_loop_action = BasicInnerLoopAction(
     x_element="output_ch1",  # Must be a valid QUA element
     y_element="output_ch2",  # Must be a valid QUA element
     integration_time=10e-6,  # Integration time in seconds
@@ -46,7 +82,10 @@ inner_loop_action = InnerLoopAction(
     readout_pulse="readout",  # Name of the readout pulse registered in the readout_element
 )
 ```
-Note that this `InnerLoopAction` assumes that the `readout_pulse` has two integration weights called `cos` and `sin`
+
+
+
+Note that this `BasicInnerLoopAction` assumes that the `readout_pulse` has two integration weights called `cos` and `sin`
 
 Next we define the sweep axes, which define the values that the 2D scan will take as coordinates.
 
@@ -65,7 +104,8 @@ Next we define the data acquirer, which is the object that will handle the data 
 ```python
 from qualang_tools.control_panel.video_mode.data_acquirer import OPXDataAcquirer
 data_acquirer = OPXDataAcquirer(
-    qm=qm,
+    qmm=qmm,
+    qua_config=qua_config,
     qua_inner_loop_action=inner_loop_action,
     scan_mode=scan_mode,
     x_axis=x_axis,
