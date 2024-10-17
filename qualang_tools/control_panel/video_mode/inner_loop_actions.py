@@ -8,7 +8,6 @@ class InnerLoopAction:
         x_element: str,
         y_element: str,
         readout_element: str,
-        integration_time: float,
         readout_pulse: str = "readout",
         pre_measurement_delay: float = 0.0,
     ):
@@ -16,12 +15,7 @@ class InnerLoopAction:
         self.y_elem = y_element
         self.readout_elem = readout_element
         self.readout_pulse = readout_pulse
-        self.integration_time = integration_time
         self.pre_measurement_delay = pre_measurement_delay
-
-    @property
-    def duration(self):
-        return self.integration_time + self.pre_measurement_delay
 
     def __call__(self, voltages):
         I = declare(fixed)
@@ -61,14 +55,6 @@ class InnerLoopActionQuam:
         self.y_elem = y_element
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
-
-    @property
-    def integration_time(self):
-        return self.readout_pulse.length
-
-    @property
-    def duration(self):
-        return self.integration_time + self.pre_measurement_delay
 
     def __call__(self, voltages):
         self.x_elem.set_dc_offset(voltages["x"])

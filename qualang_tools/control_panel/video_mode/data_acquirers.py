@@ -309,6 +309,22 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):
+    """Data acquirer for OPX devices using QUAM.
+
+    This class is responsible for acquiring data from OPX devices using QUAM.
+
+    Args:
+        qmm: The QuantumMachinesManager instance.
+        machine: The QUAM machine instance to use.
+        qua_inner_loop_action: The inner loop action to execute.
+        scan_mode: The scan mode to use.
+        x_axis: The x-axis of the data acquirer.
+        y_axis: The y-axis of the data acquirer.
+        num_averages: The number of averages to take as a rolling average.
+        result_type: The type of result to acquire.
+        initial_delay: The initial delay before starting each scan.
+    """
+
     def __init__(
         self,
         *,

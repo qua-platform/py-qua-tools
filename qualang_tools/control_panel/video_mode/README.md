@@ -25,10 +25,7 @@ We will go through a simple example to demonstrate the video mode. Most of the c
 
 If you don't have access to an OPX but still want to try the video mode, see the `Simulated Video Mode`section in `Advanced Usage`
 
-First, we assume that the machine is already connected.
-```python
-qmm, qm = connect_qua_machine()
-```
+First, we assume that the machine is already connected, meaning that we have a `qmm` and `qm` object.
 
 Next we define the scan mode, which in this case is a raster scan.
 ```python
