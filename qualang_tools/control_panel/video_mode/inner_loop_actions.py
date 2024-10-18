@@ -1,7 +1,21 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
-from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType, play, ramp
-from qm.qua.lib import Cast
+from qm.qua import (
+    declare,
+    fixed,
+    demod,
+    set_dc_offset,
+    align,
+    wait,
+    measure,
+    QuaVariableType,
+    play,
+    ramp,
+    assign,
+    elif_,
+    if_,
+)
+from qm.qua.lib import Cast, Math
 
 
 class InnerLoopAction(ABC):
@@ -103,15 +117,22 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                 raise RuntimeError("Ramp rate is not supported for non-sticky elements")
 
             ramp_cycles_ns_V = declare(int, int(1e9 / self.ramp_rate / 4))
-            print(f"{1e9 / self.ramp_rate / 4=}")
+            print(int(1e9 / self.ramp_rate / 4))
 
-            dV_x = declare(fixed, x - self._last_x_voltage)
-            duration_x = Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV_x)
-            play(ramp(self.ramp_rate / 1e9), self.x_elem.name, duration=duration_x)
+            dV_x = declare(fixed)
+            assign(dV_x, x - self._last_x_voltage)
+            duration_x = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV_x))
+            duration_x = 200
+            # with if_(duration_x > 4):
+            play(ramp(self.ramp_rate / 1e9), self.x_elem.name, duration=duration_x, condition=dV_x > 0)
+            play(ramp(-self.ramp_rate / 1e9), self.x_elem.name, duration=duration_x, condition=dV_x < 0)
 
-            dV_y = declare(fixed, y - self._last_y_voltage)
+            dV_y = declare(fixed)
+            assign(dV_y, y - self._last_y_voltage)
             duration_y = Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV_y)
-            play(ramp(self.ramp_rate / 1e9), self.y_elem.name, duration=duration_y)
+            duration_y = 200
+            # play(ramp(self.ramp_rate / 1e9), self.y_elem.name, duration=duration_y, condition=dV_y > 0)
+            # play(ramp(-self.ramp_rate / 1e9), self.y_elem.name, duration=-duration_y, condition=dV_y < 0)
         else:
             self.x_elem.set_dc_offset(x)
             self.y_elem.set_dc_offset(y)
