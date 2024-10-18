@@ -13,10 +13,11 @@ from qm.qua import (
     ramp,
     assign,
     elif_,
+    else_,
     if_,
+    ramp_to_zero
 )
 from qm.qua.lib import Cast, Math
-
 
 class InnerLoopAction(ABC):
     @abstractmethod
@@ -108,15 +109,28 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
 
         self._last_x_voltage = None
         self._last_y_voltage = None
+        self.reached_voltage = None
 
     def perform_ramp(self, element, previous_voltage, new_voltage):
         ramp_cycles_ns_V = declare(int, int(1e9 / self.ramp_rate / 4))
+        qua_ramp = declare(fixed, self.ramp_rate / 1e9)
         dV = declare(fixed)
+        duration = declare(int)
+        self.reached_voltage = declare(fixed)
         assign(dV, new_voltage - previous_voltage)
-        duration = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV))
+        # duration = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV))
+        assign(duration, Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV)))
+
         with if_(duration > 4):
-            play(ramp(self.ramp_rate / 1e9), element.name, duration=duration, condition=dV > 0)
-            play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration, condition=dV < 0)
+            with if_(dV > 0):
+                assign(self.reached_voltage, previous_voltage + Cast.mul_fixed_by_int(qua_ramp, duration << 2))
+                play(ramp(self.ramp_rate / 1e9), element.name, duration=duration)
+            with else_():
+                assign(self.reached_voltage, previous_voltage - Cast.mul_fixed_by_int(qua_ramp, duration << 2))
+                play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration)
+        with else_():
+            element.play("step", amplitude_scale=dV << 2)
+            assign(self.reached_voltage, new_voltage)
 
     def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
         if self.ramp_rate > 0:
@@ -126,13 +140,17 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                 raise RuntimeError("Ramp rate is not supported for non-sticky elements")
 
             self.perform_ramp(self.x_elem, self._last_x_voltage, x)
+            assign(self._last_x_voltage, self.reached_voltage)
             self.perform_ramp(self.y_elem, self._last_y_voltage, y)
+            assign(self._last_y_voltage, self.reached_voltage)
         else:
             self.x_elem.set_dc_offset(x)
             self.y_elem.set_dc_offset(y)
 
-        self._last_x_voltage = x
-        self._last_y_voltage = y
+            assign(self._last_x_voltage, x)
+            assign(self._last_y_voltage, y)
+        # self._last_x_voltage = x
+        # self._last_y_voltage = y
 
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         self.set_dc_offsets(x, y)
@@ -153,5 +171,16 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         align()
 
     def final_action(self):
-        self.set_dc_offsets(0, 0)
+        if self.ramp_rate > 0:
+            if getattr(self.x_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+            if getattr(self.y_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+
+            ramp_to_zero(self.x_elem.name)
+            ramp_to_zero(self.y_elem.name)
+            assign(self._last_x_voltage, 0.0)
+            assign(self._last_y_voltage, 0.0)
+        else:
+            self.set_dc_offsets(0, 0)
         align()
