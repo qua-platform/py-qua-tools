@@ -109,6 +109,15 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         self._last_x_voltage = None
         self._last_y_voltage = None
 
+    def perform_ramp(self, element, previous_voltage, new_voltage):
+        ramp_cycles_ns_V = declare(int, int(1e9 / self.ramp_rate / 4))
+        dV = declare(fixed)
+        assign(dV, new_voltage - previous_voltage)
+        duration = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV))
+        with if_(duration > 4):
+            play(ramp(self.ramp_rate / 1e9), element.name, duration=duration, condition=dV > 0)
+            play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration, condition=dV < 0)
+
     def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
         if self.ramp_rate > 0:
             if getattr(self.x_elem, "sticky", None) is None:
@@ -116,23 +125,8 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
             if getattr(self.y_elem, "sticky", None) is None:
                 raise RuntimeError("Ramp rate is not supported for non-sticky elements")
 
-            ramp_cycles_ns_V = declare(int, int(1e9 / self.ramp_rate / 4))
-            print(int(1e9 / self.ramp_rate / 4))
-
-            dV_x = declare(fixed)
-            assign(dV_x, x - self._last_x_voltage)
-            duration_x = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV_x))
-            duration_x = 200
-            # with if_(duration_x > 4):
-            play(ramp(self.ramp_rate / 1e9), self.x_elem.name, duration=duration_x, condition=dV_x > 0)
-            play(ramp(-self.ramp_rate / 1e9), self.x_elem.name, duration=duration_x, condition=dV_x < 0)
-
-            dV_y = declare(fixed)
-            assign(dV_y, y - self._last_y_voltage)
-            duration_y = Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV_y)
-            duration_y = 200
-            # play(ramp(self.ramp_rate / 1e9), self.y_elem.name, duration=duration_y, condition=dV_y > 0)
-            # play(ramp(-self.ramp_rate / 1e9), self.y_elem.name, duration=-duration_y, condition=dV_y < 0)
+            self.perform_ramp(self.x_elem, self._last_x_voltage, x)
+            self.perform_ramp(self.y_elem, self._last_y_voltage, y)
         else:
             self.x_elem.set_dc_offset(x)
             self.y_elem.set_dc_offset(y)
