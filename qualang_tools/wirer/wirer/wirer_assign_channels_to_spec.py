@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List
 
 from qualang_tools.wirer.connectivity.wiring_spec import WiringSpec
 from qualang_tools.wirer.instruments import Instruments
