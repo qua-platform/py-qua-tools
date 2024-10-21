@@ -3,6 +3,7 @@ The purpose of this module is to compile a sequence of wiring specifications
 into potential channel specifications, then to allocate them to the first valid
 combination of instrument channels.
 """
+
 import copy
 from typing import List
 
