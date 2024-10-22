@@ -70,7 +70,6 @@ class VideoMode:
         """
         self.fig = xarray_to_plotly(self.data_acquirer.data_array)
 
-        # Modify the layout with Dash Bootstrap Components
         self.app.layout = dbc.Container(
             [
                 dbc.Row(
@@ -108,27 +107,7 @@ class VideoMode:
                                     step=1,
                                     debounce=True,
                                 ),
-                                dbc.Row(
-                                    [
-                                        create_axis_layout(
-                                            "x",
-                                            span=self.data_acquirer.x_axis.span,
-                                            points=self.data_acquirer.x_axis.points,
-                                            min_span=0.01,
-                                            max_span=None,
-                                            units=self.data_acquirer.x_axis.units,
-                                        ),
-                                        create_axis_layout(
-                                            "y",
-                                            span=self.data_acquirer.y_axis.span,
-                                            points=self.data_acquirer.y_axis.points,
-                                            min_span=0.01,
-                                            max_span=None,
-                                            units=self.data_acquirer.y_axis.units,
-                                        ),
-                                    ],
-                                    className="g-0",  # Remove gutters between columns
-                                ),
+                                html.Div(self.data_acquirer.get_all_dash_components()),
                                 dbc.Row(
                                     [
                                         dbc.Col(
@@ -151,9 +130,6 @@ class VideoMode:
                                         ),
                                     ],
                                 ),
-                                html.Div(
-                                    self.data_acquirer.get_all_dash_components()
-                                ),  # Add data acquirer specific components
                             ],
                             width=5,
                         ),
@@ -269,13 +245,13 @@ class VideoMode:
                 return "Saved!"
             return "Save"
 
-        # Add callbacks for data acquirer components
+        # Add callbacks for all dynamic components
         for component in self.data_acquirer.get_all_dash_components():
             if isinstance(component, html.Div):
                 for child in component.children:
-                    if hasattr(child, 'id'):
+                    if hasattr(child, "id"):
                         self.create_callback_for_component(child)
-            elif hasattr(component, 'id'):
+            elif hasattr(component, "id"):
                 self.create_callback_for_component(component)
 
     def run(self, debug: bool = True, use_reloader: bool = False):
@@ -399,10 +375,7 @@ class VideoMode:
         return idx
 
     def create_callback_for_component(self, component):
-        @self.app.callback(
-            Output(component.id, 'value'),
-            Input(component.id, 'value')
-        )
+        @self.app.callback(Output(component.id, "value"), Input(component.id, "value"))
         def update_attr(value, id=component.id):
             obj, attr = self.data_acquirer.get_object_and_attribute(id)
             setattr(obj, attr, value)

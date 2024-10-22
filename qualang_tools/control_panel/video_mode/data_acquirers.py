@@ -11,6 +11,7 @@ from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
 from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 from dash import html
 import dash_bootstrap_components as dbc
+from qualang_tools.control_panel.video_mode.dash_tools import create_input_field, create_axis_layout
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -145,9 +146,48 @@ class BaseDataAcquirer(ABC):
         """Return a list of Dash components specific to this data acquirer."""
         pass
 
+    def get_axis_components(self):
+        """Return the x and y axis components in a single row."""
+        return html.Div(
+            [
+                dbc.Row(
+                    [
+                        create_axis_layout(
+                            "x",
+                            span=self.x_axis.span,
+                            points=self.x_axis.points,
+                            min_span=0.01,
+                            max_span=None,
+                            units=self.x_axis.units,
+                        ),
+                        create_axis_layout(
+                            "y",
+                            span=self.y_axis.span,
+                            points=self.y_axis.points,
+                            min_span=0.01,
+                            max_span=None,
+                            units=self.y_axis.units,
+                        ),
+                    ],
+                    className="g-0",
+                ),  # g-0 removes gutters between columns
+            ]
+        )
+
     def get_all_dash_components(self):
-        """Return all Dash components, including those from contained objects."""
-        return self.get_dash_components()
+        """Return all Dash components, including axis components."""
+        components = [self.get_axis_components()]  # Axis components are now a single item
+        components.extend(self.get_dash_components())
+        return components
+
+    def get_object_and_attribute(self, id):
+        """Get the object and attribute for a given component id."""
+        if id.startswith("x-"):
+            return self.x_axis, id.replace("x-", "")
+        elif id.startswith("y-"):
+            return self.y_axis, id.replace("y-", "")
+        else:
+            return self, id
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
@@ -176,23 +216,15 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
     def get_dash_components(self):
         return [
-            html.Div(
-                [
-                    dbc.Label("Acquire time"),
-                    dbc.Input(
-                        id="acquire-time",
-                        type="number",
-                        value=self.acquire_time,
-                        min=0.1,
-                        max=10,
-                        step=0.1,
-                    ),
-                ]
+            create_input_field(
+                id="acquire-time",
+                label="Acquire time",
+                value=self.acquire_time,
+                min=0.1,
+                max=10,
+                step=0.1,
             )
         ]
-
-    def get_all_dash_components(self):
-        return self.get_dash_components()
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
@@ -369,18 +401,19 @@ class OPXDataAcquirer(BaseDataAcquirer):
         ]
 
     def get_all_dash_components(self):
-        components = self.get_dash_components()
+        components = super().get_all_dash_components()
+        components.extend(self.get_dash_components())
         components.extend(self.scan_mode.get_dash_components())
         components.extend(self.qua_inner_loop_action.get_dash_components())
         return components
 
     def get_object_and_attribute(self, id):
-        if id.startswith('scan-mode-'):
-            return self.scan_mode, id.replace('scan-mode-', '')
-        elif id.startswith('inner-loop-'):
-            return self.qua_inner_loop_action, id.replace('inner-loop-', '')
+        if id.startswith("scan-mode-"):
+            return self.scan_mode, id.replace("scan-mode-", "")
+        elif id.startswith("inner-loop-"):
+            return self.qua_inner_loop_action, id.replace("inner-loop-", "")
         else:
-            return self, id
+            return super().get_object_and_attribute(id)
 
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):
@@ -429,13 +462,3 @@ class OPXQuamDataAcquirer(OPXDataAcquirer):
             initial_delay=initial_delay,
             **kwargs,
         )
-
-    def get_dash_components(self):
-        components = super().get_dash_components()
-        # Add any QUAM-specific components here
-        return components
-
-    def get_all_dash_components(self):
-        components = super().get_all_dash_components()
-        # Add any QUAM-specific components here
-        return components
