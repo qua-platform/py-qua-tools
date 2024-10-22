@@ -5,7 +5,7 @@ import pytest
 
 
 def pytest_configure():
-    pytest.visualize_flag = True
+    pytest.visualize_flag = False
     pytest.channels_are_equal = lambda x, y: type(x) == type(y) and asdict(x) == asdict(y)
 
 

@@ -69,11 +69,11 @@ class InstrumentChannels:
         if type(channel) in CHANNELS_OPX_1000:
             for channel_type in CHANNELS_OPX_PLUS:
                 if channel_type in self.stack:
-                    raise ValueError(f"Can't add an FEM to a setup with an OPX+.")
+                    raise ValueError("Can't add an FEM to a setup with an OPX+.")
         elif type(channel) in CHANNELS_OPX_PLUS:
             for channel_type in CHANNELS_OPX_1000:
                 if channel_type in self.stack:
-                    raise ValueError(f"Can't add an OPX+ to a setup with an OPX1000 FEM.")
+                    raise ValueError("Can't add an OPX+ to a setup with an OPX1000 FEM.")
 
     def insert(self, pos: int, channel: InstrumentChannel):
         self.check_if_already_occupied(channel)

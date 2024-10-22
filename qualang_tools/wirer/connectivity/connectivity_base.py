@@ -1,4 +1,3 @@
-import copy
 from typing import Dict, List, Union
 
 from .channel_spec import ChannelSpec

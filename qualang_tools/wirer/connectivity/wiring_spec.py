@@ -1,6 +1,12 @@
 from enum import Enum
 from typing import Union, List
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
+    from qualang_tools.wirer.connectivity.element import Element
+
 
 class WiringFrequency(Enum):
     DC = "DC"
