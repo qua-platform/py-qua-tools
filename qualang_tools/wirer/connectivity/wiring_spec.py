@@ -1,5 +1,7 @@
 from enum import Enum
 from typing import Union, List
+from .channel_spec import ChannelSpec
+from .element import Element
 
 from typing import TYPE_CHECKING
 

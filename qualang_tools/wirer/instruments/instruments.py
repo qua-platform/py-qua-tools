@@ -4,9 +4,6 @@ from .instrument_channel import (
     InstrumentChannelOctaveInput,
     InstrumentChannelOctaveOutput,
     InstrumentChannelOctaveDigitalInput,
-    InstrumentChannelLfFemDigitalOutput,
-    InstrumentChannelMwFemDigitalOutput,
-    InstrumentChannelOpxPlusDigitalOutput,
 )
 from .instrument_channels import *
 from .constants import *
