@@ -231,3 +231,49 @@ octave_calibration_tool(
     intermediate_frequencies=intermediate_frequencies
 )
 ```
+
+## show_lo_result
+Plot the LO leakage calibration data.
+The produced plot shows the LO leakage signal as a function of the `I_0` and `Q_O` dc offsets for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
+
+### Usage example:
+
+```python
+from qualang_tools.octave_tools import calibration_result_plotter as plotter
+
+# Open the qmm and qm
+qmm = QuantumMachinesManager()
+qm = qmm.open_qm(config)
+
+# Calibrate the desired set of LO frequency and IF
+calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
+
+plotter.show_lo_result(calibration_output)
+```
+
+### Outputs:
+
+![lo_result](https://github.com/user-attachments/assets/883432f0-3899-4691-9c5c-e41a8d1b1b35)
+
+## show_lo_result
+Plot the image sideband calibration data.
+The produced plot shows the image sideband signal as a function of the `dc_gain` and `dc_phase` parameters for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
+
+### Usage example:
+
+```python
+from qualang_tools.octave_tools import calibration_result_plotter as plotter
+
+# Open the qmm and qm
+qmm = QuantumMachinesManager()
+qm = qmm.open_qm(config)
+
+# Calibrate the desired set of LO frequency and IF
+calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
+
+plotter.show_if_result(calibration_output)
+```
+
+### Outputs:
+
+![if_result](https://github.com/user-attachments/assets/de95160e-0fc5-4847-9416-399cc89c9ff1)
