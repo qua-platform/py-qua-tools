@@ -41,7 +41,7 @@ The wirer tool supports the following features:
  - Any mapping of N FEMs to OPX1000 chassis slots.
  - Constrained-scope allocation according to user preferences.
  - Natural overflowing during assignment to multiple slots, chassis, modules, octaves, etc.
- - Any combination of resonator, flux line, coupler line for each qubit.
+ - Any combination of resonator, drive line, flux line, coupler line for each qubit.
  - Total visualization of the final connectivity.
 
 # Example
