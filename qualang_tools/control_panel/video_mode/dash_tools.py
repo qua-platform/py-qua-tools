@@ -3,6 +3,7 @@ from dash import html
 from dash_extensions.enrich import dcc
 import plotly.graph_objects as go
 import xarray as xr
+import dash_bootstrap_components as dbc
 
 
 __all__ = ["xarray_to_plotly"]
@@ -51,34 +52,38 @@ def xarray_to_plotly(da: xr.DataArray):
 
 def create_input_field(id, label, value, debounce=True, input_style=None, div_style=None, unit=None, **kwargs):
     if input_style is None:
-        input_style = {"width": "40px"}
+        input_style = {"width": "80px"}
 
     elements = [
-        html.Label(
-            f"{label}:",
-            style={
-                "text-align": "left",
-                "white-space": "nowrap",
-                "margin-left": "15px",
-                "margin-right": "5px",
-            },
+        dbc.Col(
+            dbc.Label(
+                f"{label}:",
+                html_for=id,
+                className="mr-2",
+                style={"white-space": "nowrap"},
+            ),
+            width="auto",
         ),
-        dcc.Input(
-            id=id,
-            type="number",
-            value=value,
-            debounce=debounce,
-            style=input_style,
-            **kwargs,
+        dbc.Col(
+            dbc.Input(
+                id=id,
+                type="number",
+                value=value,
+                debounce=debounce,
+                style=input_style,
+                **kwargs,
+            ),
+            width="auto",
         ),
     ]
     if unit is not None:
-        elements.append(html.Label(unit, style={"text-align": "left", "margin-left": "15px"}))
+        elements.append(dbc.Col(dbc.Label(unit, className="ml-2"), width="auto"))
 
-    if div_style is not None:
-        div_style = {"display": "flex", "margin-bottom": "10px"}
-
-    return html.Div(elements, style=div_style)
+    return dbc.Row(
+        elements,
+        className="align-items-center mb-2",
+        style=div_style,
+    )
 
 
 def create_axis_layout(
@@ -89,28 +94,34 @@ def create_axis_layout(
     max_span: Optional[float] = None,
     units: Optional[str] = None,
 ):
-    return html.Div(
-        [
-            html.Label(axis.upper(), style={"text-align": "left"}),
-            create_input_field(
-                id=f"{axis.lower()}-span",
-                label="Span",
-                value=span,
-                min=min_span,
-                max=max_span,
-                input_style={"width": "55px"},
-                div_style={"display": "flex", "margin-bottom": "10px"},
-                unit=units,
-            ),
-            create_input_field(
-                id=f"{axis.lower()}-points",
-                label="Points",
-                value=points,
-                min=1,
-                max=501,
-                step=1,
-                div_style={"display": "flex", "margin-bottom": "10px"},
-            ),
-        ],
-        style={"display": "flex", "flex-direction": "row", "flex-wrap": "wrap"},
+    return dbc.Col(
+        dbc.Card(
+            [
+                dbc.CardHeader(axis.upper()),
+                dbc.CardBody(
+                    [
+                        create_input_field(
+                            id=f"{axis.lower()}-span",
+                            label="Span",
+                            value=span,
+                            min=min_span,
+                            max=max_span,
+                            input_style={"width": "100px"},
+                            unit=units,
+                        ),
+                        create_input_field(
+                            id=f"{axis.lower()}-points",
+                            label="Points",
+                            value=points,
+                            min=1,
+                            max=501,
+                            step=1,
+                        ),
+                    ]
+                ),
+            ],
+            className="h-100",
+        ),
+        md=6,
+        className="mb-3",
     )

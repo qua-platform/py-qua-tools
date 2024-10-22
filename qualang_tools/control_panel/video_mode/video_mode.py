@@ -1,8 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
-from dash import dcc, html, Input, Output
-from dash_extensions.enrich import DashProxy, dcc, html, Output, Input, BlockingCallbackTransform
+from dash import dcc, html  # , Input, Output
+from dash_extensions.enrich import DashProxy, Output, Input, BlockingCallbackTransform
+import dash_bootstrap_components as dbc  # Add this import
 
 import logging
 
@@ -40,7 +41,12 @@ class VideoMode:
         self._last_save_clicks = 0
         self.update_interval = update_interval
 
-        self.app = DashProxy(__name__, title="Video Mode", transforms=[BlockingCallbackTransform(timeout=10)])
+        self.app = DashProxy(
+            __name__,
+            title="Video Mode",
+            transforms=[BlockingCallbackTransform(timeout=10)],
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
+        )  # Add Bootstrap theme
         self.create_layout()
 
     def create_layout(self):
@@ -64,85 +70,104 @@ class VideoMode:
         """
         self.fig = xarray_to_plotly(self.data_acquirer.data_array)
 
-        # Modify the layout with CSS to left-align and adjust input size
-        self.app.layout = html.Div(
+        # Modify the layout with Dash Bootstrap Components
+        self.app.layout = dbc.Container(
             [
-                html.Div(  # Settings
+                dbc.Row(
                     [
-                        html.Header(
-                            "Video mode", style={"font-size": 32, "font-weight": "bold", "margin-bottom": "15px"}
-                        ),
-                        html.Div(  # Pause + iteration
+                        dbc.Col(  # Settings
                             [
-                                html.Button(
-                                    "Pause",
-                                    id="pause-button",
-                                    n_clicks=0,
-                                    style={"width": "20%", "min-width": "65px"},
+                                html.H1("Video mode", className="mb-4"),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Button(
+                                                "Pause",
+                                                id="pause-button",
+                                                n_clicks=0,
+                                                className="mb-3",
+                                            ),
+                                            width="auto",
+                                        ),
+                                        dbc.Col(
+                                            html.Div(
+                                                id="iteration-output",
+                                                children="Iteration: 0",
+                                                className="mb-3 ml-3 d-flex align-items-center",
+                                            ),
+                                            width="auto",
+                                        ),
+                                    ],
+                                    className="mb-4",
                                 ),
-                                html.Div(
-                                    id="iteration-output",
-                                    children="Iteration: 0",
-                                    style={"margin-left": "15px"},
+                                create_input_field(
+                                    "num-averages",
+                                    "Averages",
+                                    self.data_acquirer.num_averages,
+                                    min=1,
+                                    step=1,
+                                    debounce=True,
+                                ),
+                                dbc.Row(
+                                    [
+                                        create_axis_layout(
+                                            "x",
+                                            span=self.data_acquirer.x_axis.span,
+                                            points=self.data_acquirer.x_axis.points,
+                                            min_span=0.01,
+                                            max_span=None,
+                                            units=self.data_acquirer.x_axis.units,
+                                        ),
+                                        create_axis_layout(
+                                            "y",
+                                            span=self.data_acquirer.y_axis.span,
+                                            points=self.data_acquirer.y_axis.points,
+                                            min_span=0.01,
+                                            max_span=None,
+                                            units=self.data_acquirer.y_axis.units,
+                                        ),
+                                    ],
+                                    className="g-0",  # Remove gutters between columns
+                                ),
+                                dbc.Row(
+                                    [
+                                        dbc.Col(
+                                            dbc.Button(
+                                                "Update",
+                                                id="update-button",
+                                                n_clicks=0,
+                                                className="mt-3 mr-2",
+                                            ),
+                                            width="auto",
+                                        ),
+                                        dbc.Col(
+                                            dbc.Button(
+                                                "Save",
+                                                id="save-button",
+                                                n_clicks=0,
+                                                className="mt-3",
+                                            ),
+                                            width="auto",
+                                        ),
+                                    ],
                                 ),
                             ],
-                            style={
-                                "display": "flex",
-                                "flex-direction": "row",
-                                "align-items": "center",
-                                "margin-bottom": "20px",
-                            },
+                            width=5,
                         ),
-                        create_input_field(
-                            "num-averages",
-                            "Averages",
-                            self.data_acquirer.num_averages,
-                            min=1,
-                            step=1,
-                            debounce=True,
-                            div_style={
-                                "display": "flex",
-                                "flex-direction": "row",
-                                "flex-wrap": "wrap",
-                            },
+                        dbc.Col(
+                            dcc.Graph(
+                                id="live-heatmap",
+                                figure=self.fig,
+                                style={"height": "100%", "min-width": "500px"},
+                            ),
+                            width=7,
                         ),
-                        create_axis_layout(
-                            "x",
-                            span=self.data_acquirer.x_axis.span,
-                            points=self.data_acquirer.x_axis.points,
-                            min_span=0.01,
-                            max_span=None,
-                            units=self.data_acquirer.x_axis.units,
-                        ),
-                        create_axis_layout(
-                            "y",
-                            span=self.data_acquirer.y_axis.span,
-                            points=self.data_acquirer.y_axis.points,
-                            min_span=0.01,
-                            max_span=None,
-                            units=self.data_acquirer.y_axis.units,
-                        ),
-                        html.Div(  # Update and Save buttons
-                            [
-                                html.Button(
-                                    "Update",
-                                    id="update-button",
-                                    n_clicks=0,
-                                    style={"margin-top": "20px", "margin-right": "10px"},
-                                ),
-                                html.Button("Save", id="save-button", n_clicks=0, style={"margin-top": "20px"}),
-                            ],
-                            style={"display": "flex", "flex-direction": "row"},
-                        ),
-                    ],
-                    style={"width": "40%", "margin": "auto"},
-                ),
-                dcc.Graph(
-                    id="live-heatmap", figure=self.fig, style={"width": "55%", "height": "100%", "min-width": "500px"}
+                    ]
                 ),
                 dcc.Interval(id="interval-component", interval=self.update_interval * 1000, n_intervals=0),
             ],
-            style={"display": "flex", "flex-direction": "row", "height": "100%", "flex-wrap": "wrap"},
+            fluid=True,
+            style={"height": "100vh"},
         )
         logging.debug(f"Dash layout created, update interval: {self.update_interval*1000} ms")
         self.add_callbacks()
