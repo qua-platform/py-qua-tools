@@ -12,4 +12,5 @@ __all__ = [
     "units",
     "external_frameworks",
     "callable_from_qua",
+    "wirer",
 ]

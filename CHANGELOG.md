@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - results - Allow the data saver to create the root folder if it doesn't exist.
+- wirer - Automatic tool to allocate channels for arbitrary combinations of QM instruments and superconducting qubits.
 
 ### Fixed
 - data_handler - Fix figure saving cutting off title text if it is long using `bbox_inches="tight"`.
