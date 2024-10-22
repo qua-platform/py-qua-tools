@@ -9,6 +9,8 @@ from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
 from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
+from dash import html
+import dash_bootstrap_components as dbc
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -138,6 +140,15 @@ class BaseDataAcquirer(ABC):
         logging.debug(f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}")
         return self.data_array
 
+    @abstractmethod
+    def get_dash_components(self):
+        """Return a list of Dash components specific to this data acquirer."""
+        pass
+
+    def get_all_dash_components(self):
+        """Return all Dash components, including those from contained objects."""
+        return self.get_dash_components()
+
 
 class RandomDataAcquirer(BaseDataAcquirer):
     """Data acquirer that acquires random data."""
@@ -162,6 +173,26 @@ class RandomDataAcquirer(BaseDataAcquirer):
         sleep(self.acquire_time)
         results = np.random.rand(self.x_axis.points, self.y_axis.points)
         return results
+
+    def get_dash_components(self):
+        return [
+            html.Div(
+                [
+                    dbc.Label("Acquire time"),
+                    dbc.Input(
+                        id="acquire-time",
+                        type="number",
+                        value=self.acquire_time,
+                        min=0.1,
+                        max=10,
+                        step=0.1,
+                    ),
+                ]
+            )
+        ]
+
+    def get_all_dash_components(self):
+        return self.get_dash_components()
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
@@ -323,6 +354,34 @@ class OPXDataAcquirer(BaseDataAcquirer):
         # Wait until one buffer is filled{
         self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore
 
+    def get_dash_components(self):
+        return [
+            html.Div(
+                [
+                    dbc.Label("Result Type"),
+                    dbc.Select(
+                        id="result-type",
+                        options=[{"label": rt, "value": rt} for rt in self.result_types],
+                        value=self.result_type,
+                    ),
+                ]
+            )
+        ]
+
+    def get_all_dash_components(self):
+        components = self.get_dash_components()
+        components.extend(self.scan_mode.get_dash_components())
+        components.extend(self.qua_inner_loop_action.get_dash_components())
+        return components
+
+    def get_object_and_attribute(self, id):
+        if id.startswith('scan-mode-'):
+            return self.scan_mode, id.replace('scan-mode-', '')
+        elif id.startswith('inner-loop-'):
+            return self.qua_inner_loop_action, id.replace('inner-loop-', '')
+        else:
+            return self, id
+
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):
     """Data acquirer for OPX devices using QUAM.
@@ -370,3 +429,13 @@ class OPXQuamDataAcquirer(OPXDataAcquirer):
             initial_delay=initial_delay,
             **kwargs,
         )
+
+    def get_dash_components(self):
+        components = super().get_dash_components()
+        # Add any QUAM-specific components here
+        return components
+
+    def get_all_dash_components(self):
+        components = super().get_all_dash_components()
+        # Add any QUAM-specific components here
+        return components

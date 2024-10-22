@@ -151,6 +151,9 @@ class VideoMode:
                                         ),
                                     ],
                                 ),
+                                html.Div(
+                                    self.data_acquirer.get_all_dash_components()
+                                ),  # Add data acquirer specific components
                             ],
                             width=5,
                         ),
@@ -265,6 +268,15 @@ class VideoMode:
                 self.save()
                 return "Saved!"
             return "Save"
+
+        # Add callbacks for data acquirer components
+        for component in self.data_acquirer.get_all_dash_components():
+            if isinstance(component, html.Div):
+                for child in component.children:
+                    if hasattr(child, 'id'):
+                        self.create_callback_for_component(child)
+            elif hasattr(component, 'id'):
+                self.create_callback_for_component(component)
 
     def run(self, debug: bool = True, use_reloader: bool = False):
         logging.debug("Starting Dash server")
@@ -385,3 +397,13 @@ class VideoMode:
 
         logging.info(f"Save operation completed with index: {idx}")
         return idx
+
+    def create_callback_for_component(self, component):
+        @self.app.callback(
+            Output(component.id, 'value'),
+            Input(component.id, 'value')
+        )
+        def update_attr(value, id=component.id):
+            obj, attr = self.data_acquirer.get_object_and_attribute(id)
+            setattr(obj, attr, value)
+            return value

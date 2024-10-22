@@ -5,6 +5,9 @@ from matplotlib import figure, axes, pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from qm.qua import declare, fixed, if_, assign, for_, for_each_, QuaVariableType
 from qualang_tools.loops import from_array
+import dash
+import dash_bootstrap_components as dbc
+import html
 
 
 class ScanMode(ABC):
@@ -44,6 +47,11 @@ class ScanMode(ABC):
     ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         pass
 
+    @abstractmethod
+    def get_dash_components(self):
+        """Return a list of Dash components specific to this scan mode."""
+        pass
+
 
 class RasterScan(ScanMode):
     """Raster scan mode.
@@ -64,6 +72,9 @@ class RasterScan(ScanMode):
         with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages["x"], voltages["y"]
+
+    def get_dash_components(self):
+        return []  # No specific components for RasterScan
 
 
 class SwitchRasterScan(ScanMode):
