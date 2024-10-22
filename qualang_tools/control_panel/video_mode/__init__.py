@@ -15,6 +15,7 @@ if __name__ == "__main__":
         x_axis=x_axis,
         y_axis=y_axis,
         num_averages=5,
+        acquire_time=0.1,
     )
 
     live_plotter = VideoMode(data_acquirer=data_acquirer)

@@ -142,12 +142,24 @@ class BaseDataAcquirer(ABC):
 class RandomDataAcquirer(BaseDataAcquirer):
     """Data acquirer that acquires random data."""
 
+    def __init__(
+        self,
+        *,
+        x_axis: SweepAxis,
+        y_axis: SweepAxis,
+        num_averages: int = 1,
+        acquire_time: float = 1,
+        **kwargs,
+    ):
+        self.acquire_time = acquire_time
+        super().__init__(x_axis=x_axis, y_axis=y_axis, num_averages=num_averages, **kwargs)
+
     def acquire_data(self):
         """Acquire random data.
 
         This method acquires random data from the simulated device.
         """
-        sleep(1)
+        sleep(self.acquire_time)
         results = np.random.rand(self.x_axis.points, self.y_axis.points)
         return results
 
