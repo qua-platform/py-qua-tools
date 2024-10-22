@@ -249,10 +249,19 @@ class VideoMode:
         for component in self.data_acquirer.get_all_dash_components():
             if isinstance(component, html.Div):
                 for child in component.children:
+                    print(f"Checking child {child}")
                     if hasattr(child, "id"):
+                        print(f"Creating callback for {child.id}")
                         self.create_callback_for_component(child)
             elif hasattr(component, "id"):
+                print(f"Creating callback for {component.id}")
                 self.create_callback_for_component(component)
+
+        # Add data acquirer-specific callbacks
+        for component_id, callback_func in self.data_acquirer.get_callbacks():
+            # Check if a callback for this component already exists
+            if not any(component_id == output.component_id for output in self.app.callback_map):
+                self.app.callback(Output(component_id, "value"), Input(component_id, "value"))(callback_func)
 
     def run(self, debug: bool = True, use_reloader: bool = False):
         logging.debug("Starting Dash server")
@@ -375,8 +384,11 @@ class VideoMode:
         return idx
 
     def create_callback_for_component(self, component):
-        @self.app.callback(Output(component.id, "value"), Input(component.id, "value"))
-        def update_attr(value, id=component.id):
-            obj, attr = self.data_acquirer.get_object_and_attribute(id)
-            setattr(obj, attr, value)
-            return value
+        # Check if a callback for this component already exists
+        if not any(component.id == output.component_id for output in self.app.callback_map):
+
+            @self.app.callback(Output(component.id, "value"), Input(component.id, "value"))
+            def update_attr(value, id=component.id):
+                obj, attr = self.data_acquirer.get_object_and_attribute(id)
+                setattr(obj, attr, value)
+                return value

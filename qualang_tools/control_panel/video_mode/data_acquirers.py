@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 import xarray as xr
 import logging
 from time import sleep, perf_counter
@@ -146,6 +146,11 @@ class BaseDataAcquirer(ABC):
         """Return a list of Dash components specific to this data acquirer."""
         pass
 
+    @abstractmethod
+    def get_callbacks(self) -> List[Tuple[str, Callable]]:
+        """Return a list of tuples (component_id, callback_function) for this data acquirer."""
+        return []  # By default, return an empty list
+
     def get_axis_components(self):
         """Return the x and y axis components in a single row."""
         return html.Div(
@@ -216,15 +221,27 @@ class RandomDataAcquirer(BaseDataAcquirer):
 
     def get_dash_components(self):
         return [
-            create_input_field(
-                id="acquire-time",
-                label="Acquire time",
-                value=self.acquire_time,
-                min=0.1,
-                max=10,
-                step=0.1,
+            html.Div(
+                [
+                    dbc.Label("Acquire time"),
+                    dbc.Input(
+                        id="acquire-time",
+                        type="number",
+                        value=self.acquire_time,
+                        min=0.1,
+                        max=10,
+                        step=0.1,
+                    ),
+                ]
             )
         ]
+
+    def get_callbacks(self):
+        def update_acquire_time(value):
+            self.acquire_time = value
+            return value
+
+        return [("acquire-time", update_acquire_time)]
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
@@ -399,6 +416,13 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 ]
             )
         ]
+
+    def get_callbacks(self):
+        def update_result_type(value):
+            self.result_type = value
+            return value
+
+        return [("result-type", update_result_type)]
 
     def get_all_dash_components(self):
         components = super().get_all_dash_components()
