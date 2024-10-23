@@ -3,7 +3,7 @@ from qm.qua import *
 from qm import QuantumMachinesManager
 from qualang_tools.results import fetching_tool
 from configuration import *
-from qualang_tools.live_mode.livemode import LiveMode
+from qualang_tools.live_mode import LiveMode
 
 
 def qua_prog(lm: LiveMode):

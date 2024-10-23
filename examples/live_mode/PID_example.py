@@ -4,7 +4,7 @@ from qm import QuantumMachinesManager
 from qualang_tools.addons.variables import assign_variables_to_element
 from qualang_tools.results import fetching_tool
 from configuration import *
-from qualang_tools.live_mode.livemode import LiveMode
+from qualang_tools.live_mode import LiveMode
 
 
 ####################
