@@ -3,6 +3,7 @@ __all__ = [
     "bakery",
     "config",
     "control_panel",
+    "live_mode"
     "loops",
     "results",
     "plot",
