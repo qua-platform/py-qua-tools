@@ -40,6 +40,7 @@ class VideoMode:
         self._last_update_clicks = 0
         self._last_save_clicks = 0
         self.update_interval = update_interval
+        self._is_updating = False
 
         self.app = DashProxy(
             __name__,
@@ -173,6 +174,25 @@ class VideoMode:
             ],
             [
                 Input("interval-component", "n_intervals"),
+            ],
+            blocking=True,
+        )
+        def update_heatmap(n_intervals):
+            logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
+
+            if self.paused or self._is_updating:
+                logging.debug(f"Updates paused at iteration {self.data_acquirer.num_acquisitions}")
+                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
+
+            # Increment iteration counter and update frontend
+            updated_xarr = self.data_acquirer.update_data()
+            self.fig = xarray_to_plotly(updated_xarr)
+            logging.debug(f"Updating heatmap, num_acquisitions: {self.data_acquirer.num_acquisitions}")
+            return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
+
+        @self.app.callback(
+            [],
+            [
                 Input("update-button", "n_clicks"),
             ],
             [
@@ -184,8 +204,7 @@ class VideoMode:
             ],
             blocking=True,
         )
-        def update_heatmap(
-            n_intervals,
+        def update_params(
             n_update_clicks,
             num_averages,
             x_span,
@@ -193,7 +212,9 @@ class VideoMode:
             x_points,
             y_points,
         ):
-            logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
+            if n_update_clicks <= self._last_update_clicks:
+                return
+
             attrs = [
                 dict(obj=self.data_acquirer, key="num_averages", new=num_averages),
                 dict(obj=self.data_acquirer.x_axis, key="span", new=x_span),
@@ -203,36 +224,30 @@ class VideoMode:
             ]
             updated_attrs = []
 
-            if n_update_clicks > self._last_update_clicks:
-                self._last_update_clicks = n_update_clicks
-                for attr in attrs:
-                    attr["old"] = getattr(attr["obj"], attr["key"])
-                    attr["changed"] = attr["old"] != attr["new"]
+            self._last_update_clicks = n_update_clicks
+            for attr in attrs:
+                attr["old"] = getattr(attr["obj"], attr["key"])
+                attr["changed"] = attr["old"] != attr["new"]
 
-                    if not attr["changed"]:
-                        continue
+                if not attr["changed"]:
+                    continue
 
-                    if attr["new"] is None:
-                        continue
+                if attr["new"] is None:
+                    continue
 
-                    updated_attrs.append(attr)
+                updated_attrs.append(attr)
 
-                    logging.debug(f"Updating {attr['key']} from {attr['old']} to {attr['new']}")
+                logging.debug(f"Updating {attr['key']} from {attr['old']} to {attr['new']}")
 
-                if updated_attrs:
-                    self.clear_data()
-                    updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
+            if not updated_attrs:
+                return
 
-            if self.paused:
-                logging.debug(f"Updates paused at iteration {self.data_acquirer.num_acquisitions}")
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
-
-            # Increment iteration counter and update frontend
-            updated_xarr = self.data_acquirer.update_data()
-            self.fig = xarray_to_plotly(updated_xarr)
-            logging.debug(f"Updating heatmap, num_acquisitions: {self.data_acquirer.num_acquisitions}")
-            return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
+            try:
+                self._is_updating = True
+                self.clear_data()
+                updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
+            finally:
+                self._is_updating = False
 
         @self.app.callback(
             Output("save-button", "children"),
@@ -244,18 +259,6 @@ class VideoMode:
                 self.save()
                 return "Saved!"
             return "Save"
-
-        # Add callbacks for all dynamic components
-        for component in self.data_acquirer.get_all_dash_components():
-            if isinstance(component, html.Div):
-                for child in component.children:
-                    print(f"Checking child {child}")
-                    if hasattr(child, "id"):
-                        print(f"Creating callback for {child.id}")
-                        self.create_callback_for_component(child)
-            elif hasattr(component, "id"):
-                print(f"Creating callback for {component.id}")
-                self.create_callback_for_component(component)
 
         # Add data acquirer-specific callbacks
         for component_id, callback_func in self.data_acquirer.get_callbacks():
