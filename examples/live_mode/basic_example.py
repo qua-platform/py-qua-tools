@@ -3,23 +3,23 @@ from qm.qua import *
 from qm import QuantumMachinesManager
 from qualang_tools.results import fetching_tool
 from configuration import *
-from qualang_tools.video_mode.livemode import LiveMode
+from qualang_tools.live_mode.livemode import LiveMode
 
 
-def qua_prog(vm: LiveMode):
+def qua_prog(lm: LiveMode):
     with program() as prog:
         # Results variables
         single_shot_1 = declare(fixed)
         single_shot_2 = declare(fixed)
-        # Get the parameters from the video mode
-        dc_offset_1, dc_offset_2 = vm.declare_variables()
+        # Get the parameters from the live mode
+        dc_offset_1, dc_offset_2 = lm.declare_variables()
         # Streams
         signal1_st = declare_stream()
         signal2_st = declare_stream()
 
         with infinite_loop_():
             # Update the parameters
-            vm.load_parameters()
+            lm.load_parameters()
             # Update the dc_offset of the channel connected to the OPX analog input 1
             set_dc_offset("filter_cavity_1", "single", dc_offset_1)
             set_dc_offset("filter_cavity_2", "single", dc_offset_2)
@@ -48,17 +48,17 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
     # Open the Quantum Machine
     qm = qmm.open_qm(config)
-    # Define the parameters to be updated in video mode with their initial value and QUA type
+    # Define the parameters to be updated in live mode with their initial value and QUA type
     param_dict = {
         "dc_offset_1": (0.0, fixed),
         "dc_offset_2": (0.0, fixed),
     }
-    # Initialize the video mode
-    video_mode = LiveMode(qm, param_dict)
+    # Initialize the live mode
+    live_mode = LiveMode(qm, param_dict)
     # Get the QUA program
-    qua_prog = qua_prog(video_mode)
-    # Execute the QUA program in video mode
-    job = video_mode.execute(qua_prog)
+    qua_prog = qua_prog(live_mode)
+    # Execute the QUA program in live mode
+    job = live_mode.execute(qua_prog)
     # Get the results from the OPX in live mode
     results = fetching_tool(job, ["signal1", "signal2"], mode="live")
     # Live plotting

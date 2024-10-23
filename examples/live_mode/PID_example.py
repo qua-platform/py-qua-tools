@@ -4,7 +4,7 @@ from qm import QuantumMachinesManager
 from qualang_tools.addons.variables import assign_variables_to_element
 from qualang_tools.results import fetching_tool
 from configuration import *
-from qualang_tools.video_mode.livemode import LiveMode
+from qualang_tools.live_mode.livemode import LiveMode
 
 
 ####################
@@ -47,7 +47,7 @@ def PID_derivation(input_signal, bitshift_scale_factor, gain_P, gain_I, gain_D, 
 ###################
 # The QUA program #
 ###################
-def PID_prog(vm: LiveMode, PDH_angle: float = 0.0):
+def PID_prog(lm: LiveMode, PDH_angle: float = 0.0):
     with program() as prog:
         # Results variables
         I = declare(fixed)
@@ -56,7 +56,7 @@ def PID_prog(vm: LiveMode, PDH_angle: float = 0.0):
         single_shot_AC = declare(fixed)
         dc_offset_1 = declare(fixed)
         # PID variables
-        vm.declare_variables()
+        lm.declare_variables()
         # Streams
         single_shot_st = declare_stream()
         error_st = declare_stream()
@@ -71,7 +71,7 @@ def PID_prog(vm: LiveMode, PDH_angle: float = 0.0):
         with infinite_loop_():
             # with for_(n, 0, n < N_shots, n + 1):
             # Update the PID parameters based on the user input.
-            vm.load_parameters()
+            lm.load_parameters()
             # Ensure that the two digital oscillators will start with the same phase
             reset_phase("phase_modulator")
             reset_phase("detector_AC")
@@ -98,7 +98,7 @@ def PID_prog(vm: LiveMode, PDH_angle: float = 0.0):
             )
             assign(single_shot_AC, I)
             # PID correction signal
-            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *vm.variables)
+            correction, error, int_error, der_error = PID_derivation(single_shot_DC, *lm.variables)
             # Update the DC offset
             assign(dc_offset_1, dc_offset_1 + correction)
             # Handle saturation - Make sure that the DAC won't be asked to output more than 0.5V
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
     # Open the Quantum Machine
     qm = qmm.open_qm(config)
-    # Define the parameters to be updated in video mode with their initial value and QUA type
+    # Define the parameters to be updated in live mode with their initial value and QUA type
     param_dict = {
         "bitshift_scale_factor": (3, int),
         "gain_P": (-1e-4, fixed),  # The proportional gain
@@ -142,11 +142,11 @@ if __name__ == "__main__":
         "alpha": (0.0, fixed),  # The ratio between integration and proportional error
         "target": (0.0, fixed),  # The target value
     }
-    # Initialize the video mode
-    video_mode = LiveMode(qm, param_dict)
+    # Initialize the live mode
+    live_mode = LiveMode(qm, param_dict)
     # Get the QUA program
-    qua_prog = PID_prog(video_mode)
-    job = video_mode.execute(qua_prog)
+    qua_prog = PID_prog(live_mode)
+    job = live_mode.execute(qua_prog)
     # Get the results from the OPX in live mode
     data_list = ["error", "int_err", "der_err", "single_shot", "offset"]
     results = fetching_tool(job, data_list, mode="live")
