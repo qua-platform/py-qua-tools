@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.17.8] - 2024-10-23
 ### Added
 - results - Allow the data saver to create the root folder if it doesn't exist.
 - wirer - Automatic tool to allocate channels for arbitrary combinations of QM instruments and superconducting qubits.
@@ -375,6 +377,7 @@ operation (readout pulse for instance) already defined in the configuration.
 - This release exposes the baking, RB and XEB functionality.
 
 [Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[0.17.8]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...v0.17.8
 [0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
 [0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6
 [0.17.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.4...v0.17.5
