@@ -290,7 +290,7 @@ class VoltageConfigDialog(QFrame):
 
         self.step_textbox = {}
         for k, (state, color) in enumerate([("up_down", "blue"), ("left_right", "darkGreen")]):
-            step_hbox.addStretch(0.8)
+            # step_hbox.addStretch(0)
             self.step_textbox[state] = QLineEdit(str(self.step[state]))
             self.step_textbox[state].setMaximumWidth(85)
             self.step_textbox[state].setMinimumWidth(55)
