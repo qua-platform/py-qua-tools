@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** - `video_mode` became `live_mode` to avoid confusion with the video mode tool used to tune up quantum dots devices.
 
 ## [0.18.0] - 2024-10-23
 ### Added
