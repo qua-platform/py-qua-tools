@@ -133,8 +133,8 @@ instruments.add_octave(indices=[1, 3, 8])
 ```
 ```python
 # Disjoint OPX+ and Octave addressing
-instruments.add_opx_plus(controllers=[2, 5])
-instruments.add_octave(indices=[1, 3, 8])
+instruments.add_lf_fem(controller=3, slots=[2, 4])
+instruments.add_mw_fem(controller=3, slots=[1, 7])
 ```
 
 ## Connectivity
