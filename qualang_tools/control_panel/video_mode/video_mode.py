@@ -1,8 +1,8 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
-from dash import dcc, html  # , Input, Output
-from dash_extensions.enrich import DashProxy, Output, Input, BlockingCallbackTransform
+from dash import dcc, html, ALL, MATCH
+from dash_extensions.enrich import DashProxy, Output, Input, State, BlockingCallbackTransform
 import dash_bootstrap_components as dbc  # Add this import
 
 import logging
@@ -190,70 +190,32 @@ class VideoMode:
             logging.debug(f"Updating heatmap, num_acquisitions: {self.data_acquirer.num_acquisitions}")
             return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
+        # Create states for all input components
+        component_states = []
+        for component_id in self.data_acquirer.get_component_ids():
+            component_states += [
+                State({"type": component_id, "index": ALL}, "id"),
+                State({"type": component_id, "index": ALL}, "value"),
+            ]
+
         @self.app.callback(
             [],
-            [
-                Input("update-button", "n_clicks"),
-            ],
-            [
-                Input("num-averages", "value"),
-                Input("data-acquirer-x-span", "value"),
-                Input("data-acquirer-y-span", "value"),
-                Input("data-acquirer-x-points", "value"),
-                Input("data-acquirer-y-points", "value"),
-            ],
+            [Input("update-button", "n_clicks")],
+            [State("num-averages", "value"), *component_states],
             blocking=True,
         )
-        def update_params(
-            n_update_clicks,
-            num_averages,
-            x_span,
-            y_span,
-            x_points,
-            y_points,
-        ):
+        def update_params(n_update_clicks, num_averages, *component_inputs):
             if n_update_clicks <= self._last_update_clicks:
                 return
 
-            attrs = [
-                dict(obj=self.data_acquirer, key="num_averages", new=num_averages),
-                dict(obj=self.data_acquirer.x_axis, key="span", new=x_span),
-                dict(obj=self.data_acquirer.y_axis, key="span", new=y_span),
-                dict(obj=self.data_acquirer.x_axis, key="points", new=x_points),
-                dict(obj=self.data_acquirer.y_axis, key="points", new=y_points),
-            ]
-            updated_attrs = []
+            params = {}
+            component_inputs_iterator = iter(component_inputs)
+            for component_id in self.data_acquirer.get_component_ids():
+                ids, values = next(component_inputs_iterator), next(component_inputs_iterator)
+                params[component_id] = {id["index"]: value for id, value in zip(ids, values)}
 
-            self._last_update_clicks = n_update_clicks
-            for attr in attrs:
-                attr["old"] = getattr(attr["obj"], attr["key"])
-                attr["changed"] = attr["old"] != attr["new"]
-
-                if not attr["changed"]:
-                    continue
-
-                if attr["new"] is None:
-                    continue
-
-                updated_attrs.append(attr)
-
-                logging.debug(f"Updating {attr['key']} from {attr['old']} to {attr['new']}")
-
-            if not updated_attrs:
-                return
-
-            try:
-                self._is_updating = True
-                self.clear_data()
-                updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
-            finally:
-                self._is_updating = False
-
-        # Add data acquirer-specific callbacks
-        for component_id, callback_func in self.data_acquirer.get_callbacks():
-            # Check if a callback for this component already exists
-            if not any(component_id == output.component_id for output in self.app.callback_map):
-                self.app.callback(Output(component_id, "value"), Input(component_id, "value"))(callback_func)
+            logging.debug(f"Updating params: {params}")
+            self.data_acquirer.update_parameter(params)
 
         @self.app.callback(
             Output("save-button", "children"),
@@ -385,13 +347,3 @@ class VideoMode:
 
         logging.info(f"Save operation completed with index: {idx}")
         return idx
-
-    def create_callback_for_component(self, component):
-        # Check if a callback for this component already exists
-        if not any(component.id == output.component_id for output in self.app.callback_map):
-
-            @self.app.callback(Output(component.id, "value"), Input(component.id, "value"))
-            def update_attr(value, id=component.id):
-                obj, attr = self.data_acquirer.get_object_and_attribute(id)
-                setattr(obj, attr, value)
-                return value

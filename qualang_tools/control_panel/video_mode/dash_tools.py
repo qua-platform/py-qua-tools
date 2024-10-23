@@ -93,7 +93,15 @@ def create_axis_layout(
     min_span: float,
     max_span: Optional[float] = None,
     units: Optional[str] = None,
+    component_id: Optional[str] = None,
 ):
+    if component_id is None:
+        ids = {"span": f"{axis.lower()}-span", "points": f"{axis.lower()}-points"}
+    else:
+        ids = {
+            "span": {"type": component_id, "index": f"{axis.lower()}-span"},
+            "points": {"type": component_id, "index": f"{axis.lower()}-points"},
+        }
     return dbc.Col(
         dbc.Card(
             [
@@ -101,7 +109,7 @@ def create_axis_layout(
                 dbc.CardBody(
                     [
                         create_input_field(
-                            id=f"{axis.lower()}-span",
+                            id=ids["span"],
                             label="Span",
                             value=span,
                             min=min_span,
@@ -110,7 +118,7 @@ def create_axis_layout(
                             unit=units,
                         ),
                         create_input_field(
-                            id=f"{axis.lower()}-points",
+                            id=ids["points"],
                             label="Points",
                             value=points,
                             min=1,

@@ -43,7 +43,7 @@ def dicts_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     return True
 
 
-class BaseDataAcquirer(DashComponent):
+class BaseDataAcquirer(ABC):
     """Base class for data acquirers.
 
     This class defines the interface for data acquirers, which are responsible for acquiring data from a device.
@@ -64,10 +64,10 @@ class BaseDataAcquirer(DashComponent):
         component_id: str = "data-acquirer",
         **kwargs,
     ):
-        super().__init__(component_id)
         self.x_axis = x_axis
         self.y_axis = y_axis
         self.num_averages = num_averages
+        self.component_id = component_id
         self.data_history = []
         logging.debug("Initializing DataGenerator")
 
@@ -85,19 +85,6 @@ class BaseDataAcquirer(DashComponent):
             label = axis.label or axis.name
             self.data_array.coords[axis.name].attrs.update({"units": axis.units, "long_name": label})
         logging.debug("DataGenerator initialized with initial data")
-
-    def update_attrs(self, attrs: List[Dict[str, Any]]):
-        """Update the attributes of the data array.
-
-        This method updates the attributes of the data array with the provided attributes.
-        This method is invoked from the Dash app when the user updates the parameters in the control panel.
-
-        Args:
-            attrs: The attributes to update.
-        """
-        for attr in attrs:
-            setattr(attr["obj"], attr["key"], attr["new"])
-        pass
 
     @abstractmethod
     def acquire_data(self) -> np.ndarray:
@@ -143,72 +130,63 @@ class BaseDataAcquirer(DashComponent):
 
     @abstractmethod
     def get_dash_components(self):
-        """Return a list of Dash components specific to this data acquirer."""
-        pass
-
-    @abstractmethod
-    def get_callbacks(self) -> List[Tuple[str, Callable]]:
-        """Return a list of tuples (component_id, callback_function) for this data acquirer."""
-        return []  # By default, return an empty list
-
-    def get_axis_components(self):
         """Return the x and y axis components in a single row."""
-        return html.Div(
-            [
-                dbc.Row(
-                    [
-                        create_axis_layout(
-                            self.get_component_id("x"),
-                            span=self.x_axis.span,
-                            points=self.x_axis.points,
-                            min_span=0.01,
-                            max_span=None,
-                            units=self.x_axis.units,
-                        ),
-                        create_axis_layout(
-                            self.get_component_id("y"),
-                            span=self.y_axis.span,
-                            points=self.y_axis.points,
-                            min_span=0.01,
-                            max_span=None,
-                            units=self.y_axis.units,
-                        ),
-                    ],
-                    className="g-0",
-                ),  # g-0 removes gutters between columns
-            ]
-        )
+        return [
+            html.Div(
+                [
+                    dbc.Row(
+                        [
+                            create_axis_layout(
+                                axis="x",
+                                component_id=self.component_id,
+                                span=self.x_axis.span,
+                                points=self.x_axis.points,
+                                min_span=0.01,
+                                max_span=None,
+                                units=self.x_axis.units,
+                            ),
+                            create_axis_layout(
+                                axis="y",
+                                component_id=self.component_id,
+                                span=self.y_axis.span,
+                                points=self.y_axis.points,
+                                min_span=0.01,
+                                max_span=None,
+                                units=self.y_axis.units,
+                            ),
+                        ],
+                        className="g-0",
+                    ),  # g-0 removes gutters between columns
+                ]
+            )
+        ]
 
     def get_all_dash_components(self):
         """Return all Dash components, including axis components."""
-        components = [self.get_axis_components()]  # Axis components are now a single item
-        components.extend(self.get_dash_components())
-        return components
+        return self.get_dash_components()
 
-    def get_object_and_attribute(self, id):
-        """Get the object and attribute for a given component id."""
-        if id.startswith("x-"):
-            return self.x_axis, id.replace("x-", "")
-        elif id.startswith("y-"):
-            return self.y_axis, id.replace("y-", "")
-        else:
-            return self, id
-
-    def get_all_input_ids(self):
-        """Return a list of all input component IDs for this data acquirer and its subcomponents."""
-        ids = ["num-averages", "x-span", "y-span", "x-points", "y-points"]
-        ids.extend(self.get_data_acquirer_input_ids())
-        return ids
-
-    @abstractmethod
-    def get_data_acquirer_input_ids(self):
-        """Return a list of input component IDs specific to this data acquirer."""
-        pass
-
-    @abstractmethod
-    def update_from_inputs(self, inputs):
+    def update_parameter(self, parameters):
         """Update the data acquirer's attributes based on the input values."""
-        pass
+        params = parameters[self.component_id]
+        params_modified = False
+        if self.x_axis.span != params["x-span"]:
+            self.x_axis.span = params["x-span"]
+            params_modified = True
+        if self.x_axis.points != params["x-points"]:
+            self.x_axis.points = params["x-points"]
+            params_modified = True
+        if self.y_axis.span != params["y-span"]:
+            self.y_axis.span = params["y-span"]
+            params_modified = True
+        if self.y_axis.points != params["y-points"]:
+            self.y_axis.points = params["y-points"]
+            params_modified = True
+
+        return {"parameters_modified": params_modified}
+
+    def get_component_ids(self) -> List[str]:
+        """Return a list of component IDs for this data acquirer."""
+        return [self.component_id]
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
@@ -236,34 +214,35 @@ class RandomDataAcquirer(BaseDataAcquirer):
         return results
 
     def get_dash_components(self):
-        return [
-            html.Div(
-                [
-                    dbc.Label("Acquire time"),
-                    dbc.Input(
-                        id="acquire-time",
-                        type="number",
-                        value=self.acquire_time,
-                        min=0.1,
-                        max=10,
-                        step=0.1,
-                    ),
-                ]
-            )
-        ]
+        dash_components = super().get_dash_components()
+        dash_components.extend(
+            [
+                html.Div(
+                    [
+                        dbc.Label("Acquire time"),
+                        dbc.Input(
+                            id={"type": self.component_id, "index": "acquire-time"},
+                            type="number",
+                            value=self.acquire_time,
+                            min=0.1,
+                            max=10,
+                            step=0.1,
+                        ),
+                    ]
+                )
+            ]
+        )
+        return dash_components
 
-    def get_callbacks(self):
-        def update_acquire_time(value):
-            self.acquire_time = value
-            return value
+    def update_parameter(self, parameters):
+        results = super().update_parameter(parameters)
 
-        return [("acquire-time", update_acquire_time)]
+        params = parameters[self.component_id]
+        if self.acquire_time != params["acquire-time"]:
+            results["parameters_modified"] = True
+            self.acquire_time = params["acquire-time"]
 
-    def get_data_acquirer_input_ids(self):
-        return ["acquire-time"]
-
-    def update_from_inputs(self, inputs):
-        self.acquire_time = inputs["acquire-time"]
+        return results
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
@@ -439,13 +418,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
             )
         ]
 
-    def get_callbacks(self):
-        def update_result_type(value):
-            self.result_type = value
-            return value
-
-        return [("result-type", update_result_type)]
-
     def get_all_dash_components(self):
         components = super().get_all_dash_components()
         components.extend(self.get_dash_components())
@@ -453,30 +425,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
         components.extend(self.qua_inner_loop_action.get_dash_components())
         return components
 
-    def get_object_and_attribute(self, id):
-        if id.startswith("scan-mode-"):
-            return self.scan_mode, id.replace("scan-mode-", "")
-        elif id.startswith("inner-loop-"):
-            return self.qua_inner_loop_action, id.replace("inner-loop-", "")
-        else:
-            return super().get_object_and_attribute(id)
-
-    def get_data_acquirer_input_ids(self):
-        ids = ["result-type"]
-        ids.extend(self.scan_mode.get_input_ids())
-        ids.extend(self.qua_inner_loop_action.get_input_ids())
-        return ids
-
-    def update_from_inputs(self, inputs):
+    def update_parameter(self, parameters):
         self.result_type = inputs["result-type"]
-        self.scan_mode.update_from_inputs(inputs)
-        self.qua_inner_loop_action.update_from_inputs(inputs)
-
-    def get_all_input_ids(self):
-        ids = super().get_all_input_ids()
-        ids.extend(self.scan_mode.get_input_ids())
-        ids.extend(self.qua_inner_loop_action.get_input_ids())
-        return ids
+        self.scan_mode.update_parameter(inputs)
+        self.qua_inner_loop_action.update_parameter(inputs)
 
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):

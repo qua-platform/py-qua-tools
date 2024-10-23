@@ -24,5 +24,5 @@ if __name__ == "__main__":
         acquire_time=0.1,
     )
 
-    live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
+    live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.1)
     live_plotter.run()
