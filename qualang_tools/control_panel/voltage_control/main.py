@@ -1,7 +1,7 @@
 import sys
 import threading
 from typing import Any
-
+import pyvisa as visa
 from PyQt5.QtWidgets import QApplication
 
 from qualang_tools.control_panel.voltage_control.voltage_control_dialog import VoltageControlDialog
@@ -39,11 +39,11 @@ def start_voltage_control(use_thread: bool = False, gui_name: str = "Voltage con
         qApp.exec_()
         return qApp
 
-
 if __name__ == "__main__":
-    from qcodes.parameters import ManualParameter
     import numpy as np
+    from voltage_parameters import QDACII, qdac_ch
 
+    qdac = QDACII("dummy")
     # Create dummy parameters
-    parameters = [ManualParameter(f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(15)]
+    parameters = [qdac_ch(qdac, idx, f"V{idx}", initial_value=np.round(np.random.rand(), 3)) for idx in range(5)]
     start_voltage_control(parameters=parameters, mini=True, use_thread=False)
