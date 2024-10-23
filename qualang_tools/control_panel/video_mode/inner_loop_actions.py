@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType
+from qualang_tools.control_panel.video_mode.base_component import DashComponent
 
 
-class InnerLoopAction(ABC):
+class InnerLoopAction(DashComponent, ABC):
+    def __init__(self, component_id: str = "inner-loop"):
+        super().__init__(component_id)
+        # ... rest of init ...
+
     @abstractmethod
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         pass

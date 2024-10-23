@@ -197,10 +197,10 @@ class VideoMode:
             ],
             [
                 Input("num-averages", "value"),
-                Input("x-span", "value"),
-                Input("y-span", "value"),
-                Input("x-points", "value"),
-                Input("y-points", "value"),
+                Input("data-acquirer-x-span", "value"),
+                Input("data-acquirer-y-span", "value"),
+                Input("data-acquirer-x-points", "value"),
+                Input("data-acquirer-y-points", "value"),
             ],
             blocking=True,
         )
@@ -249,6 +249,12 @@ class VideoMode:
             finally:
                 self._is_updating = False
 
+        # Add data acquirer-specific callbacks
+        for component_id, callback_func in self.data_acquirer.get_callbacks():
+            # Check if a callback for this component already exists
+            if not any(component_id == output.component_id for output in self.app.callback_map):
+                self.app.callback(Output(component_id, "value"), Input(component_id, "value"))(callback_func)
+
         @self.app.callback(
             Output("save-button", "children"),
             [Input("save-button", "n_clicks")],
@@ -259,12 +265,6 @@ class VideoMode:
                 self.save()
                 return "Saved!"
             return "Save"
-
-        # Add data acquirer-specific callbacks
-        for component_id, callback_func in self.data_acquirer.get_callbacks():
-            # Check if a callback for this component already exists
-            if not any(component_id == output.component_id for output in self.app.callback_map):
-                self.app.callback(Output(component_id, "value"), Input(component_id, "value"))(callback_func)
 
     def run(self, debug: bool = True, use_reloader: bool = False):
         logging.debug("Starting Dash server")

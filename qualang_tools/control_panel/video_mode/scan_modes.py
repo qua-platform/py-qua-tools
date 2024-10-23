@@ -5,12 +5,13 @@ from matplotlib import figure, axes, pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from qm.qua import declare, fixed, if_, assign, for_, for_each_, QuaVariableType
 from qualang_tools.loops import from_array
+from qualang_tools.control_panel.video_mode.base_component import DashComponent
 import dash
 import dash_bootstrap_components as dbc
 import html
 
 
-class ScanMode(ABC):
+class ScanMode(DashComponent, ABC):
     """Abstract base class for scan modes, e.g. raster scan, spiral scan, etc.
 
     The scan mode is used to generate the scan pattern for the video mode.
@@ -193,3 +194,4 @@ class SpiralScan(ScanMode):
 
         assign(x, 0)
         assign(y, 0)
+

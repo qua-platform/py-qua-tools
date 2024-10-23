@@ -12,6 +12,7 @@ from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 from dash import html
 import dash_bootstrap_components as dbc
 from qualang_tools.control_panel.video_mode.dash_tools import create_input_field, create_axis_layout
+from qualang_tools.control_panel.video_mode.base_component import DashComponent
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
@@ -42,7 +43,7 @@ def dicts_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     return True
 
 
-class BaseDataAcquirer(ABC):
+class BaseDataAcquirer(DashComponent):
     """Base class for data acquirers.
 
     This class defines the interface for data acquirers, which are responsible for acquiring data from a device.
@@ -60,11 +61,10 @@ class BaseDataAcquirer(ABC):
         x_axis: SweepAxis,
         y_axis: SweepAxis,
         num_averages=1,
+        component_id: str = "data-acquirer",
         **kwargs,
     ):
-        if kwargs:
-            raise ValueError(f"Unexpected kwargs for DataAcquirer: {kwargs}")
-
+        super().__init__(component_id)
         self.x_axis = x_axis
         self.y_axis = y_axis
         self.num_averages = num_averages
@@ -158,7 +158,7 @@ class BaseDataAcquirer(ABC):
                 dbc.Row(
                     [
                         create_axis_layout(
-                            "x",
+                            self.get_component_id("x"),
                             span=self.x_axis.span,
                             points=self.x_axis.points,
                             min_span=0.01,
@@ -166,7 +166,7 @@ class BaseDataAcquirer(ABC):
                             units=self.x_axis.units,
                         ),
                         create_axis_layout(
-                            "y",
+                            self.get_component_id("y"),
                             span=self.y_axis.span,
                             points=self.y_axis.points,
                             min_span=0.01,
@@ -193,6 +193,22 @@ class BaseDataAcquirer(ABC):
             return self.y_axis, id.replace("y-", "")
         else:
             return self, id
+
+    def get_all_input_ids(self):
+        """Return a list of all input component IDs for this data acquirer and its subcomponents."""
+        ids = ["num-averages", "x-span", "y-span", "x-points", "y-points"]
+        ids.extend(self.get_data_acquirer_input_ids())
+        return ids
+
+    @abstractmethod
+    def get_data_acquirer_input_ids(self):
+        """Return a list of input component IDs specific to this data acquirer."""
+        pass
+
+    @abstractmethod
+    def update_from_inputs(self, inputs):
+        """Update the data acquirer's attributes based on the input values."""
+        pass
 
 
 class RandomDataAcquirer(BaseDataAcquirer):
@@ -242,6 +258,12 @@ class RandomDataAcquirer(BaseDataAcquirer):
             return value
 
         return [("acquire-time", update_acquire_time)]
+
+    def get_data_acquirer_input_ids(self):
+        return ["acquire-time"]
+
+    def update_from_inputs(self, inputs):
+        self.acquire_time = inputs["acquire-time"]
 
 
 class OPXDataAcquirer(BaseDataAcquirer):
@@ -438,6 +460,23 @@ class OPXDataAcquirer(BaseDataAcquirer):
             return self.qua_inner_loop_action, id.replace("inner-loop-", "")
         else:
             return super().get_object_and_attribute(id)
+
+    def get_data_acquirer_input_ids(self):
+        ids = ["result-type"]
+        ids.extend(self.scan_mode.get_input_ids())
+        ids.extend(self.qua_inner_loop_action.get_input_ids())
+        return ids
+
+    def update_from_inputs(self, inputs):
+        self.result_type = inputs["result-type"]
+        self.scan_mode.update_from_inputs(inputs)
+        self.qua_inner_loop_action.update_from_inputs(inputs)
+
+    def get_all_input_ids(self):
+        ids = super().get_all_input_ids()
+        ids.extend(self.scan_mode.get_input_ids())
+        ids.extend(self.qua_inner_loop_action.get_input_ids())
+        return ids
 
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):

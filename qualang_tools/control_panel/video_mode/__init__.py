@@ -8,6 +8,12 @@ from qualang_tools.control_panel.video_mode.video_mode import *
 
 
 if __name__ == "__main__":
+    import logging
+
+    # Update the logging configuration
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
     x_axis = SweepAxis(name="X", span=0.1, points=101)
     y_axis = SweepAxis(name="Y", span=0.1, points=101)
 
@@ -18,5 +24,5 @@ if __name__ == "__main__":
         acquire_time=0.1,
     )
 
-    live_plotter = VideoMode(data_acquirer=data_acquirer)
+    live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
     live_plotter.run()
