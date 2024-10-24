@@ -68,6 +68,13 @@ Note that in order use the `Interactive Plot Library`, you need to install using
 pip install --upgrade qualang-tools[interplot]
 ```
 
+Note that in order to run 2-Qubit Randomized Benchmarking, you need to install using
+```bash
+pip install --upgrade qualang-tools[two-qubit-rb]
+# Install cirq separately, since it only works with python==3.10 and can't be listed as a dependency
+pip install cirq==1.3.0
+```
+
 ## Support and Contribution
 Have an idea for another tool? A way to improve an existing one? Found a bug in our code?
 
