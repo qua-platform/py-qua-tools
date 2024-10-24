@@ -5,7 +5,8 @@ import pickle
 import random
 from typing import Set, List
 
-import cirq
+from ._cirq import import_cirq
+cirq = import_cirq()
 import numpy as np
 
 from .simple_tableau import SimpleTableau

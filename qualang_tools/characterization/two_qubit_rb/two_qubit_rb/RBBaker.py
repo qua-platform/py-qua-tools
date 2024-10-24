@@ -2,7 +2,8 @@ import copy
 import json
 from typing import Callable, Dict, Optional, List
 
-import cirq
+from ._cirq import import_cirq
+cirq = import_cirq()
 from cirq import GateOperation
 from qm.qua import switch_, case_, declare, align, for_
 from qualang_tools.bakery.bakery import Baking, baking

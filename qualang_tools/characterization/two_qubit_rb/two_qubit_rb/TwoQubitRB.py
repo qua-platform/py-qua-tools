@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import Callable, List, Literal, Dict, Tuple, Optional, Union
 
-import cirq
+from ._cirq import import_cirq
+cirq = import_cirq()
 import numpy as np
 from qm import QuantumMachinesManager
 from qm.jobs.running_qm_job import RunningQmJob

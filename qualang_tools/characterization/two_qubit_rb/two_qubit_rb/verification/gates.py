@@ -3,7 +3,8 @@ from functools import lru_cache
 import numpy as np
 from dataclasses import dataclass
 
-import cirq
+from .._cirq import import_cirq
+cirq = import_cirq()
 
 
 I = cirq.unitary(cirq.I)

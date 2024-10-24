@@ -1,6 +1,10 @@
 import os
 from pathlib import Path
 
+import pytest
+
+cirq = pytest.importorskip("cirq")
+
 from qualang_tools.bakery.bakery import Baking
 from qualang_tools.characterization.two_qubit_rb import TwoQubitRb
 
