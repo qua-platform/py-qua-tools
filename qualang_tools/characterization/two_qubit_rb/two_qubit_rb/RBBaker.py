@@ -3,6 +3,7 @@ import json
 from typing import Callable, Dict, Optional, List
 
 from ._cirq import import_cirq
+
 cirq = import_cirq()
 from cirq import GateOperation
 from qm.qua import switch_, case_, declare, align, for_

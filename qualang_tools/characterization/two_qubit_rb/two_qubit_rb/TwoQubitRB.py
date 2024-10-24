@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Callable, List, Literal, Dict, Tuple, Optional, Union
 
 from ._cirq import import_cirq
+
 cirq = import_cirq()
 import numpy as np
 from qm import QuantumMachinesManager

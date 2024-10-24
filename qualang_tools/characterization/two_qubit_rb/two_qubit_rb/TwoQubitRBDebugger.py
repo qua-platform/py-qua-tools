@@ -53,7 +53,7 @@ class TwoQubitRbDebugger:
         qm = qmm.open_qm(self.rb._config)
         job = qm.execute(prog)
 
-        for sequence in tqdm(sequences, desc='Running test-sequences', unit='sequence'):
+        for sequence in tqdm(sequences, desc="Running test-sequences", unit="sequence"):
             self.sequence_tracker.make_sequence(sequence)
             self._insert_all_input_stream(job, sequence)
 
@@ -103,7 +103,7 @@ class TwoQubitRbDebugger:
         fig, axs = plt.subplots(5, 3, figsize=(12, 10))
         axs = axs.ravel()
 
-        basis_states = [fr"$|00\rangle$", fr"$|01\rangle$", fr"$|10\rangle$", fr"$|11\rangle$"]
+        basis_states = [rf"$|00\rangle$", rf"$|01\rangle$", rf"$|10\rangle$", rf"$|11\rangle$"]
 
         for i, sequence in enumerate(self.sequence_tracker._sequences_as_gates):
             expected_state = self.sequence_tracker.calculate_resultant_state(sequence)
@@ -113,11 +113,11 @@ class TwoQubitRbDebugger:
             counts = counts / counts.sum()
 
             axs[i].set_title(f"${sequence_labels[i]}$")
-            axs[i].bar(basis_states, expected_distribution_into_two_qubit_bases, label='Expected', alpha=0.5, color='b')
-            axs[i].bar(basis_states, counts, label='Measured', alpha=0.5, color='r')
+            axs[i].bar(basis_states, expected_distribution_into_two_qubit_bases, label="Expected", alpha=0.5, color="b")
+            axs[i].bar(basis_states, counts, label="Measured", alpha=0.5, color="r")
 
         handles, labels = axs[-1].get_legend_handles_labels()
-        fig.legend(handles, labels, loc='upper left', ncol=2)
+        fig.legend(handles, labels, loc="upper left", ncol=2)
         fig.suptitle(r"State Distribution of PhasedXZ Commands applied to $|00\rangle$")
         fig.supylabel("Measurement Probability")
         fig.supxlabel(r"Basis State as $|q_2, q_1\rangle$")

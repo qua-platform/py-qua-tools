@@ -4,10 +4,12 @@ import numpy as np
 from dataclasses import dataclass
 
 from .._cirq import import_cirq
+
 cirq = import_cirq()
 
 
 I = cirq.unitary(cirq.I)
+
 
 @dataclass(frozen=True)
 class Gate:
@@ -41,7 +43,7 @@ class PhasedXZ(Gate):
         if gate_str == "":
             gate_str += "I"
 
-        gate_str = gate_str.replace('1.0', '')
+        gate_str = gate_str.replace("1.0", "")
 
         return gate_str
 

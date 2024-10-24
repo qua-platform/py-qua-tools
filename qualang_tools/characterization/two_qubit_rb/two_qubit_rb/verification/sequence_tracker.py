@@ -57,7 +57,9 @@ class SequenceTracker:
             ideal_state = self.calculate_resultant_state(sequence)
             expected_state = np.kron(np.array([1, 0]), np.array([1, 0]))  # should recover to |00>
             expected_state = np.outer(expected_state, expected_state.conj())
-            assert np.allclose(ideal_state, expected_state), f"expected to recover to at {expected_state}, got {ideal_state}"
+            assert np.allclose(
+                ideal_state, expected_state
+            ), f"expected to recover to at {expected_state}, got {ideal_state}"
 
         print(f"Verification passed for all {len(self._sequences_as_gates)} sequence(s).")
 

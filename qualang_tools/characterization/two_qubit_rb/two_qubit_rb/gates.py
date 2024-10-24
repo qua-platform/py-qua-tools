@@ -6,6 +6,7 @@ import random
 from typing import Set, List
 
 from ._cirq import import_cirq
+
 cirq = import_cirq()
 import numpy as np
 

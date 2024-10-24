@@ -1,6 +1,7 @@
 def import_cirq():
     try:
         import cirq
+
         return cirq
     except ImportError:
         raise ImportError(
