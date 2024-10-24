@@ -49,3 +49,9 @@ class Connectivity(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.COUPLER, False, constraints, elements
         )
+
+    def add_qubit_pair_cross_drive_lines(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
+        elements = self._make_qubit_pair_elements(qubit_pairs)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CROSS_DRIVE, triggered, constraints, elements
+        )
