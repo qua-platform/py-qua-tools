@@ -1,17 +1,17 @@
+from ._cirq import import_cirq
+from .gates import GateGenerator, gate_db
+from .verification.command_registry import CommandRegistry
+
 import copy
 import json
 from typing import Callable, Dict, Optional, List
 
-from ._cirq import import_cirq
-
-cirq = import_cirq()
 from cirq import GateOperation
 from qm.qua import switch_, case_, declare, align, for_
 from qualang_tools.bakery.bakery import Baking, baking
 from tqdm import tqdm
 
-from .gates import GateGenerator, gate_db
-from .verification.command_registry import CommandRegistry
+cirq = import_cirq()
 
 
 class RBBaker:
@@ -50,15 +50,15 @@ class RBBaker:
             raise RuntimeError(f"Two qubit gate '{name}' implementation not provided.")
 
     def _gen_gate(self, baker: Baking, gate_op: GateOperation):
-        if type(gate_op.gate) == cirq.PhasedXZGate:
+        if isinstance(gate_op.gate, cirq.PhasedXZGate):
             self._single_qubit_gate_generator(baker, self._get_qubits(gate_op)[0], *self._get_phased_xz_args(gate_op))
-        elif type(gate_op.gate) == cirq.ISwapPowGate and gate_op.gate.exponent == 0.5:
+        elif isinstance(gate_op.gate, cirq.ISwapPowGate) and gate_op.gate.exponent == 0.5:
             self._validate_two_qubit_gate_available("sqr_iSWAP")
             self._two_qubit_gate_generators["sqr_iSWAP"](baker, *self._get_qubits(gate_op))
-        elif type(gate_op.gate) == cirq.CNotPowGate and gate_op.gate.exponent == 1:
+        elif isinstance(gate_op.gate, cirq.CNotPowGate) and gate_op.gate.exponent == 1:
             self._validate_two_qubit_gate_available("CNOT")
             self._two_qubit_gate_generators["CNOT"](baker, *self._get_qubits(gate_op))
-        elif type(gate_op.gate) == cirq.CZPowGate and gate_op.gate.exponent == 1:
+        elif isinstance(gate_op.gate, cirq.CZPowGate) and gate_op.gate.exponent == 1:
             self._validate_two_qubit_gate_available("CZ")
             self._two_qubit_gate_generators["CZ"](baker, *self._get_qubits(gate_op))
         else:

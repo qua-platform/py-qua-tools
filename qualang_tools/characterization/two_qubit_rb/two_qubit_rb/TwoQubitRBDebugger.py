@@ -103,7 +103,7 @@ class TwoQubitRbDebugger:
         fig, axs = plt.subplots(5, 3, figsize=(12, 10))
         axs = axs.ravel()
 
-        basis_states = [rf"$|00\rangle$", rf"$|01\rangle$", rf"$|10\rangle$", rf"$|11\rangle$"]
+        basis_states = [r"$|00\rangle$", r"$|01\rangle$", r"$|10\rangle$", r"$|11\rangle$"]
 
         for i, sequence in enumerate(self.sequence_tracker._sequences_as_gates):
             expected_state = self.sequence_tracker.calculate_resultant_state(sequence)

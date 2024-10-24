@@ -1,3 +1,6 @@
+from ._cirq import import_cirq
+from .simple_tableau import SimpleTableau
+
 import dataclasses
 import os
 import pathlib
@@ -5,12 +8,10 @@ import pickle
 import random
 from typing import Set, List
 
-from ._cirq import import_cirq
-
-cirq = import_cirq()
 import numpy as np
 
-from .simple_tableau import SimpleTableau
+cirq = import_cirq()
+
 
 q1, q2 = cirq.LineQubit.range(1, 3)
 
@@ -121,8 +122,7 @@ native_2_qubit_gates = {
 }
 
 
-##### Conversion from unitary / cirq to tableau
-
+# Conversion from unitary / cirq to tableau
 I = np.array([[1, 0], [0, 1]])  # identity
 X = np.array([[0, 1], [1, 0]])  # pi x
 Y = np.array([[0, -1j], [1j, 0]])  # pi y

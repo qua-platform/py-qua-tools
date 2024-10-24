@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import List
 
 import numpy as np
 
@@ -42,7 +42,7 @@ class SequenceTracker:
         for i, sequence in enumerate(self._sequences_as_gates):
             result += f"Sequence {i}:\n"
             result += f"\tCommand IDs: {self._sequences_as_command_ids[i]}\n"
-            result += f"\tGates:\n"
+            result += "\tGates:\n"
             for j, operation in enumerate(sequence):
                 result += f"\t\t{j}: {operation}\n"
             result += "\n"

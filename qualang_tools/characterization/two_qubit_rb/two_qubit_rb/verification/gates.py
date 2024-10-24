@@ -65,13 +65,13 @@ class PhasedXZ(Gate):
 @dataclass(frozen=True)
 class CZ(Gate):
     def __str__(self):
-        return f"CZ"
+        return "CZ"
 
     def matrix(self):
         return cirq.unitary(cirq.CZ)
 
     def gate_str(self) -> str:
-        return f"CZ"
+        return "CZ"
 
 
 @dataclass(frozen=True)

@@ -1,15 +1,4 @@
-from pathlib import Path
-from typing import Callable, List, Literal, Dict, Tuple, Optional, Union
-
 from ._cirq import import_cirq
-
-cirq = import_cirq()
-import numpy as np
-from qm import QuantumMachinesManager
-from qm.jobs.running_qm_job import RunningQmJob
-from qm.qua import *
-
-from qualang_tools.bakery.bakery import Baking
 from .RBBaker import RBBaker
 from .RBResult import RBResult
 from .gates import GateGenerator, gate_db, tableau_from_cirq
@@ -21,6 +10,18 @@ from .verification.command_registry import (
     decorate_two_qubit_gate_generator_with_command_recording,
 )
 from .verification.sequence_tracker import SequenceTracker
+
+from pathlib import Path
+from typing import Callable, List, Literal, Dict, Tuple, Optional, Union
+
+import numpy as np
+from qm import QuantumMachinesManager
+from qm.jobs.running_qm_job import RunningQmJob
+from qm.qua import *
+
+from qualang_tools.bakery.bakery import Baking
+
+cirq = import_cirq()
 
 
 class TwoQubitRb:

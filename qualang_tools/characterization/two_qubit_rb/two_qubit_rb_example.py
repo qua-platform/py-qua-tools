@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import random
 from typing import List
 
@@ -6,6 +8,7 @@ import matplotlib.pyplot as plt
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qualang_tools.bakery.bakery import Baking
+
 from configuration import *
 from two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
 
