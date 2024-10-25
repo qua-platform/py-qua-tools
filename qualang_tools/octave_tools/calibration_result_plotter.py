@@ -47,7 +47,7 @@ def show_lo_result(
     dq = np.mean(np.diff(q_scan, axis=1))
     di = np.mean(np.diff(i_scan, axis=0))
 
-    plt.pcolor(q_scan, i_scan, lo)
+    plt.pcolor(q_scan, i_scan, lo, cmap="Blues_r")
     plt.xlabel("Q_0 (mV)")
     plt.ylabel("I_0 (mV)")
     plt.axis("equal")
@@ -64,9 +64,9 @@ def show_lo_result(
     plt.text(
         np.min(q_scan) + 0.5 * dq,
         np.max(i_scan) - 0.5 * di,
-        f"{label}coarse\nLO = {lo_freq / 1e9:.3f}GHz",
+        f"{label}coarse scan\nLO = {lo_freq / 1e9:.3f}GHz",
         color="k",
-        bbox=dict(facecolor="w", alpha=0.2),
+        bbox=dict(facecolor="w", alpha=0.8),
         verticalalignment="top",
     )
 
@@ -157,7 +157,7 @@ def show_lo_result(
     dq = np.mean(np.diff(fine_q_scan, axis=1))
     di = np.mean(np.diff(fine_i_scan, axis=0))
 
-    plt.pcolor(fine_q_scan, fine_i_scan, lo)
+    plt.pcolor(fine_q_scan, fine_i_scan, lo, cmap="Blues_r")
     plt.xlabel("Q_0 (mV)")
     plt.ylabel("I_0 (mV)")
     plt.axis("equal")
@@ -218,11 +218,12 @@ def show_lo_result(
 
     t = plt.text(
         np.min(fine_q_scan) + 0.5 * dq,
-        np.max(fine_i_scan) - 1.5 * di,
-        "fine",
+        np.max(fine_i_scan) - 0.5 * di,
+        f"fine scan\nLO = {lo_freq / 1e9:.3f}GHz",
         color="k",
+        verticalalignment="top"
     )
-    t.set_bbox(dict(facecolor="w", alpha=0.2))
+    t.set_bbox(dict(facecolor="w", alpha=0.8))
 
     plt.text(
         x0,
@@ -242,7 +243,12 @@ def show_lo_result(
 
     iq_error = p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo
 
-    plt.pcolor(fine_q_scan, fine_i_scan, iq_error * 1e6)
+    plt.pcolor(
+        fine_q_scan,
+        fine_i_scan,
+        iq_error * 1e6,
+        cmap="Blues_r",
+    )
     plt.xlabel("Q (mV)")
     plt.ylabel("I (mV)")
     plt.axis("equal")
@@ -253,7 +259,7 @@ def show_lo_result(
         "fit error",
         color="k",
     )
-    t.set_bbox(dict(facecolor="w", alpha=0.2))
+    t.set_bbox(dict(facecolor="w", alpha=0.8))
 
     plt.colorbar()
 
@@ -287,6 +293,7 @@ def show_lo_result(
         "\n".join(content),
         horizontalalignment="left",
         verticalalignment="top",
+        bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1')
     )
     plt.box(False)
     plt.xticks([])
@@ -343,7 +350,7 @@ def show_if_result(
     dp = np.mean(np.diff(r.p_scan, axis=1))
     dg = np.mean(np.diff(r.g_scan, axis=0))
 
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6)
+    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap="Blues_r")
     plt.xlabel("phase (rad)")
     plt.ylabel("gain(%)")
     plt.axis("equal")
@@ -365,9 +372,9 @@ def show_if_result(
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
         np.max(r.g_scan - 1.5 * dg),
-        f"{label}coarse\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
+        f"{label}coarse scan\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
         color="k",
-        bbox=dict(facecolor="w", alpha=0.2),
+        bbox=dict(facecolor="w", alpha=0.8),
         verticalalignment="top",
     )
 
@@ -402,7 +409,7 @@ def show_if_result(
     plt.axis("equal")
 
     plt.contour(r.p_scan, r.g_scan, r.image * 1e6, colors="w", alpha=0.3)
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6)
+    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap="Blues_r")
 
     plt.plot(r.phase, r.gain, "yo", markersize=8)
     plt.plot(r.phase, r.gain, "ro", markersize=4)
@@ -421,9 +428,9 @@ def show_if_result(
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
         np.max(r.g_scan - 1.5 * dg),
-        f"{label}fine\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
+        f"{label}fine scan\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
         color="k",
-        bbox=dict(facecolor="w", alpha=0.2),
+        bbox=dict(facecolor="w", alpha=0.8),
         verticalalignment="top",
     )
 
@@ -447,7 +454,7 @@ def show_if_result(
 
     image = p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image
 
-    plt.pcolor(r.p_scan, r.g_scan, image * 1e6)
+    plt.pcolor(r.p_scan, r.g_scan, image * 1e6, cmap="Blues_r")
     plt.xlabel("phase (rad)")
     plt.ylabel("gain")
     plt.axis("equal")
@@ -462,7 +469,7 @@ def show_if_result(
         np.max(r.g_scan - 1.5 * dg),
         f"{label}fit error\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
         color="k",
-        bbox=dict(facecolor="w", alpha=0.2),
+        bbox=dict(facecolor="w", alpha=0.8),
         verticalalignment="top",
     )
 
@@ -498,6 +505,7 @@ def show_if_result(
         "\n".join(content),
         horizontalalignment="left",
         verticalalignment="top",
+        bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'),
     )
     plt.box(False)
     plt.xticks([])
