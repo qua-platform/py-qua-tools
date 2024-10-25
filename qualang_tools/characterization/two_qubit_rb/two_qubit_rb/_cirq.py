@@ -6,6 +6,6 @@ def import_cirq():
     except ImportError:
         raise ImportError(
             "Cirq is not installed. Please install it with:\n"
-            "pip install cirq\n"
+            "pip install cirq==1.3.0\n"
             "Note: Cirq requires Python >= 3.10. Please ensure your Python version meets this requirement."
         )
