@@ -232,7 +232,7 @@ octave_calibration_tool(
 )
 ```
 
-## show_lo_result
+## Show the LO leakage calibration results
 Plot the LO leakage calibration data.
 The produced plot shows the LO leakage signal as a function of the `I_0` and `Q_O` dc offsets for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
 
