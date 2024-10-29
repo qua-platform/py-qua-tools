@@ -35,6 +35,7 @@ class WiringLineType(Enum):
     CHARGE = "q"
     COUPLER = "c"
     CROSS_DRIVE = "xd"
+    ZZ_DRIVE = "zz"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -43,6 +44,7 @@ FLUX = WiringLineType.FLUX
 CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_DRIVE = WiringLineType.CROSS_DRIVE
+ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 
 
 class WiringSpec:

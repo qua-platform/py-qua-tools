@@ -39,20 +39,24 @@ def allocate_wiring(
         WiringLineType.FLUX,
         WiringLineType.CHARGE,
         WiringLineType.COUPLER,
+        WiringLineType.CROSS_DRIVE,
+        WiringLineType.ZZ_DRIVE,
     ]
 
     specs = connectivity.specs
 
     used_channel_cache = copy.deepcopy(instruments.used_channels)
 
-    specs_with_untyped_lines = set()
+    specs_with_untyped_lines = []
     for line_type in line_type_fill_order:
         for spec in specs:
             if spec.line_type not in line_type_fill_order:
-                specs_with_untyped_lines.add(spec)
+                specs_with_untyped_lines.append(spec)
             if spec.line_type == line_type:
                 _allocate_wiring(spec, instruments)
 
+    # remove duplicates
+    specs_with_untyped_lines = list(dict.fromkeys(specs_with_untyped_lines))
     for spec in specs_with_untyped_lines:
         _allocate_wiring(spec, instruments)
 

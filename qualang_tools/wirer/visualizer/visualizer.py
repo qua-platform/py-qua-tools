@@ -40,6 +40,23 @@ def make_annotations(inverted_dict: dict) -> List[PortAnnotation]:
     return annotations
 
 
+def merge_annotations_on_same_channel(annotations: List[PortAnnotation]) -> List[PortAnnotation]:
+    annotations_by_channel = dict()
+    for annotation in annotations:
+        channel_address = (annotation.con, annotation.slot, annotation.port, annotation.io_type, annotation.signal_type, annotation.instrument_id)
+        annotations_at_channel_address = annotations_by_channel.get(channel_address, [])
+        annotations_by_channel[channel_address] = annotations_at_channel_address + [annotation]
+
+    merged_annotations = []
+    for annotations_at_channel_address in annotations_by_channel.values():
+        base_annotation = annotations_at_channel_address[0]
+        for annotation in annotations_at_channel_address[1:]:
+            base_annotation.labels += annotation.labels
+        base_annotation.labels = sorted(base_annotation.labels)
+        merged_annotations.append(base_annotation)
+
+    return merged_annotations
+
 def make_unused_channel_annotations(available_channels: InstrumentChannels) -> List[PortAnnotation]:
     annotations = []
     for _, channel_list in available_channels.stack.items():
@@ -84,6 +101,7 @@ def visualize(qubit_dict, available_channels=None):
 
     # Prepare annotations and labels
     annotations = make_annotations(inverted_dict)
+    annotations = merge_annotations_on_same_channel(annotations)
 
     # Manage figures and draw
     manager = InstrumentFigureManager()
