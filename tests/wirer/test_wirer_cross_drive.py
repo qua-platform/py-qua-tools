@@ -27,7 +27,7 @@ def test_2q_allocation_cross_drive(instruments_2lf_2mw):
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
     if visualize_flag:
-        visualize(connectivity.elements)  #, instruments_2lf_2mw.available_channels)
+        visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
 
     for i, qubit_pair in enumerate(qubit_pairs):

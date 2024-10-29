@@ -43,7 +43,14 @@ def make_annotations(inverted_dict: dict) -> List[PortAnnotation]:
 def merge_annotations_on_same_channel(annotations: List[PortAnnotation]) -> List[PortAnnotation]:
     annotations_by_channel = dict()
     for annotation in annotations:
-        channel_address = (annotation.con, annotation.slot, annotation.port, annotation.io_type, annotation.signal_type, annotation.instrument_id)
+        channel_address = (
+            annotation.con,
+            annotation.slot,
+            annotation.port,
+            annotation.io_type,
+            annotation.signal_type,
+            annotation.instrument_id,
+        )
         annotations_at_channel_address = annotations_by_channel.get(channel_address, [])
         annotations_by_channel[channel_address] = annotations_at_channel_address + [annotation]
 
@@ -56,6 +63,7 @@ def merge_annotations_on_same_channel(annotations: List[PortAnnotation]) -> List
         merged_annotations.append(base_annotation)
 
     return merged_annotations
+
 
 def make_unused_channel_annotations(available_channels: InstrumentChannels) -> List[PortAnnotation]:
     annotations = []
