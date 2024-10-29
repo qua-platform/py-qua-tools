@@ -3,10 +3,17 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qm.type_hinting.general import Number
 
 logger = logging.getLogger(__name__)
+
+# Define the colors from start (blue), midpoint (white), to end (red)
+colors = ["midnightblue", "royalblue", "lightskyblue", "white", "lightgrey"]
+
+# Create the colormap
+custom_cmap = LinearSegmentedColormap.from_list("custom_diverging", colors, N=256)
 
 
 def show_lo_result(
@@ -47,9 +54,9 @@ def show_lo_result(
     dq = np.mean(np.diff(q_scan, axis=1))
     di = np.mean(np.diff(i_scan, axis=0))
 
-    plt.pcolor(q_scan, i_scan, lo, cmap="Blues_r")
-    plt.xlabel("Q_0 (mV)")
-    plt.ylabel("I_0 (mV)")
+    plt.pcolor(q_scan, i_scan, lo, cmap=custom_cmap)
+    plt.xlabel("Q_dc (mV)")
+    plt.ylabel("I_dc (mV)")
     plt.axis("equal")
 
     cross = np.array(
@@ -120,7 +127,7 @@ def show_lo_result(
     plt.text(
         x0,
         y0 - di * 2,
-        f"Q_0={x0:.2f}mV\nI_0={y0:.2f}mV",
+        f"Q_dc={x0:.2f}mV\nI_dc={y0:.2f}mV",
         color="y",
         horizontalalignment="center",
         verticalalignment="top",
@@ -157,9 +164,9 @@ def show_lo_result(
     dq = np.mean(np.diff(fine_q_scan, axis=1))
     di = np.mean(np.diff(fine_i_scan, axis=0))
 
-    plt.pcolor(fine_q_scan, fine_i_scan, lo, cmap="Blues_r")
-    plt.xlabel("Q_0 (mV)")
-    plt.ylabel("I_0 (mV)")
+    plt.pcolor(fine_q_scan, fine_i_scan, lo, cmap=custom_cmap)
+    plt.xlabel("Q_dc (mV)")
+    plt.ylabel("I_dc (mV)")
     plt.axis("equal")
 
     if lo_data.debug.prev_result is not None:
@@ -221,14 +228,14 @@ def show_lo_result(
         np.max(fine_i_scan) - 0.5 * di,
         f"fine scan\nLO = {lo_freq / 1e9:.3f}GHz",
         color="k",
-        verticalalignment="top"
+        verticalalignment="top",
     )
     t.set_bbox(dict(facecolor="w", alpha=0.8))
 
     plt.text(
         x0,
         y0 - di * 2,
-        f"Q_0={x0:.2f}mV\nI_0={y0:.2f}mV",
+        f"Q_dc={x0:.2f}mV\nI_dc={y0:.2f}mV",
         color="y",
         horizontalalignment="center",
         verticalalignment="top",
@@ -247,7 +254,7 @@ def show_lo_result(
         fine_q_scan,
         fine_i_scan,
         iq_error * 1e6,
-        cmap="Blues_r",
+        cmap=custom_cmap,
     )
     plt.xlabel("Q (mV)")
     plt.ylabel("I (mV)")
@@ -272,7 +279,7 @@ def show_lo_result(
         f"LO auto calibration @ {lo_freq/1e9:.3f}GHz",
         "",
         "Current result:",
-        f"      I_0 = {y0:.02f}mV, Q_0 = {x0:.2f}mV",
+        f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
         "Previous result:",
     ]
 
@@ -280,9 +287,9 @@ def show_lo_result(
         p_x0 = lo_data.debug.prev_result[1] * 1000
         p_y0 = lo_data.debug.prev_result[0] * 1000
 
-        content.append(f"      I_0 = {p_y0:.02f}mV, Q_0 = {p_x0:.2f}mV")
+        content.append(f"      I_dc = {p_y0:.02f}mV, Q_dc = {p_x0:.2f}mV")
         content.append("Diff:")
-        content.append(f"      I_0 = {p_y0-y0:.02f}mV, Q_0 = {p_x0-x0:.2f}mV")
+        content.append(f"      I_dc = {p_y0-y0:.02f}mV, Q_dc = {p_x0-x0:.2f}mV")
 
     else:
         content.append("      - none -")
@@ -293,7 +300,7 @@ def show_lo_result(
         "\n".join(content),
         horizontalalignment="left",
         verticalalignment="top",
-        bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1')
+        bbox=dict(facecolor="none", edgecolor="black", boxstyle="round,pad=1"),
     )
     plt.box(False)
     plt.xticks([])
@@ -350,7 +357,7 @@ def show_if_result(
     dp = np.mean(np.diff(r.p_scan, axis=1))
     dg = np.mean(np.diff(r.g_scan, axis=0))
 
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap="Blues_r")
+    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
     plt.ylabel("gain(%)")
     plt.axis("equal")
@@ -409,7 +416,7 @@ def show_if_result(
     plt.axis("equal")
 
     plt.contour(r.p_scan, r.g_scan, r.image * 1e6, colors="w", alpha=0.3)
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap="Blues_r")
+    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap=custom_cmap)
 
     plt.plot(r.phase, r.gain, "yo", markersize=8)
     plt.plot(r.phase, r.gain, "ro", markersize=4)
@@ -454,7 +461,7 @@ def show_if_result(
 
     image = p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image
 
-    plt.pcolor(r.p_scan, r.g_scan, image * 1e6, cmap="Blues_r")
+    plt.pcolor(r.p_scan, r.g_scan, image * 1e6, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
     plt.ylabel("gain")
     plt.axis("equal")
@@ -505,7 +512,7 @@ def show_if_result(
         "\n".join(content),
         horizontalalignment="left",
         verticalalignment="top",
-        bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'),
+        bbox=dict(facecolor="none", edgecolor="black", boxstyle="round,pad=1"),
     )
     plt.box(False)
     plt.xticks([])
