@@ -253,7 +253,8 @@ plotter.show_lo_result(calibration_output)
 
 ### Outputs:
 
-![lo_result](https://github.com/user-attachments/assets/883432f0-3899-4691-9c5c-e41a8d1b1b35)
+![lo_calibration](https://github.com/user-attachments/assets/abab56ed-41eb-4389-b193-e102aa274579)
+
 
 ## Show the image calibration results
 Plot the image sideband calibration data.
@@ -276,4 +277,5 @@ plotter.show_if_result(calibration_output)
 
 ### Outputs:
 
-![if_result](https://github.com/user-attachments/assets/de95160e-0fc5-4847-9416-399cc89c9ff1)
+![if_calibration](https://github.com/user-attachments/assets/b1d44127-ed62-447b-8188-923a82fe1498)
+
