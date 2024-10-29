@@ -40,6 +40,7 @@ def show_lo_result(
         return
 
     plt.figure(figsize=(11, 8.9))
+    # plt.title(f"LO auto calibration @ {lo_freq/1e9:.3f}GHz")
 
     lo_data = data[(lo_freq, output_gain)]
 
@@ -276,8 +277,6 @@ def show_lo_result(
     plt.ylim(0, 1)
 
     content = [
-        f"LO auto calibration @ {lo_freq/1e9:.3f}GHz",
-        "",
         "Current result:",
         f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
         "Previous result:",
@@ -305,6 +304,8 @@ def show_lo_result(
     plt.box(False)
     plt.xticks([])
     plt.yticks([])
+    plt.suptitle(f"LO auto calibration @ {lo_freq/1e9:.3f}GHz")
+    plt.tight_layout()
 
 
 def show_if_result(
@@ -486,9 +487,6 @@ def show_if_result(
     plt.ylim(0, 1)
 
     content = [
-        "IMAGE auto calibration",
-        f"      LO = {lo_freq/1e9:.3f}GHz, IF = {if_freq/1e6:.3f}MHz",
-        "",
         "Current result:",
         f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
         "Previous result:",
@@ -517,3 +515,5 @@ def show_if_result(
     plt.box(False)
     plt.xticks([])
     plt.yticks([])
+    plt.suptitle(f"IMAGE auto calibration: LO = {lo_freq/1e9:.3f}GHz, IF = {if_freq/1e6:.3f}MHz")
+    plt.tight_layout()
