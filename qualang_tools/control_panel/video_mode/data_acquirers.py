@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, List, Literal, Optional
 import xarray as xr
 import logging
 from time import sleep, perf_counter
@@ -15,7 +15,6 @@ from qualang_tools.control_panel.video_mode.dash_tools import (
     create_input_field,
     create_axis_layout,
 )
-from qualang_tools.control_panel.video_mode.base_component import DashComponent
 
 
 __all__ = ["BaseDataAcquirer", "RandomDataAcquirer", "OPXDataAcquirer"]
