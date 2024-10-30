@@ -4,14 +4,9 @@ version = "v0.17.7"
 description = "The qualang_tools package includes various tools related to QUA programs in Python"
 authors = ["Quantum Machines <info@quantum-machines.co>"]
 license = "BSD-3-Clause"
-packages = [
-    { include = "qualang_tools" }
-]
-include = [
-]
-exclude = [
-    "**/tests/**",
-]
+packages = [{ include = "qualang_tools" }]
+include = []
+exclude = ["**/tests/**"]
 readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
@@ -36,6 +31,8 @@ dill = { version = "^0.3.4", optional = true }
 pypiwin32 = { version = "^223", optional = true }
 ipython = { version = "^8.10.0", optional = true }
 xarray = { version = "^2023.0.0", optional = true }
+kaleido = { version = "^0.2.1", optional = true }
+h5netcdf = { version = "^1.4.0", optional = true }
 scikit-learn = "^1.0.2"
 grpclib = "0.4.5"
 
@@ -61,7 +58,7 @@ configbuilder = [
     "waitress",
 ]
 datahandler = ["xarray", "netcdf4"]
-videomode = ["dash", "dash-extensions", "xarray"]
+videomode = ["dash", "dash-extensions", "xarray", "kaleido", "h5netcdf"]
 
 [tool.black]
 line-length = 120

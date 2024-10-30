@@ -11,7 +11,10 @@ from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
 from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 from dash import html
 import dash_bootstrap_components as dbc
-from qualang_tools.control_panel.video_mode.dash_tools import create_input_field, create_axis_layout
+from qualang_tools.control_panel.video_mode.dash_tools import (
+    create_input_field,
+    create_axis_layout,
+)
 from qualang_tools.control_panel.video_mode.base_component import DashComponent
 
 
@@ -82,8 +85,10 @@ class BaseDataAcquirer(ABC):
             attrs={"units": "V", "long_name": "Signal"},
         )
         for axis in [self.x_axis, self.y_axis]:
-            label = axis.label or axis.name
-            self.data_array.coords[axis.name].attrs.update({"units": axis.units, "long_name": label})
+            attrs = {"label": axis.label or axis.name}
+            if axis.units is not None:
+                attrs["units"] = axis.units
+            self.data_array.coords[axis.name].attrs.update(attrs)
         logging.debug("DataGenerator initialized with initial data")
 
     @abstractmethod
@@ -122,10 +127,15 @@ class BaseDataAcquirer(ABC):
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
         for axis in [self.x_axis, self.y_axis]:
-            label = axis.label or axis.name
-            self.data_array.coords[axis.name].attrs.update({"units": axis.units, "long_name": label})
+            attrs = {"label": axis.label or axis.name}
+            if axis.units is not None:
+                attrs["units"] = axis.units
+            self.data_array.coords[axis.name].attrs.update(attrs)
+
         mean_abs_data = np.mean(np.abs(averaged_data))
-        logging.debug(f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}")
+        logging.debug(
+            f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}"
+        )
         return self.data_array
 
     @abstractmethod
@@ -202,7 +212,9 @@ class RandomDataAcquirer(BaseDataAcquirer):
         **kwargs,
     ):
         self.acquire_time = acquire_time
-        super().__init__(x_axis=x_axis, y_axis=y_axis, num_averages=num_averages, **kwargs)
+        super().__init__(
+            x_axis=x_axis, y_axis=y_axis, num_averages=num_averages, **kwargs
+        )
 
     def acquire_data(self):
         """Acquire random data.
@@ -335,8 +347,12 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
             with stream_processing():
                 streams = {
-                    "I": IQ_streams["I"].buffer(self.x_axis.points * self.y_axis.points),
-                    "Q": IQ_streams["Q"].buffer(self.x_axis.points * self.y_axis.points),
+                    "I": IQ_streams["I"].buffer(
+                        self.x_axis.points * self.y_axis.points
+                    ),
+                    "Q": IQ_streams["Q"].buffer(
+                        self.x_axis.points * self.y_axis.points
+                    ),
                 }
                 combined_stream = None
                 for var in self.stream_vars:
@@ -363,7 +379,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
         else:
             raise ValueError(f"Invalid result type: {self.result_type}")
 
-        x_idxs, y_idxs = self.scan_mode.get_idxs(x_points=self.x_axis.points, y_points=self.y_axis.points)
+        x_idxs, y_idxs = self.scan_mode.get_idxs(
+            x_points=self.x_axis.points, y_points=self.y_axis.points
+        )
         results_2D = np.zeros((self.y_axis.points, self.x_axis.points), dtype=float)
         results_2D[y_idxs, x_idxs] = result
 
@@ -411,7 +429,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     dbc.Label("Result Type"),
                     dbc.Select(
                         id="result-type",
-                        options=[{"label": rt, "value": rt} for rt in self.result_types],
+                        options=[
+                            {"label": rt, "value": rt} for rt in self.result_types
+                        ],
                         value=self.result_type,
                     ),
                 ]
