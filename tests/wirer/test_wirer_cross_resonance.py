@@ -8,7 +8,7 @@ from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannel
 visualize_flag = False
 
 
-def test_2q_allocation_cross_drive(instruments_2lf_2mw):
+def test_2q_allocation_cross_resonance(instruments_2lf_2mw):
     qubits = [1, 2]
     qubit_pairs = [(1, 2), (2, 1)]
 
@@ -23,7 +23,7 @@ def test_2q_allocation_cross_drive(instruments_2lf_2mw):
     connectivity.add_qubit_pair_zz_drive_lines(qubit_pairs)
     allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
 
-    connectivity.add_qubit_pair_cross_drive_lines(qubit_pairs)
+    connectivity.add_qubit_pair_cross_resonance_lines(qubit_pairs)
     allocate_wiring(connectivity, instruments_2lf_2mw)
 
     if visualize_flag:
@@ -32,14 +32,14 @@ def test_2q_allocation_cross_drive(instruments_2lf_2mw):
 
     for i, qubit_pair in enumerate(qubit_pairs):
         xy_channels = connectivity.elements[QubitReference(qubit_pair[0])].channels[WiringLineType.DRIVE]
-        xd_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.CROSS_DRIVE]
+        cr_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.CROSS_RESONANCE]
         zz_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.ZZ_DRIVE]
         assert len(xy_channels) == 1
         assert len(xd_channels) == 1
         assert len(zz_channels) == 1
 
         # For each XY, XD and ZZ should be on the same channel for the same qubit pair + control index
-        for channels in [xy_channels, xd_channels, zz_channels]:
+        for channels in [xy_channels, cr_channels, zz_channels]:
             for j, channel in enumerate(channels):
                 assert pytest.channels_are_equal(
                     channel, [

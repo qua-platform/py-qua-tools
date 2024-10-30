@@ -39,7 +39,7 @@ def allocate_wiring(
         WiringLineType.FLUX,
         WiringLineType.CHARGE,
         WiringLineType.COUPLER,
-        WiringLineType.CROSS_DRIVE,
+        WiringLineType.CROSS_RESONANCE,
         WiringLineType.ZZ_DRIVE,
     ]
 
