@@ -71,19 +71,6 @@ class ConnectivityBase:
 
         return elements
 
-    def _make_qubit_pair_element_pair(self, qubit_pairs: QubitPairsType):
-        if not isinstance(qubit_pairs, list):
-            qubit_pairs = [qubit_pairs]
-
-        elements = []
-        for qubit_pair in qubit_pairs:
-            id = QubitPairReference(*qubit_pair)
-            if id not in self.elements:
-                self.elements[id] = Element(id)
-            elements.append(self.elements[id])
-
-        return elements
-
     def _add_elements(self, elements: List[Element]):
         for element in elements:
             self._add_element(element)
