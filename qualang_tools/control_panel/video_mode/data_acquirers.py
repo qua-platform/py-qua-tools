@@ -230,17 +230,15 @@ class RandomDataAcquirer(BaseDataAcquirer):
         dash_components.extend(
             [
                 html.Div(
-                    [
-                        dbc.Label("Acquire time"),
-                        dbc.Input(
-                            id={"type": self.component_id, "index": "acquire-time"},
-                            type="number",
-                            value=self.acquire_time,
-                            min=0.1,
-                            max=10,
-                            step=0.1,
-                        ),
-                    ]
+                    create_input_field(
+                        id={"type": self.component_id, "index": "acquire-time"},
+                        label="Acquire time",
+                        value=self.acquire_time,
+                        min=0.1,
+                        max=10,
+                        step=0.1,
+                        units="s",
+                    )
                 )
             ]
         )

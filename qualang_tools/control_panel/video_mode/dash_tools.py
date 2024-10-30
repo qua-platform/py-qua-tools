@@ -50,7 +50,16 @@ def xarray_to_plotly(da: xr.DataArray):
     return fig
 
 
-def create_input_field(id, label, value, debounce=True, input_style=None, div_style=None, unit=None, **kwargs):
+def create_input_field(
+    id,
+    label,
+    value,
+    debounce=True,
+    input_style=None,
+    div_style=None,
+    units=None,
+    **kwargs,
+):
     if input_style is None:
         input_style = {"width": "80px"}
 
@@ -76,8 +85,8 @@ def create_input_field(id, label, value, debounce=True, input_style=None, div_st
             width="auto",
         ),
     ]
-    if unit is not None:
-        elements.append(dbc.Col(dbc.Label(unit, className="ml-2"), width="auto"))
+    if units is not None:
+        elements.append(dbc.Col(dbc.Label(units, className="ml-2"), width="auto"))
 
     return dbc.Row(
         elements,
@@ -115,7 +124,7 @@ def create_axis_layout(
                             min=min_span,
                             max=max_span,
                             input_style={"width": "100px"},
-                            unit=units,
+                            units=units,
                         ),
                         create_input_field(
                             id=ids["points"],
