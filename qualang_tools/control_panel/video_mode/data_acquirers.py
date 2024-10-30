@@ -444,9 +444,26 @@ class OPXDataAcquirer(BaseDataAcquirer):
         return components
 
     def update_parameter(self, parameters):
-        self.result_type = inputs["result-type"]
-        self.scan_mode.update_parameter(inputs)
-        self.qua_inner_loop_action.update_parameter(inputs)
+        flags = {"config_modified": False, "program_modified": False}
+        self.result_type = parameters["result-type"]
+
+        scan_mode_flags = self.scan_mode.update_parameter(parameters)
+        for flag, value in scan_mode_flags.items():
+            if value:
+                flags[flag] = value
+
+        inner_loop_flags = self.qua_inner_loop_action.update_parameter(parameters)
+        for flag, value in inner_loop_flags.items():
+            if value:
+                flags[flag] = value
+
+        if flags["config_modified"]:
+            self.generate_config()
+            self.program = None
+        elif flags["program_modified"]:
+            self.program = None
+
+        return flags
 
 
 class OPXQuamDataAcquirer(OPXDataAcquirer):
@@ -495,3 +512,7 @@ class OPXQuamDataAcquirer(OPXDataAcquirer):
             initial_delay=initial_delay,
             **kwargs,
         )
+
+    def generate_config(self):
+        self.qua_config = self.machine.generate_config()
+        self.qm = self.qmm.open_qm(self.qua_config)

@@ -21,7 +21,9 @@ class ScanMode(DashComponent, ABC):
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         pass
 
-    def plot_scan(self, x_points: int, y_points: int) -> Tuple[figure.Figure, axes.Axes]:
+    def plot_scan(
+        self, x_points: int, y_points: int
+    ) -> Tuple[figure.Figure, axes.Axes]:
         idxs_x, idxs_y = self.get_idxs(x_points, y_points)
 
         u = np.diff(idxs_x)
@@ -52,6 +54,9 @@ class ScanMode(DashComponent, ABC):
     def get_dash_components(self):
         """Return a list of Dash components specific to this scan mode."""
         pass
+
+    def update_parameter(self, parameters: Dict[str, Any]) -> Dict[str, bool]:
+        return {}
 
 
 class RasterScan(ScanMode):
@@ -194,4 +199,3 @@ class SpiralScan(ScanMode):
 
         assign(x, 0)
         assign(y, 0)
-

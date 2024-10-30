@@ -1,6 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
-from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType
+from typing import Any, Dict, Tuple
+from qm.qua import (
+    declare,
+    fixed,
+    demod,
+    set_dc_offset,
+    align,
+    wait,
+    measure,
+    QuaVariableType,
+)
 from qualang_tools.control_panel.video_mode.base_component import DashComponent
 
 
@@ -10,11 +19,16 @@ class InnerLoopAction(DashComponent, ABC):
         # ... rest of init ...
 
     @abstractmethod
-    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+    def __call__(
+        self, x: QuaVariableType, y: QuaVariableType
+    ) -> Tuple[QuaVariableType, QuaVariableType]:
         pass
 
     @abstractmethod
     def initial_action(self):
+        pass
+
+    def update_parameter(self, parameters: Dict[str, Any]) -> Dict[str, bool]:
         pass
 
 
@@ -46,7 +60,9 @@ class BasicInnerLoopAction(InnerLoopAction):
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
 
-    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+    def __call__(
+        self, x: QuaVariableType, y: QuaVariableType
+    ) -> Tuple[QuaVariableType, QuaVariableType]:
         outputs = {"I": declare(fixed), "Q": declare(fixed)}
 
         set_dc_offset(self.x_elem, "single", x)
@@ -96,7 +112,9 @@ class InnerLoopActionQuam(InnerLoopAction):
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
 
-    def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
+    def __call__(
+        self, x: QuaVariableType, y: QuaVariableType
+    ) -> Tuple[QuaVariableType, QuaVariableType]:
         self.x_elem.set_dc_offset(x)
         self.y_elem.set_dc_offset(y)
 
