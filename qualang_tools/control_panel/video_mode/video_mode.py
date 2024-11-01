@@ -108,7 +108,7 @@ class VideoMode:
                                     step=1,
                                     debounce=True,
                                 ),
-                                html.Div(self.data_acquirer.get_all_dash_components()),
+                                html.Div(self.data_acquirer.get_dash_components(include_subcomponents=True)),
                                 dbc.Row(
                                     [
                                         dbc.Col(
@@ -215,7 +215,7 @@ class VideoMode:
                 params[component_id] = {id["index"]: value for id, value in zip(ids, values)}
 
             logging.debug(f"Updating params: {params}")
-            self.data_acquirer.update_parameter(params)
+            self.data_acquirer.update_parameters(params)
 
         @self.app.callback(
             Output("save-button", "children"),

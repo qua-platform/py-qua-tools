@@ -1,14 +1,16 @@
-import dash_bootstrap_components as dbc
-from dash import html
 import numpy as np
 import logging
 from typing import Any, Dict, List, Literal, Optional, Callable
 from time import perf_counter
 
+from dash import html
+import dash_bootstrap_components as dbc
+
 from qm import QuantumMachinesManager, Program
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import program, declare_stream, infinite_loop_, save, stream_processing, wait
 
+from qualang_tools.control_panel.video_mode.dash_tools import ModifiedFlags
 from qualang_tools.control_panel.video_mode.data_acquirers.base_data_aqcuirer import BaseDataAcquirer
 from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 from qualang_tools.control_panel.video_mode.scan_modes import ScanMode
@@ -69,24 +71,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
             num_averages=num_averages,
             **kwargs,
         )
-
-    def update_attrs(self, attrs: List[Dict[str, Any]]):
-        """Update the attributes of the data array.
-
-        This method updates the attributes of the data array with the provided attributes.
-        This method is invoked from the Dash app when the user updates the parameters in the control panel.
-
-        Args:
-            attrs: The attributes to update.
-        """
-        super().update_attrs(attrs)
-        logging.info(f"Updated attrs: {attrs}")
-
-        requires_regeneration = ["span", "points"]
-        if any(attr["key"] in requires_regeneration for attr in attrs):
-            logging.info("Regenerating QUA program due to new parameters")
-            self.program = None
-            self.run_program()
 
     def generate_program(self) -> Program:
         """Generate a QUA program to acquire data from the device."""
@@ -158,7 +142,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         return result_array
 
-    def run_program(self, verify: bool = True):
+    def run_program(self, verify: bool = True) -> None:
         """Run the QUA program.
 
         This method runs the QUA program and returns the results.
@@ -177,8 +161,10 @@ class OPXDataAcquirer(BaseDataAcquirer):
         # Wait until one buffer is filled{
         self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore
 
-    def get_dash_components(self):
-        return [
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        components = super().get_components()
+
+        components.append(
             html.Div(
                 [
                     dbc.Label("Result Type"),
@@ -189,33 +175,28 @@ class OPXDataAcquirer(BaseDataAcquirer):
                     ),
                 ]
             )
-        ]
+        )
 
-    def get_all_dash_components(self):
-        components = super().get_all_dash_components()
-        components.extend(self.get_dash_components())
-        components.extend(self.scan_mode.get_dash_components())
-        components.extend(self.qua_inner_loop_action.get_dash_components())
+        if include_subcomponents:
+            components.extend(self.scan_mode.get_dash_components())
+            components.extend(self.qua_inner_loop_action.get_dash_components())
+
         return components
 
-    def update_parameter(self, parameters):
-        flags = {"config_modified": False, "program_modified": False}
+    def generate_config(self) -> None:
+        raise NotImplementedError("OPXDataAcquirer does not implement generate_config")
+
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        flags = ModifiedFlags.NONE
         self.result_type = parameters["result-type"]
 
-        scan_mode_flags = self.scan_mode.update_parameter(parameters)
-        for flag, value in scan_mode_flags.items():
-            if value:
-                flags[flag] = value
+        flags |= self.scan_mode.update_parameters(parameters)
+        flags |= self.qua_inner_loop_action.update_parameters(parameters)
 
-        inner_loop_flags = self.qua_inner_loop_action.update_parameter(parameters)
-        for flag, value in inner_loop_flags.items():
-            if value:
-                flags[flag] = value
-
-        if flags["config_modified"]:
+        if flags & ModifiedFlags.CONFIG_MODIFIED:
             self.generate_config()
-            self.program = None
-        elif flags["program_modified"]:
-            self.program = None
+
+        if flags & (ModifiedFlags.CONFIG_MODIFIED | ModifiedFlags.PROGRAM_MODIFIED):
+            self.program = self.generate_program()
 
         return flags

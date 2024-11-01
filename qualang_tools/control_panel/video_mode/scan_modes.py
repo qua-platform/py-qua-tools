@@ -1,29 +1,29 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterator, Sequence, Tuple, Generator
+from typing import Any, Dict, Sequence, Tuple, Generator
 import numpy as np
 from matplotlib import figure, axes, pyplot as plt
 from matplotlib.ticker import MultipleLocator
+
 from qm.qua import declare, fixed, if_, assign, for_, for_each_, QuaVariableType
+
 from qualang_tools.loops import from_array
-from qualang_tools.control_panel.video_mode.base_component import DashComponent
-import dash
-import dash_bootstrap_components as dbc
-import html
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent
 
 
-class ScanMode(DashComponent, ABC):
+class ScanMode(BaseDashComponent, ABC):
     """Abstract base class for scan modes, e.g. raster scan, spiral scan, etc.
 
     The scan mode is used to generate the scan pattern for the video mode.
     """
 
+    def __init__(self, component_id: str = "scan-mode"):
+        super().__init__(component_id=component_id)
+
     @abstractmethod
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
         pass
 
-    def plot_scan(
-        self, x_points: int, y_points: int
-    ) -> Tuple[figure.Figure, axes.Axes]:
+    def plot_scan(self, x_points: int, y_points: int) -> Tuple[figure.Figure, axes.Axes]:
         idxs_x, idxs_y = self.get_idxs(x_points, y_points)
 
         u = np.diff(idxs_x)
@@ -50,14 +50,6 @@ class ScanMode(DashComponent, ABC):
     ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         pass
 
-    @abstractmethod
-    def get_dash_components(self):
-        """Return a list of Dash components specific to this scan mode."""
-        pass
-
-    def update_parameter(self, parameters: Dict[str, Any]) -> Dict[str, bool]:
-        return {}
-
 
 class RasterScan(ScanMode):
     """Raster scan mode.
@@ -78,9 +70,6 @@ class RasterScan(ScanMode):
         with for_(*from_array(voltages["y"], y_vals)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages["x"], voltages["y"]
-
-    def get_dash_components(self):
-        return []  # No specific components for RasterScan
 
 
 class SwitchRasterScan(ScanMode):

@@ -1,18 +1,20 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict, Any
 import xarray as xr
 import logging
 import numpy as np
 from dash import html
-from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 import dash_bootstrap_components as dbc
+
+from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
 from qualang_tools.control_panel.video_mode.dash_tools import create_axis_layout
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags
 
 
 __all__ = ["BaseDataAcquirer"]
 
 
-class BaseDataAcquirer(ABC):
+class BaseDataAcquirer(BaseDashComponent, ABC):
     """Base class for data acquirers.
 
     This class defines the interface for data acquirers, which are responsible for acquiring data from a device.
@@ -29,15 +31,18 @@ class BaseDataAcquirer(ABC):
         *,
         x_axis: SweepAxis,
         y_axis: SweepAxis,
-        num_averages=1,
+        num_averages: int = 1,
         component_id: str = "data-acquirer",
         **kwargs,
     ):
+        assert not kwargs, f"Unexpected keyword arguments: {kwargs}"
+        super().__init__(component_id=component_id)
+
         self.x_axis = x_axis
         self.y_axis = y_axis
         self.num_averages = num_averages
-        self.component_id = component_id
         self.data_history = []
+
         logging.debug("Initializing DataGenerator")
 
         self.num_acquisitions = 0
@@ -65,7 +70,7 @@ class BaseDataAcquirer(ABC):
         """
         pass
 
-    def update_data(self):
+    def update_data(self) -> xr.DataArray:
         """Update the data array with the new data.
 
         This method acquires new data from the device and updates the data array.
@@ -102,8 +107,7 @@ class BaseDataAcquirer(ABC):
         logging.debug(f"Data acquired with shape: {self.data_array.shape}, mean(abs(data)) = {mean_abs_data}")
         return self.data_array
 
-    @abstractmethod
-    def get_dash_components(self):
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
         """Return the x and y axis components in a single row."""
         return [
             html.Div(
@@ -135,28 +139,24 @@ class BaseDataAcquirer(ABC):
             )
         ]
 
-    def get_all_dash_components(self):
-        """Return all Dash components, including axis components."""
-        return self.get_dash_components()
-
-    def update_parameter(self, parameters):
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
         """Update the data acquirer's attributes based on the input values."""
         params = parameters[self.component_id]
-        params_modified = False
+        flags = ModifiedFlags.NONE
         if self.x_axis.span != params["x-span"]:
             self.x_axis.span = params["x-span"]
-            params_modified = True
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
         if self.x_axis.points != params["x-points"]:
             self.x_axis.points = params["x-points"]
-            params_modified = True
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
         if self.y_axis.span != params["y-span"]:
             self.y_axis.span = params["y-span"]
-            params_modified = True
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
         if self.y_axis.points != params["y-points"]:
             self.y_axis.points = params["y-points"]
-            params_modified = True
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
 
-        return {"parameters_modified": params_modified}
+        return flags
 
     def get_component_ids(self) -> List[str]:
         """Return a list of component IDs for this data acquirer."""

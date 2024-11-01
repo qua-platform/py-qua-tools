@@ -1,9 +1,12 @@
-from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
-from qualang_tools.control_panel.video_mode.data_acquirers.base_data_aqcuirer import BaseDataAcquirer
-from dash import html
-from qualang_tools.control_panel.video_mode.dash_tools import create_input_field
 import numpy as np
 from time import sleep
+from typing import Any, Dict, List
+
+from dash import html
+
+from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
+from qualang_tools.control_panel.video_mode.data_acquirers.base_data_aqcuirer import BaseDataAcquirer
+from qualang_tools.control_panel.video_mode.dash_tools import create_input_field, ModifiedFlags
 
 
 __all__ = ["RandomDataAcquirer"]
@@ -24,7 +27,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
         self.acquire_time = acquire_time
         super().__init__(x_axis=x_axis, y_axis=y_axis, num_averages=num_averages, **kwargs)
 
-    def acquire_data(self):
+    def acquire_data(self) -> np.ndarray:
         """Acquire random data.
 
         This method acquires random data from the simulated device.
@@ -33,8 +36,8 @@ class RandomDataAcquirer(BaseDataAcquirer):
         results = np.random.rand(self.x_axis.points, self.y_axis.points)
         return results
 
-    def get_dash_components(self):
-        dash_components = super().get_dash_components()
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        dash_components = super().get_dash_components(include_subcomponents=include_subcomponents)
         dash_components.extend(
             [
                 html.Div(
@@ -52,12 +55,12 @@ class RandomDataAcquirer(BaseDataAcquirer):
         )
         return dash_components
 
-    def update_parameter(self, parameters):
-        results = super().update_parameter(parameters)
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        flags = super().update_parameters(parameters)
 
         params = parameters[self.component_id]
         if self.acquire_time != params["acquire-time"]:
-            results["parameters_modified"] = True
             self.acquire_time = params["acquire-time"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
 
-        return results
+        return flags
