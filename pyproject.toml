@@ -58,7 +58,7 @@ configbuilder = [
     "waitress",
 ]
 datahandler = ["xarray", "netcdf4"]
-videomode = ["dash", "dash-extensions", "xarray", "kaleido", "h5netcdf"]
+videomode = ["dash", "dash-extensions", "xarray", "kaleido", "h5netcdf", "dash-bootstrap-components"]
 
 [tool.black]
 line-length = 120
