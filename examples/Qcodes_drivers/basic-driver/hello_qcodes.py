@@ -376,6 +376,8 @@ if run == "sliced":
     )
     # Axis2 is the second loop
     opx_instrument.set_sweep_parameters("axis2", biases, "V", "Biases")
+    # The readout length is the chunk size (in ns) here
+    opx_instrument.readout_pulse_length(slice_size * 4)
     # Add the custom sequence to the OPX
     opx_instrument.qua_program = OPX_sliced_scan(simulate=True)
     # Simulate program
