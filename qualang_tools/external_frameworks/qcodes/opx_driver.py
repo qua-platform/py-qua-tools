@@ -254,7 +254,6 @@ class OPX(Instrument):
         except (Exception,):
             return self.qmm.version()
 
-
     def set_config(self, config):
         """
         Update the configuration used by the OPX.
@@ -602,7 +601,12 @@ class OPX(Instrument):
 
                 else:
                     # Convert the results into Volts
-                    data = -data[-1] * 4096 / int(self.readout_pulse_length() * self.readout_sampling_rate()) * self.demod_factor
+                    data = (
+                        -data[-1]
+                        * 4096
+                        / int(self.readout_pulse_length() * self.readout_sampling_rate())
+                        * self.demod_factor
+                    )
                     # Plot results
                     if len(data.shape) == 1:
                         if len(results_to_plot) > 1:
