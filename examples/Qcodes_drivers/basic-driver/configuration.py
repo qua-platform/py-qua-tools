@@ -2,10 +2,10 @@
 # VARIABLES #
 #############
 qop_ip = "127.0.0.1"
-cluster_name = "my_cluster"
+cluster_name = "Cluster_1"
 
-readout_len = 100
-readout_amp = 0.001
+readout_len = 1000
+readout_amp = 0.01
 
 time_of_flight = 300
 hold_offset_duration = 200

@@ -6,8 +6,131 @@ from qcodes.utils.dataset.doNd import do2d, do1d, do0d
 from qcodes import Parameter
 from qm.qua import *
 from qualang_tools.external_frameworks.qcodes.opx_driver import OPX
-from configuration import *
 
+
+#############################################
+#                  Config                   #
+#############################################
+qop_ip = "127.0.0.1"  # Akiva OPX1000
+cluster_name = "Cluster_1"   # Write your cluster_name if version >= QOP220
+qop_port = None  # Write the QOP port if version < QOP220
+
+def get_config(fem = 3):
+    config = {
+        "version": 1,
+        "controllers": {
+            "con1": {
+                "type": "opx1000",
+                "fems": {
+                    fem: {
+                        "type": "LF",
+                        "analog_outputs": {
+                            1: {"offset": 0.0, "sampling_rate": 1e9, "output_mode": "amplified", "upsampling_mode": "pulse", "delay": 0},  # , "filter": {"feedforward": [], "feedback": []}
+                            2: {"offset": 0.0, "sampling_rate": 1e9, "output_mode": "amplified", "upsampling_mode": "pulse", "delay": 0},  # , "filter": {"feedforward": [], "feedback": []}
+                            3: {"offset": 0.0, "sampling_rate": 1e9, "output_mode": "direct", "upsampling_mode": "pulse", "delay": 0},
+                            8: {"offset": 0.0, "sampling_rate": 2e9, "output_mode": "direct", "delay": 0},
+                        },
+                        "analog_inputs": {
+                            1: {"offset": 0.0, "sampling_rate": int(2e9), "gain_db": 0, "shareable": True},
+                            2: {"offset": 0.0, "sampling_rate": int(2e9), "gain_db": 0, "shareable": True},
+                        },
+                        "digital_outputs": {
+                        },
+                    },
+                },
+            },
+        },
+        "elements": {
+            "gate_1": {
+                "singleInput": {
+                    "port": ("con1", fem, 1),
+                },
+                "hold_offset": {"duration": 20},  # in clock cycles (4ns)
+                "intermediate_frequency": 0,
+                "operations": {
+                    "bias": "bias_pulse",
+                },
+            },
+            "gate_2": {
+                "singleInput": {
+                    "port": ("con1", fem, 2),
+                },
+                "hold_offset": {"duration": 20},  # in clock cycles (4ns)
+                "intermediate_frequency": 0,
+                "operations": {
+                    "bias": "bias_pulse",
+                },
+            },
+            "readout_element": {
+                "singleInput": {
+                    "port": ("con1", fem, 8),
+                },
+                "intermediate_frequency": 10e6,
+                "operations": {
+                    "readout": "readout_pulse",
+                },
+                "outputs": {
+                    "out1": ("con1", fem, 1),
+                    "out2": ("con1", fem, 2),
+                },
+                "time_of_flight": 24,
+                "smearing": 0,
+            },
+        },
+        "pulses": {
+            "bias_pulse": {
+                "operation": "control",
+                "length": 16,
+                "waveforms": {
+                    "single": "bias_wf",
+                },
+            },
+            "readout_pulse": {
+                "operation": "measurement",
+                "length": 1000,
+                "waveforms": {
+                    "single": "readout_wf",
+                },
+                "integration_weights": {
+                    "cos": "cosine_weights",
+                    "sin": "sine_weights",
+                    "minus_sin": "minus_sine_weights",
+                },
+                "digital_marker": "ON",
+            },
+        },
+        "waveforms": {
+            "zero_wf": {"type": "constant", "sample": 0.0},
+            "const_wf": {"type": "constant", "sample": 0.1},
+            "bias_wf": {"type": "constant", "sample": 0.25},
+            "readout_wf": {"type": "constant", "sample": 0.1},
+        },
+        "digital_waveforms": {
+            "ON": {"samples": [(1, 0)]},
+            "OFF": {"samples": [(0, 0)]},
+        },
+        "integration_weights": {
+            "const_weights": {
+                "cosine": [(1.0, 1000)],
+                "sine": [(0.0, 1000)],
+            },
+            "cosine_weights": {
+                "cosine": [(1, 1000)],
+                "sine": [(0.0, 1000)],
+            },
+            "sine_weights": {
+                "cosine": [(0.0, 1000)],
+                "sine": [(1, 1000)],
+            },
+            "minus_sine_weights": {
+                "cosine": [(0.0, 1000)],
+                "sine": [(-1, 1000)],
+            },
+        },
+    }
+    return config
+
+config = get_config()
 
 #####################################
 #           Qcodes set-up           #
@@ -21,7 +144,9 @@ db_file_path = os.path.join(os.getcwd(), db_name)
 qc.config.core.db_location = db_file_path
 initialise_or_create_database_at(db_file_path)
 # Initialize qcodes experiment
-experiment = load_or_create_experiment(experiment_name=exp_name, sample_name=sample_name)
+experiment = load_or_create_experiment(
+    experiment_name=exp_name, sample_name=sample_name
+)
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
@@ -56,10 +181,11 @@ VP1 = MyCounter("counter1", "Vp1")
 VP2 = MyCounter("counter2", "Vp2")
 
 #####################################
-run = "1d"
+run = "datasaver"
 # Pass the readout length (in ns) to the class to convert the demodulated/integrated data into Volts
 # and create the setpoint Parameter for raw adc trace acquisition
-opx_instrument.readout_pulse_length(readout_len)
+opx_instrument.readout_pulse_length(1000)
+opx_instrument.readout_sampling_rate(2)
 #####################################
 #     Raw ADC trace & do1d          #
 #####################################
@@ -71,6 +197,7 @@ with program() as prog:
     adc_st = declare_stream(adc_trace=True)
     with infinite_loop_():
         pause()
+        reset_if_phase("readout_element")
         play("bias", "gate_1")
         wait(200 // 4, "readout_element")
         measure("readout", "readout_element", adc_st)
@@ -167,7 +294,7 @@ if run == "0d":
 # without scanning any external parameter with the do0d function.
 step = 0.01
 biases = np.arange(0, 0.5, 0.01)
-prefactor = step / gate_1_amp
+prefactor = step / 0.1
 n_avg = 10
 
 
@@ -203,8 +330,12 @@ def OPX_1d_scan(simulate=False):
                 ramp_to_zero("gate_1")
 
         with stream_processing():
-            I_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
-            Q_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
+            I_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all(
+                "I"
+            )
+            Q_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all(
+                "Q"
+            )
     return prog
 
 
@@ -229,7 +360,9 @@ if run == "1d":
     do0d(
         opx_instrument.run_exp,
         opx_instrument.resume,
-        opx_instrument.get_measurement_parameter(scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]),
+        opx_instrument.get_measurement_parameter(
+            scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]
+        ),
         opx_instrument.halt,
         do_plot=True,
         exp=experiment,
@@ -242,11 +375,11 @@ if run == "1d":
 # scanning any external parameters with the do0d function
 gate_1_step = 0.01
 gate_1_biases = np.arange(-0.2, 0.2, gate_1_step)
-gate_1_prefactor = gate_1_step / gate_1_amp
+gate_1_prefactor = gate_1_step / 0.1
 
 gate_2_step = 0.01
 gate_2_biases = np.arange(0, 0.25, gate_2_step)
-gate_2_prefactor = gate_2_step / gate_2_amp
+gate_2_prefactor = gate_2_step / 0.1
 
 
 def OPX_2d_scan(simulate=False):
@@ -321,11 +454,11 @@ if run == "2d":
 # signals using the sliced integration feature to reduce the sampling rate
 # without scanning any external parameter using the do0d function
 slice_size = 4  # Size of one slice in ns (must a multiple of 4)
-nb_of_slices = readout_len // slice_size
+nb_of_slices = 1000 // slice_size
 n_avg = 10
 step = 0.01
 biases = np.arange(0, 0.5, 0.01)
-prefactor = step / gate_1_amp
+prefactor = step / 0.1
 
 
 def OPX_sliced_scan(simulate=False):
@@ -361,8 +494,12 @@ def OPX_sliced_scan(simulate=False):
                 ramp_to_zero("gate_1")
 
         with stream_processing():
-            I_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
-            Q_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
+            I_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(
+                FUNCTIONS.average()
+            ).save_all("I")
+            Q_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(
+                FUNCTIONS.average()
+            ).save_all("Q")
     return prog
 
 
@@ -434,8 +571,12 @@ def OPX_reflectometry(simulate=False):
                     save(Q, Q_st)
 
         with stream_processing():
-            I_st.buffer(len(frequencies)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
-            Q_st.buffer(len(frequencies)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
+            I_st.buffer(len(frequencies)).buffer(n_avg).map(
+                FUNCTIONS.average()
+            ).save_all("I")
+            Q_st.buffer(len(frequencies)).buffer(n_avg).map(
+                FUNCTIONS.average()
+            ).save_all("Q")
     return prog
 
 
@@ -471,7 +612,9 @@ if run == "datasaver":
             # Get the results from the OPX
             data = opx_instrument.get_res()
             # Store the results in the scodes database
-            datasaver.add_result((VP1, VP1()), (OPX_param, np.array(list(data.values()))))
+            datasaver.add_result(
+                (VP1, VP1()), (OPX_param, np.array(list(data.values())))
+            )
         # Halt the OPX program at the end
         opx_instrument.halt()
         # Get the full dataset

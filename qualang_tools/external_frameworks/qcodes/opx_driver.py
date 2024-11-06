@@ -6,7 +6,7 @@ from qcodes import (
     Parameter,
     MultiParameter,
 )
-from qcodes.utils.validators import Numbers, Arrays
+from qcodes.utils.validators import Numbers, Arrays, Enum
 from qm import SimulationConfig, generate_qua_script
 from qm.qua import program
 from qm import QuantumMachinesManager
@@ -72,6 +72,14 @@ class OPX(Instrument):
             set_cmd=None,
         )
         self.measurement_variables = None
+        self.add_parameter(
+            "readout_sampling_rate",
+            unit="Gs/s",
+            initial_value=1,
+            vals=Enum(1, 2),
+            get_cmd=None,
+            set_cmd=None,
+        )
         self.add_parameter(
             "readout_pulse_length",
             unit="ns",
@@ -197,18 +205,41 @@ class OPX(Instrument):
         """
         idn = {"vendor": "Quantum Machines"}
         idn.update(self.get(idn_param))
-        if idn["server"][0] == "1":
+        # Get OPX model id and corresponding qop version
+        if "OPX" in idn.keys():
+            model = idn["OPX"][0]
+            qop = idn["OPX"]
+        elif "server" in idn.keys():
+            model = idn["server"][0]
+            qop = idn["server"]
+        elif "QOP" in idn.keys():
+            model = idn["QOP"][0]
+            qop = idn["QOP"]
+        else:
+            model = 0
+            qop = ""
+        # Get SDK id
+        if "qm-qua" in idn.keys():
+            sdk = "qm-qua"
+        elif "client" in idn.keys():
+            sdk = "client"
+        else:
+            sdk = ""
+        # Get OPX model
+        if model == "1":
             idn["model"] = "OPX"
-        elif idn["server"][0] == "2":
+        elif model == "2":
             idn["model"] = "OPX+"
+        elif model == "3":
+            idn["model"] = "OPX1000"
         else:
             idn["model"] = ""
         t = time.time() - (begin_time or self._t0)
-
         con_msg = (
-            "Connected to: {vendor} {model} in {t:.2f}s. "
-            "QOP Version = {server}, SDK Version = {client}.".format(t=t, **idn)
+            f"Connected to: {idn['vendor']} {idn['model']} in {t:.2f}s. "
+            f"QOP Version = {qop}, SDK Version = {idn[sdk]}."
         )
+
         print(con_msg)
         self.log.info(f"Connected to instrument: {idn}")
 
@@ -218,7 +249,10 @@ class OPX(Instrument):
 
         :return: A dict containing the SDK version (client) and QOP version (server).
         """
-        return self.qmm.version()
+        try:
+            return self.qmm.version_dict()
+        except (Exception,):
+            return self.qmm.version()
 
     def set_config(self, config):
         """
@@ -283,7 +317,7 @@ class OPX(Instrument):
                     out = (
                         -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
                         * 4096
-                        / self.readout_pulse_length()
+                        / (self.readout_pulse_length() * self.readout_sampling_rate())
                         * self.demod_factor
                         * self.results["scale_factor"][i]
                     )
@@ -343,7 +377,7 @@ class OPX(Instrument):
                 else:
                     averaging_buffer = False
             elif gene.values[0].string_value == "@macro_adc_trace":
-                self.results["buffers"][count].append(int(self.readout_pulse_length()))
+                self.results["buffers"][count].append(int(self.readout_pulse_length() * self.readout_sampling_rate()))
                 self.results["types"][count] = "adc"
                 self.results["scale_factor"].append(1)
             else:
@@ -424,8 +458,8 @@ class OPX(Instrument):
             if "adc" in self.results["types"]:
                 self.axis1_start(0)
                 self.axis1_stop(int(self.readout_pulse_length()))
-                self.axis1_step(1)
-                self.axis1_npoints(int(self.readout_pulse_length()))
+                self.axis1_step(1 / self.readout_sampling_rate())
+                self.axis1_npoints(int(self.readout_pulse_length() * self.readout_sampling_rate()))
                 self.axis1_full_list(np.arange(self.axis1_start(), self.axis1_stop(), self.axis1_step()))
                 self.axis1_axis.unit = "ns"
                 self.axis1_axis.label = "Readout time"
@@ -567,7 +601,12 @@ class OPX(Instrument):
 
                 else:
                     # Convert the results into Volts
-                    data = -data[-1] * 4096 / int(self.readout_pulse_length()) * self.demod_factor
+                    data = (
+                        -data[-1]
+                        * 4096
+                        / int(self.readout_pulse_length() * self.readout_sampling_rate())
+                        * self.demod_factor
+                    )
                     # Plot results
                     if len(data.shape) == 1:
                         if len(results_to_plot) > 1:
@@ -640,11 +679,10 @@ class OPX(Instrument):
         prog = self.get_prog()
         self.job = self.qmm.simulate(self.config, prog, SimulationConfig(self.sim_time() // 4))
         simulated_samples = self.job.get_simulated_samples()
-        for con in [f"con{i}" for i in range(1, 10)]:
-            if hasattr(simulated_samples, con):
-                self.simulated_wf[con] = {}
-                self.simulated_wf[con]["analog"] = self.job.get_simulated_samples().__dict__[con].analog
-                self.simulated_wf[con]["digital"] = self.job.get_simulated_samples().__dict__[con].digital
+        for con in simulated_samples.keys():
+            self.simulated_wf[con] = {}
+            self.simulated_wf[con]["analog"] = self.job.get_simulated_samples().__dict__[con].analog
+            self.simulated_wf[con]["digital"] = self.job.get_simulated_samples().__dict__[con].digital
         self.result_handles = self.job.result_handles
 
     def plot_simulated_wf(self):
