@@ -102,7 +102,7 @@ class VoltageGateSequence:
                     new_average += int(np.round(1024 * (level + current_level) * ramp_duration / 2))
 
             else:
-                new_average += Cast.mul_int_by_fixed(ramp_duration, (level + current_level) / 2)
+                new_average += Cast.mul_int_by_fixed(ramp_duration << 10, (level + current_level) / 2)
         return new_average
 
     @staticmethod
