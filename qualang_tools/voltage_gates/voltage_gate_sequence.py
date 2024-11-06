@@ -79,26 +79,26 @@ class VoltageGateSequence:
             self._expression = declare(fixed)
             assign(self._expression, level)
             # Multiplication by 1000 to increase the resolution since duration*level must be an integer
-            new_average = Cast.mul_int_by_fixed(1000*duration, self._expression)
+            new_average = Cast.mul_int_by_fixed(1000 * duration, self._expression)
         elif self.is_QUA(duration):
-            new_average = Cast.mul_int_by_fixed(1000*duration, float(level))
+            new_average = Cast.mul_int_by_fixed(1000 * duration, float(level))
         else:
-            new_average = int(np.round(1000*level * duration))
+            new_average = int(np.round(1000 * level * duration))
 
         if ramp_duration is not None:
             if not self.is_QUA(ramp_duration):
                 if self.is_QUA(level):
                     self._expression2 = declare(fixed)
                     assign(self._expression2, (self._expression + current_level) >> 1)
-                    new_average += Cast.mul_int_by_fixed(1000*ramp_duration, self._expression2)
+                    new_average += Cast.mul_int_by_fixed(1000 * ramp_duration, self._expression2)
                 elif self.is_QUA(current_level):
                     expression2 = declare(fixed)
                     assign(expression2, (level + current_level) >> 1)
-                    new_average += Cast.mul_int_by_fixed(1000*ramp_duration, expression2)
+                    new_average += Cast.mul_int_by_fixed(1000 * ramp_duration, expression2)
                 elif self.is_QUA(duration):
-                    new_average += Cast.mul_int_by_fixed(1000*ramp_duration, (level + current_level) / 2)
+                    new_average += Cast.mul_int_by_fixed(1000 * ramp_duration, (level + current_level) / 2)
                 else:
-                    new_average += 1000*int(np.round((level + current_level) * ramp_duration / 2))
+                    new_average += 1000 * int(np.round((level + current_level) * ramp_duration / 2))
 
             else:
                 pass
