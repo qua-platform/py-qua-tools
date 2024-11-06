@@ -1,8 +1,9 @@
 import numpy as np
 
 from qm.qua._dsl import QuaVariable, QuaExpression
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math
 from typing import Union, List, Dict
+from warnings import warn
 
 
 class VoltageGateSequence:
@@ -101,7 +102,7 @@ class VoltageGateSequence:
                     new_average += int(np.round(1024 * (level + current_level) * ramp_duration / 2))
 
             else:
-                pass
+                new_average += Cast.mul_int_by_fixed(ramp_duration, (level + current_level) / 2)
         return new_average
 
     @staticmethod
@@ -110,7 +111,7 @@ class VoltageGateSequence:
 
     def add_step(
         self,
-        level: list[Union[int, QuaExpression, QuaVariable]] = None,
+        level: list[Union[float, QuaExpression, QuaVariable]] = None,
         duration: Union[int, QuaExpression, QuaVariable] = None,
         voltage_point_name: str = None,
         ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
@@ -126,6 +127,13 @@ class VoltageGateSequence:
         """
         self._check_duration(duration)
         self._check_duration(ramp_duration)
+        if ramp_duration is not None:
+            if self.is_QUA(ramp_duration):
+                warn(
+                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns otherwise you will have a gap or an error.",
+                    stacklevel=2,
+                )
+
         if level is not None:
             if type(level) is not list or len(level) != len(self._elements):
                 raise TypeError(
@@ -201,7 +209,14 @@ class VoltageGateSequence:
                     ramp_rate = 1 / ramp_duration
                     play(ramp((voltage_level - self.current_level[i]) * ramp_rate), gate, duration=ramp_duration >> 2)
                     wait(_duration >> 2, gate)
-
+                else:
+                    ramp_rate = declare(fixed)
+                    assign(ramp_rate, (voltage_level - self.current_level[i]) * Math.div(1, ramp_duration))
+                    play(ramp(ramp_rate), gate, duration=ramp_duration >> 2)
+                    if self.is_QUA(_duration):
+                        wait((_duration >> 2) - 9, gate)
+                    else:
+                        wait(_duration >> 2, gate)
             self.current_level[i] = voltage_level
 
     def add_compensation_pulse(self, duration: int) -> None:
