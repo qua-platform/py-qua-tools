@@ -37,7 +37,7 @@ class BasicInnerLoopAction(InnerLoopAction):
         y_element: The name of the element along the y-axis to set the voltage.
         readout_element: The name of the element to measure.
         readout_pulse: The name of the pulse to measure.
-        pre_measurement_delay: The delay before the measurement.
+        pre_measurement_delay: The delay before the measurement in ns.
     """
 
     def __init__(
