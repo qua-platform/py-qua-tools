@@ -78,26 +78,27 @@ class VoltageGateSequence:
         if self.is_QUA(level):
             self._expression = declare(fixed)
             assign(self._expression, level)
-            new_average = Cast.mul_int_by_fixed(duration, self._expression)
+            # Multiplication by 1024 to increase the resolution since duration*level must be an integer
+            new_average = Cast.mul_int_by_fixed(duration << 10, self._expression)
         elif self.is_QUA(duration):
-            new_average = Cast.mul_int_by_fixed(duration, float(level))
+            new_average = Cast.mul_int_by_fixed(duration << 10, float(level))
         else:
-            new_average = int(np.round(level * duration))
+            new_average = int(np.round((level * duration) * 1024))
 
         if ramp_duration is not None:
             if not self.is_QUA(ramp_duration):
                 if self.is_QUA(level):
                     self._expression2 = declare(fixed)
                     assign(self._expression2, (self._expression + current_level) >> 1)
-                    new_average += Cast.mul_int_by_fixed(ramp_duration, self._expression2)
+                    new_average += Cast.mul_int_by_fixed(ramp_duration << 10, self._expression2)
                 elif self.is_QUA(current_level):
                     expression2 = declare(fixed)
                     assign(expression2, (level + current_level) >> 1)
-                    new_average += Cast.mul_int_by_fixed(ramp_duration, expression2)
+                    new_average += Cast.mul_int_by_fixed(ramp_duration << 10, expression2)
                 elif self.is_QUA(duration):
-                    new_average += Cast.mul_int_by_fixed(ramp_duration, (level + current_level) / 2)
+                    new_average += Cast.mul_int_by_fixed(ramp_duration << 10, (level + current_level) / 2)
                 else:
-                    new_average += int(np.round((level + current_level) * ramp_duration / 2))
+                    new_average += int(np.round(1024 * (level + current_level) * ramp_duration / 2))
 
             else:
                 pass
@@ -211,7 +212,7 @@ class VoltageGateSequence:
         self._check_duration(duration)
         for i, gate in enumerate(self._elements):
             if not self.is_QUA(self.average_power[i]):
-                compensation_amp = -self.average_power[i] / duration
+                compensation_amp = -0.001 * self.average_power[i] / duration
                 operation = self._add_op_to_config(
                     gate, "compensation", amplitude=compensation_amp - self.current_level[i], length=duration
                 )
@@ -221,7 +222,7 @@ class VoltageGateSequence:
                 compensation_amp = declare(fixed)
                 eval_average_power = declare(int)
                 assign(eval_average_power, self.average_power[i])
-                assign(compensation_amp, -Cast.mul_fixed_by_int(1 / duration, eval_average_power))
+                assign(compensation_amp, -Cast.mul_fixed_by_int(0.0009765625 / duration, eval_average_power))
                 play(operation * amp((compensation_amp - self.current_level[i]) * 4), gate)
             self.current_level[i] = compensation_amp
 

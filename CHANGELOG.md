@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.18.1] - 2024-11-05
 ### Added
 - wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
+- examples/Qcodes_drivers: Added examples with the OPX1000.
+- external_frameworks/qcodes - Added the `readout_sampling_rate` parameter for the OPX1000.
+
+### Fixed
+- external_frameworks/qcodes - Fixed the connection message and OPX identification to include the OPX1000 and QOP 2.4.
+- voltage_gates - Fix the derivation of the compensation pulse for a small voltage*duration.
 
 ## [0.18.0] - 2024-10-23
 ### Added
