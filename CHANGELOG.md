@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.18.1] - 2024-11-05
 ### Added
 - wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
 - examples/Qcodes_drivers: Added examples with the OPX1000.
@@ -385,6 +387,7 @@ operation (readout pulse for instance) already defined in the configuration.
 - This release exposes the baking, RB and XEB functionality.
 
 [Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[0.18.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...v0.18.0
 [0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
 [0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6
