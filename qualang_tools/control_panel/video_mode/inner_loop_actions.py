@@ -1,9 +1,22 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
-from qm.qua import declare, fixed, demod, set_dc_offset, align, wait, measure, QuaVariableType
+from typing import Any, Dict, Tuple
+from qm.qua import (
+    declare,
+    fixed,
+    demod,
+    set_dc_offset,
+    align,
+    wait,
+    measure,
+    QuaVariableType,
+)
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags
 
 
-class InnerLoopAction(ABC):
+class InnerLoopAction(BaseDashComponent, ABC):
+    def __init__(self, component_id: str = "inner-loop"):
+        super().__init__(component_id=component_id)
+
     @abstractmethod
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         pass
@@ -24,7 +37,7 @@ class BasicInnerLoopAction(InnerLoopAction):
         y_element: The name of the element along the y-axis to set the voltage.
         readout_element: The name of the element to measure.
         readout_pulse: The name of the pulse to measure.
-        pre_measurement_delay: The delay before the measurement.
+        pre_measurement_delay: The delay before the measurement in ns.
     """
 
     def __init__(

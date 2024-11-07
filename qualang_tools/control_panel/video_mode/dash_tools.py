@@ -1,12 +1,50 @@
-from typing import Literal, Optional
+from abc import ABC, abstractmethod
+from enum import Flag, auto
+from typing import Any, Dict, List, Literal, Optional
+
 from dash import html
-from dash_extensions.enrich import dcc
 import plotly.graph_objects as go
 import xarray as xr
 import dash_bootstrap_components as dbc
 
 
-__all__ = ["xarray_to_plotly"]
+__all__ = ["xarray_to_plotly", "BaseDashComponent", "ModifiedFlags"]
+
+
+class ModifiedFlags(Flag):
+    """Flags indicating what needs to be modified after parameter changes."""
+
+    NONE = 0
+    PARAMETERS_MODIFIED = auto()
+    PROGRAM_MODIFIED = auto()
+    CONFIG_MODIFIED = auto()
+
+
+class BaseDashComponent(ABC):
+    def __init__(self, *args, component_id: str, **kwargs):
+        assert not args, "BaseDashComponent does not accept any positional arguments"
+        assert not kwargs, "BaseDashComponent does not accept any keyword arguments"
+        
+        self.component_id = component_id
+
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        """Update the component's attributes based on the input values."""
+        return ModifiedFlags.NONE
+
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        """Return a list of Dash components.
+
+        Args:
+            include_subcomponents (bool, optional): Whether to include subcomponents. Defaults to True.
+
+        Returns:
+            List[html.Div]: A list of Dash components.
+        """
+        return []
+
+    def get_component_ids(self) -> List[str]:
+        """Return a list of component IDs for this component including subcomponents."""
+        return [self.component_id]
 
 
 def xarray_to_plotly(da: xr.DataArray):
@@ -50,7 +88,16 @@ def xarray_to_plotly(da: xr.DataArray):
     return fig
 
 
-def create_input_field(id, label, value, debounce=True, input_style=None, div_style=None, unit=None, **kwargs):
+def create_input_field(
+    id,
+    label,
+    value,
+    debounce=True,
+    input_style=None,
+    div_style=None,
+    units=None,
+    **kwargs,
+):
     if input_style is None:
         input_style = {"width": "80px"}
 
@@ -76,8 +123,8 @@ def create_input_field(id, label, value, debounce=True, input_style=None, div_st
             width="auto",
         ),
     ]
-    if unit is not None:
-        elements.append(dbc.Col(dbc.Label(unit, className="ml-2"), width="auto"))
+    if units is not None:
+        elements.append(dbc.Col(dbc.Label(units, className="ml-2"), width="auto"))
 
     return dbc.Row(
         elements,
@@ -93,7 +140,15 @@ def create_axis_layout(
     min_span: float,
     max_span: Optional[float] = None,
     units: Optional[str] = None,
+    component_id: Optional[str] = None,
 ):
+    if component_id is None:
+        ids = {"span": f"{axis.lower()}-span", "points": f"{axis.lower()}-points"}
+    else:
+        ids = {
+            "span": {"type": component_id, "index": f"{axis.lower()}-span"},
+            "points": {"type": component_id, "index": f"{axis.lower()}-points"},
+        }
     return dbc.Col(
         dbc.Card(
             [
@@ -101,16 +156,16 @@ def create_axis_layout(
                 dbc.CardBody(
                     [
                         create_input_field(
-                            id=f"{axis.lower()}-span",
+                            id=ids["span"],
                             label="Span",
                             value=span,
                             min=min_span,
                             max=max_span,
                             input_style={"width": "100px"},
-                            unit=units,
+                            units=units,
                         ),
                         create_input_field(
-                            id=f"{axis.lower()}-points",
+                            id=ids["points"],
                             label="Points",
                             value=points,
                             min=1,

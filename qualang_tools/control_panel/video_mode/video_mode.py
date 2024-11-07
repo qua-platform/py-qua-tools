@@ -1,8 +1,8 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Union
-from dash import dcc, html  # , Input, Output
-from dash_extensions.enrich import DashProxy, Output, Input, BlockingCallbackTransform
+from dash import dcc, html, ALL, MATCH
+from dash_extensions.enrich import DashProxy, Output, Input, State, BlockingCallbackTransform
 import dash_bootstrap_components as dbc  # Add this import
 
 import logging
@@ -40,6 +40,7 @@ class VideoMode:
         self._last_update_clicks = 0
         self._last_save_clicks = 0
         self.update_interval = update_interval
+        self._is_updating = False
 
         self.app = DashProxy(
             __name__,
@@ -70,7 +71,6 @@ class VideoMode:
         """
         self.fig = xarray_to_plotly(self.data_acquirer.data_array)
 
-        # Modify the layout with Dash Bootstrap Components
         self.app.layout = dbc.Container(
             [
                 dbc.Row(
@@ -108,27 +108,7 @@ class VideoMode:
                                     step=1,
                                     debounce=True,
                                 ),
-                                dbc.Row(
-                                    [
-                                        create_axis_layout(
-                                            "x",
-                                            span=self.data_acquirer.x_axis.span,
-                                            points=self.data_acquirer.x_axis.points,
-                                            min_span=0.01,
-                                            max_span=None,
-                                            units=self.data_acquirer.x_axis.units,
-                                        ),
-                                        create_axis_layout(
-                                            "y",
-                                            span=self.data_acquirer.y_axis.span,
-                                            points=self.data_acquirer.y_axis.points,
-                                            min_span=0.01,
-                                            max_span=None,
-                                            units=self.data_acquirer.y_axis.units,
-                                        ),
-                                    ],
-                                    className="g-0",  # Remove gutters between columns
-                                ),
+                                html.Div(self.data_acquirer.get_dash_components(include_subcomponents=True)),
                                 dbc.Row(
                                     [
                                         dbc.Col(
@@ -194,58 +174,13 @@ class VideoMode:
             ],
             [
                 Input("interval-component", "n_intervals"),
-                Input("update-button", "n_clicks"),
-            ],
-            [
-                Input("num-averages", "value"),
-                Input("x-span", "value"),
-                Input("y-span", "value"),
-                Input("x-points", "value"),
-                Input("y-points", "value"),
             ],
             blocking=True,
         )
-        def update_heatmap(
-            n_intervals,
-            n_update_clicks,
-            num_averages,
-            x_span,
-            y_span,
-            x_points,
-            y_points,
-        ):
+        def update_heatmap(n_intervals):
             logging.debug(f"*** Dash callback {n_intervals} called at {datetime.now().strftime('%H:%M:%S.%f')[:-3]}")
-            attrs = [
-                dict(obj=self.data_acquirer, key="num_averages", new=num_averages),
-                dict(obj=self.data_acquirer.x_axis, key="span", new=x_span),
-                dict(obj=self.data_acquirer.y_axis, key="span", new=y_span),
-                dict(obj=self.data_acquirer.x_axis, key="points", new=x_points),
-                dict(obj=self.data_acquirer.y_axis, key="points", new=y_points),
-            ]
-            updated_attrs = []
 
-            if n_update_clicks > self._last_update_clicks:
-                self._last_update_clicks = n_update_clicks
-                for attr in attrs:
-                    attr["old"] = getattr(attr["obj"], attr["key"])
-                    attr["changed"] = attr["old"] != attr["new"]
-
-                    if not attr["changed"]:
-                        continue
-
-                    if attr["new"] is None:
-                        continue
-
-                    updated_attrs.append(attr)
-
-                    logging.debug(f"Updating {attr['key']} from {attr['old']} to {attr['new']}")
-
-                if updated_attrs:
-                    self.clear_data()
-                    updated_xarr = self.data_acquirer.update_attrs(updated_attrs)
-                return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
-
-            if self.paused:
+            if self.paused or self._is_updating:
                 logging.debug(f"Updates paused at iteration {self.data_acquirer.num_acquisitions}")
                 return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
 
@@ -254,6 +189,33 @@ class VideoMode:
             self.fig = xarray_to_plotly(updated_xarr)
             logging.debug(f"Updating heatmap, num_acquisitions: {self.data_acquirer.num_acquisitions}")
             return self.fig, f"Iteration: {self.data_acquirer.num_acquisitions}"
+
+        # Create states for all input components
+        component_states = []
+        for component_id in self.data_acquirer.get_component_ids():
+            component_states += [
+                State({"type": component_id, "index": ALL}, "id"),
+                State({"type": component_id, "index": ALL}, "value"),
+            ]
+
+        @self.app.callback(
+            [],
+            [Input("update-button", "n_clicks")],
+            [State("num-averages", "value"), *component_states],
+            blocking=True,
+        )
+        def update_params(n_update_clicks, num_averages, *component_inputs):
+            if n_update_clicks <= self._last_update_clicks:
+                return
+
+            params = {}
+            component_inputs_iterator = iter(component_inputs)
+            for component_id in self.data_acquirer.get_component_ids():
+                ids, values = next(component_inputs_iterator), next(component_inputs_iterator)
+                params[component_id] = {id["index"]: value for id, value in zip(ids, values)}
+
+            logging.debug(f"Updating params: {params}")
+            self.data_acquirer.update_parameters(params)
 
         @self.app.callback(
             Output("save-button", "children"),

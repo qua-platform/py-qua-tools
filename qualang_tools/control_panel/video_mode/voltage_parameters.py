@@ -13,7 +13,9 @@ class VoltageParameter:
         self.latest_value = initial_value
         self._value = initial_value
         self.units = units
-        logging.debug(f"{self.name} initialized with value {self.latest_value} {self.units}")
+        logging.debug(
+            f"{self.name} initialized with value {self.latest_value} {self.units}"
+        )
 
     def get(self):
         time.sleep(0.2)  # Simulate a 200ms delay
@@ -24,7 +26,9 @@ class VoltageParameter:
     def set(self, new_value):
         self._value = new_value
         updated_value = self.get()  # Return the value after setting
-        logging.debug(f"Setting {self.name} to {new_value}: Actual value is {updated_value} {self.units}")
+        logging.debug(
+            f"Setting {self.name} to {new_value}: Actual value is {updated_value} {self.units}"
+        )
         return updated_value
 
     def get_latest(self):
