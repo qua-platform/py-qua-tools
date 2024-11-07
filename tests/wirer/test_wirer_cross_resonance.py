@@ -6,7 +6,7 @@ from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelMwFemOutput, InstrumentChannelOpxPlus, \
     InstrumentChannelOpxPlusOutput, InstrumentChannelOctaveOutput
 
-visualize_flag = False
+visualize_flag = pytest.visualize_flag
 
 
 def test_2q_allocation_cross_resonance(instruments_2lf_2mw):
