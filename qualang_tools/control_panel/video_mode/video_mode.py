@@ -273,7 +273,7 @@ class VideoMode:
 
         if filepath.exists():
             raise FileExistsError(f"File {filepath} already exists.")
-        self.data_acquirer.data_array.to_netcdf(filepath, engine="h5netcdf", format="NETCDF4")
+        self.data_acquirer.data_array.to_netcdf(filepath)  # , engine="h5netcdf", format="NETCDF4")
         logging.info(f"Data saved successfully: {filepath}")
         logging.info("Data save operation completed.")
         return idx
