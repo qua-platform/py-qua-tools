@@ -1,5 +1,7 @@
-from typing import Any
+from typing import Any, Optional
 import pyvisa as visa
+
+import logging
 
 
 # VoltageParameter Class remains unchanged
@@ -27,6 +29,7 @@ class Parameter:
     def get_latest(self):
         return self.latest_value
 
+
 # QDAC2 instrument class
 class QDACII:
     def __init__(
@@ -46,15 +49,18 @@ class QDACII:
         :param USB_device: identification number of the device - required only for USB communication.
         :param lib: use '@py' to use pyvisa-py backend (default).
         """
+        self.communication_type = communication_type
         rm = visa.ResourceManager(lib)  # To use pyvisa-py backend, use argument '@py'
-        if communication_type == "Ethernet":
+        if communication_type.lower() == "ethernet":
             self._visa = rm.open_resource(f"TCPIP::{IP_address}::{port}::SOCKET")
-            self._visa.baud_rate = 921600
+            # self._visa.baud_rate = 921600
             # self._visa.send_end = False
-        elif communication_type == "USB":
+        elif communication_type.lower() == "usb":
             self._visa = rm.open_resource(f"ASRL{USB_device}::INSTR")
-        elif communication_type == "dummy":
-            print("QDACII connected!")
+        elif communication_type.lower() == "dummy":
+            print("Dummy QDACII connected!")
+        else:
+            raise ValueError(f"Invalid communication type: {communication_type}")
 
         if communication_type != "dummy":
             self._visa.write_termination = "\n"
@@ -71,8 +77,6 @@ class QDACII:
     def write_binary_values(self, cmd, values):
         self._visa.write_binary_values(cmd, values)
 
-
-
     def __exit__(self):
         self.close()
 
@@ -84,21 +88,21 @@ class qdac_ch(Parameter):
         self.ch_nb = channel_number
 
     def get(self):
-        # time.sleep(0.2)  # Simulate a 200ms delay
-        self.latest_value = self._value
-        # assert(self.latest_value == self.qdac.write(f'sour{self.ch_nb}:volt ?'))
-        print(f"Send: self.qdac.write(f'sour{self.ch_nb}:volt ?')")
-        # logging.debug(f"Getting {self.name}: {self.latest_value} {self.units}")
+        # print(f"QUERY: sour{self.ch_nb}:volt ?")
+        # self.latest_value = 0.01
+        self.latest_value = float(self.qdac.query(f"sour{self.ch_nb}:volt?"))
+        logging.debug(f"Getting {self.name}: {self.latest_value} {self.units}")
         return self.latest_value
 
     def set(self, new_value):
-        self._value = new_value
-        print(f"Send: self.qdac.write(f'sour{self.ch_nb}:volt {new_value}')")
+        self.qdac.write(f"sour{self.ch_nb}:volt {new_value}")
+        # print(f"WRITE: sour{self.ch_nb}:volt {new_value}")
         updated_value = self.get()  # Return the value after setting
-        # logging.debug(f"Setting {self.name} to {new_value}: Actual value is {updated_value} {self.units}")
+        logging.debug(f"Setting {self.name} to {new_value}: Actual value is {updated_value} {self.units}")
+
         return updated_value
 
-    def __call__(self, *args: Any, **kwargs: Any) -> float | None:
+    def __call__(self, *args: Any, **kwargs: Any) -> Optional[float]:
         if len(args) == 0 and len(kwargs) == 0:
             return self.get()
         else:
