@@ -48,10 +48,10 @@ class BaseDataAcquirer(BaseDashComponent, ABC):
         self.num_acquisitions = 0
 
         self.data_array = xr.DataArray(
-            np.zeros((self.x_axis.points, self.y_axis.points)),
+            np.zeros((self.y_axis.points, self.x_axis.points)),
             coords=[
-                (self.x_axis.name, self.x_axis.sweep_values_with_offset),
                 (self.y_axis.name, self.y_axis.sweep_values_with_offset),
+                (self.x_axis.name, self.x_axis.sweep_values_with_offset),
             ],
             attrs={"units": "V", "long_name": "Signal"},
         )
@@ -88,12 +88,15 @@ class BaseDataAcquirer(BaseDashComponent, ABC):
             self.data_history.pop(0)
 
         averaged_data = np.mean(self.data_history, axis=0)
+        print(
+            f"averaged_data.shape: {averaged_data.shape}, x-axis: {self.x_axis.sweep_values_with_offset.shape}, y-axis: {self.y_axis.sweep_values_with_offset.shape}"
+        )
 
         self.data_array = xr.DataArray(
             averaged_data,
             coords=[
-                (self.x_axis.name, self.x_axis.sweep_values_with_offset),
                 (self.y_axis.name, self.y_axis.sweep_values_with_offset),
+                (self.x_axis.name, self.x_axis.sweep_values_with_offset),
             ],
             attrs=self.data_array.attrs,  # Preserve original attributes like units
         )
