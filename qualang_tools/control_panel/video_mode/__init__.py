@@ -14,7 +14,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("hpack.hpack").setLevel(logging.WARNING)
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
-    x_axis = SweepAxis(name="X", span=0.1, points=101)
+    x_axis = SweepAxis(name="X", span=0.1, points=51)
     y_axis = SweepAxis(name="Y", span=0.1, points=101)
 
     data_acquirer = RandomDataAcquirer(

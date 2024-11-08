@@ -33,7 +33,7 @@ class RandomDataAcquirer(BaseDataAcquirer):
         This method acquires random data from the simulated device.
         """
         sleep(self.acquire_time)
-        results = np.random.rand(self.x_axis.points, self.y_axis.points)
+        results = np.random.rand(self.y_axis.points, self.x_axis.points)
         return results
 
     def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
