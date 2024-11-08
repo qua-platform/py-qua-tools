@@ -37,7 +37,7 @@ class OPXQuamDataAcquirer(OPXDataAcquirer):
         x_axis: SweepAxis,
         y_axis: SweepAxis,
         num_averages=1,
-        result_type: Literal["I", "Q", "abs", "phase"] = "I",
+        result_type: Literal["I", "Q", "amplitude", "phase"] = "I",
         initial_delay: Optional[float] = None,
         **kwargs,
     ):
