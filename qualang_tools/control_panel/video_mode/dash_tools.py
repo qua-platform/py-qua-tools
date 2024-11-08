@@ -24,7 +24,7 @@ class BaseDashComponent(ABC):
     def __init__(self, *args, component_id: str, **kwargs):
         assert not args, "BaseDashComponent does not accept any positional arguments"
         assert not kwargs, "BaseDashComponent does not accept any keyword arguments"
-        
+
         self.component_id = component_id
 
     def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
@@ -60,13 +60,14 @@ def xarray_to_plotly(da: xr.DataArray):
         raise ValueError("DataArray must have exactly 2 coordinates.")
 
     coords_iter = iter(da.coords.items())
-    x_label, x_coord = next(coords_iter)
-    x_label = x_coord.attrs.get("long_name", x_label)
-    x_unit = x_coord.attrs.get("units", "")
 
     y_label, y_coord = next(coords_iter)
     y_label = y_coord.attrs.get("long_name", y_label)
     y_unit = y_coord.attrs.get("units", "")
+
+    x_label, x_coord = next(coords_iter)
+    x_label = x_coord.attrs.get("long_name", x_label)
+    x_unit = x_coord.attrs.get("units", "")
 
     z_label = da.attrs.get("long_name", da.name or "Value")
     z_unit = da.attrs.get("units", "")
