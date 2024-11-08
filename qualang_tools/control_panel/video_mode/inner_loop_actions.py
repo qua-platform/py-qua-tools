@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Tuple
+from typing import Tuple
 from qm.qua import (
     declare,
     fixed,
@@ -9,20 +9,29 @@ from qm.qua import (
     wait,
     measure,
     QuaVariableType,
+    play,
+    ramp,
+    assign,
+    else_,
+    if_,
+    ramp_to_zero,
 )
-from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent
+from qm.qua.lib import Cast, Math
 
 
 class InnerLoopAction(BaseDashComponent, ABC):
-    def __init__(self, component_id: str = "inner-loop"):
+    def __init__(self, component_id: str =  "inner-loop"):
         super().__init__(component_id=component_id)
 
     @abstractmethod
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         pass
 
-    @abstractmethod
     def initial_action(self):
+        pass
+
+    def final_action(self):
         pass
 
 
@@ -54,11 +63,14 @@ class BasicInnerLoopAction(InnerLoopAction):
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
 
+    def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
+        set_dc_offset(self.x_elem, "single", x)
+        set_dc_offset(self.y_elem, "single", y)
+
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         outputs = {"I": declare(fixed), "Q": declare(fixed)}
 
-        set_dc_offset(self.x_elem, "single", x)
-        set_dc_offset(self.y_elem, "single", y)
+        self.set_dc_offsets(x, y)
         align()
         pre_measurement_delay_cycles = int(self.pre_measurement_delay * 1e9 // 4)
         if pre_measurement_delay_cycles >= 4:
@@ -79,7 +91,7 @@ class BasicInnerLoopAction(InnerLoopAction):
         align()
 
 
-class InnerLoopActionQuam(InnerLoopAction):
+class BasicInnerLoopActionQuam(InnerLoopAction):
     """Inner loop action for the video mode: set voltages and measure.
 
     This class is responsible for performing the inner loop action for the video mode.
@@ -92,23 +104,62 @@ class InnerLoopActionQuam(InnerLoopAction):
         pre_measurement_delay: The optional delay before the measurement.
     """
 
-    def __init__(
-        self,
-        x_element,
-        y_element,
-        readout_pulse,
-        pre_measurement_delay: float = 0.0,
-    ):
+    def __init__(self, x_element, y_element, readout_pulse, pre_measurement_delay: float = 0.0, ramp_rate: float = 0.0):
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
+        self.ramp_rate = ramp_rate
+
+        self._last_x_voltage = None
+        self._last_y_voltage = None
+        self.reached_voltage = None
+
+    def perform_ramp(self, element, previous_voltage, new_voltage):
+        ramp_cycles_ns_V = declare(int, int(1e9 / self.ramp_rate / 4))
+        qua_ramp = declare(fixed, self.ramp_rate / 1e9)
+        dV = declare(fixed)
+        duration = declare(int)
+        self.reached_voltage = declare(fixed)
+        assign(dV, new_voltage - previous_voltage)
+        # duration = Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV))
+        assign(duration, Math.abs(Cast.mul_int_by_fixed(ramp_cycles_ns_V, dV)))
+
+        with if_(duration > 4):
+            with if_(dV > 0):
+                assign(self.reached_voltage, previous_voltage + Cast.mul_fixed_by_int(qua_ramp, duration << 2))
+                play(ramp(self.ramp_rate / 1e9), element.name, duration=duration)
+            with else_():
+                assign(self.reached_voltage, previous_voltage - Cast.mul_fixed_by_int(qua_ramp, duration << 2))
+                play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration)
+        with else_():
+            element.play("step", amplitude_scale=dV << 2)
+            assign(self.reached_voltage, new_voltage)
+
+    def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
+        if self.ramp_rate > 0:
+            if getattr(self.x_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+            if getattr(self.y_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+
+            self.perform_ramp(self.x_elem, self._last_x_voltage, x)
+            assign(self._last_x_voltage, self.reached_voltage)
+            self.perform_ramp(self.y_elem, self._last_y_voltage, y)
+            assign(self._last_y_voltage, self.reached_voltage)
+        else:
+            self.x_elem.set_dc_offset(x)
+            self.y_elem.set_dc_offset(y)
+
+            assign(self._last_x_voltage, x)
+            assign(self._last_y_voltage, y)
+        # self._last_x_voltage = x
+        # self._last_y_voltage = y
 
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
-        self.x_elem.set_dc_offset(x)
-        self.y_elem.set_dc_offset(y)
-
+        self.set_dc_offsets(x, y)
         align()
+
         pre_measurement_delay_cycles = int(self.pre_measurement_delay * 1e9 // 4)
         if pre_measurement_delay_cycles >= 4:
             wait(pre_measurement_delay_cycles)
@@ -118,6 +169,22 @@ class InnerLoopActionQuam(InnerLoopAction):
         return I, Q
 
     def initial_action(self):
-        self.x_elem.set_dc_offset(0)
-        self.y_elem.set_dc_offset(0)
+        self._last_x_voltage = declare(fixed, 0.0)
+        self._last_y_voltage = declare(fixed, 0.0)
+        self.set_dc_offsets(0, 0)
+        align()
+
+    def final_action(self):
+        if self.ramp_rate > 0:
+            if getattr(self.x_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+            if getattr(self.y_elem, "sticky", None) is None:
+                raise RuntimeError("Ramp rate is not supported for non-sticky elements")
+
+            ramp_to_zero(self.x_elem.name)
+            ramp_to_zero(self.y_elem.name)
+            assign(self._last_x_voltage, 0.0)
+            assign(self._last_y_voltage, 0.0)
+        else:
+            self.set_dc_offsets(0, 0)
         align()
