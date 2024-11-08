@@ -164,7 +164,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         self.job.result_handles.get("combined").wait_for_values(1)  # type: ignore
 
     def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
-        components = super().get_components()
+        components = super().get_dash_components()
 
         components.append(
             html.Div(
