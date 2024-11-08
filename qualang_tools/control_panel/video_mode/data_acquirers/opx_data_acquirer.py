@@ -189,7 +189,11 @@ class OPXDataAcquirer(BaseDataAcquirer):
         raise NotImplementedError("OPXDataAcquirer does not implement generate_config")
 
     def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
-        flags = ModifiedFlags.NONE
+        flags = super().update_parameters(parameters)
+        # Update program if any sweep axes have been modified
+        if flags & ModifiedFlags.PARAMETERS_MODIFIED:
+            flags &= ModifiedFlags.PROGRAM_MODIFIED
+
         params = parameters[self.component_id]
         if self.result_type != params["result-type"]:
             self.result_type = params["result-type"]
