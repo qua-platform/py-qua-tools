@@ -49,7 +49,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         x_axis: SweepAxis,
         y_axis: SweepAxis,
         num_averages=1,
-        result_type: Literal["I", "Q", "abs", "phase"] = "I",
+        result_type: Literal["I", "Q", "amplitude", "phase"] = "I",
         initial_delay: Optional[float] = None,
         **kwargs,
     ):
@@ -115,7 +115,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
         """
         if self.result_type in ["I", "Q"]:
             result = results[self.result_type]
-        elif self.result_type == "abs":
+        elif self.result_type == "amplitude":
             result = np.abs(results["I"] + 1j * results["Q"])
         elif self.result_type == "phase":
             result = np.angle(results["I"] + 1j * results["Q"])

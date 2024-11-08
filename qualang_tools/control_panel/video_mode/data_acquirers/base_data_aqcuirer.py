@@ -53,7 +53,7 @@ class BaseDataAcquirer(BaseDashComponent, ABC):
                 (self.y_axis.name, self.y_axis.sweep_values_with_offset),
                 (self.x_axis.name, self.x_axis.sweep_values_with_offset),
             ],
-            attrs={"units": "V", "long_name": "Signal"},
+            attrs={"long_name": "Signal"},
         )
         for axis in [self.x_axis, self.y_axis]:
             attrs = {"label": axis.label or axis.name}
