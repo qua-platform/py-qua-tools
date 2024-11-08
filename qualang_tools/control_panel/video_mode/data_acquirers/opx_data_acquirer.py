@@ -200,5 +200,6 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
         if flags & (ModifiedFlags.CONFIG_MODIFIED | ModifiedFlags.PROGRAM_MODIFIED):
             self.program = self.generate_program()
+            self.run_program()
 
         return flags
