@@ -171,7 +171,7 @@ class OPXDataAcquirer(BaseDataAcquirer):
                 [
                     dbc.Label("Result Type"),
                     dbc.Select(
-                        id="result-type",
+                        id={"type": self.component_id, "index": "result-type"},
                         options=[{"label": rt, "value": rt} for rt in self.result_types],
                         value=self.result_type,
                     ),
@@ -190,7 +190,8 @@ class OPXDataAcquirer(BaseDataAcquirer):
 
     def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
         flags = ModifiedFlags.NONE
-        self.result_type = parameters["result-type"]
+        params = parameters[self.component_id]
+        self.result_type = params["result-type"]
 
         flags |= self.scan_mode.update_parameters(parameters)
         flags |= self.qua_inner_loop_action.update_parameters(parameters)
