@@ -88,9 +88,6 @@ class BaseDataAcquirer(BaseDashComponent, ABC):
             self.data_history.pop(0)
 
         averaged_data = np.mean(self.data_history, axis=0)
-        print(
-            f"averaged_data.shape: {averaged_data.shape}, x-axis: {self.x_axis.sweep_values_with_offset.shape}, y-axis: {self.y_axis.sweep_values_with_offset.shape}"
-        )
 
         self.data_array = xr.DataArray(
             averaged_data,
