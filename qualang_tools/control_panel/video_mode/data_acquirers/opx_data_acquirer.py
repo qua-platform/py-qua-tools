@@ -191,7 +191,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
     def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
         flags = ModifiedFlags.NONE
         params = parameters[self.component_id]
-        self.result_type = params["result-type"]
+        if self.result_type != params["result-type"]:
+            self.result_type = params["result-type"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
 
         flags |= self.scan_mode.update_parameters(parameters)
         flags |= self.qua_inner_loop_action.update_parameters(parameters)
