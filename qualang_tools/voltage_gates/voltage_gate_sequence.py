@@ -73,7 +73,14 @@ class VoltageGateSequence:
     @staticmethod
     def _check_duration(duration: int):
         if duration is not None and not isinstance(duration, (QuaVariable, QuaExpression)):
-            assert duration >= 4, "The duration must be a larger than 16 ns."
+            if duration == 0:
+                warn(
+                    "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
+                    stacklevel=2,
+                )
+            else:
+                assert duration >= 4, "The duration must be a larger than 16 ns."
+                assert duration % 4 != 0, "The duration must be a multiple integer of 4ns."
 
     def _update_averaged_power(self, level, duration, ramp_duration=None, current_level=None):
         if self.is_QUA(level):
@@ -171,13 +178,14 @@ class VoltageGateSequence:
                         wait((_duration - 16) >> 2, gate)
                     # if constant duration --> new operation and play(*amp(..))
                     else:
-                        operation = self._add_op_to_config(
-                            gate,
-                            "step",
-                            amplitude=0.25,
-                            length=_duration,
-                        )
-                        play(operation * amp((voltage_level - self.current_level[i]) * 4), gate)
+                        if _duration > 0:
+                            operation = self._add_op_to_config(
+                                gate,
+                                "step",
+                                amplitude=0.25,
+                                length=_duration,
+                            )
+                            play(operation * amp((voltage_level - self.current_level[i]) * 4), gate)
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
                 elif isinstance(_duration, (QuaVariable, QuaExpression)):
@@ -208,7 +216,11 @@ class VoltageGateSequence:
                 if not self.is_QUA(ramp_duration):
                     ramp_rate = 1 / ramp_duration
                     play(ramp((voltage_level - self.current_level[i]) * ramp_rate), gate, duration=ramp_duration >> 2)
-                    wait(_duration >> 2, gate)
+                    if not self.is_QUA(_duration):
+                        if _duration > 0:
+                            wait(_duration >> 2, gate)
+                    else:
+                        wait(_duration >> 2, gate)
                 else:
                     ramp_rate = declare(fixed)
                     assign(ramp_rate, (voltage_level - self.current_level[i]) * Math.div(1, ramp_duration))
@@ -216,7 +228,8 @@ class VoltageGateSequence:
                     if self.is_QUA(_duration):
                         wait((_duration >> 2) - 9, gate)
                     else:
-                        wait(_duration >> 2, gate)
+                        if _duration > 0:
+                            wait(_duration >> 2, gate)
             self.current_level[i] = voltage_level
 
     def add_compensation_pulse(self, duration: int) -> None:
