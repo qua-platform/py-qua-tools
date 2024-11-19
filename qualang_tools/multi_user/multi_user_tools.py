@@ -1,6 +1,6 @@
 import logging
 from contextlib import contextmanager
-from time import sleep
+from time import sleep, time
 from typing import Generator
 
 from qm import QuantumMachine
@@ -15,6 +15,7 @@ msg = (
 class BusyFilter(logging.Filter):
     def filter(self, record):
         return not ("already uses" in record.getMessage() or msg in record.getMessage())
+        # return False
 
 
 @contextmanager
@@ -35,12 +36,14 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
     """
     if not timeout > 0:
         raise ValueError(f"timeout={timeout} but must be positive")
-    qm_log = logging.getLogger("qm")
+    qm_log = logging.getLogger("qm.api.frontend_api")
+    # qm_log = logging.getLogger("qm")
     filt = BusyFilter()
     is_busy = True
     printed = False
-    time = 0
-    while is_busy and time < timeout:
+    t0 = time()
+    elapsed_time = 0
+    while is_busy and elapsed_time < timeout:
         try:
             qm_log.addFilter(filt)
             qm = qmm.open_qm(config, close_other_machines=False)
@@ -58,7 +61,7 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
                     qm_log.warning(f"QOP is busy. Waiting for it to free up for {timeout}s...")
                     printed = True
                 sleep(0.2)
-                time += 0.2
+                elapsed_time = time() - t0
             else:
                 raise Exception from e
         else:
@@ -66,7 +69,7 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
             qm_log.info("Opening QM")
         finally:
             qm_log.removeFilter(filt)
-    if is_busy and time >= timeout:
+    if is_busy and elapsed_time >= timeout:
         qm_log.warning(f"While waiting for QOP to free, reached timeout: {timeout}s")
         raise TimeoutError(f"While waiting for QOP to free, reached timeout: {timeout}s")
     try:
