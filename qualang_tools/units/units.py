@@ -228,6 +228,14 @@ class unit:
         """
         return data * self.V / 4096
 
+    def volts2raw(self, Vp: Union[float, ndarray]) -> Union[float, ndarray]:
+        """Converts the volts to raw data.
+
+        :param Vp: the peak voltage (amplitude) in volts. Must be a python variable or array.
+        :return: the raw data.
+        """
+        return Vp / self.V * 4096
+
     @staticmethod
     def volts2dBm(Vp: Union[float, ndarray], Z: Union[float, int] = 50) -> Union[float, ndarray]:
         """Converts the peak voltage (amplitude) from volts to dBm.
