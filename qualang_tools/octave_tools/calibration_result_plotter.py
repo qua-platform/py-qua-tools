@@ -72,7 +72,7 @@ def show_lo_result(
         ]
     )
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(q_scan) + 0.5 * dq,
@@ -248,7 +248,7 @@ def show_lo_result(
         verticalalignment="top",
     )
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.subplot(223)
 
@@ -276,7 +276,7 @@ def show_lo_result(
     )
     t.set_bbox(dict(facecolor="w", alpha=0.8))
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.subplot(221)
 
@@ -385,7 +385,7 @@ def show_if_result(
         verticalalignment="top",
     )
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
@@ -445,7 +445,7 @@ def show_if_result(
         verticalalignment="top",
     )
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
@@ -485,7 +485,7 @@ def show_if_result(
     plt.plot(r.phase, r.gain, "yo", markersize=8)
     plt.plot(r.phase, r.gain, "ro", markersize=4)
 
-    plt.colorbar()
+    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
