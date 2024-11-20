@@ -6,14 +6,18 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qm.type_hinting.general import Number
+from qualang_tools.units import unit
 
 logger = logging.getLogger(__name__)
 
 # Define the colors from start (blue), midpoint (white), to end (red)
-colors = ["midnightblue", "royalblue", "lightskyblue", "white", "lightgrey"]
+# colors = ["midnightblue", "royalblue", "lightskyblue", "white", "lightgrey"]
+colors = ["black","midnightblue", "navy", "darkblue", "mediumblue", "dodgerblue", "white", "lightgrey"]
 
 # Create the colormap
 custom_cmap = LinearSegmentedColormap.from_list("custom_diverging", colors, N=256)
+
+u = unit(coerce_to_integer=True)
 
 
 def show_lo_result(
@@ -50,12 +54,13 @@ def show_lo_result(
 
     q_scan = d.q_scan * 1000
     i_scan = d.i_scan * 1000
-    lo = d.lo * 1e6
+    lo = u.demod2volts(d.lo, 10_000)
+    lo_dbm = 10 * np.log10(lo / 50 * 1000)
 
     dq = np.mean(np.diff(q_scan, axis=1))
     di = np.mean(np.diff(i_scan, axis=0))
 
-    plt.pcolor(q_scan, i_scan, lo, cmap=custom_cmap)
+    plt.pcolor(q_scan, i_scan, lo_dbm, cmap=custom_cmap)
     plt.xlabel("Q_dc (mV)")
     plt.ylabel("I_dc (mV)")
     plt.axis("equal")
@@ -101,7 +106,7 @@ def show_lo_result(
     O[0] += x0
     O[1] += y0
 
-    plt.plot(*(P + O), "w:", linewidth=0.5)
+    plt.plot(*(P + O), "k:", linewidth=0.5)
 
     r1, r2 = d.fit.pol_[3] ** -0.5, d.fit.pol_[5] ** -0.5
     r1, r2 = r1 / np.sqrt(r1 * r2), r2 / np.sqrt(r1 * r2)
@@ -112,7 +117,7 @@ def show_lo_result(
     P = np.array([[r1, 0], [0, r2]]) @ P
     P = np.array([[tc, ts], [-ts, tc]]) @ P
 
-    plt.plot(*(P + O), "w--", linewidth=0.5)
+    plt.plot(*(P + O), "k--", linewidth=0.5)
     plt.text(
         np.min(q_scan) + 0.5 * dq,
         np.min(i_scan) + 0.5 * di,
@@ -160,12 +165,13 @@ def show_lo_result(
 
     fine_q_scan = d.q_scan * 1000 + x0_ref
     fine_i_scan = d.i_scan * 1000 + y0_ref
-    lo = d.lo * 1e6
+    lo = u.demod2volts(d.lo, 10_000)
+    lo_dbm = 10 * np.log10(lo / 50 * 1000)
 
     dq = np.mean(np.diff(fine_q_scan, axis=1))
     di = np.mean(np.diff(fine_i_scan, axis=0))
 
-    plt.pcolor(fine_q_scan, fine_i_scan, lo, cmap=custom_cmap)
+    plt.pcolor(fine_q_scan, fine_i_scan, lo_dbm, cmap=custom_cmap)
     plt.xlabel("Q_dc (mV)")
     plt.ylabel("I_dc (mV)")
     plt.axis("equal")
@@ -199,7 +205,7 @@ def show_lo_result(
     O[0] += x0
     O[1] += y0
 
-    plt.plot(*(P + O), "w:", linewidth=0.5)
+    plt.plot(*(P + O), "k:", linewidth=0.5)
 
     r1, r2 = d.fit.pol_[3] ** -0.5, d.fit.pol_[5] ** -0.5
     r1, r2 = r1 / np.sqrt(r1 * r2), r2 / np.sqrt(r1 * r2)
@@ -210,7 +216,7 @@ def show_lo_result(
     P = np.array([[r1, 0], [0, r2]]) @ P
     P = np.array([[tc, ts], [-ts, tc]]) @ P
 
-    plt.plot(*(P + O), "w--", linewidth=0.5)
+    plt.plot(*(P + O), "k--", linewidth=0.5)
 
     plt.text(
         np.min(fine_q_scan) + 0.5 * dq,
@@ -249,12 +255,13 @@ def show_lo_result(
     X, Y = d.q_scan, d.i_scan
     p = d.fit.pol
 
-    iq_error = p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo
+    iq_error = u.demod2volts(p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, 10_000)
+    iq_error_dbm = 10 * np.log10(np.abs(iq_error) / 50 * 1000)
 
     plt.pcolor(
         fine_q_scan,
         fine_i_scan,
-        iq_error * 1e6,
+        iq_error_dbm,
         cmap=custom_cmap,
     )
     plt.xlabel("Q (mV)")
@@ -358,7 +365,10 @@ def show_if_result(
     dp = np.mean(np.diff(r.p_scan, axis=1))
     dg = np.mean(np.diff(r.g_scan, axis=0))
 
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap=custom_cmap)
+    image = u.demod2volts(r.image, 10_000)
+    image_dbm = 10 * np.log10(image / 50 * 1000)
+
+    plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
     plt.ylabel("gain(%)")
     plt.axis("equal")
@@ -416,8 +426,12 @@ def show_if_result(
     plt.ylabel("gain(%)")
     plt.axis("equal")
 
-    plt.contour(r.p_scan, r.g_scan, r.image * 1e6, colors="w", alpha=0.3)
-    plt.pcolor(r.p_scan, r.g_scan, r.image * 1e6, cmap=custom_cmap)
+
+    image = u.demod2volts(r.image, 10_000)
+    image_dbm = 10 * np.log10(np.abs(image) / 50 * 1000 + 1e-7)
+
+    plt.contour(r.p_scan, r.g_scan, image_dbm, colors="k", alpha=0.5)
+    plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
 
     plt.plot(r.phase, r.gain, "yo", markersize=8)
     plt.plot(r.phase, r.gain, "ro", markersize=4)
@@ -460,9 +474,10 @@ def show_if_result(
     X, Y = r.p_scan, r.g_scan
     p = r.fit.pol
 
-    image = p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image
+    image = u.demod2volts(p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, 10_000)
+    image_dbm = 10 * np.log10(np.abs(image) / 50 * 1000)
 
-    plt.pcolor(r.p_scan, r.g_scan, image * 1e6, cmap=custom_cmap)
+    plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
     plt.ylabel("gain")
     plt.axis("equal")
