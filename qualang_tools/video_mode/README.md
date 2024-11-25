@@ -61,7 +61,7 @@ with program() as video_mode_prog:
 Let us explain what we did here.
 
 ### Declaring variables
-The first line within the program is essentially a macro that has declared all the QUA variables dynamically from the 
+The first line within the program is a macro that has declared all the QUA variables dynamically from the 
 original parameter list by operating an appropriate casting for all parameters that were provided by the user.
 
 To be able to access those newly created QUA variables later in the design of the program, we can use 

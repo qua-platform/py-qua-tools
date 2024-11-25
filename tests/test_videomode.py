@@ -2,7 +2,7 @@
 import pytest
 from qm.qua import *
 import numpy as np
-from qualang_tools.video_mode import ParameterTable
+from qualang_tools.parameter_table import ParameterTable
 
 
 def gauss(amplitude, mu, sigma, length):
