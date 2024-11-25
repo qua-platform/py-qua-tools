@@ -1,229 +1,16 @@
-# VideoMode script enabling the update of parameters in a QUA program through user input while the program is running.
-# Authors: Arthur Strauss, Théo Laudat
-# Date: 19/12/2023
+""" 
+VideoMode script enabling the update of parameters in a QUA program through user input while the program is running.
+Authors: Arthur Strauss, Théo Laudat
+Date: 19/12/2023
+"""
 
 import threading
 from qm.qua import *
 from qm import QuantumMachine, QmJob, Program
 import time
 import signal
-from typing import Optional, List, Dict, Union, Tuple
-import numpy as np
-
-
-def set_type(qua_type: Union[str, type]):
-    """
-    Set the type of the QUA variable to be declared.
-    Args: qua_type: Type of the QUA variable to be declared (int, fixed, bool).
-    """
-
-    if qua_type == "fixed" or qua_type == fixed:
-        return fixed
-    elif qua_type == "bool" or qua_type == bool:
-        return bool
-    elif qua_type == "int" or qua_type == int:
-        return int
-    else:
-        raise ValueError("Invalid QUA type. Please use 'fixed', 'int' or 'bool'.")
-
-
-def infer_type(value: Union[int, float, List, np.ndarray] = None):
-    """
-    Infer automatically the type of the QUA variable to be declared from the type of the initial parameter value.
-    """
-    if isinstance(value, float):
-        if value.is_integer() and value > 8:
-            return int
-        else:
-            return fixed
-
-    elif isinstance(value, bool):
-        return bool
-
-    elif isinstance(value, int):
-        return int
-
-    elif isinstance(value, (List, np.ndarray)):
-        if isinstance(value, np.ndarray):
-            assert value.ndim == 1, "Invalid parameter type, array must be 1D."
-            value = value.tolist()
-        assert all(
-            isinstance(x, type(value[0])) for x in value
-        ), "Invalid parameter type, all elements must be of same type."
-        if isinstance(value[0], bool):
-            return bool
-        elif isinstance(value[0], int):
-            return int
-        elif isinstance(value[0], float):
-            return fixed
-    else:
-        raise ValueError("Invalid parameter type. Please use float, int or bool or list.")
-
-
-class ParameterValue:
-    def __init__(
-        self,
-        name: str,
-        value: Union[int, float, List, np.ndarray],
-        index: int,
-        qua_type: Optional[Union[str, type]] = None,
-    ):
-        """ """
-        self.name = name
-        self.value = value
-        self.index = index
-        self.var = None
-        self.type = set_type(qua_type) if qua_type is not None else infer_type(value)
-        self.length = 0 if not isinstance(value, (List, np.ndarray)) else len(value)
-
-    def __repr__(self):
-        return f"{self.name}: ({self.value}, {self.type}) \n"
-
-
-class ParameterTable:
-    """
-    Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables. The
-    type of the QUA variable to be adjusted is automatically inferred from the type of the initial_parameter_value.
-    Each parameter in the dictionary should be given a name that the user can then easily access through the table
-    with table[parameter_name]. Calling this will return the QUA variable built within the QUA program corresponding
-    to the parameter name and its associated Python initial value. Args: parameters_dict: Dictionary of the form {
-    "parameter_name": initial_parameter_value }. the QUA program.
-    """
-
-    def __init__(
-        self,
-        parameters_dict: Dict[
-            str,
-            Union[
-                Tuple[Union[float, int, bool, List, np.ndarray], Optional[str]],
-                Union[float, int, bool, List, np.ndarray],
-            ],
-        ],
-    ):
-        """
-        Class enabling the mapping of parameters to be updated to their corresponding "to-be-declared" QUA variables.
-        The type of the QUA variable to be adjusted can be specified or either be automatically inferred from the
-        type of the initial_parameter_value. Each parameter in the dictionary should be given a name that the user
-        can then easily access through the table with table[parameter_name]. Calling this will return the QUA
-        variable built within the QUA program corresponding to the parameter name and its associated Python initial
-        value. Args: parameters_dict: Dictionary should be of the form { "parameter_name": (initial_value,
-        qua_type) } where qua_type is the type of the QUA variable to be declared (int, fixed, bool).
-
-
-        """
-        self.parameters_dict = parameters_dict
-        self.table = {}
-        for index, (parameter_name, parameter_value) in enumerate(self.parameters_dict.items()):
-            if isinstance(parameter_value, Tuple):
-                if len(parameter_value) != 2:
-                    raise ValueError(
-                        "Invalid format for parameter value. Please use (initial_value, qua_type) or initial_value."
-                    )
-                self.table[parameter_name] = ParameterValue(
-                    parameter_name, parameter_value[0], index, parameter_value[1]
-                )
-            else:
-                self.table[parameter_name] = ParameterValue(parameter_name, parameter_value, index)
-
-    def declare_variables(self):
-        """
-        QUA Macro to create the QUA variables associated with the parameter table.
-        """
-        for parameter_name, parameter in self.table.items():
-            parameter.var = declare(t=parameter.type, value=parameter.value)
-        pause()
-        if len(self.variables) == 1:
-            return self.variables[0]
-        else:
-            return self.variables
-
-    def load_parameters(self, pause_program=False):
-        """QUA Macro to be called within QUA program to retrieve updated values for the parameters through IO 1 and IO2.
-        Args:
-            pause_program: Boolean indicating whether the program should be paused while waiting for user input.
-        """
-
-        if pause_program:
-            pause()
-
-        param_index_var = declare(int)
-        assign(param_index_var, IO1)
-
-        with switch_(param_index_var):
-            for parameter in self.table.values():
-                with case_(parameter.index):
-                    if parameter.length == 0:
-                        assign(parameter.var, IO2)
-                    else:
-                        looping_var = declare(int)
-                        with for_(
-                            looping_var,
-                            0,
-                            looping_var < parameter.var.length(),
-                            looping_var + 1,
-                        ):
-                            pause()
-                            assign(parameter.var[looping_var], IO2)
-
-            with default_():
-                pass
-
-    def print_parameters(self):
-        text = ""
-        for parameter_name, parameter in self.table.items():
-            text += f"{parameter_name}: {parameter.value}, \n"
-        print(text)
-
-    def get_parameters(self):
-        """
-        Get dictionary of all parameters with latest updated values
-        Args: parameter_name: Name of the parameter to be returned. If None, all parameters are printed.
-        Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
-                else parameter_value associated to parameter_name.
-        """
-        return {parameter_name: parameter.value for parameter_name, parameter in self.table.items()}
-
-    def get_parameter(self, param_name: str):
-        """
-        Get the value of a specific arameter with latest updated value
-        Args: parameter_name: Name of the parameter to be returned. If None, all parameters are printed.
-        Returns: if parameter_name is None, Dictionary of the form { "parameter_name": parameter_value },
-                else parameter_value associated to parameter_name.
-        """
-        if param_name not in self.table.keys():
-            raise KeyError(f"No parameter named {param_name} in the parameter table.")
-        return self.table[param_name].value
-
-    def __getitem__(self, item):
-        """
-        Returns the QUA variable corresponding to the parameter name.
-        """
-
-        if self.table[item].var is not None:
-            return self.table[item].var
-        else:
-            raise ValueError(
-                f"No QUA variable found for parameter {item}. Please use "
-                f"VideoMode.declare_variables() within QUA program first."
-            )
-
-    @property
-    def variables(self):
-        """List of the QUA variables corresponding to the parameters in the parameter table."""
-        try:
-            return [self[item] for item in self.table.keys()]
-        except KeyError:
-            raise KeyError(
-                "No QUA variables found for parameters. Please use "
-                "VideoMode.declare_variables() within QUA program first."
-            )
-
-    def __repr__(self):
-        text = ""
-        for parameter in self.table.values():
-            text += parameter.__repr__()
-        return text
-
+from typing import Optional, Dict, Union
+from ..parameter_table import ParameterTable
 
 class VideoMode:
     """
@@ -435,7 +222,7 @@ class VideoMode:
             self.job.resume()
         print("start")
         print(self.implemented_commands)
-        self.parameter_table.get_parameters()
+        print(self.get_parameters())
         self.thread.start()
 
         return self.job
@@ -457,13 +244,15 @@ class VideoMode:
         Get dictionary of parameters with latest updated values
         Returns: Dictionary of the form { "parameter_name": parameter_value }.
         """
-        return self.parameter_table.get_parameters()
+        return {parameter_name: parameter.value for parameter_name, parameter in self.parameter_table.table.items()}
 
-    def get_parameter(self, param_name: Optional[str] = None):
+    def get_parameter(self, param_name: str):
         """
         Get the value of a parameter with latest updated values
         """
-        return self.parameter_table.get_parameter(param_name)
+        if param_name not in self.parameter_table.table.keys():
+            raise KeyError(f"No parameter named {param_name} in the parameter table.")
+        return self.parameter_table.table[param_name].value
 
     def load_parameters(self, pause_program=False):
         """
@@ -471,7 +260,30 @@ class VideoMode:
         Args:
         pause_program: Boolean indicating whether the program should be paused while waiting for user input.
         """
-        self.parameter_table.load_parameters(pause_program)
+        if pause_program:
+            pause()
+
+        param_index_var = declare(int)
+        assign(param_index_var, IO1)
+
+        with switch_(param_index_var):
+            for parameter in self.parameter_table.values:
+                with case_(parameter.index):
+                    if parameter.length == 0:
+                        assign(parameter.var, IO2)
+                    else:
+                        looping_var = declare(int)
+                        with for_(
+                                looping_var,
+                                0,
+                                looping_var < parameter.var.length(),
+                                looping_var + 1,
+                        ):
+                            pause()
+                            assign(parameter.var[looping_var], IO2)
+
+            with default_():
+                pass
 
     def declare_variables(self):
         """
