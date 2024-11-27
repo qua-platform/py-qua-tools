@@ -48,7 +48,7 @@ grpclib = "0.4.5"
 pytest = "^6.2.5"
 black = "^24.3"
 poethepoet = "^0.18.0"
-flake8 = "^4.0.1"
+flake8 = "^5.0.4"
 setuptools = "^69.0.2"
 
 [tool.poetry.extras]
