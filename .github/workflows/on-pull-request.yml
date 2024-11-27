@@ -48,8 +48,7 @@ jobs:
         run: poetry run poe lint
 
       - name: Run tests
-        run: |
-          pytest tests/ --junitxml=test-results-${{ matrix.python-version }}.xml
+        run: poetry run poe test --junitxml=test-results-${{ matrix.python-version }}.xml
 
       - name: Build
         run: poetry build
