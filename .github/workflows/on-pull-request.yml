@@ -47,8 +47,9 @@ jobs:
       - name: Check linting
         run: poetry run poe lint
 
-      - name: Test
-        run: poetry run poe test --junitxml=${JUNIT_REPORT_PATH}/report.xml
+      - name: Run tests
+        run: |
+          pytest tests/ --junitxml=test-results-${{ matrix.python-version }}.xml
 
       - name: Build
         run: poetry build
@@ -69,6 +70,13 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: ${{env.JUNIT_REPORT_PATH}}/*.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-python-${{ matrix.python-version }}
+          path: test-results-${{ matrix.python-version }}.xml
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
