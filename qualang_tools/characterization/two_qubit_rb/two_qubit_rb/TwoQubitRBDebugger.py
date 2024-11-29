@@ -11,6 +11,25 @@ from .TwoQubitRB import TwoQubitRb
 from .verification import SequenceTracker
 
 
+phased_xz_command_sequences = {
+    r"I \otimes I": [720],  # Identity on both qubits
+    r"I \otimes Z": [732],  # Z on qubit 1, Identity on qubit 2
+    r"Z \otimes I": [723],  # Z on qubit 2, Identity on qubit 1
+    r"I \otimes X": [724],  # X on qubit 1, Identity on qubit 2
+    r"X \otimes I": [721],  # X on qubit 2, Identity on qubit 1
+    r"X \otimes X": [725],  # X on both qubits
+    r"\frac{X}{2} \otimes I": [1],  # X/2 on qubit 2, Identity on qubit 1
+    r"I \otimes \frac{X}{2}": [6],  # X/2 on qubit 1, Identity on qubit 2
+    r"\frac{X}{2} \otimes \frac{X}{2}": [7],  # X/2 on both qubits
+    r"\text{CZ}": [74],  # Controlled-Z (CZ) gate
+    r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [252],
+    r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
+    r"(\frac{X}{2} \otimes I), \text{CNOT}": [1, 4, 63],  # X/2 on qubit 2, followed by CNOT
+    r"(X \otimes I), \text{CNOT}": [724, 4, 63],  # X/2 on qubit 2, followed by CNOT
+    r"(I \otimes X), \text{SWAP}": [724, 39, 489],  # X on qubit 1, followed by SWAP
+}
+
+
 class TwoQubitRbDebugger:
     def __init__(self, rb: TwoQubitRb):
         """
@@ -26,25 +45,7 @@ class TwoQubitRbDebugger:
         gates and other fundamental gates, which lead to a variety of transformations on
         the |00> state. This is useful for testing the 1Q component of the gate implementation.
         """
-        sequences_dict = {
-            r"I \otimes I": [720],  # Identity on both qubits
-            r"I \otimes Z": [732],  # Z on qubit 1, Identity on qubit 2
-            r"Z \otimes I": [723],  # Z on qubit 2, Identity on qubit 1
-            r"I \otimes X": [724],  # X on qubit 1, Identity on qubit 2
-            r"X \otimes I": [721],  # X on qubit 2, Identity on qubit 1
-            r"X \otimes X": [725],  # X on both qubits
-            r"\frac{X}{2} \otimes I": [1],  # X/2 on qubit 2, Identity on qubit 1
-            r"I \otimes \frac{X}{2}": [6],  # X/2 on qubit 1, Identity on qubit 2
-            r"\frac{X}{2} \otimes \frac{X}{2}": [7],  # X/2 on both qubits
-            r"\text{CZ}": [74],  # Controlled-Z (CZ) gate
-            r"(\frac{X}{2} \otimes \frac{X}{2}), \text{CZ}, (\frac{X}{2} \otimes \frac{X}{2})": [7, 74, 7],
-            r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
-            r"(\frac{X}{2} \otimes I), \text{CNOT}": [1, 4, 63],  # X/2 on qubit 2, followed by CNOT
-            r"(X \otimes I), \text{CNOT}": [724, 4, 63],  # X/2 on qubit 2, followed by CNOT
-            r"(I \otimes X), \text{SWAP}": [724, 39, 489],  # X on qubit 1, followed by SWAP
-        }
-
-        sequences = sequences_dict.values()
+        sequences = phased_xz_command_sequences.values()
 
         self.sequence_tracker = SequenceTracker(self.rb._command_registry)
 
@@ -59,15 +60,15 @@ class TwoQubitRbDebugger:
         state = job.result_handles.get("state").fetch_all()
 
         self.sequence_tracker.print_sequences()
-        self._analyze_phased_xz_commands_program(state, list(sequences_dict.keys()))
+        self._analyze_phased_xz_commands_program(state, list(phased_xz_command_sequences.keys()))
 
     @run_in_thread
     def _insert_all_input_stream(self, job, sequences):
         for sequence in tqdm(sequences, desc='Running test-sequences', unit='sequence'):
             self.sequence_tracker.make_sequence(sequence)
-            job.insert_input_stream("__gates_len_is__", len(sequence))
-            for qe in self.rb._rb_baker.all_elements:
-                job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+            # job.insert_input_stream("__gates_len_is__", len(sequence))
+            # for qe in self.rb._rb_baker.all_elements:
+            #     job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
 
     def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
         with program() as prog:

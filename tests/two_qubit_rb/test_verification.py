@@ -1,12 +1,15 @@
 import os
 from pathlib import Path
 
+import numpy as np
 import pytest
+import tqdm
 
 cirq = pytest.importorskip("cirq")
 
 from qualang_tools.bakery.bakery import Baking
 from qualang_tools.characterization.two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
+from qualang_tools.characterization.two_qubit_rb.two_qubit_rb.TwoQubitRBDebugger import phased_xz_command_sequences
 
 
 def test_all_verification(config):
@@ -59,7 +62,7 @@ def test_all_verification(config):
         rb.verify_sequences()
 
 
-def test_debugger(config):
+def test_debugger_bell_state_circuit(config):
     def bake_phased_xz(baker: Baking, q, x, z, a):
         pass
 
@@ -80,6 +83,30 @@ def test_debugger(config):
     rb = TwoQubitRb(
         config, bake_phased_xz, cz_generator, prep, meas, verify_generation=False, interleaving_gate=None
     )
+
+    parent_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+    rb.save_command_mapping_to_file(parent_dir / "commands.txt")
+
+    bell_state_circuit_string = r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}"
+    bell_state = (1 / np.sqrt(2)) * (
+        np.kron(np.array([1, 0]), np.array([1, 0])) +
+        np.kron(np.array([0, 1]), np.array([0, 1]))
+    )
+    bell_state_rho = np.outer(bell_state, bell_state.conj())
+
+    # search for commands producing bell-state
+    # for i in tqdm.tqdm(range(736)):
+    #     sequence = []
+    #     for command_id in [i]:
+    #         sequence.extend(rb._sequence_tracker.command_registry.get_command_by_id(command_id))
+    #     if np.allclose(rb._sequence_tracker.calculate_resultant_state(sequence), np.array(bell_state_rho)):
+    #         print("Found!", i)
+
+    sequence = []
+    for command_id in phased_xz_command_sequences[bell_state_circuit_string]:
+        sequence.extend(rb._sequence_tracker.command_registry.get_command_by_id(command_id))
+
+    assert np.allclose(rb._sequence_tracker.calculate_resultant_state(sequence), np.array(bell_state_rho))
 
     rb_debugger = TwoQubitRbDebugger(rb)
     rb_debugger.run_phased_xz_commands(None, 100)
