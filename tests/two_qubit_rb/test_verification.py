@@ -6,7 +6,7 @@ import pytest
 cirq = pytest.importorskip("cirq")
 
 from qualang_tools.bakery.bakery import Baking
-from qualang_tools.characterization.two_qubit_rb import TwoQubitRb
+from qualang_tools.characterization.two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
 
 
 def test_all_verification(config):
@@ -57,3 +57,29 @@ def test_all_verification(config):
         rb.print_command_mapping()
         rb.print_sequences()
         rb.verify_sequences()
+
+
+def test_debugger(config):
+    def bake_phased_xz(baker: Baking, q, x, z, a):
+        pass
+
+    def bake_cz(baker: Baking, q1, q2):
+        pass
+
+    def bake_cnot(baker: Baking, q1, q2):
+        pass
+
+    def prep():
+        pass
+
+    def meas():
+        return None, None
+
+    cz_generator = {"CZ": bake_cz}
+
+    rb = TwoQubitRb(
+        config, bake_phased_xz, cz_generator, prep, meas, verify_generation=False, interleaving_gate=None
+    )
+
+    rb_debugger = TwoQubitRbDebugger(rb)
+    rb_debugger.run_phased_xz_commands(None, 100)

@@ -23,8 +23,8 @@ class TwoQubitRbDebugger:
     def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int):
         """
         Run a program testing selected commands containing only combinations of PhasedXZ
-        gates which lead to a variery of transformations on the |00> staet.
-        This is useful for testing the 1Q component of your gate implementation.
+        gates and other fundamental gates, which lead to a variety of transformations on
+        the |00> state. This is useful for testing the 1Q component of the gate implementation.
         """
         sequences_dict = {
             r"I \otimes I": [720],  # Identity on both qubits
@@ -53,9 +53,7 @@ class TwoQubitRbDebugger:
         qm = qmm.open_qm(self.rb._config)
         job = qm.execute(prog)
 
-        for sequence in tqdm(sequences, desc="Running test-sequences", unit="sequence"):
-            self.sequence_tracker.make_sequence(sequence)
-            self._insert_all_input_stream(job, sequence)
+        self._insert_all_input_stream(job, sequences)
 
         job.result_handles.wait_for_all_values()
         state = job.result_handles.get("state").fetch_all()
@@ -64,10 +62,12 @@ class TwoQubitRbDebugger:
         self._analyze_phased_xz_commands_program(state, list(sequences_dict.keys()))
 
     @run_in_thread
-    def _insert_all_input_stream(self, job, sequence):
-        job.insert_input_stream("__gates_len_is__", len(sequence))
-        for qe in self.rb._rb_baker.all_elements:
-            job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+    def _insert_all_input_stream(self, job, sequences):
+        for sequence in tqdm(sequences, desc='Running test-sequences', unit='sequence'):
+            self.sequence_tracker.make_sequence(sequence)
+            job.insert_input_stream("__gates_len_is__", len(sequence))
+            for qe in self.rb._rb_baker.all_elements:
+                job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
 
     def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
         with program() as prog:
@@ -95,7 +95,7 @@ class TwoQubitRbDebugger:
                     save(state, state_os)
 
             with stream_processing():
-                state_os.buffer(num_sequences, num_averages).save("state")
+                state_os.buffer(num_averages).buffer(num_sequences).save("state")
 
         return prog
 
