@@ -66,9 +66,9 @@ class TwoQubitRbDebugger:
     def _insert_all_input_stream(self, job, sequences):
         for sequence in tqdm(sequences, desc='Running test-sequences', unit='sequence'):
             self.sequence_tracker.make_sequence(sequence)
-            # job.insert_input_stream("__gates_len_is__", len(sequence))
-            # for qe in self.rb._rb_baker.all_elements:
-            #     job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+            job.insert_input_stream("__gates_len_is__", len(sequence))
+            for qe in self.rb._rb_baker.all_elements:
+                job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
 
     def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
         with program() as prog:
