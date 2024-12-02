@@ -290,7 +290,7 @@ class VideoMode:
         QUA Macro to create the QUA variables associated with the parameter table.
         :returns : The list of declared QUA variables or the declared variable if there is only one item.
         """
-        return self.parameter_table.declare_variables()
+        return self.parameter_table.declare_variables(pause_program=True)
 
     def __getitem__(self, item):
         """

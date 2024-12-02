@@ -143,6 +143,7 @@ class ParameterValue:
         if pause_program:
             pause()
         self._is_declared = True
+        return self.var
 
     @property
     def is_declared(self):
