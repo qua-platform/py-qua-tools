@@ -74,7 +74,7 @@ class ParameterTable:
             else:
                 self.table[parameter_name] = ParameterValue(parameter_name, parameter_value, index)
 
-    def declare_variables(self, pause_program=True):
+    def declare_variables(self, pause_program=False):
         """
         QUA Macro to declare all QUA variables associated with the parameter table.
         Should be called at the beginning of the QUA program.
@@ -178,7 +178,8 @@ class ParameterTable:
 
     def add_parameter(self, parameter_value: Union[ParameterValue, List[ParameterValue]]):
         """
-        Add a (list of) parameter(s) to the parameter table.
+        Add a (list of) parameter(s) to the parameter table. The index of the parameter is automatically set to the
+        next available index in the table.
         Args: parameter_value: (List of) ParameterValue(s) object(s) to be added to current parameter table.
         """
         if isinstance(parameter_value, List):
@@ -269,6 +270,7 @@ class ParameterTable:
                             f"No QUA variable found for parameter {item}. Please use "
                             f"ParameterTable.declare_variables() within QUA program first."
                         )
+            raise IndexError(f"No parameter with index {item} in the parameter table.")
         else:
             raise ValueError("Invalid parameter name. Please use a string or an int.")
 
