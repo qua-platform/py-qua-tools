@@ -203,6 +203,7 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
             self.readout_pulse.channel.intermediate_frequency = params["readout_frequency"]
             flags |= ModifiedFlags.PARAMETERS_MODIFIED
             flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
 
         if self.readout_pulse.duration != params["readout_duration"]:
             self.readout_pulse.duration = params["readout_duration"]
