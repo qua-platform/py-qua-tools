@@ -136,7 +136,9 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                 assign(self.reached_voltage, previous_voltage - Cast.mul_fixed_by_int(qua_ramp, duration << 2))
                 play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration)
         with else_():
-            element.play("step", amplitude_scale=dV << 2)
+            ramp_rate = dV * (1 / 16e-9)
+            play(ramp(ramp_rate), element.name, duration=4)
+            # element.play("step", amplitude_scale=dV << 2)
             assign(self.reached_voltage, new_voltage)
 
     def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
@@ -156,8 +158,6 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
 
             assign(self._last_x_voltage, x)
             assign(self._last_y_voltage, y)
-        # self._last_x_voltage = x
-        # self._last_y_voltage = y
 
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         self.set_dc_offsets(x, y)
