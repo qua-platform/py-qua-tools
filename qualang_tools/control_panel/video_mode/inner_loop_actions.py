@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, List, Dict, Any
+
+from dash import html
+
 from qm.qua import (
     declare,
     fixed,
@@ -16,12 +19,12 @@ from qm.qua import (
     if_,
     ramp_to_zero,
 )
-from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags, create_input_field
 from qm.qua.lib import Cast, Math
 
 
 class InnerLoopAction(BaseDashComponent, ABC):
-    def __init__(self, component_id: str =  "inner-loop"):
+    def __init__(self, component_id: str = "inner-loop"):
         super().__init__(component_id=component_id)
 
     @abstractmethod
@@ -167,6 +170,47 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         I, Q = self.readout_pulse.channel.measure(self.readout_pulse.id)
 
         return I, Q
+
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        components = super().get_dash_components(include_subcomponents)
+
+        components.append(
+            html.Div(
+                [
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_frequency"},
+                        label="Readout frequency",
+                        value=self.readout_pulse.channel.intermediate_frequency,
+                        units="Hz",
+                    ),
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_duration"},
+                        label="Readout duration",
+                        value=self.readout_pulse.duration,
+                        units="s",
+                    ),
+                ]
+            )
+        )
+
+        return components
+
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        """Update the data acquirer's attributes based on the input values."""
+        params = parameters[self.component_id]
+        flags = ModifiedFlags.NONE
+        if self.readout_pulse.channel.intermediate_frequency != params["readout_frequency"]:
+            self.readout_pulse.channel.intermediate_frequency = params["readout_frequency"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+
+        if self.readout_pulse.duration != params["readout_duration"]:
+            self.readout_pulse.duration = params["readout_duration"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        return flags
 
     def initial_action(self):
         self._last_x_voltage = declare(fixed, 0.0)
