@@ -211,7 +211,7 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                         id={"type": self.component_id, "index": "readout_duration"},
                         label="Readout duration",
                         value=self.readout_pulse.length,
-                        units="s",
+                        units="ns",
                     ),
                 ]
             )

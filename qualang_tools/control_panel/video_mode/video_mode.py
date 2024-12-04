@@ -201,7 +201,7 @@ class VideoMode:
         @self.app.callback(
             [],
             [Input("update-button", "n_clicks")],
-            [State("num-averages", "value"), *component_states],
+            component_states,
             blocking=True,
         )
         def update_params(n_update_clicks, num_averages, *component_inputs):

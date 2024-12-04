@@ -167,13 +167,14 @@ class OPXDataAcquirer(BaseDataAcquirer):
         components = super().get_dash_components()
 
         components.append(
-            html.Div(
+            dbc.Row(
                 [
-                    dbc.Label("Result Type"),
+                    dbc.Label("Result Type", style={"max-width": "150px"}),
                     dbc.Select(
                         id={"type": self.component_id, "index": "result-type"},
                         options=[{"label": rt, "value": rt} for rt in self.result_types],
                         value=self.result_type,
+                        style={"max-width": "150px"},
                     ),
                 ]
             )
