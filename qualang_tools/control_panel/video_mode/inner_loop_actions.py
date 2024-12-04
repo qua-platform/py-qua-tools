@@ -60,6 +60,7 @@ class BasicInnerLoopAction(InnerLoopAction):
         readout_pulse: str = "readout",
         pre_measurement_delay: float = 1e-6,
     ):
+        super().__init__()
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_elem = readout_element
@@ -108,6 +109,7 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
     """
 
     def __init__(self, x_element, y_element, readout_pulse, pre_measurement_delay: float = 0.0, ramp_rate: float = 0.0):
+        super().__init__()
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_pulse = readout_pulse
@@ -168,50 +170,9 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
             wait(pre_measurement_delay_cycles)
 
         I, Q = self.readout_pulse.channel.measure(self.readout_pulse.id)
+        align()
 
         return I, Q
-
-    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
-        components = super().get_dash_components(include_subcomponents)
-
-        components.append(
-            html.Div(
-                [
-                    create_input_field(
-                        id={"type": self.component_id, "index": "readout_frequency"},
-                        label="Readout frequency",
-                        value=self.readout_pulse.channel.intermediate_frequency,
-                        units="Hz",
-                    ),
-                    create_input_field(
-                        id={"type": self.component_id, "index": "readout_duration"},
-                        label="Readout duration",
-                        value=self.readout_pulse.duration,
-                        units="s",
-                    ),
-                ]
-            )
-        )
-
-        return components
-
-    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
-        """Update the data acquirer's attributes based on the input values."""
-        params = parameters[self.component_id]
-        flags = ModifiedFlags.NONE
-        if self.readout_pulse.channel.intermediate_frequency != params["readout_frequency"]:
-            self.readout_pulse.channel.intermediate_frequency = params["readout_frequency"]
-            flags |= ModifiedFlags.PARAMETERS_MODIFIED
-            flags |= ModifiedFlags.PROGRAM_MODIFIED
-            flags |= ModifiedFlags.CONFIG_MODIFIED
-
-        if self.readout_pulse.duration != params["readout_duration"]:
-            self.readout_pulse.duration = params["readout_duration"]
-            flags |= ModifiedFlags.PARAMETERS_MODIFIED
-            flags |= ModifiedFlags.PROGRAM_MODIFIED
-            flags |= ModifiedFlags.CONFIG_MODIFIED
-
-        return flags
 
     def initial_action(self):
         self._last_x_voltage = declare(fixed, 0.0)
@@ -233,3 +194,50 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         else:
             self.set_dc_offsets(0, 0)
         align()
+
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        components = super().get_dash_components(include_subcomponents)
+
+        components.append(
+            html.Div(
+                [
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_frequency"},
+                        label="Readout frequency",
+                        value=self.readout_pulse.channel.intermediate_frequency,
+                        units="Hz",
+                    ),
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_duration"},
+                        label="Readout duration",
+                        value=self.readout_pulse.length,
+                        units="s",
+                    ),
+                ]
+            )
+        )
+
+        return components
+
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        """Update the data acquirer's attributes based on the input values."""
+        try:
+            params = parameters[self.component_id]
+        except KeyError:
+            print(f"Inner loop action parameters: {list(parameters.keys())}")
+            raise
+
+        flags = ModifiedFlags.NONE
+        if self.readout_pulse.channel.intermediate_frequency != params["readout_frequency"]:
+            self.readout_pulse.channel.intermediate_frequency = params["readout_frequency"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        if self.readout_pulse.length != params["readout_duration"]:
+            self.readout_pulse.length = params["readout_duration"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        return flags

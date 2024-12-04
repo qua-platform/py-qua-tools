@@ -210,3 +210,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
         return flags
+
+    def get_component_ids(self) -> List[str]:
+        component_ids = super().get_component_ids()
+        component_ids.append(self.scan_mode.component_id)
+        component_ids.append(self.qua_inner_loop_action.component_id)
+        return component_ids
