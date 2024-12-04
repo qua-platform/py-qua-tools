@@ -213,6 +213,12 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                         value=self.readout_pulse.length,
                         units="ns",
                     ),
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_amplitude"},
+                        label="Readout amplitude",
+                        value=self.readout_pulse.amplitude,
+                        units="V",
+                    ),
                 ]
             )
         )
@@ -236,6 +242,12 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
 
         if self.readout_pulse.length != params["readout_duration"]:
             self.readout_pulse.length = params["readout_duration"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        if self.readout_pulse.amplitude != params["readout_amplitude"]:
+            self.readout_pulse.amplitude = params["readout_amplitude"]
             flags |= ModifiedFlags.PARAMETERS_MODIFIED
             flags |= ModifiedFlags.PROGRAM_MODIFIED
             flags |= ModifiedFlags.CONFIG_MODIFIED

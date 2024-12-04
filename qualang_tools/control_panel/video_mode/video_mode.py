@@ -100,14 +100,6 @@ class VideoMode:
                                     ],
                                     className="mb-4",
                                 ),
-                                create_input_field(
-                                    "num-averages",
-                                    "Averages",
-                                    self.data_acquirer.num_averages,
-                                    min=1,
-                                    step=1,
-                                    debounce=True,
-                                ),
                                 html.Div(self.data_acquirer.get_dash_components(include_subcomponents=True)),
                                 dbc.Row(
                                     [
@@ -151,11 +143,6 @@ class VideoMode:
         )
         logging.debug(f"Dash layout created, update interval: {self.update_interval*1000} ms")
         self.add_callbacks()
-
-    def clear_data(self):
-        """Clears data history and resets averages."""
-        self.data_acquirer.data_history.clear()
-        logging.debug("Cleared all averages and data history.")
 
     def add_callbacks(self):
         @self.app.callback(
@@ -204,7 +191,7 @@ class VideoMode:
             component_states,
             blocking=True,
         )
-        def update_params(n_update_clicks, num_averages, *component_inputs):
+        def update_params(n_update_clicks, *component_inputs):
             if n_update_clicks <= self._last_update_clicks:
                 return
 

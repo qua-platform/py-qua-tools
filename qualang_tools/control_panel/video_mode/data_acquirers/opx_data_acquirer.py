@@ -203,6 +203,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
         flags |= self.scan_mode.update_parameters(parameters)
         flags |= self.qua_inner_loop_action.update_parameters(parameters)
 
+        if flags & ModifiedFlags.PARAMETERS_MODIFIED:
+            self.data_history.clear()
+
         if flags & ModifiedFlags.CONFIG_MODIFIED:
             self.generate_config()
 

@@ -7,7 +7,7 @@ from dash import html
 import dash_bootstrap_components as dbc
 
 from qualang_tools.control_panel.video_mode.sweep_axis import SweepAxis
-from qualang_tools.control_panel.video_mode.dash_tools import create_axis_layout
+from qualang_tools.control_panel.video_mode.dash_tools import create_axis_layout, create_input_field
 from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags
 
 
@@ -136,13 +136,24 @@ class BaseDataAcquirer(BaseDashComponent, ABC):
                         className="g-0",
                     ),  # g-0 removes gutters between columns
                 ]
-            )
+            ),
+            create_input_field(
+                id={"type": self.component_id, "index": "num-averages"},
+                label="Averages",
+                value=self.num_averages,
+                min=1,
+                step=1,
+                debounce=True,
+            ),
         ]
 
     def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
         """Update the data acquirer's attributes based on the input values."""
         params = parameters[self.component_id]
         flags = ModifiedFlags.NONE
+        if self.num_averages != params["num-averages"]:
+            self.num_averages = params["num-averages"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
         if self.x_axis.span != params["x-span"]:
             self.x_axis.span = params["x-span"]
             flags |= ModifiedFlags.PARAMETERS_MODIFIED
