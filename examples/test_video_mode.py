@@ -1,15 +1,17 @@
 # %% Imports
+import logging
 from qualang_tools.control_panel.video_mode.dash_tools import *
-import numpy as np
 from matplotlib import pyplot as plt
+
 from qualang_tools.control_panel.video_mode.voltage_parameters import *
 from qualang_tools.control_panel.video_mode.sweep_axis import *
 from qualang_tools.control_panel.video_mode.data_acquirers import *
 from qualang_tools.control_panel.video_mode.video_mode import *
-from qualang_tools.control_panel.video_mode.scan_modes import RasterScan, SpiralScan
+from qualang_tools.control_panel.video_mode import scan_modes
 from qualang_tools.control_panel.video_mode.inner_loop_actions import BasicInnerLoopActionQuam
+
 from qm import QuantumMachinesManager
-import logging
+
 from quam.components import (
     BasicQuAM,
     SingleChannel,
@@ -17,7 +19,6 @@ from quam.components import (
     pulses,
     StickyChannelAddon,
 )
-
 
 
 # Update the logging configuration
@@ -28,13 +29,11 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 # %% Create config and connect to QM
 machine = BasicQuAM()
 
-square_pulse1 = pulses.SquarePulse(id="step", length=16, amplitude=0.25)
 machine.channels["ch1"] = SingleChannel(
-    opx_output=("con1", 1), sticky=StickyChannelAddon(duration=10_000, digital=False), operations={"step": square_pulse1}
+    opx_output=("con1", 1), sticky=StickyChannelAddon(duration=10_000, digital=False)
 )
-square_pulse2 = pulses.SquarePulse(id="step", length=16, amplitude=0.25)
 machine.channels["ch2"] = SingleChannel(
-    opx_output=("con1", 2), sticky=StickyChannelAddon(duration=10_000, digital=False), operations={"step": square_pulse2}
+    opx_output=("con1", 2), sticky=StickyChannelAddon(duration=10_000, digital=False)
 )
 readout_pulse = pulses.SquareReadoutPulse(id="readout", length=1000, amplitude=0.1)
 machine.channels["ch_readout"] = InOutSingleChannel(
@@ -44,8 +43,11 @@ machine.channels["ch_readout"] = InOutSingleChannel(
     operations={"readout": readout_pulse},
 )
 
+# %% Open communication to the OPX 
+# qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
+qmm = QuantumMachinesManager(host="192.168.8.4", cluster_name="Cluster_1")
 
-# %% Run OPXDataAcquirer
+# %% Set the scan mode and its acquisition parameters (more can be added to the GUI)
 x_offset = VoltageParameter(name="X Voltage Offset", initial_value=0.0)
 y_offset = VoltageParameter(name="Y Voltage Offset", initial_value=0.0)
 inner_loop_action = BasicInnerLoopActionQuam(
@@ -55,22 +57,16 @@ inner_loop_action = BasicInnerLoopActionQuam(
     ramp_rate=3000,
 )
 
+scan_mode = scan_modes.RasterScan()
 
-# %% Open communication to the OPX and get the config from quam
-qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="Cluster_83")
-config = machine.generate_config()
-
-# %% Set the scan mode and its acquisition parameters (more can be added to the GUI)
-scan_mode = RasterScan()
-data_acquirer = OPXDataAcquirer(
+data_acquirer = OPXQuamDataAcquirer(
     qmm=qmm,
-    qua_config=config,
+    machine=machine,
     qua_inner_loop_action=inner_loop_action,
     scan_mode=scan_mode,
     x_axis=SweepAxis("x", span=0.03, points=11, offset_parameter=x_offset),
     y_axis=SweepAxis("y", span=0.03, points=6, offset_parameter=y_offset),
     result_type="amplitude",
-    readout_frequency=100e6,
 )
 
 # %% Simulate or execute
@@ -89,9 +85,7 @@ if simulate:
     plt.plot(con1.analog["1"], con1.analog["2"])
 
     plt.figure()
-    data_acquirer.scan_mode.plot_scan(
-        data_acquirer.x_axis.points, data_acquirer.y_axis.points
-    )
+    data_acquirer.scan_mode.plot_scan(data_acquirer.x_axis.points, data_acquirer.y_axis.points)
 else:
 
     # %% Run program and acquire data
@@ -99,12 +93,13 @@ else:
     # results = data_acquirer.acquire_data()
     # print(f"Mean of results: {np.mean(np.abs(results))}")
     # %% Run Video Mode
-    live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=1)
+    live_plotter = VideoMode(data_acquirer=data_acquirer, update_interval=0.05)
     live_plotter.run(use_reloader=False)
 
     # QDAC control
     from qualang_tools.control_panel.voltage_control.voltage_parameters import QDACII, qdac_ch
     from qualang_tools.control_panel.voltage_control.main import start_voltage_control
+
     qdac = QDACII("ethernet", IP_address="192.168.8.17", port=5025)
     # Create dummy parameters
     parameters = [qdac_ch(qdac, idx, f"V{idx}", initial_value=0) for idx in range(1, 5)]
