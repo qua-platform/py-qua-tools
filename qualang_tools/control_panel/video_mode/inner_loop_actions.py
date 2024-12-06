@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, List, Dict, Any
+
+from dash import html
+
 from qm.qua import (
     declare,
     fixed,
@@ -16,12 +19,12 @@ from qm.qua import (
     if_,
     ramp_to_zero,
 )
-from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent
+from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags, create_input_field
 from qm.qua.lib import Cast, Math
 
 
 class InnerLoopAction(BaseDashComponent, ABC):
-    def __init__(self, component_id: str =  "inner-loop"):
+    def __init__(self, component_id: str = "inner-loop"):
         super().__init__(component_id=component_id)
 
     @abstractmethod
@@ -57,6 +60,7 @@ class BasicInnerLoopAction(InnerLoopAction):
         readout_pulse: str = "readout",
         pre_measurement_delay: float = 1e-6,
     ):
+        super().__init__()
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_elem = readout_element
@@ -105,6 +109,7 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
     """
 
     def __init__(self, x_element, y_element, readout_pulse, pre_measurement_delay: float = 0.0, ramp_rate: float = 0.0):
+        super().__init__()
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_pulse = readout_pulse
@@ -133,7 +138,9 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                 assign(self.reached_voltage, previous_voltage - Cast.mul_fixed_by_int(qua_ramp, duration << 2))
                 play(ramp(-self.ramp_rate / 1e9), element.name, duration=duration)
         with else_():
-            element.play("step", amplitude_scale=dV << 2)
+            ramp_rate = dV * (1 / 16e-9)
+            play(ramp(ramp_rate), element.name, duration=4)
+            # element.play("step", amplitude_scale=dV << 2)
             assign(self.reached_voltage, new_voltage)
 
     def set_dc_offsets(self, x: QuaVariableType, y: QuaVariableType):
@@ -153,8 +160,6 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
 
             assign(self._last_x_voltage, x)
             assign(self._last_y_voltage, y)
-        # self._last_x_voltage = x
-        # self._last_y_voltage = y
 
     def __call__(self, x: QuaVariableType, y: QuaVariableType) -> Tuple[QuaVariableType, QuaVariableType]:
         self.set_dc_offsets(x, y)
@@ -165,6 +170,7 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
             wait(pre_measurement_delay_cycles)
 
         I, Q = self.readout_pulse.channel.measure(self.readout_pulse.id)
+        align()
 
         return I, Q
 
@@ -188,3 +194,62 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         else:
             self.set_dc_offsets(0, 0)
         align()
+
+    def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
+        components = super().get_dash_components(include_subcomponents)
+
+        components.append(
+            html.Div(
+                [
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_frequency"},
+                        label="Readout frequency",
+                        value=self.readout_pulse.channel.intermediate_frequency,
+                        units="Hz",
+                    ),
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_duration"},
+                        label="Readout duration",
+                        value=self.readout_pulse.length,
+                        units="ns",
+                    ),
+                    create_input_field(
+                        id={"type": self.component_id, "index": "readout_amplitude"},
+                        label="Readout amplitude",
+                        value=self.readout_pulse.amplitude,
+                        units="V",
+                    ),
+                ]
+            )
+        )
+
+        return components
+
+    def update_parameters(self, parameters: Dict[str, Dict[str, Any]]) -> ModifiedFlags:
+        """Update the data acquirer's attributes based on the input values."""
+        try:
+            params = parameters[self.component_id]
+        except KeyError:
+            print(f"Inner loop action parameters: {list(parameters.keys())}")
+            raise
+
+        flags = ModifiedFlags.NONE
+        if self.readout_pulse.channel.intermediate_frequency != params["readout_frequency"]:
+            self.readout_pulse.channel.intermediate_frequency = params["readout_frequency"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        if self.readout_pulse.length != params["readout_duration"]:
+            self.readout_pulse.length = params["readout_duration"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        if self.readout_pulse.amplitude != params["readout_amplitude"]:
+            self.readout_pulse.amplitude = params["readout_amplitude"]
+            flags |= ModifiedFlags.PARAMETERS_MODIFIED
+            flags |= ModifiedFlags.PROGRAM_MODIFIED
+            flags |= ModifiedFlags.CONFIG_MODIFIED
+
+        return flags

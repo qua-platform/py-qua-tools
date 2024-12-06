@@ -167,13 +167,14 @@ class OPXDataAcquirer(BaseDataAcquirer):
         components = super().get_dash_components()
 
         components.append(
-            html.Div(
+            dbc.Row(
                 [
-                    dbc.Label("Result Type"),
+                    dbc.Label("Result Type", style={"max-width": "150px"}),
                     dbc.Select(
                         id={"type": self.component_id, "index": "result-type"},
                         options=[{"label": rt, "value": rt} for rt in self.result_types],
                         value=self.result_type,
+                        style={"max-width": "150px"},
                     ),
                 ]
             )
@@ -202,6 +203,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
         flags |= self.scan_mode.update_parameters(parameters)
         flags |= self.qua_inner_loop_action.update_parameters(parameters)
 
+        if flags & ModifiedFlags.PARAMETERS_MODIFIED:
+            self.data_history.clear()
+
         if flags & ModifiedFlags.CONFIG_MODIFIED:
             self.generate_config()
 
@@ -210,3 +214,9 @@ class OPXDataAcquirer(BaseDataAcquirer):
             self.run_program()
 
         return flags
+
+    def get_component_ids(self) -> List[str]:
+        component_ids = super().get_component_ids()
+        component_ids.append(self.scan_mode.component_id)
+        component_ids.append(self.qua_inner_loop_action.component_id)
+        return component_ids
