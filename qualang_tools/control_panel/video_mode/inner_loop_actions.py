@@ -206,12 +206,15 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
                         label="Readout frequency",
                         value=self.readout_pulse.channel.intermediate_frequency,
                         units="Hz",
+                        step=20e3,
                     ),
                     create_input_field(
                         id={"type": self.component_id, "index": "readout_duration"},
                         label="Readout duration",
                         value=self.readout_pulse.length,
                         units="ns",
+                        input_style={"width": "200px"},
+                        step=10,
                     ),
                     create_input_field(
                         id={"type": self.component_id, "index": "readout_amplitude"},
