@@ -41,7 +41,8 @@ def create_simulator_controller_connections(
                 if i + 1 in actual_controllers and j + 1 in actual_controllers:
                     controller_connections.append(
                         ControllerConnection(
-                            InterOpxChannel(f"con{i+1}", first_con_port), InterOpxChannel(f"con{j+1}", second_con_port)
+                            InterOpxChannel(f"con{i + 1}", first_con_port),
+                            InterOpxChannel(f"con{j + 1}", second_con_port),
                         )
                     )
                     if print_debug:

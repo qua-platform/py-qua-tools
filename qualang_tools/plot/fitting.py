@@ -119,7 +119,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"a  = {out['a'][0]:.1f} +/- {out['a'][1]:.1f} \n b  = {out['b'][0]:.1f} +/- {out['b'][1]:.1f}",
+                label=f"a = {out['a'][0]:.1f} +/- {out['a'][1]:.1f} \n b = {out['b'][0]:.1f} +/- {out['b'][1]:.1f}",
             )
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
@@ -246,7 +246,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"T1  = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}",
+                label=f"T1 = {out['T1'][0]:.1f} +/- {out['T1'][1]:.1f} {time_unit}",
             )
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
@@ -428,7 +428,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"T2  = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns \n f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz",
+                label=f"T2 = {out['T2'][0]:.1f} +/- {out['T2'][1]:.1f}ns \n f = {out['f'][0] * 1000:.3f} +/- {out['f'][1] * 1000:.3f} MHz",
             )
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
@@ -578,7 +578,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
+                label=f"f = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
             plt.xlabel(f"Frequency {freq_unit}")
             plt.legend(loc="upper right")
@@ -751,7 +751,7 @@ class Fit:
                 x_data,
                 y_data,
                 ".",
-                label=f"f  = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
+                label=f"f = {out['f'][0]:.1f} +/- {out['f'][1]:.1f} {freq_unit}",
             )
             plt.legend(loc="upper right")
         # Save the data in a json file named 'id.json' if save=id
