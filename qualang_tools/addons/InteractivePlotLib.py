@@ -1876,7 +1876,7 @@ class Fit:
             ax = plt.gca()
         self.ax = ax
         lines = self.ax.get_lines()
-        if type(fit_type) == int:
+        if type(fit_type) is int:
             self.res = {
                 "fit_type": [],
                 "fit_func": [],
@@ -1935,7 +1935,7 @@ class Fit:
             self.res["x"].append(single_fit.x)
             self.res["y"].append(single_fit.y)
             self.res["yf"].append(single_fit.yf)
-            if type(fit_type) == int:
+            if type(fit_type) is int:
                 self.res["p"].append(single_fit.p)
                 self.res["y0"].append(single_fit.y0)
                 self.res["x0"].append(single_fit.x0)
@@ -2005,7 +2005,7 @@ class SingleFit:
                     y_data / y_scale,
                     options["initial_guess"],
                 )
-                print(f"func = { options ['func'] }, a = {popt}")
+                print(f"func = {options['func']}, a = {popt}")
                 self.fit_func = lambda x: fit_type(x / x_scale, popt) * y_scale
                 (l,) = plt.plot(x_data, self.fit_func(x_data), "m", linewidth=2)
                 self.fit_line_obj = l
@@ -2023,7 +2023,7 @@ class SingleFit:
             else:
                 pass
 
-        elif type(fit_type) == int:
+        elif type(fit_type) is int:
             self.ok = self.fit_polygon(line, options)
 
         else:

@@ -59,8 +59,8 @@ class fetching_tool:
         return self._b_cont or self._b_last
 
     def _format(self, data):
-        if type(data) == np.ndarray:
-            if type(data[0]) == np.void:
+        if type(data) is np.ndarray:
+            if type(data[0]) is np.void:
                 if len(data.dtype) == 1:
                     data = data["value"]
         return data
