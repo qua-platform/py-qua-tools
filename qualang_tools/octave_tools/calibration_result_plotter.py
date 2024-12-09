@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Define the colors from start (blue), midpoint (white), to end (red)
 # colors = ["midnightblue", "royalblue", "lightskyblue", "white", "lightgrey"]
-colors = ["black","midnightblue", "navy", "darkblue", "mediumblue", "dodgerblue", "white", "lightgrey"]
+colors = ["black", "midnightblue", "navy", "darkblue", "mediumblue", "dodgerblue", "white", "lightgrey"]
 
 # Create the colormap
 custom_cmap = LinearSegmentedColormap.from_list("custom_diverging", colors, N=256)
@@ -286,19 +286,9 @@ def show_lo_result(
     content = [
         "Current result:",
         f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
-        "Previous result:",
+        "\nAchieved LO supression:",
+        f"{get_lo_suppression(data)[2]:.3f} dB",
     ]
-
-    if lo_data.debug.prev_result is not None:
-        p_x0 = lo_data.debug.prev_result[1] * 1000
-        p_y0 = lo_data.debug.prev_result[0] * 1000
-
-        content.append(f"      I_dc = {p_y0:.02f}mV, Q_dc = {p_x0:.2f}mV")
-        content.append("Diff:")
-        content.append(f"      I_dc = {p_y0-y0:.02f}mV, Q_dc = {p_x0-x0:.2f}mV")
-
-    else:
-        content.append("      - none -")
 
     plt.text(
         0.05,
@@ -357,6 +347,7 @@ def show_if_result(
             return
 
     if_freq_data = if_data[if_freq]
+
     plt.figure(figsize=(11, 8.9))
 
     plt.subplot(222)
@@ -425,7 +416,6 @@ def show_if_result(
     plt.xlabel("phase (rad)")
     plt.ylabel("gain(%)")
     plt.axis("equal")
-
 
     image = u.demod2volts(r.image, 10_000)
     image_dbm = 10 * np.log10(np.abs(image) / 50 * 1000 + 1e-7)
@@ -502,22 +492,11 @@ def show_if_result(
     plt.ylim(0, 1)
 
     content = [
-        "Current result:",
+        "Calibrated parameters:",
         f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
-        "Previous result:",
+        "\nAchieved Image sideband supression:",
+        f"{get_if_suppression(data):.3f} dB",
     ]
-
-    if if_freq_data.prev_result is not None:
-
-        p_gain = if_freq_data.prev_result[0]
-        p_phase = if_freq_data.prev_result[1]
-
-        content.append(f"      gain = {p_gain*100:.02f}%, phase = {p_phase*180.0/np.pi:.2f}deg")
-        content.append("Diff:")
-        content.append(f"      gain = {(p_gain-r.gain)*100:.02f}%, phase = {(p_phase-r.phase)*180.0/np.pi:.2f}deg")
-
-    else:
-        content.append("      - none -")
 
     plt.text(
         0.05,
@@ -532,3 +511,127 @@ def show_if_result(
     plt.yticks([])
     plt.suptitle(f"IMAGE auto calibration: LO = {lo_freq/1e9:.3f}GHz, IF = {if_freq/1e6:.3f}MHz")
     plt.tight_layout()
+
+
+def get_if_suppression(
+    data: MixerCalibrationResults,
+    lo_freq: Optional[float] = None,
+    if_freq: Optional[float] = None,
+):
+
+    if lo_freq is None:
+        if len(data) == 1:
+            lo_freq = list(data)[0][0]
+
+        else:
+            print(f"There is a calibration data for {len(data)} LO frequencies. You must choose one")
+            return
+
+    try:
+        output_gain = list(data)[0][1]
+    except IndexError:
+        print("No valid calibration result")
+        return
+
+    if (lo_freq, output_gain) not in data:
+        print(f"No calibration data for LO frequency = {lo_freq/1e9:.3f}GHz")
+        return
+
+    if_data = data[(lo_freq, output_gain)].image
+
+    if len(if_data) == 0:
+        print(f"No IF calibration results for LO frequency = {lo_freq/1e9:.3f}GHz")
+        return
+
+    if if_freq is None:
+        if len(if_data) == 1:
+            if_freq = list(if_data.keys())[0]
+        else:
+            logger.debug(
+                f"There is a calibration data for {len(if_data)} IF frequencies for "
+                f"LO frequency = {lo_freq/1e9:.3f}GHz. You must choose one"
+            )
+            return
+
+    if_freq_data = if_data[if_freq]
+    x_min = if_freq_data.fine.fit.x_min
+    y_min = if_freq_data.fine.fit.y_min
+
+    pol = if_freq_data.fine.fit.pol
+    if_0 = paraboloid(0, 0, pol)
+    if_0_volts = u.demod2volts(if_0, 10_000)
+    if_0_dbm = 10 * np.log10(if_0_volts / 50 * 1000)
+
+    if_min = paraboloid(x_min, y_min, pol)
+    if_min_volts = u.demod2volts(if_min, 10_000)
+    if if_min_volts > 1e-7:
+        if_min_dbm = 10 * np.log10(if_min_volts / 50 * 1000)
+    else:
+        if_min_dbm = -70.0
+        print(if_min_volts)
+        print()
+    return if_min_dbm - if_0_dbm
+
+
+def get_lo_suppression(
+    data: MixerCalibrationResults,
+    lo_freq: Optional[float] = None,
+    if_freq: Optional[float] = None,
+):
+    if lo_freq is None:
+        if len(data) == 1:
+            lo_freq = list(data.keys())[0][0]
+
+        else:
+            print(f"There is a calibration data for {len(data)} LO frequencies. You must choose one")
+            return
+
+    try:
+        output_gain = list(data.keys())[0][1]
+    except IndexError:
+        print("No valid calibration result")
+        return
+
+    if (lo_freq, output_gain) not in data:
+        print(f"No calibration data for LO frequency = {lo_freq / 1e9:.3f}GHz")
+        return
+
+    lo_data = data[(lo_freq, output_gain)]
+
+    i_coarse = lo_data.debug.coarse[0].i_scan
+    q_coarse = lo_data.debug.coarse[0].q_scan
+
+    # x_min = lo_data.debug.fine[0].fit.x_min
+    # y_min = lo_data.debug.fine[0].fit.y_min
+
+    # pol = lo_data.debug.coarse[0].fit.pol
+
+    # lo_0 = paraboloid(0, 0, pol)
+    # lo_0_volts = u.demod2volts(lo_0, 10_000)
+    # lo_0_dbm = 10 * np.log10(lo_0_volts / 50 * 1000)
+
+    # pol = lo_data.debug.fine[0].fit.pol
+
+    # lo_min = paraboloid(x_min, y_min, pol)
+    # lo_min_volts = u.demod2volts(lo_min, 10_000)
+    # if lo_min_volts > 1e-7:
+    #     lo_min_dbm = 10 * np.log10(lo_min_volts / 50 * 1000)
+    # else:
+    #     lo_min_dbm = -70.0
+
+    lo_array = lo_data.debug.fine[0].lo
+    lo = u.demod2volts(lo_array, 10_000)
+    lo_array_dbm = 10 * np.log10(lo / 50 * 1000)
+    min_lo_dbm = np.min(lo_array_dbm)
+
+    id_i = np.argwhere(i_coarse[:, 0] == 0.0)
+    id_q = np.argwhere(q_coarse[0, :] == 0.0)
+    lo = lo_data.debug.coarse[0].lo[id_i, id_q][0][0]
+    lo_0 = u.demod2volts(lo, 10_000)
+    lo_0_dbm = 10 * np.log10(lo_0 / 50 * 1000)
+
+    return (min_lo_dbm, lo_0_dbm, min_lo_dbm - lo_0_dbm, np.min(lo))
+
+
+def paraboloid(x, y, pol):
+    return pol[0] + pol[1] * x + pol[2] * y + pol[3] * x**2 + pol[4] * x * y + pol[5] * y**2
