@@ -333,7 +333,7 @@ def _check_hardware_limitation(qop_version: QOPVersion, feedforward_taps: List, 
             f"The feedforward taps reached the maximum value of {qop_version.value['feedforward_max']}.\n"
             f"The coefficients are scaled down to stay within the valid range which reduces the outputted amplitude of"
             f" the pulses played through the filtered port by a factor of "
-            f"{max_value/qop_version.value['feedforward_max']:.3f}."
+            f"{max_value / qop_version.value['feedforward_max']:.3f}."
         )
 
     return list(feedforward_taps), list(feedback_taps)

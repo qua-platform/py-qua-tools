@@ -494,7 +494,7 @@ class InteractivePlotLibFigure:
                     "initial_guess": [omega, 1, 1, 0],
                     "func": "sin*exp",
                     "y_scale": y_extra_scale,
-                    "text": lambda a: f"f = {a[0]/(2*np.pi)} [Hz]\n tau = {1/a[1]} [s]\n amp = {a[2]*y_extra_scale}\n y_offset={a[3]*y_extra_scale}",
+                    "text": lambda a: f"f = {a[0] / (2 * np.pi)} [Hz]\n tau = {1 / a[1]} [s]\n amp = {a[2] * y_extra_scale}\n y_offset={a[3] * y_extra_scale}",
                 },
             )
         else:
