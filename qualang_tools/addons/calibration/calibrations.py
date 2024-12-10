@@ -1074,7 +1074,7 @@ class QUA_calibrations:
                     plt.plot(
                         adc1,
                         "b",
-                        label=f"TOF to add: {tof1} ns and offset to remove: {np.mean(adc1[:tof1])*1000:.4f} mV",
+                        label=f"TOF to add: {tof1} ns and offset to remove: {np.mean(adc1[:tof1]) * 1000:.4f} mV",
                     )
                     if tof1 is not None:
                         plt.axvline(x=tof1, color="b", linestyle=":")
@@ -1083,7 +1083,7 @@ class QUA_calibrations:
                     plt.plot(
                         adc2,
                         "r",
-                        label=f"TOF to add: {tof2} ns and offset to remove: {np.mean(adc2[:tof2])*1000:.4f} mV",
+                        label=f"TOF to add: {tof2} ns and offset to remove: {np.mean(adc2[:tof2]) * 1000:.4f} mV",
                     )
                     if tof2 is not None:
                         plt.axvline(x=tof2, color="r", linestyle=":")

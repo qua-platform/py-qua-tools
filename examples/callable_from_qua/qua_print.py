@@ -12,7 +12,7 @@ patch_qua_program_addons()
 def qua_print(*args):
     text = ""
     for i in range(0, len(args) - 1, 2):
-        text += f"{args[i]} = {args[i+1]} | "
+        text += f"{args[i]} = {args[i + 1]} | "
     print(text)
 
 
