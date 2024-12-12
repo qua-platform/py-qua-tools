@@ -55,7 +55,7 @@ def show_lo_result(
     q_scan = d.q_scan * 1000
     i_scan = d.i_scan * 1000
     lo = u.demod2volts(d.lo, 10_000)
-    lo_dbm = 10 * np.log10(lo / 50 * 1000)
+    lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
 
     dq = np.mean(np.diff(q_scan, axis=1))
     di = np.mean(np.diff(i_scan, axis=0))
@@ -166,7 +166,7 @@ def show_lo_result(
     fine_q_scan = d.q_scan * 1000 + x0_ref
     fine_i_scan = d.i_scan * 1000 + y0_ref
     lo = u.demod2volts(d.lo, 10_000)
-    lo_dbm = 10 * np.log10(lo / 50 * 1000)
+    lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
 
     dq = np.mean(np.diff(fine_q_scan, axis=1))
     di = np.mean(np.diff(fine_i_scan, axis=0))
@@ -256,7 +256,7 @@ def show_lo_result(
     p = d.fit.pol
 
     iq_error = u.demod2volts(p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, 10_000)
-    iq_error_dbm = 10 * np.log10(np.abs(iq_error) / 50 * 1000)
+    iq_error_dbm = 10 * np.log10(np.abs(iq_error) / (50 * 2) * 1000)
 
     plt.pcolor(
         fine_q_scan,
@@ -357,7 +357,7 @@ def show_if_result(
     dg = np.mean(np.diff(r.g_scan, axis=0))
 
     image = u.demod2volts(r.image, 10_000)
-    image_dbm = 10 * np.log10(image / 50 * 1000)
+    image_dbm = 10 * np.log10(image / (50 * 2) * 1000)
 
     plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
@@ -418,7 +418,7 @@ def show_if_result(
     plt.axis("equal")
 
     image = u.demod2volts(r.image, 10_000)
-    image_dbm = 10 * np.log10(np.abs(image) / 50 * 1000 + 1e-7)
+    image_dbm = 10 * np.log10(np.abs(image) / (50 * 2) * 1000 + 1e-7)
 
     plt.contour(r.p_scan, r.g_scan, image_dbm, colors="k", alpha=0.5)
     plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
@@ -465,7 +465,7 @@ def show_if_result(
     p = r.fit.pol
 
     image = u.demod2volts(p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, 10_000)
-    image_dbm = 10 * np.log10(np.abs(image) / 50 * 1000)
+    image_dbm = 10 * np.log10(np.abs(image) / (50 * 2) * 1000)
 
     plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
     plt.xlabel("phase (rad)")
@@ -560,16 +560,15 @@ def get_if_suppression(
     pol = if_freq_data.fine.fit.pol
     if_0 = paraboloid(0, 0, pol)
     if_0_volts = u.demod2volts(if_0, 10_000)
-    if_0_dbm = 10 * np.log10(if_0_volts / 50 * 1000)
+    if_0_dbm = 10 * np.log10(if_0_volts / (50 * 2) * 1000)
 
     if_min = paraboloid(x_min, y_min, pol)
     if_min_volts = u.demod2volts(if_min, 10_000)
     if if_min_volts > 1e-7:
-        if_min_dbm = 10 * np.log10(if_min_volts / 50 * 1000)
+        if_min_dbm = 10 * np.log10(if_min_volts / (50 * 2) * 1000)
     else:
         if_min_dbm = -70.0
         print(if_min_volts)
-        print()
     return if_min_dbm - if_0_dbm
 
 
@@ -608,27 +607,27 @@ def get_lo_suppression(
 
     # lo_0 = paraboloid(0, 0, pol)
     # lo_0_volts = u.demod2volts(lo_0, 10_000)
-    # lo_0_dbm = 10 * np.log10(lo_0_volts / 50 * 1000)
+    # lo_0_dbm = 10 * np.log10(lo_0_volts / (50*2) * 1000)
 
     # pol = lo_data.debug.fine[0].fit.pol
 
     # lo_min = paraboloid(x_min, y_min, pol)
     # lo_min_volts = u.demod2volts(lo_min, 10_000)
     # if lo_min_volts > 1e-7:
-    #     lo_min_dbm = 10 * np.log10(lo_min_volts / 50 * 1000)
+    #     lo_min_dbm = 10 * np.log10(lo_min_volts / (50*2) * 1000)
     # else:
     #     lo_min_dbm = -70.0
 
     lo_array = lo_data.debug.fine[0].lo
     lo = u.demod2volts(lo_array, 10_000)
-    lo_array_dbm = 10 * np.log10(lo / 50 * 1000)
+    lo_array_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
     min_lo_dbm = np.min(lo_array_dbm)
 
     id_i = np.argwhere(i_coarse[:, 0] == 0.0)
     id_q = np.argwhere(q_coarse[0, :] == 0.0)
     lo = lo_data.debug.coarse[0].lo[id_i, id_q][0][0]
     lo_0 = u.demod2volts(lo, 10_000)
-    lo_0_dbm = 10 * np.log10(lo_0 / 50 * 1000)
+    lo_0_dbm = 10 * np.log10(lo_0 / (50 * 2) * 1000)
 
     return (min_lo_dbm, lo_0_dbm, min_lo_dbm - lo_0_dbm, np.min(lo))
 
