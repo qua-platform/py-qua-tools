@@ -78,10 +78,18 @@ class SwitchRasterScan(ScanMode):
     The switch raster scan mode is a scan mode that scans the grid in a raster pattern,
     but the direction of the scan is switched after each row or column.
     This is useful when the scan length is similar to the bias tee frequency.
+
+    Args:
+        start_from_middle: Whether to start the scan from the middle of the array.
+            For an array centered around 0, the scan will start with 0 and progressively increase in amplitude.
     """
 
+    def __init__(self, component_id: str = "switch-raster-scan", start_from_middle: bool = True):
+        super().__init__(component_id=component_id)
+        self.start_from_middle = start_from_middle
+
     @staticmethod
-    def interleave_arr(arr: np.ndarray) -> np.ndarray:
+    def interleave_arr(arr: np.ndarray, start_from_middle: bool = True) -> np.ndarray:
         mid_idx = len(arr) // 2
         if len(arr) % 2:
             interleaved = [arr[mid_idx]]
@@ -92,10 +100,13 @@ class SwitchRasterScan(ScanMode):
             arr1 = arr[mid_idx:]
             arr2 = arr[mid_idx - 1 :: -1]
             interleaved = [elem for pair in zip(arr1, arr2) for elem in pair]
+
+        if not start_from_middle:
+            interleaved = interleaved[::-1]
         return np.array(interleaved)
 
     def get_idxs(self, x_points: int, y_points: int) -> Tuple[np.ndarray, np.ndarray]:
-        y_idxs = self.interleave_arr(np.arange(y_points))
+        y_idxs = self.interleave_arr(np.arange(y_points), start_from_middle=self.start_from_middle)
         x_idxs = np.tile(np.arange(x_points), y_points)
         y_idxs = np.repeat(y_idxs, x_points)
         return x_idxs, y_idxs
@@ -105,7 +116,7 @@ class SwitchRasterScan(ScanMode):
     ) -> Generator[Tuple[QuaVariableType, QuaVariableType], None, None]:
         voltages = {"x": declare(fixed), "y": declare(fixed)}
 
-        with for_each_(voltages["y"], self.interleave_arr(y_vals)):  # type: ignore
+        with for_each_(voltages["y"], self.interleave_arr(y_vals, start_from_middle=self.start_from_middle)):  # type: ignore
             with for_(*from_array(voltages["x"], x_vals)):  # type: ignore
                 yield voltages["x"], voltages["y"]
 
