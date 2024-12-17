@@ -4,6 +4,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.patches import Rectangle
 from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qm.type_hinting.general import Number
 from qualang_tools.units import unit
@@ -54,13 +55,33 @@ def show_lo_result(
 
     q_scan = d.q_scan * 1000
     i_scan = d.i_scan * 1000
+    zero_idxs = np.where(d.lo == 0.0)
+    zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
+
+    mask = d.lo == 0.0
+    d.lo[mask] = np.nan
+
     lo = u.demod2volts(d.lo, 10_000)
     lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
-
     dq = np.mean(np.diff(q_scan, axis=1))
     di = np.mean(np.diff(i_scan, axis=0))
 
+    width = q_scan[0][1] - q_scan[0][0]
+    height = i_scan[1][0] - i_scan[0][0]
+
     plt.pcolor(q_scan, i_scan, lo_dbm, cmap=custom_cmap)
+    plt.colorbar(label="Power [dBm]")
+    ax = plt.gca()
+    for ii, _ in enumerate(zero_list):
+        rect = Rectangle(
+            (q_scan[0][zero_list[ii][1]] - width / 2, i_scan[zero_list[ii][0]][0] - height / 2),
+            width,
+            height,
+            facecolor="black",
+            edgecolor="none",
+        )
+        ax.add_patch(rect)
+
     plt.xlabel("Q_dc (mV)")
     plt.ylabel("I_dc (mV)")
     plt.axis("equal")
@@ -72,7 +93,6 @@ def show_lo_result(
         ]
     )
 
-    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(q_scan) + 0.5 * dq,
@@ -165,13 +185,34 @@ def show_lo_result(
 
     fine_q_scan = d.q_scan * 1000 + x0_ref
     fine_i_scan = d.i_scan * 1000 + y0_ref
-    lo = u.demod2volts(d.lo, 10_000)
-    lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
-
     dq = np.mean(np.diff(fine_q_scan, axis=1))
     di = np.mean(np.diff(fine_i_scan, axis=0))
 
+    zero_idxs = np.where(d.lo == 0.0)
+    zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
+
+    mask = d.lo == 0.0
+    d.lo[mask] = np.nan
+
+    lo = u.demod2volts(d.lo, 10_000)
+    lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
+
+    width = q_scan[0][1] - q_scan[0][0]
+    height = i_scan[1][0] - i_scan[0][0]
+
     plt.pcolor(fine_q_scan, fine_i_scan, lo_dbm, cmap=custom_cmap)
+    plt.colorbar(label="Power [dBm]")
+    ax = plt.gca()
+    for ii, _ in enumerate(zero_list):
+        rect = Rectangle(
+            (q_scan[0][zero_list[ii][1]] - width / 2, i_scan[zero_list[ii][0]][0] - height / 2),
+            width,
+            height,
+            facecolor="black",
+            edgecolor="none",
+        )
+        ax.add_patch(rect)
+
     plt.xlabel("Q_dc (mV)")
     plt.ylabel("I_dc (mV)")
     plt.axis("equal")
@@ -248,7 +289,6 @@ def show_lo_result(
         verticalalignment="top",
     )
 
-    plt.colorbar(label="Power [dBm]")
 
     plt.subplot(223)
 
@@ -356,10 +396,30 @@ def show_if_result(
     dp = np.mean(np.diff(r.p_scan, axis=1))
     dg = np.mean(np.diff(r.g_scan, axis=0))
 
-    image = u.demod2volts(r.image, 10_000)
-    image_dbm = 10 * np.log10(image / (50 * 2) * 1000)
+    zero_idxs = np.where(r.image == 0.0)
+    zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
 
-    plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
+    mask = r.image == 0.0
+    r.image[mask] = np.nan
+
+    im = u.demod2volts(r.image, 10_000)
+    im_dbm = 10 * np.log10(im / (50 * 2) * 1000)
+
+    width = r.p_scan[0][1] - r.p_scan[0][0]
+    height = r.g_scan[1][0] - r.g_scan[0][0]
+
+    plt.pcolor(r.p_scan, r.g_scan, im_dbm, cmap=custom_cmap)
+    plt.colorbar(label="Power [dBm]")
+    ax = plt.gca()
+    for ii, _ in enumerate(zero_list):
+        rect = Rectangle(
+            (r.p_scan[0][zero_list[ii][1]] - width / 2, r.g_scan[zero_list[ii][0]][0] - height / 2),
+            width,
+            height,
+            facecolor="black",
+            edgecolor="none",
+        )
+        ax.add_patch(rect)
     plt.xlabel("phase (rad)")
     plt.ylabel("gain(%)")
     plt.axis("equal")
@@ -376,7 +436,6 @@ def show_if_result(
         verticalalignment="top",
     )
 
-    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
@@ -417,12 +476,32 @@ def show_if_result(
     plt.ylabel("gain(%)")
     plt.axis("equal")
 
-    image = u.demod2volts(r.image, 10_000)
-    image_dbm = 10 * np.log10(np.abs(image) / (50 * 2) * 1000 + 1e-7)
+    zero_idxs = np.where(r.image == 0.0)
+    zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
 
-    plt.contour(r.p_scan, r.g_scan, image_dbm, colors="k", alpha=0.5)
-    plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=custom_cmap)
+    mask = r.image == 0.0
+    r.image[mask] = np.nan
 
+    im = u.demod2volts(r.image, 10_000)
+    im_dbm = 10 * np.log10(im / (50 * 2) * 1000)
+
+    width = r.p_scan[0][1] - r.p_scan[0][0]
+    height = r.g_scan[1][0] - r.g_scan[0][0]
+
+    plt.pcolor(r.p_scan, r.g_scan, im_dbm, cmap=custom_cmap)
+    plt.colorbar(label="Power [dBm]")
+    ax = plt.gca()
+    for ii, _ in enumerate(zero_list):
+        rect = Rectangle(
+            (r.p_scan[0][zero_list[ii][1]] - width / 2, r.g_scan[zero_list[ii][0]][0] - height / 2),
+            width,
+            height,
+            facecolor="black",
+            edgecolor="none",
+        )
+        ax.add_patch(rect)
+
+    plt.contour(r.p_scan, r.g_scan, im_dbm, colors="k", alpha=0.5)
     plt.plot(r.phase, r.gain, "yo", markersize=8)
     plt.plot(r.phase, r.gain, "ro", markersize=4)
 
@@ -435,7 +514,6 @@ def show_if_result(
         verticalalignment="top",
     )
 
-    plt.colorbar(label="Power [dBm]")
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
