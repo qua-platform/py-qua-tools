@@ -93,7 +93,6 @@ def show_lo_result(
         ]
     )
 
-
     plt.text(
         np.min(q_scan) + 0.5 * dq,
         np.max(i_scan) - 0.5 * di,
@@ -289,7 +288,6 @@ def show_lo_result(
         verticalalignment="top",
     )
 
-
     plt.subplot(223)
 
     X, Y = d.q_scan, d.i_scan
@@ -327,7 +325,7 @@ def show_lo_result(
         "Current result:",
         f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
         "\nAchieved LO supression:",
-        f"{get_lo_suppression(data)[2]:.3f} dB",
+        f"{get_lo_suppression(data):.3f} dB",
     ]
 
     plt.text(
@@ -436,7 +434,6 @@ def show_if_result(
         verticalalignment="top",
     )
 
-
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
         np.max(r.g_scan - 1.5 * dg),
@@ -513,7 +510,6 @@ def show_if_result(
         horizontalalignment="center",
         verticalalignment="top",
     )
-
 
     plt.text(
         np.min(r.p_scan) + 1.5 * dp,
@@ -632,22 +628,30 @@ def get_if_suppression(
             return
 
     if_freq_data = if_data[if_freq]
-    x_min = if_freq_data.fine.fit.x_min
-    y_min = if_freq_data.fine.fit.y_min
+
+    g_coarse = if_freq_data.coarse.g_scan
+    p_coarse = if_freq_data.coarse.p_scan
+    g_fine = if_freq_data.fine.g_scan
+    p_fine = if_freq_data.fine.p_scan
+
+    image_coarse = if_freq_data.coarse.image
+    image_fine = if_freq_data.fine.image
+
+    if image_fine.min() > 0.0:
+        pass
+    else:
+        mask = image_fine == 0.0
+        image_fine[mask] = np.nan
+
+    image = u.demod2volts(image_fine, 10_000)
+    image_array_dbm = 10 * np.log10(image / (50 * 2) * 1000)
+    min_image_dbm = np.nanmin(image_array_dbm)
 
     pol = if_freq_data.fine.fit.pol
-    if_0 = paraboloid(0, 0, pol)
-    if_0_volts = u.demod2volts(if_0, 10_000)
-    if_0_dbm = 10 * np.log10(if_0_volts / (50 * 2) * 1000)
-
-    if_min = paraboloid(x_min, y_min, pol)
-    if_min_volts = u.demod2volts(if_min, 10_000)
-    if if_min_volts > 1e-7:
-        if_min_dbm = 10 * np.log10(if_min_volts / (50 * 2) * 1000)
-    else:
-        if_min_dbm = -70.0
-        print(if_min_volts)
-    return if_min_dbm - if_0_dbm
+    image_0 = paraboloid(0, 0, pol)
+    image_0_volts = u.demod2volts(image_0, 10_000)
+    image_0_dbm = 10 * np.log10(image_0_volts / (50 * 2) * 1000)
+    return min_image_dbm - image_0_dbm
 
 
 def get_lo_suppression(
@@ -678,36 +682,26 @@ def get_lo_suppression(
     i_coarse = lo_data.debug.coarse[0].i_scan
     q_coarse = lo_data.debug.coarse[0].q_scan
 
-    # x_min = lo_data.debug.fine[0].fit.x_min
-    # y_min = lo_data.debug.fine[0].fit.y_min
+    lo_coarse = lo_data.debug.coarse[0].lo
+    lo_fine = lo_data.debug.fine[0].lo
 
-    # pol = lo_data.debug.coarse[0].fit.pol
+    if lo_fine.min() > 0.0:
+        pass
+    else:
+        mask = lo_fine == 0.0
+        lo_fine[mask] = np.nan
 
-    # lo_0 = paraboloid(0, 0, pol)
-    # lo_0_volts = u.demod2volts(lo_0, 10_000)
-    # lo_0_dbm = 10 * np.log10(lo_0_volts / (50*2) * 1000)
-
-    # pol = lo_data.debug.fine[0].fit.pol
-
-    # lo_min = paraboloid(x_min, y_min, pol)
-    # lo_min_volts = u.demod2volts(lo_min, 10_000)
-    # if lo_min_volts > 1e-7:
-    #     lo_min_dbm = 10 * np.log10(lo_min_volts / (50*2) * 1000)
-    # else:
-    #     lo_min_dbm = -70.0
-
-    lo_array = lo_data.debug.fine[0].lo
-    lo = u.demod2volts(lo_array, 10_000)
+    lo = u.demod2volts(lo_fine, 10_000)
     lo_array_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
-    min_lo_dbm = np.min(lo_array_dbm)
+    min_lo_dbm = np.nanmin(lo_array_dbm)
 
     id_i = np.argwhere(i_coarse[:, 0] == 0.0)
     id_q = np.argwhere(q_coarse[0, :] == 0.0)
-    lo = lo_data.debug.coarse[0].lo[id_i, id_q][0][0]
+    lo = lo_coarse[id_i, id_q][0][0]
     lo_0 = u.demod2volts(lo, 10_000)
     lo_0_dbm = 10 * np.log10(lo_0 / (50 * 2) * 1000)
 
-    return (min_lo_dbm, lo_0_dbm, min_lo_dbm - lo_0_dbm, np.min(lo))
+    return min_lo_dbm - lo_0_dbm
 
 
 def paraboloid(x, y, pol):
