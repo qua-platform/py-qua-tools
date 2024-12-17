@@ -11,11 +11,8 @@ from qualang_tools.units import unit
 
 logger = logging.getLogger(__name__)
 
-# Define the colors from start (blue), midpoint (white), to end (red)
-# colors = ["midnightblue", "royalblue", "lightskyblue", "white", "lightgrey"]
 colors = ["black", "midnightblue", "navy", "darkblue", "mediumblue", "dodgerblue", "white", "lightgrey"]
 
-# Create the colormap
 custom_cmap = LinearSegmentedColormap.from_list("custom_diverging", colors, N=256)
 
 u = unit(coerce_to_integer=True)
@@ -26,6 +23,14 @@ def show_lo_result(
     lo_freq: Optional[Number] = None,
     label: str = "",
 ) -> None:
+    """
+    Show the result of LO leakage automatic calibration.
+
+    Args:
+        data (MixerCalibrationResults): A dictionary containing the calibration results.
+        lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+        label (str): A label to be used in the plot title.
+    """
     if lo_freq is None:
         if len(data) == 1:
             lo_freq = list(data.keys())[0][0]
@@ -349,7 +354,15 @@ def show_if_result(
     if_freq: Optional[float] = None,
     label: str = "",
 ) -> None:
+    """
+    Show the result of image sideband automatic calibration.
 
+    Args:
+        data (MixerCalibrationResults): A dictionary containing the calibration results.
+        lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+        if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
+        label (str): A label to be used in the plot title.
+    """
     if lo_freq is None:
         if len(data) == 1:
             lo_freq = list(data)[0][0]
@@ -592,7 +605,20 @@ def get_if_suppression(
     lo_freq: Optional[float] = None,
     if_freq: Optional[float] = None,
 ):
+    """
+    Calculate the Image sideband suppression achieved by the automatic calibration.
 
+    If the LO frequency is not given, the first LO frequency in the data is used.
+    If the IF frequency is not given, the first IF frequency in the data is used.
+
+    Args:
+        data (MixerCalibrationResults): A dictionary containing the calibration results.
+        lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+        if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
+
+    Returns:
+        float: The reduction of Image sideband power before vs after calibration in dB units.
+    """
     if lo_freq is None:
         if len(data) == 1:
             lo_freq = list(data)[0][0]
@@ -628,13 +654,6 @@ def get_if_suppression(
             return
 
     if_freq_data = if_data[if_freq]
-
-    g_coarse = if_freq_data.coarse.g_scan
-    p_coarse = if_freq_data.coarse.p_scan
-    g_fine = if_freq_data.fine.g_scan
-    p_fine = if_freq_data.fine.p_scan
-
-    image_coarse = if_freq_data.coarse.image
     image_fine = if_freq_data.fine.image
 
     if image_fine.min() > 0.0:
@@ -657,8 +676,20 @@ def get_if_suppression(
 def get_lo_suppression(
     data: MixerCalibrationResults,
     lo_freq: Optional[float] = None,
-    if_freq: Optional[float] = None,
 ):
+    """
+    Calculate the LO leakage suppression achieved by the automatic calibration.
+
+    If the LO frequency is not given, the first LO frequency in the data is used.
+    If the IF frequency is not given, the first IF frequency in the data is used.
+
+    Args:
+        data (MixerCalibrationResults): A dictionary containing the calibration results.
+        lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+
+    Returns:
+        float: The reduction of LO leakage power before vs after calibration in dB units.
+    """
     if lo_freq is None:
         if len(data) == 1:
             lo_freq = list(data.keys())[0][0]
