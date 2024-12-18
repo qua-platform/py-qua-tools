@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.18.0] - 2024-10-23
 ### Added
 - results - Allow the data saver to create the root folder if it doesn't exist.
-- octave_tools - Add visualization tools for the Octave calibration results
+- octave_tools - Add visualization tools for the Octave calibration results and return LO and image sideband supression after calibration. 
 - wirer - Automatic tool to allocate channels for arbitrary combinations of QM instruments and superconducting qubits.
 
 ### Fixed
