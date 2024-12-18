@@ -130,7 +130,7 @@ class VideoMode:
                             dcc.Graph(
                                 id="live-heatmap",
                                 figure=self.fig,
-                                style={"height": "100%", "min-width": "500px"},
+                                style={"aspect-ratio": "1 / 1"},
                             ),
                             width=7,
                         ),
