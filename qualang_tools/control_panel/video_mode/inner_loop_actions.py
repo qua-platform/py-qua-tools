@@ -20,6 +20,7 @@ from qm.qua import (
     ramp_to_zero,
 )
 from qualang_tools.control_panel.video_mode.dash_tools import BaseDashComponent, ModifiedFlags, create_input_field
+from qualang_tools.units.units import unit
 from qm.qua.lib import Cast, Math
 
 
@@ -108,13 +109,22 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
         pre_measurement_delay: The optional delay before the measurement.
     """
 
-    def __init__(self, x_element, y_element, readout_pulse, pre_measurement_delay: float = 0.0, ramp_rate: float = 0.0):
+    def __init__(
+        self,
+        x_element,
+        y_element,
+        readout_pulse,
+        pre_measurement_delay: float = 0.0,
+        ramp_rate: float = 0.0,
+        use_dBm=False,
+    ):
         super().__init__()
         self.x_elem = x_element
         self.y_elem = y_element
         self.readout_pulse = readout_pulse
         self.pre_measurement_delay = pre_measurement_delay
         self.ramp_rate = ramp_rate
+        self.use_dBm = use_dBm
 
         self._last_x_voltage = None
         self._last_y_voltage = None
@@ -198,33 +208,44 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
     def get_dash_components(self, include_subcomponents: bool = True) -> List[html.Div]:
         components = super().get_dash_components(include_subcomponents)
 
-        components.append(
-            html.Div(
-                [
-                    create_input_field(
-                        id={"type": self.component_id, "index": "readout_frequency"},
-                        label="Readout frequency",
-                        value=self.readout_pulse.channel.intermediate_frequency,
-                        units="Hz",
-                        step=20e3,
-                    ),
-                    create_input_field(
-                        id={"type": self.component_id, "index": "readout_duration"},
-                        label="Readout duration",
-                        value=self.readout_pulse.length,
-                        units="ns",
-                        input_style={"width": "200px"},
-                        step=10,
-                    ),
-                    create_input_field(
-                        id={"type": self.component_id, "index": "readout_amplitude"},
-                        label="Readout amplitude",
-                        value=self.readout_pulse.amplitude,
-                        units="V",
-                    ),
-                ]
+        additional_components = [
+            create_input_field(
+                id={"type": self.component_id, "index": "readout_frequency"},
+                label="Readout frequency",
+                value=self.readout_pulse.channel.intermediate_frequency,
+                units="Hz",
+                step=20e3,
+            ),
+            create_input_field(
+                id={"type": self.component_id, "index": "readout_duration"},
+                label="Readout duration",
+                value=self.readout_pulse.length,
+                units="ns",
+                input_style={"width": "200px"},
+                step=10,
+            ),
+        ]
+
+        if self.use_dBm:
+            additional_components.append(
+                create_input_field(
+                    id={"type": self.component_id, "index": "readout_power"},
+                    label="Readout power",
+                    value=unit.volts2dBm(self.readout_pulse.amplitude),
+                    units="dBm",
+                ),
             )
-        )
+        else:
+            additional_components.append(
+                create_input_field(
+                    id={"type": self.component_id, "index": "readout_amplitude"},
+                    label="Readout amplitude",
+                    value=self.readout_pulse.amplitude,
+                    units="V",
+                ),
+            )
+
+        components.append(html.Div(additional_components))
 
         return components
 
@@ -249,10 +270,17 @@ class BasicInnerLoopActionQuam(InnerLoopAction):
             flags |= ModifiedFlags.PROGRAM_MODIFIED
             flags |= ModifiedFlags.CONFIG_MODIFIED
 
-        if self.readout_pulse.amplitude != params["readout_amplitude"]:
-            self.readout_pulse.amplitude = params["readout_amplitude"]
-            flags |= ModifiedFlags.PARAMETERS_MODIFIED
-            flags |= ModifiedFlags.PROGRAM_MODIFIED
-            flags |= ModifiedFlags.CONFIG_MODIFIED
+        if self.use_dBm:
+            if unit.volts2dBm(self.readout_pulse.amplitude) != params["readout_power"]:
+                self.readout_pulse.amplitude = unit.dBm2volts(params["readout_power"])
+                flags |= ModifiedFlags.PARAMETERS_MODIFIED
+                flags |= ModifiedFlags.PROGRAM_MODIFIED
+                flags |= ModifiedFlags.CONFIG_MODIFIED
+        else:
+            if self.readout_pulse.amplitude != params["readout_amplitude"]:
+                self.readout_pulse.amplitude = params["readout_amplitude"]
+                flags |= ModifiedFlags.PARAMETERS_MODIFIED
+                flags |= ModifiedFlags.PROGRAM_MODIFIED
+                flags |= ModifiedFlags.CONFIG_MODIFIED
 
         return flags
