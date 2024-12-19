@@ -4,6 +4,9 @@ from .instrument_channel import (
     InstrumentChannelOctaveInput,
     InstrumentChannelOctaveOutput,
     InstrumentChannelOctaveDigitalInput,
+    InstrumentChannelExternalMixerInput,
+    InstrumentChannelExternalMixerOutput,
+    InstrumentChannelExternalMixerDigitalInput,
 )
 from .instrument_channels import *
 from .constants import *
@@ -19,6 +22,26 @@ class Instruments:
     def __init__(self):
         self.used_channels = InstrumentChannels()
         self.available_channels = InstrumentChannels()
+
+    def add_external_mixer(self, indices: Union[List[int], int]):
+        """
+        Add an external mixer, which is defined abstractly as a combined, IQ-upconverter and
+        IQ-downconverter.
+
+        `indices` (List[int] | int): Can be one or more indices for one or more external mixers.
+        """
+        if isinstance(indices, int):
+            indices = [indices]
+
+        for index in indices:
+            channel = InstrumentChannelExternalMixerInput(con=index, port=1)
+            self.available_channels.add(channel)
+
+            channel = InstrumentChannelExternalMixerOutput(con=index, port=1)
+            self.available_channels.add(channel)
+
+            channel = InstrumentChannelExternalMixerDigitalInput(con=index, port=1)
+            self.available_channels.add(channel)
 
     def add_octave(self, indices: Union[List[int], int]):
         if isinstance(indices, int):
