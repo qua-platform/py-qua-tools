@@ -25,6 +25,9 @@ class Instruments:
 
     def add_external_mixer(self, indices: Union[List[int], int]):
         """
+        Add an external mixer, which is defined abstractly as a combined, IQ-upconverter and
+        IQ-downconverter.
+
         `indices` (List[int] | int): Can be one or more indices for one or more external mixers.
         """
         if isinstance(indices, int):

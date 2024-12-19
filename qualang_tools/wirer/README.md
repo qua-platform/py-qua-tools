@@ -113,6 +113,18 @@ instruments.add_octave(indices=1)
 instruments.add_lf_fem(controller=1, slots=[1])
 instruments.add_mw_fem(controller=1, slots=[2])
 ```
+#### Setups with External Mixers
+Note: An **external mixer** is defined as abstractly as a combined, IQ-upconverter and IQ-downconverter instrument.
+```python
+# Single LF-FEM and 2x External Mixers
+instruments.add_lf_fem(controller=1, slots=[1])
+instruments.add_external_mixer(indices=[1, 2])
+```
+```python
+# Single OPX+ and 2x External Mixers
+instruments.add_opx_plus(controllers=[1, 2])
+instruments.add_external_mixer(indices=[1, 2])
+```
 <details>
 <summary>Image</summary>
 <img alt="Empty OPX1000" src=".img/empty_opx1000.png">
