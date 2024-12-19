@@ -9,10 +9,13 @@ from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusOutput,
     InstrumentChannelOctaveInput,
     InstrumentChannelOctaveOutput,
+    InstrumentChannelExternalMixerInput,
+    InstrumentChannelExternalMixerOutput,
     InstrumentChannelOpxPlusDigitalOutput,
     InstrumentChannelMwFemDigitalOutput,
     InstrumentChannelLfFemDigitalOutput,
     InstrumentChannelOctaveDigitalInput,
+    InstrumentChannelExternalMixerDigitalInput,
 )
 
 # A channel template is a partially filled InstrumentChannel object
@@ -99,6 +102,15 @@ class ChannelSpecOctave(ChannelSpec):
         ]
 
 
+class ChannelSpecExternalMixer(ChannelSpec):
+    def __init__(self, index: int = None, rf_in: int = None, rf_out: int = None):
+        super().__init__()
+        self.channel_templates = [
+            InstrumentChannelExternalMixerInput(con=index, port=rf_in),
+            InstrumentChannelExternalMixerOutput(con=index, port=rf_out),
+        ]
+
+
 class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
     def __init__(
         self,
@@ -168,6 +180,12 @@ class ChannelSpecOctaveDigital(ChannelSpec):
     def __init__(self, con: int = None, in_port: int = None):
         super().__init__()
         self.channel_templates = [InstrumentChannelOctaveDigitalInput(con=con, port=in_port)]
+
+
+class ChannelSpecExternalMixerDigital(ChannelSpec):
+    def __init__(self, con: int = None, in_port: int = None):
+        super().__init__()
+        self.channel_templates = [InstrumentChannelExternalMixerDigitalInput(con=con, port=in_port)]
 
 
 mw_fem_spec = ChannelSpecMwFemSingle

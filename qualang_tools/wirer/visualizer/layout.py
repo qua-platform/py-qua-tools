@@ -4,6 +4,7 @@ instrument_id_mapping = {
     "mw-fem": "OPX1000",
     "opx+": "OPX+",
     "octave": "Octave",
+    "external-mixer": "Mixers"
 }
 
 # Define the chassis dimensions
@@ -11,6 +12,7 @@ INSTRUMENT_FIGURE_DIMENSIONS = {
     "OPX1000": {"width": 8, "height": 3},
     "OPX+": {"width": 8, "height": 1},
     "Octave": {"width": 3, "height": 1},
+    "Mixers": {"width": 1, "height": 1},
 }
 
 OPX_PLUS_ASPECT = INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] / INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["width"]
@@ -55,6 +57,15 @@ PORT_POSITIONS = {
         },
         "digital": {
             "input": [((0.3 + j * 0.06) * 3, 0.18) for j in range(5)],
+        },
+    },
+    "external-mixer": {
+        "analog": {
+            "input": [(0.75, 0.45)],
+            "output": [(0.25, 0.45)],
+        },
+        "digital": {
+            "input": [(0.25, 0.85)],
         },
     },
 }

@@ -39,24 +39,30 @@ class InstrumentChannelAnalog:
     signal_type = "analog"
 
 
+InstrumentIdType = Literal["lf-fem", "mw-fem", "opx+", "octave", "external-mixer"]
 @dataclass(eq=False)
 class InstrumentChannelLfFem:
-    instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "lf-fem"
+    instrument_id: InstrumentIdType = "lf-fem"
 
 
 @dataclass(eq=False)
 class InstrumentChannelMwFem:
-    instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "mw-fem"
+    instrument_id: InstrumentIdType = "mw-fem"
 
 
 @dataclass(eq=False)
 class InstrumentChannelOpxPlus:
-    instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "opx+"
+    instrument_id: InstrumentIdType = "opx+"
 
 
 @dataclass(eq=False)
 class InstrumentChannelOctave:
-    instrument_id: Literal["lf-fem", "mw-fem", "opx+", "octave"] = "octave"
+    instrument_id: InstrumentIdType = "octave"
+
+
+@dataclass(eq=False)
+class InstrumentChannelExternalMixer:
+    instrument_id: InstrumentIdType = "external-mixer"
 
 
 @dataclass(eq=False)
@@ -123,6 +129,21 @@ class InstrumentChannelOpxPlusDigitalOutput(
 
 
 @dataclass(eq=False)
+class InstrumentChannelExternalMixerInput(
+    InstrumentChannelAnalog, InstrumentChannelExternalMixer, InstrumentChannelInput, InstrumentChannel
+):
+    pass
+
+
+@dataclass(eq=False)
+class InstrumentChannelExternalMixerOutput(
+    InstrumentChannelAnalog, InstrumentChannelExternalMixer, InstrumentChannelOutput, InstrumentChannel
+):
+    pass
+
+
+
+@dataclass(eq=False)
 class InstrumentChannelOctaveInput(
     InstrumentChannelAnalog, InstrumentChannelOctave, InstrumentChannelInput, InstrumentChannel
 ):
@@ -143,6 +164,13 @@ class InstrumentChannelOctaveDigitalInput(
     pass
 
 
+@dataclass(eq=False)
+class InstrumentChannelExternalMixerDigitalInput(
+    InstrumentChannelDigital, InstrumentChannelExternalMixer, InstrumentChannelInput, InstrumentChannel
+):
+    pass
+
+
 AnyInstrumentChannel = Union[
     InstrumentChannelLfFemInput,
     InstrumentChannelLfFemOutput,
@@ -152,4 +180,6 @@ AnyInstrumentChannel = Union[
     InstrumentChannelOpxPlusOutput,
     InstrumentChannelOctaveInput,
     InstrumentChannelOctaveOutput,
+    InstrumentChannelExternalMixerInput,
+    InstrumentChannelExternalMixerOutput,
 ]
