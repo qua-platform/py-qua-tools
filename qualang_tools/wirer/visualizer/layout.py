@@ -4,7 +4,7 @@ instrument_id_mapping = {
     "mw-fem": "OPX1000",
     "opx+": "OPX+",
     "octave": "Octave",
-    "external-mixer": "Mixers"
+    "external-mixer": "Mixers",
 }
 
 # Define the chassis dimensions

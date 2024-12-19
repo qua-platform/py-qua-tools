@@ -43,7 +43,6 @@ class Instruments:
             channel = InstrumentChannelExternalMixerDigitalInput(con=index, port=1)
             self.available_channels.add(channel)
 
-
     def add_octave(self, indices: Union[List[int], int]):
         if isinstance(indices, int):
             indices = [indices]

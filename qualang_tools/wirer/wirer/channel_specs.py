@@ -15,7 +15,7 @@ from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelMwFemDigitalOutput,
     InstrumentChannelLfFemDigitalOutput,
     InstrumentChannelOctaveDigitalInput,
-    InstrumentChannelExternalMixerDigitalInput
+    InstrumentChannelExternalMixerDigitalInput,
 )
 
 # A channel template is a partially filled InstrumentChannel object
@@ -113,16 +113,16 @@ class ChannelSpecExternalMixer(ChannelSpec):
 
 class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
     def __init__(
-            self,
-            con: int = None,
-            slot: int = None,
-            in_port_i: int = None,
-            in_port_q: int = None,
-            out_port_i: int = None,
-            out_port_q: int = None,
-            octave_index: int = None,
-            rf_in: int = None,
-            rf_out: int = None,
+        self,
+        con: int = None,
+        slot: int = None,
+        in_port_i: int = None,
+        in_port_q: int = None,
+        out_port_i: int = None,
+        out_port_q: int = None,
+        octave_index: int = None,
+        rf_in: int = None,
+        rf_out: int = None,
     ):
         super().__init__()
         self.channel_templates = [
@@ -133,6 +133,7 @@ class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
             InstrumentChannelOctaveInput(con=octave_index, port=rf_in),
             InstrumentChannelOctaveOutput(con=octave_index, port=rf_out),
         ]
+
 
 class ChannelSpecLfFemBasebandAndExternalMixer(ChannelSpec):
     def __init__(
@@ -158,15 +159,15 @@ class ChannelSpecLfFemBasebandAndExternalMixer(ChannelSpec):
 
 class ChannelSpecOpxPlusBasebandAndOctave(ChannelSpec):
     def __init__(
-            self,
-            con: int = None,
-            in_port_i: int = None,
-            in_port_q: int = None,
-            out_port_i: int = None,
-            out_port_q: int = None,
-            octave_index: int = None,
-            rf_in: int = None,
-            rf_out: int = None,
+        self,
+        con: int = None,
+        in_port_i: int = None,
+        in_port_q: int = None,
+        out_port_i: int = None,
+        out_port_q: int = None,
+        octave_index: int = None,
+        rf_in: int = None,
+        rf_out: int = None,
     ):
         super().__init__()
         self.channel_templates = [
@@ -177,6 +178,7 @@ class ChannelSpecOpxPlusBasebandAndOctave(ChannelSpec):
             InstrumentChannelOctaveInput(con=octave_index, port=rf_in),
             InstrumentChannelOctaveOutput(con=octave_index, port=rf_out),
         ]
+
 
 class ChannelSpecOpxPlusBasebandAndExternalMixer(ChannelSpec):
     def __init__(

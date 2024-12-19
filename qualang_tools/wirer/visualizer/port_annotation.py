@@ -58,7 +58,7 @@ class PortAnnotation:
                 fontsize=8,
                 fontweight="bold",
                 color=outline_colour,
-                )
+            )
             bbox = None
         else:
             raise NotImplementedError(f"No port-annotation drawing for {self.instrument_id}")

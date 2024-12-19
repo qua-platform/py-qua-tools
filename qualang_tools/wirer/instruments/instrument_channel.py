@@ -40,6 +40,8 @@ class InstrumentChannelAnalog:
 
 
 InstrumentIdType = Literal["lf-fem", "mw-fem", "opx+", "octave", "external-mixer"]
+
+
 @dataclass(eq=False)
 class InstrumentChannelLfFem:
     instrument_id: InstrumentIdType = "lf-fem"
@@ -140,7 +142,6 @@ class InstrumentChannelExternalMixerOutput(
     InstrumentChannelAnalog, InstrumentChannelExternalMixer, InstrumentChannelOutput, InstrumentChannel
 ):
     pass
-
 
 
 @dataclass(eq=False)
