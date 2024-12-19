@@ -32,7 +32,7 @@ class PortAnnotation:
         if self.signal_type == "digital" and self.instrument_id in ["lf-fem", "mw-fem"]:
             port_size = PORT_SIZE / 2.4
             bbox = dict(facecolor=fill_color, alpha=0.8, edgecolor="none")
-        else:
+        elif self.instrument_id in ["opx+", "octave"]:
             port_size = PORT_SIZE
             port_label_distance = PORT_SIZE * 1.3
             ax.text(
@@ -46,6 +46,22 @@ class PortAnnotation:
                 color=outline_colour,
             )
             bbox = None
+        elif self.instrument_id in ["external-mixer"]:
+            port_size = PORT_SIZE * 2.4
+            port_label_distance = PORT_SIZE * 3.2
+            ax.text(
+                x - port_label_distance,
+                y,
+                str(self.port),
+                ha="center",
+                va="center",
+                fontsize=8,
+                fontweight="bold",
+                color=outline_colour,
+                )
+            bbox = None
+        else:
+            raise NotImplementedError(f"No port-annotation drawing for {self.instrument_id}")
 
         ax.add_patch(patches.Circle((x, y), port_size, edgecolor=outline_colour, facecolor=fill_color))
         labels = combine_labels_for_same_line_type(self.labels)

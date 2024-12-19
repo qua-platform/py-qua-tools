@@ -23,17 +23,19 @@ class InstrumentFigureManager:
             if instrument_id == "OPX1000":
                 fig, axs = self._make_opx1000_figure()
                 self.figures[key] = {i + 1: ax for i, ax in enumerate(axs)}
-                fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
+                fig.suptitle(f"con{con} - {instrument_id} Wiring", fontweight="bold", fontsize=14)
             elif instrument_id == "OPX+":
                 fig = self._make_opx_plus_figure()
                 self.figures[key] = fig.axes[0]
-                fig.suptitle(f"con{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
+                fig.suptitle(f"con{con} - {instrument_id} Wiring", fontweight="bold", fontsize=14)
             elif instrument_id == "Octave":
                 fig = self._make_octave_figure()
                 self.figures[key] = fig.axes[0]
-                fig.suptitle(f"oct{con} - {instrument_id} Wiring Diagram", fontweight="bold", fontsize=14)
+                fig.suptitle(f"oct{con} - {instrument_id} Wiring", fontweight="bold", fontsize=14)
             else:
-                raise NotImplementedError()
+                fig = self._make_external_mixer_figure()
+                self.figures[key] = fig.axes[0]
+                fig.suptitle(f"Mixers {con} Wiring", fontweight="bold", fontsize=14)
 
         return self.figures[key][slot] if slot is not None else self.figures[key]
 
@@ -84,3 +86,27 @@ class InstrumentFigureManager:
     @classmethod
     def _make_octave_figure(cls) -> Figure:
         return cls._make_opx_plus_figure()
+
+    @classmethod
+    def _make_external_mixer_figure(cls) -> Figure:
+        fig, ax = plt.subplots(
+            1,
+            1,
+            figsize=(
+                INSTRUMENT_FIGURE_DIMENSIONS["Mixers"]["width"] * 2,
+                INSTRUMENT_FIGURE_DIMENSIONS["Mixers"]["height"] * 2,
+            ),
+        )
+        ax.text(0.25, 0.25, "Up. RF", ha="center", va="center")
+        ax.text(0.25, 0.65, "Up. Mkr", ha="center")
+        ax.text(0.75, 0.25, "Down. RF", ha="center", va="center")
+        ax.set_ylim([0.15, 1.15])
+        # ax.set_xlim([0.15 / 8 * 3, 1.15 / 8 * 3])
+        ax.set_facecolor("darkgrey")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_aspect("equal")
+
+        return fig
