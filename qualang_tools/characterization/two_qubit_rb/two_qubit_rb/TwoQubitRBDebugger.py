@@ -26,7 +26,7 @@ phased_xz_command_sequences = {
     r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
     r"(\frac{X}{2} \otimes I), \text{CNOT}": [1, 4, 63],  # X/2 on qubit 2, followed by CNOT
     r"(X \otimes I), \text{CNOT}": [724, 4, 63],  # X/2 on qubit 2, followed by CNOT
-    r"(I \otimes X), \text{SWAP}": [724, 39, 489],  # X on qubit 1, followed by SWAP
+    r"(I \otimes X), \text{SWAP}": [724, 48, 498],  # X on qubit 1, followed by SWAP
 }
 
 
