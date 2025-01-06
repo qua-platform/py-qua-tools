@@ -57,12 +57,6 @@ Install the current version using `pip`, the `--upgrade` flag ensures that you w
 ```bash
 pip install --upgrade qualang-tools
 ```
-
-Note that in order use the `Config GUI` or `Config Builder`, you need to install using
-```bash
-pip install --upgrade qualang-tools[configbuilder]
-```
-
 Note that in order use the `Interactive Plot Library`, you need to install using
 ```bash
 pip install --upgrade qualang-tools[interplot]
@@ -71,8 +65,20 @@ pip install --upgrade qualang-tools[interplot]
 Note that in order to run 2-Qubit Randomized Benchmarking, you need to install using
 ```bash
 pip install --upgrade qualang-tools[two-qubit-rb]
-# Install cirq separately, since it only works with python==3.10 and can't be listed as a dependency
-pip install cirq==1.3.0
+# Note that `cirq` will only be installed if your python version exceeds 3.10. 
+# Otherwise, install it separately, i.e., pip install cirq==1.2.0
+```
+Note that in order to use the data handler, you need to install using:
+```bash
+pip install --upgrade qualang-tools[datahandler]
+```
+
+> [!WARNING]
+> **Deprecated**: The following extras are deprecated and are no longer supported.
+
+Note that in order use the `Config GUI` or `Config Builder`, you need to install using
+```bash
+pip install --upgrade qualang-tools[configbuilder]
 ```
 
 ## Support and Contribution
