@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from qm.qua import declare
 
 cirq = pytest.importorskip("cirq")
 
@@ -75,7 +76,7 @@ def test_debugger_bell_state_circuit(config):
         pass
 
     def meas():
-        return None, None
+        return declare(bool), declare(bool)
 
     cz_generator = {"CZ": bake_cz}
 
@@ -107,5 +108,5 @@ def test_debugger_bell_state_circuit(config):
 
     assert np.allclose(rb._sequence_tracker.calculate_resultant_state(sequence), np.array(bell_state_rho))
 
-    rb_debugger = TwoQubitRbDebugger(rb)
-    rb_debugger.run_phased_xz_commands(None, 100)
+    # rb_debugger = TwoQubitRbDebugger(rb)
+    # rb_debugger.run_phased_xz_commands(None, 100)

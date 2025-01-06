@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
-- characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation from qua-libs.
+- characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
 
 ## [0.18.2] - 2024-12-23
 ### Added
