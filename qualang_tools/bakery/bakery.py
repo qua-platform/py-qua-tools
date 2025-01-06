@@ -676,7 +676,7 @@ class Baking:
         elif "singleInput" in self._local_config["elements"][qe]:
             for i in range(len(samples)):
                 assert (
-                    type(samples[i]) == float or type(samples[i]) == int
+                    type(samples[i]) is float or type(samples[i]) is int
                 ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
 
             pulse = {
@@ -740,10 +740,10 @@ class Baking:
                     Q3 = [None] * len(Q)
 
                     for i in range(len(I)):
-                        if type(amp) == float or type(amp) == int:
+                        if type(amp) is float or type(amp) is int:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
-                        elif len(amp) != 4 or type(amp) != tuple:
+                        elif len(amp) != 4 or type(amp) is not tuple:
                             raise IndexError("Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)")
                         else:
                             I2[i] = amp[0] * I[i] + amp[1] * Q[i]
@@ -757,7 +757,7 @@ class Baking:
                 elif "singleInput" in self._local_config["elements"][qe]:
                     for i in range(len(samples)):
                         assert (
-                            type(samples[i]) == float or type(samples[i]) == int
+                            type(samples[i]) is float or type(samples[i]) is int
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         self._samples_dict[qe]["single"].append(amp * np.cos(freq * i * 1e-9 + phi) * samples[i])
                     self._update_qe_time(qe, len(samples))
@@ -793,8 +793,8 @@ class Baking:
         """
         freq = self._qe_dict[qe]["freq"]
         phi = self._qe_dict[qe]["phase"]
-        if type(t) != int:
-            if type(t) == float:
+        if type(t) is not int:
+            if type(t) is float:
                 t = int(t)
             else:
                 raise TypeError("Provided time is not an integer")
@@ -830,11 +830,11 @@ class Baking:
                         [None] * len(I),
                     )
                     for i in range(len(I)):
-                        if type(amp) == float or type(amp) == int:
+                        if type(amp) is float or type(amp) is int:
                             I2[i] = amp * I[i]
                             Q2[i] = amp * Q[i]
                         else:
-                            if len(amp) != 4 or type(amp) != tuple:
+                            if len(amp) != 4 or type(amp) is not tuple:
                                 raise IndexError("Amplitudes provided must be stored in a tuple (v00, v01, v10, v11)")
                             else:
                                 I2[i] = amp[0] * I[i] + amp[1] * Q[i]
@@ -860,12 +860,12 @@ class Baking:
                             new_samples += 1
 
                 elif "singleInput" in self._local_config["elements"][qe]:
-                    if type(amp) != float and type(amp) != int:
+                    if type(amp) is not float and type(amp) is not int:
                         raise IndexError("Amplitude must be a number")
 
                     for i in range(len(samples)):
                         assert (
-                            type(samples[i]) == float or type(samples[i]) == int
+                            type(samples[i]) is float or type(samples[i]) is int
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         if t + i < len(self._samples_dict[qe]["single"]):
                             self._samples_dict[qe]["single"][t + i] += (
@@ -1053,7 +1053,7 @@ class Baking:
                     else:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
-                        if type(amp) == list:
+                        if type(amp) is list:
                             raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
 
@@ -1073,7 +1073,7 @@ class Baking:
                     else:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
-                        if type(amp) == list:
+                        if type(amp) is list:
                             raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
                         qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
 

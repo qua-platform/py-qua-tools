@@ -11,7 +11,7 @@ def dicts_equal(d1, d2):
         if isinstance(d1[key], dict):
             if not dicts_equal(d1[key], d2[key]):
                 return False
-        elif isinstance(d1[key], np.ndarray):
+        elif isinstance(d1[key], np.ndarray) or isinstance(d2[key], np.ndarray):
             if not np.array_equal(d1[key], d2[key]):
                 return False
         else:

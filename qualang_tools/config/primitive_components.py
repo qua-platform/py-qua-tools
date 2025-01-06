@@ -28,7 +28,7 @@ class Port(ConfigBuilderClass):
         return self.controller, self.port_id
 
     def __eq__(self, other) -> bool:
-        return self.info == other.info and type(self) == type(other)
+        return self.info == other.info and type(self) is type(other)
 
     def __str__(self):
         cont, port_id = self.info

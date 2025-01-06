@@ -13,11 +13,13 @@ from .channel_specs import (
     ChannelSpecMwFemSingle,
     ChannelSpecLfFemBaseband,
     ChannelSpecOctave,
+    ChannelSpecExternalMixer,
     ChannelSpecOpxPlusBaseband,
     ChannelSpecMwFemDigital,
     ChannelSpecLfFemDigital,
     ChannelSpecOctaveDigital,
     ChannelSpecOpxPlusDigital,
+    ChannelSpecExternalMixerDigital,
 )
 from .wirer_assign_channels_to_spec import assign_channels_to_spec
 from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
@@ -98,9 +100,22 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
     channels.
     """
     rf_specs = [
+        # MW-FEM, Single RF output
         ChannelSpecMwFemSingle() & ChannelSpecMwFemDigital(),
+        # LF-FEM I/Q output with Octave for upconversion
         ChannelSpecLfFemBaseband() & ChannelSpecLfFemDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital(),
+        # LF-FEM I/Q output with External Mixer for upconversion
+        ChannelSpecLfFemBaseband()
+        & ChannelSpecLfFemDigital()
+        & ChannelSpecExternalMixer()
+        & ChannelSpecExternalMixerDigital(),
+        # OPX+ I/Q output with Octave for upconversion
         ChannelSpecOpxPlusBaseband() & ChannelSpecOpxPlusDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital(),
+        # OPX+ I/Q output with External Mixer for upconversion
+        ChannelSpecOpxPlusBaseband()
+        & ChannelSpecOpxPlusDigital()
+        & ChannelSpecExternalMixer()
+        & ChannelSpecExternalMixerDigital(),
     ]
 
     allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True)

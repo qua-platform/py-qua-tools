@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
  - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
 
+## [0.18.2] - 2024-12-23
+### Added
+- Support for Python 3.12
+- wirer - Add support for external mixers
+
+### Fixed
+- external_frameworks/qcodes - Fixed the driver to be compatible with qm-qua==1.2.1.
+
 ## [0.18.1] - 2024-11-05
 ### Added
 - wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
@@ -388,7 +396,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...HEAD
+[0.18.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.1...v0.18.2
 [0.18.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...v0.18.0
 [0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7

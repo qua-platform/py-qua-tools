@@ -9,10 +9,13 @@ from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusOutput,
     InstrumentChannelOctaveInput,
     InstrumentChannelOctaveOutput,
+    InstrumentChannelExternalMixerInput,
+    InstrumentChannelExternalMixerOutput,
     InstrumentChannelOpxPlusDigitalOutput,
     InstrumentChannelMwFemDigitalOutput,
     InstrumentChannelLfFemDigitalOutput,
     InstrumentChannelOctaveDigitalInput,
+    InstrumentChannelExternalMixerDigitalInput,
 )
 
 # A channel template is a partially filled InstrumentChannel object
@@ -99,6 +102,15 @@ class ChannelSpecOctave(ChannelSpec):
         ]
 
 
+class ChannelSpecExternalMixer(ChannelSpec):
+    def __init__(self, index: int = None, rf_in: int = None, rf_out: int = None):
+        super().__init__()
+        self.channel_templates = [
+            InstrumentChannelExternalMixerInput(con=index, port=rf_in),
+            InstrumentChannelExternalMixerOutput(con=index, port=rf_out),
+        ]
+
+
 class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
     def __init__(
         self,
@@ -123,6 +135,28 @@ class ChannelSpecLfFemBasebandAndOctave(ChannelSpec):
         ]
 
 
+class ChannelSpecLfFemBasebandAndExternalMixer(ChannelSpec):
+    def __init__(
+        self,
+        con: int = None,
+        slot: int = None,
+        in_port_i: int = None,
+        in_port_q: int = None,
+        out_port_i: int = None,
+        out_port_q: int = None,
+        mixer_index: int = None,
+    ):
+        super().__init__()
+        self.channel_templates = [
+            InstrumentChannelLfFemInput(con=con, slot=slot, port=in_port_i),
+            InstrumentChannelLfFemInput(con=con, slot=slot, port=in_port_q),
+            InstrumentChannelLfFemOutput(con=con, slot=slot, port=out_port_i),
+            InstrumentChannelLfFemOutput(con=con, slot=slot, port=out_port_q),
+            InstrumentChannelExternalMixerInput(con=mixer_index, port=1),
+            InstrumentChannelExternalMixerOutput(con=mixer_index, port=1),
+        ]
+
+
 class ChannelSpecOpxPlusBasebandAndOctave(ChannelSpec):
     def __init__(
         self,
@@ -143,6 +177,27 @@ class ChannelSpecOpxPlusBasebandAndOctave(ChannelSpec):
             InstrumentChannelOpxPlusOutput(con=con, port=out_port_q),
             InstrumentChannelOctaveInput(con=octave_index, port=rf_in),
             InstrumentChannelOctaveOutput(con=octave_index, port=rf_out),
+        ]
+
+
+class ChannelSpecOpxPlusBasebandAndExternalMixer(ChannelSpec):
+    def __init__(
+        self,
+        con: int = None,
+        in_port_i: int = None,
+        in_port_q: int = None,
+        out_port_i: int = None,
+        out_port_q: int = None,
+        mixer_index: int = None,
+    ):
+        super().__init__()
+        self.channel_templates = [
+            InstrumentChannelOpxPlusInput(con=con, port=in_port_i),
+            InstrumentChannelOpxPlusInput(con=con, port=in_port_q),
+            InstrumentChannelOpxPlusOutput(con=con, port=out_port_i),
+            InstrumentChannelOpxPlusOutput(con=con, port=out_port_q),
+            InstrumentChannelExternalMixerInput(con=mixer_index, port=1),
+            InstrumentChannelExternalMixerOutput(con=mixer_index, port=1),
         ]
 
 
@@ -170,12 +225,21 @@ class ChannelSpecOctaveDigital(ChannelSpec):
         self.channel_templates = [InstrumentChannelOctaveDigitalInput(con=con, port=in_port)]
 
 
+class ChannelSpecExternalMixerDigital(ChannelSpec):
+    def __init__(self, con: int = None, in_port: int = None):
+        super().__init__()
+        self.channel_templates = [InstrumentChannelExternalMixerDigitalInput(con=con, port=in_port)]
+
+
 mw_fem_spec = ChannelSpecMwFemSingle
 lf_fem_spec = ChannelSpecLfFemSingle
 lf_fem_iq_spec = ChannelSpecLfFemBaseband
 lf_fem_iq_octave_spec = ChannelSpecLfFemBasebandAndOctave
+lf_fem_iq_ext_mixer_spec = ChannelSpecLfFemBasebandAndExternalMixer
 opx_spec = ChannelSpecOpxPlusSingle
 opx_iq_spec = ChannelSpecOpxPlusBaseband
 opx_iq_octave_spec = ChannelSpecOpxPlusBasebandAndOctave
+opx_iq_ext_mixer_spec = ChannelSpecOpxPlusBasebandAndExternalMixer
 octave_spec = ChannelSpecOctave
+ext_mixer_spec = ChannelSpecExternalMixer
 opx_dig_spec = ChannelSpecOpxPlusDigital
