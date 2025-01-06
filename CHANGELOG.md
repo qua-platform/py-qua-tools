@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+ - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
+
 ## [0.18.2] - 2024-12-23
 ### Added
 - Support for Python 3.12
