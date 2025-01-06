@@ -7,6 +7,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation from qua-libs.
 
+## [0.18.2] - 2024-12-23
+### Added
+- Support for Python 3.12
+- wirer - Add support for external mixers
+
+### Fixed
+- external_frameworks/qcodes - Fixed the driver to be compatible with qm-qua==1.2.1.
+
+## [0.18.1] - 2024-11-05
+### Added
+- wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
+- examples/Qcodes_drivers: Added examples with the OPX1000.
+- external_frameworks/qcodes - Added the `readout_sampling_rate` parameter for the OPX1000.
+
+### Fixed
+- external_frameworks/qcodes - Fixed the connection message and OPX identification to include the OPX1000 and QOP 2.4.
+- voltage_gates - Fix the derivation of the compensation pulse for a small voltage*duration.
+
 ## [0.18.0] - 2024-10-23
 ### Added
 - results - Allow the data saver to create the root folder if it doesn't exist.
@@ -378,7 +396,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...HEAD
+[0.18.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.1...v0.18.2
+[0.18.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...v0.18.0
 [0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
 [0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6

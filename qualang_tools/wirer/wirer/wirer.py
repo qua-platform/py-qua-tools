@@ -13,11 +13,13 @@ from .channel_specs import (
     ChannelSpecMwFemSingle,
     ChannelSpecLfFemBaseband,
     ChannelSpecOctave,
+    ChannelSpecExternalMixer,
     ChannelSpecOpxPlusBaseband,
     ChannelSpecMwFemDigital,
     ChannelSpecLfFemDigital,
     ChannelSpecOctaveDigital,
     ChannelSpecOpxPlusDigital,
+    ChannelSpecExternalMixerDigital,
 )
 from .wirer_assign_channels_to_spec import assign_channels_to_spec
 from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
@@ -39,20 +41,24 @@ def allocate_wiring(
         WiringLineType.FLUX,
         WiringLineType.CHARGE,
         WiringLineType.COUPLER,
+        WiringLineType.CROSS_RESONANCE,
+        WiringLineType.ZZ_DRIVE,
     ]
 
     specs = connectivity.specs
 
     used_channel_cache = copy.deepcopy(instruments.used_channels)
 
-    specs_with_untyped_lines = set()
+    specs_with_untyped_lines = []
     for line_type in line_type_fill_order:
         for spec in specs:
             if spec.line_type not in line_type_fill_order:
-                specs_with_untyped_lines.add(spec)
+                specs_with_untyped_lines.append(spec)
             if spec.line_type == line_type:
                 _allocate_wiring(spec, instruments)
 
+    # remove duplicates
+    specs_with_untyped_lines = list(dict.fromkeys(specs_with_untyped_lines))
     for spec in specs_with_untyped_lines:
         _allocate_wiring(spec, instruments)
 
@@ -94,9 +100,22 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
     channels.
     """
     rf_specs = [
+        # MW-FEM, Single RF output
         ChannelSpecMwFemSingle() & ChannelSpecMwFemDigital(),
+        # LF-FEM I/Q output with Octave for upconversion
         ChannelSpecLfFemBaseband() & ChannelSpecLfFemDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital(),
+        # LF-FEM I/Q output with External Mixer for upconversion
+        ChannelSpecLfFemBaseband()
+        & ChannelSpecLfFemDigital()
+        & ChannelSpecExternalMixer()
+        & ChannelSpecExternalMixerDigital(),
+        # OPX+ I/Q output with Octave for upconversion
         ChannelSpecOpxPlusBaseband() & ChannelSpecOpxPlusDigital() & ChannelSpecOctave() & ChannelSpecOctaveDigital(),
+        # OPX+ I/Q output with External Mixer for upconversion
+        ChannelSpecOpxPlusBaseband()
+        & ChannelSpecOpxPlusDigital()
+        & ChannelSpecExternalMixer()
+        & ChannelSpecExternalMixerDigital(),
     ]
 
     allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True)
