@@ -37,11 +37,11 @@ def drag_gaussian_pulse_waveforms(
     if subtracted:
         gauss_wave = gauss_wave - gauss_wave[-1]  # subtracted gaussian
     z = gauss_wave + 1j * 0
-    if alpha != 0:
+    if anharmonicity != detuning:
         # The complex DRAG envelope:
         z += 1j * gauss_der_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
-        # The complex detuned DRAG envelope:
-        z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
+    # The complex detuned DRAG envelope:
+    z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
     Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     return I_wf, Q_wf
@@ -75,11 +75,11 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detunin
         0.5 * amplitude * (2 * np.pi / end_point * 1e9) * np.sin(t * 2 * np.pi / end_point)
     )  # The derivative of cosine function
     z = cos_wave + 1j * 0
-    if alpha != 0:
+    if anharmonicity != detuning:
         # The complex DRAG envelope:
         z += 1j * sin_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
-        # The complex detuned DRAG envelope:
-        z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
+    # The complex detuned DRAG envelope:
+    z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
     Q_wf = z.imag.tolist()  # The `Q` component is the imaginary part of the waveform
     return I_wf, Q_wf
