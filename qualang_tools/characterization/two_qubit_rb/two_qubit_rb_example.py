@@ -1,16 +1,11 @@
 # flake8: noqa
 
-import random
-from typing import List
-
-import cirq
 import matplotlib.pyplot as plt
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qualang_tools.bakery.bakery import Baking
 
-from configuration import *
-from two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
+from qualang_tools.characterization.two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
 
 
 ##############################
@@ -103,11 +98,15 @@ def meas():
 ##############################
 ##  Two-qubit RB execution  ##
 ##############################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)  # initialize qmm
+qmm = QuantumMachinesManager(
+    host="enter-your-qmm-ip-address",
+    port=None,
+    cluster_name="enter-your-cluster-name"
+)
 
 # create RB experiment from configuration and defined functions
 rb = TwoQubitRb(
-    config=config,
+    config=config,  # enter your QUA config here
     single_qubit_gate_generator=bake_phased_xz,
     two_qubit_gate_generators={"CZ": bake_cz},  # can also provide e.g. "CNOT": bake_cnot
     prep_func=prep,
