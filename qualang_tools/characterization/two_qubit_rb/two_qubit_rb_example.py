@@ -122,7 +122,14 @@ rb = TwoQubitRb(
 # plt.show()
 
 # run 2Q-RB experiment
-res = rb.run(qmm, circuit_depths=[1, 2, 3, 4, 5], num_circuits_per_depth=2, num_shots_per_circuit=1)
+res = rb.run(
+    qmm,
+    circuit_depths=[1, 2, 3, 4, 5],
+    num_circuits_per_depth=2,
+    num_shots_per_circuit=1,
+    # unsafe=True will minimize switch-case gaps, but can lead to unexpected behaviour
+    unsafe=False
+)
 
 # circuit_depths ~ how many consecutive Clifford gates within one executed circuit
 # (https://qiskit.org/documentation/apidoc/circuit.html)

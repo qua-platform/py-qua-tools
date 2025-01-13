@@ -159,6 +159,7 @@ class TwoQubitRb:
         sequence_depths: list[int],
         num_repeats: int,
         num_averages: int,
+        unsafe: bool
     ):
         with program() as prog:
             sequence_depth = declare(int)
@@ -171,7 +172,7 @@ class TwoQubitRb:
             state_os = declare_stream()
             gates_len_is = declare_input_stream(int, name="__gates_len_is__", size=1)
             gates_is = {
-                qe: declare_input_stream(int, name=f"{qe}_is", size=self._buffer_length)
+                qe: declare_input_stream(int, name=f"{self._input_stream_name(qe)}_is", size=self._buffer_length)
                 for qe in self._rb_baker.all_elements
             }
 
@@ -186,7 +187,7 @@ class TwoQubitRb:
                     assign(length, gates_len_is[0])
                     with for_(n_avg, 0, n_avg < num_averages, n_avg + 1):
                         self._prep_func()
-                        self._rb_baker.run(gates_is, length)
+                        self._rb_baker.run(gates_is, length, unsafe=unsafe)
                         out1, out2 = self._measure_func()
                         assign(state, (Cast.to_int(out2) << 1) + Cast.to_int(out1))
                         save(state, state_os)
@@ -195,6 +196,9 @@ class TwoQubitRb:
                 state_os.buffer(len(sequence_depths), num_repeats, num_averages).save("state")
                 progress_os.save("progress")
         return prog
+
+    def _input_stream_name(self, element: str):
+        return element.replace('.', '__dot__')
 
     def _decode_sequence_for_element(self, element: str, seq: list):
         seq = [self._rb_baker.decode(i, element) for i in seq]
@@ -228,7 +232,7 @@ class TwoQubitRb:
         circuit_depths: List[int],
         num_circuits_per_depth: int,
         num_shots_per_circuit: int,
-        unsafe: bool = True,
+        unsafe: bool = False,
         **kwargs,
     ):
         """
