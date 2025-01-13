@@ -64,7 +64,7 @@ class TwoQubitRbDebugger:
 
     @run_in_thread
     def _insert_all_input_stream(self, job, sequences):
-        for sequence in tqdm(sequences, desc='Running test-sequences', unit='sequence'):
+        for sequence in tqdm(sequences, desc="Running test-sequences", unit="sequence"):
             self.sequence_tracker.make_sequence(sequence)
             job.insert_input_stream("__gates_len_is__", len(sequence))
             for qe in self.rb._rb_baker.all_elements:
