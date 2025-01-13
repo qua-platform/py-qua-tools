@@ -44,12 +44,19 @@ class TwoQubitRbDebugger:
         Run a program testing selected commands containing only combinations of PhasedXZ
         gates and other fundamental gates, which lead to a variety of transformations on
         the |00> state. This is useful for testing the 1Q component of the gate implementation.
+
+        Params:
+            unsafe (bool): Refers to the option of compiling a QUA switch-case "safely", which
+                           guarantees correct behaviour but can lead to gaps, or "unsafely",
+                           which reduces gaps but can cause unwanted behaviour. Note: as of
+                           QOP 3.2.3, there seems to be an issue with "unsafe" compilation.
+
         """
         sequences = phased_xz_command_sequences.values()
 
         self.sequence_tracker = SequenceTracker(self.rb._command_registry)
 
-        prog = self._phased_xz_commands_program(len(sequences), num_averages)
+        prog = self._phased_xz_commands_program(len(sequences), num_averages, unsafe)
 
         qm = qmm.open_qm(self.rb._config)
         job = qm.execute(prog)
@@ -68,9 +75,12 @@ class TwoQubitRbDebugger:
             self.sequence_tracker.make_sequence(sequence)
             job.insert_input_stream("__gates_len_is__", len(sequence))
             for qe in self.rb._rb_baker.all_elements:
-                job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+                job.insert_input_stream(
+                    f"{self._input_stream_name_from_element(str(qe))}_is",
+                    self.rb._decode_sequence_for_element(qe, sequence)
+                )
 
-    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
+    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int, unsafe: bool) -> Program:
         with program() as prog:
             n_avg = declare(int)
             state = declare(int)
@@ -79,7 +89,8 @@ class TwoQubitRbDebugger:
             state_os = declare_stream()
             gates_len_is = declare_input_stream(int, name="__gates_len_is__", size=1)
             gates_is = {
-                qe: declare_input_stream(int, name=f"{qe}_is", size=self.rb._buffer_length)
+                qe: declare_input_stream(int, name=f"{self._input_stream_name_from_element(str(qe))}_is",
+                                         size=self.rb._buffer_length)
                 for qe in self.rb._rb_baker.all_elements
             }
 
@@ -90,7 +101,7 @@ class TwoQubitRbDebugger:
                 assign(length, gates_len_is[0])
                 with for_(n_avg, 0, n_avg < num_averages, n_avg + 1):
                     self.rb._prep_func()
-                    self.rb._rb_baker.run(gates_is, length)
+                    self.rb._rb_baker.run(gates_is, length, unsafe=unsafe)
                     out1, out2 = self.rb._measure_func()
                     assign(state, (Cast.to_int(out2) << 1) + Cast.to_int(out1))
                     save(state, state_os)
@@ -126,3 +137,6 @@ class TwoQubitRbDebugger:
         plt.tight_layout()
         plt.plot()
         plt.show()
+
+    def _input_stream_name_from_element(self, element_name: str):
+        return element_name.replace('.', '_')

@@ -228,6 +228,7 @@ class TwoQubitRb:
         circuit_depths: List[int],
         num_circuits_per_depth: int,
         num_shots_per_circuit: int,
+        unsafe: bool = True,
         **kwargs,
     ):
         """
@@ -240,10 +241,13 @@ class TwoQubitRb:
             circuit_depths (List[int]): A list of the number of Cliffords per circuit (not including inverse).
             num_circuits_per_depth (int): The number of different circuit randomizations per depth.
             num_shots_per_circuit (int): The number of shots per particular circuit.
+            unsafe (bool): Refers to the option of compiling a QUA switch-case "safely", which
+                           guarantees correct behaviour but can lead to gaps, or "unsafely",
+                           which reduces gaps but can cause unwanted behaviour. Note: as of
+                           QOP 3.2.3, there seems to be an issue with "unsafe" compilation.
 
         """
-
-        prog = self._gen_qua_program(circuit_depths, num_circuits_per_depth, num_shots_per_circuit)
+        prog = self._gen_qua_program(circuit_depths, num_circuits_per_depth, num_shots_per_circuit, unsafe)
 
         qm = qmm.open_qm(self._config)
         job = qm.execute(prog)
