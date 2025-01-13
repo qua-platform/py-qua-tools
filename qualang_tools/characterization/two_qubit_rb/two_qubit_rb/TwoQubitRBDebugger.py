@@ -77,7 +77,7 @@ class TwoQubitRbDebugger:
             for qe in self.rb._rb_baker.all_elements:
                 job.insert_input_stream(
                     f"{self._input_stream_name_from_element(str(qe))}_is",
-                    self.rb._decode_sequence_for_element(qe, sequence)
+                    self.rb._decode_sequence_for_element(qe, sequence),
                 )
 
     def _phased_xz_commands_program(self, num_sequences: int, num_averages: int, unsafe: bool) -> Program:
@@ -89,8 +89,9 @@ class TwoQubitRbDebugger:
             state_os = declare_stream()
             gates_len_is = declare_input_stream(int, name="__gates_len_is__", size=1)
             gates_is = {
-                qe: declare_input_stream(int, name=f"{self._input_stream_name_from_element(str(qe))}_is",
-                                         size=self.rb._buffer_length)
+                qe: declare_input_stream(
+                    int, name=f"{self._input_stream_name_from_element(str(qe))}_is", size=self.rb._buffer_length
+                )
                 for qe in self.rb._rb_baker.all_elements
             }
 
@@ -139,4 +140,4 @@ class TwoQubitRbDebugger:
         plt.show()
 
     def _input_stream_name_from_element(self, element_name: str):
-        return element_name.replace('.', '_')
+        return element_name.replace(".", "_")

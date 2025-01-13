@@ -154,13 +154,7 @@ class TwoQubitRb:
 
         return gate_ids
 
-    def _gen_qua_program(
-        self,
-        sequence_depths: list[int],
-        num_repeats: int,
-        num_averages: int,
-        unsafe: bool
-    ):
+    def _gen_qua_program(self, sequence_depths: list[int], num_repeats: int, num_averages: int, unsafe: bool):
         with program() as prog:
             sequence_depth = declare(int)
             repeat = declare(int)
@@ -198,7 +192,7 @@ class TwoQubitRb:
         return prog
 
     def _input_stream_name(self, element: str):
-        return element.replace('.', '__dot__')
+        return element.replace(".", "__dot__")
 
     def _decode_sequence_for_element(self, element: str, seq: list):
         seq = [self._rb_baker.decode(i, element) for i in seq]

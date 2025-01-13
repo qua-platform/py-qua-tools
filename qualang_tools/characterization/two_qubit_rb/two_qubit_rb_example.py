@@ -98,11 +98,7 @@ def meas():
 ##############################
 ##  Two-qubit RB execution  ##
 ##############################
-qmm = QuantumMachinesManager(
-    host="enter-your-qmm-ip-address",
-    port=None,
-    cluster_name="enter-your-cluster-name"
-)
+qmm = QuantumMachinesManager(host="enter-your-qmm-ip-address", port=None, cluster_name="enter-your-cluster-name")
 
 # create RB experiment from configuration and defined functions
 rb = TwoQubitRb(
@@ -128,7 +124,7 @@ res = rb.run(
     num_circuits_per_depth=2,
     num_shots_per_circuit=1,
     # unsafe=True will minimize switch-case gaps, but can lead to unexpected behaviour
-    unsafe=False
+    unsafe=False,
 )
 
 # circuit_depths ~ how many consecutive Clifford gates within one executed circuit
