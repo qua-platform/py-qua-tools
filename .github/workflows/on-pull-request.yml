@@ -39,7 +39,7 @@ jobs:
             poetry-
 
       - name: Set up the project
-        run: poetry install --extras "datahandler two-qubit-rb interplot config-builder" 
+        run: poetry install --extras "datahandler two-qubit-rb interplot configbuilder" 
         
       - name: Check formatting
         run: poetry run poe check-format
