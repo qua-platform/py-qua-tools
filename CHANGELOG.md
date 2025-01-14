@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
+- 
 ### Fixed
  - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
 
