@@ -39,7 +39,7 @@ class TwoQubitRbDebugger:
         """
         self.rb = rb
 
-    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int):
+    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, unsafe: bool = False):
         """
         Run a program testing selected commands containing only combinations of PhasedXZ
         gates and other fundamental gates, which lead to a variety of transformations on
@@ -49,7 +49,7 @@ class TwoQubitRbDebugger:
             unsafe (bool): Refers to the option of compiling a QUA switch-case "safely", which
                            guarantees correct behaviour but can lead to gaps, or "unsafely",
                            which reduces gaps but can cause unwanted behaviour. Note: as of
-                           QOP 3.2.3, there seems to be an issue with "unsafe" compilation.
+                           QOP 3.2.3, there is an issue with "unsafe" compilation in certain circumstances.
 
         """
         sequences = phased_xz_command_sequences.values()
