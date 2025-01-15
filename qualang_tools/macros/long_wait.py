@@ -27,9 +27,9 @@ def long_wait(
          times. In units of clock cycles.
     """
     if not isinstance(wait_time, (int, np.integer)):
-        raise TypeError(f"Expected `wait_time` to be a float or an integer, got {type(wait_time)}.")
+        raise TypeError(f"Expected `wait_time` to be an integer, got {type(wait_time)}.")
 
-    if not isinstance(threshold_for_looping, int):
+    if not isinstance(threshold_for_looping, (int, np.integer)):
         raise TypeError(f"Expected `threshold_for_looping` to be a an integer, got {type(threshold_for_looping)}.")
 
     if threshold_for_looping < 4:
