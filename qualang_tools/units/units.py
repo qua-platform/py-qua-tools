@@ -182,7 +182,7 @@ class unit:
                 f"Warning: the specified duration ({t}) to be converted to clock cycles in not an integer. It has been converted to int ({int(t)}) to avoid subsequent errors."
             )
             t = int(t * self.ns)
-        return t // 4
+        return int(t // 4)
 
     def demod2volts(
         self,
@@ -201,6 +201,24 @@ class unit:
             return 2 * 4096 * data * self.V / duration
         else:
             return 4096 * data * self.V / duration
+
+    def volts2demod(
+        self,
+        value_in_volts: Union[float, ndarray],
+        duration: Union[float, int],
+        single_demod: bool = False,
+    ) -> Union[float, ndarray]:
+        """Converts the volts to demodulated data units.
+
+        :param value_in_volts: some value in volts. Must be a python variable or array.
+        :param duration: demodulation duration in ns.
+        :param single_demod: Flag to add the additional factor of 2 needed for single demod.
+        :return: the same value in demodulated data units.
+        """
+        if single_demod:
+            return (value_in_volts * duration) / (2 * 4096 * self.V)
+        else:
+            return (value_in_volts * duration) / (4096 * self.V)
 
     def raw2volts(self, data: Union[float, ndarray]) -> Union[float, ndarray]:
         """Converts the raw data to volts.

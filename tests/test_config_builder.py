@@ -24,20 +24,10 @@ def config_resonator():
     ]
 
     ro_pulse = MeasurePulse("ro_pulse", wfs, 16)
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w1_I", cosine=1, sine=0, duration=16))
-    )
-    ro_pulse.add(
-        Weights(
-            ConstantIntegrationWeights("integ_w1_Q", cosine=0, sine=-1, duration=16)
-        )
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w2_I", cosine=0, sine=1, duration=16))
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("integ_w2_Q", cosine=1, sine=0, duration=16))
-    )
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w1_I", cosine=1, sine=0, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w1_Q", cosine=0, sine=-1, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w2_I", cosine=0, sine=1, duration=16)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("integ_w2_Q", cosine=1, sine=0, duration=16)))
 
     res.add(Operation(ro_pulse))
 
@@ -295,17 +285,9 @@ def config_3qb_3res():
 
     ro_pulse = MeasurePulse("ro_pulse", [ro_I, ro_Q], 100)
 
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("cos", cosine=1, sine=0, duration=100))
-    )
-    ro_pulse.add(
-        Weights(
-            ConstantIntegrationWeights("minus_sin", cosine=0, sine=-1, duration=100)
-        )
-    )
-    ro_pulse.add(
-        Weights(ConstantIntegrationWeights("sin", cosine=0, sine=1, duration=100))
-    )
+    ro_pulse.add(Weights(ConstantIntegrationWeights("cos", cosine=1, sine=0, duration=100)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("minus_sin", cosine=0, sine=-1, duration=100)))
+    ro_pulse.add(Weights(ConstantIntegrationWeights("sin", cosine=0, sine=1, duration=100)))
 
     res1.add(Operation(ro_pulse))
     res2.add(Operation(ro_pulse))
@@ -363,17 +345,17 @@ def test_parameter_algebra():
     assert (d**c)() == 10000
     assert (c**2)() == 16
 
-    e = c_vars.parameter("e", setter=lambda:[1, 2, 3])
+    e = c_vars.parameter("e", setter=lambda: [1, 2, 3])
     assert type(e) == Parameter
     assert e.len() == 3
+
 
 def test_deprecated_warning():
     with pytest.warns(None) as record:
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
-        elm = Element("elm", analog_input_ports=[cont.analog_output(1)]
-        )
+        elm = Element("elm", analog_input_ports=[cont.analog_output(1)])
 
         cb.add(elm)
         cb.build()
@@ -383,20 +365,19 @@ def test_deprecated_warning():
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
-        elm = Element("elm", element_analog_inputs=[cont.analog_output(1)]
-        )
+        elm = Element("elm", element_analog_inputs=[cont.analog_output(1)])
         cb.add(elm)
         cb.build()
     assert len(record.list) == 1
 
+
 def test_digital_input():
     cont = Controller("con1")
-    elm = Element("elm",
-             analog_input_ports=[cont.analog_output(1)],
-             digital_input_ports=[cont.digital_output(2)])
+    elm = Element("elm", analog_input_ports=[cont.analog_output(1)], digital_input_ports=[cont.digital_output(2)])
     elm.set_digital_input_delay(2, 20)
     assert "in2" in elm.dict["digitalInputs"].keys()
     assert elm.dict["digitalInputs"]["in2"]["delay"] == 20
+
 
 def test_element_none_arguments():
     cont = Controller("con1")

@@ -1,17 +1,18 @@
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from configuration import *
 from qualang_tools.callable_from_qua import callable_from_qua, patch_qua_program_addons
 
 # Patch to add the callable from qua functions to the main SDK
 patch_qua_program_addons()
 
+
 # Define your callable_from_qua functions
 @callable_from_qua
 def qua_print(*args):
     text = ""
     for i in range(0, len(args) - 1, 2):
-        text += f"{args[i]} = {args[i+1]} | "
+        text += f"{args[i]} = {args[i + 1]} | "
     print(text)
 
 

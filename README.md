@@ -47,6 +47,8 @@ storing them in the usual configuration file. It allows defining waveforms in a 
 * [Macros](qualang_tools/macros/README.md) - This module includes convenience functions for encapsulating common QUA code.
 * [Digital filters](qualang_tools/digital_filters/README.md) - Library of functions allowing the derivation of the digital filter taps to correct distortions.
 
+* [Voltage Gates](qualang_tools/voltage_gates/README.md) - The `VoltageGateSequence` class facilitates the creation and management of complex pulse sequences for quantum operations, allowing for dynamic voltage control, ramping, and bias compensation across multiple gate elements.
+* [Wirer](qualang_tools/wirer/README.md) - The `wirer` tool allows for automatic allocation of arbitrary channels to an arbitrary combination of instruments.
 
 ## Installation
 

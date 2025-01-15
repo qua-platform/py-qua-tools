@@ -7,7 +7,7 @@ This function allows to interrupt the execution and free the console when closin
 ### Usage example
 
 ```python
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qualang_tools.plot import interrupt_on_close
 from qm.qua import *
 import matplotlib.pyplot as plt
@@ -56,7 +56,7 @@ This function gets the samples generated from the QUA simulator by element.
 ### Usage example
 
 ```python
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from qm.qua import *
 from configuration import config
@@ -80,7 +80,7 @@ This function plots the samples generated from the QUA simulator by element usin
 ### Usage example
 
 ```python
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from qm.qua import *
 from configuration import config

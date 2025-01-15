@@ -6,6 +6,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
+ 
+## [0.18.2] - 2024-12-23
+### Added
+- Support for Python 3.12
+- wirer - Add support for external mixers
+
+### Fixed
+- external_frameworks/qcodes - Fixed the driver to be compatible with qm-qua==1.2.1.
+
+## [0.18.1] - 2024-11-05
+### Added
+- wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
+- examples/Qcodes_drivers: Added examples with the OPX1000.
+- external_frameworks/qcodes - Added the `readout_sampling_rate` parameter for the OPX1000.
+
+### Fixed
+- external_frameworks/qcodes - Fixed the connection message and OPX identification to include the OPX1000 and QOP 2.4.
+- voltage_gates - Fix the derivation of the compensation pulse for a small voltage*duration.
+
+## [0.18.0] - 2024-10-23
+### Added
+- results - Allow the data saver to create the root folder if it doesn't exist.
+- wirer - Automatic tool to allocate channels for arbitrary combinations of QM instruments and superconducting qubits.
+
+### Fixed
+- data_handler - Fix figure saving cutting off title text if it is long using `bbox_inches="tight"`.
+
+## [0.17.7] - 2024-08-20
+### Added
+- VoltageGateSequence - The `VoltageGateSequence` class facilitates the creation and management of complex pulse sequences, allowing dynamic voltage control, ramping, and bias compensation across gate elements.
+
+## [0.17.6] - 2024-06-27
+### Fixed
+- Fix deprecated imports in preparation for qm-qua version 1.2.0
+
+## [0.17.5] - 2024-06-26
+### Fixed
+- control_panel - Fix voltage booking error introduced in the previous fix.
+- control_panel - Fix rounding error in `ManualOutputControl` that caused voltage drifts.
+- octave_tools - Fix bug when setting calibrate to False in ``get_correction_for_each_LO_and_IF()``.
+- unit - ``to_clock_cycles()`` now always returns an integer.
+- examples/Qcodes_drivers: Fixed compatibility with qm-qua 1.1.6 or newer.
+
+### Added
+- octave_tools - Added the possibility to pass the AutoCalibrationParams to ``get_correction_for_each_LO_and_IF()`` to customize the calibration parameters (IF_amplitude for instance).
+- unit - ``volts2demod()`` function that does the inverse operation of ``demod2volts()``
+- data_handler - Added support for nested figures and arrays
+
+## [0.17.4] - 2024-05-07
+### Fixed
+- control_panel - Fix init of ManualOutputControl (remove old logger call).
+
+## [0.17.3] - 2024-05-06
+### Fixed
+- digital_filters - added `multi_exponential_decay` to `__init__` file.
+
+## [0.17.2] - 2024-05-06
+### Added
+- digital_filters - added `multi_exponential_decay` function which can be used to fit and extract the exponential decay coefficients when there are multiple time constants. It supports any number of exponential decays.
+
+### Changed
+- digital_filters - `exponential_decay` function now internally uses the `multi_exponential_decay` function for calculation. The user-facing interface of `exponential_decay` remains unchanged, ensuring backward compatibility.
+- digital_filters - `multi_exponential_decay` function has the following formula: `s * (1 + a1 * np.exp(-x / t1) + a2 * np.exp(-x / t2) + ... + an * np.exp(-x / tn))`, where `s=1` by default.
 
 ## [0.17.1] - 2024-04-19
 ### Fixed
@@ -333,7 +396,16 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...HEAD
+[0.18.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.1...v0.18.2
+[0.18.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.0...v0.18.1
+[0.18.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.7...v0.18.0
+[0.17.7]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.6...v0.17.7
+[0.17.6]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.5...v0.17.6
+[0.17.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.4...v0.17.5
+[0.17.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.3...v0.17.4
+[0.17.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.2...v0.17.3
+[0.17.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.1...v0.17.2
 [0.17.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.15.2...v0.16.0

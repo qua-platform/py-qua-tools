@@ -3,11 +3,11 @@ import dataclasses
 from time import sleep
 from typing import List, Any, Dict
 from functools import wraps
-from qm.QmJob import QmJob
+from qm import QmJob
 from qm.program import Program
 from qm.qua import declare_stream, save, pause
 from qm.exceptions import QmQuaException
-from qm.QuantumMachine import QuantumMachine
+from qm import QuantumMachine
 from qm.qua._dsl import _ResultSource, _Variable, align, _get_root_program_scope
 
 __all__ = ["ProgramAddon", "callable_from_qua"]
@@ -79,16 +79,13 @@ class QuaCallable:
 
 class ProgramAddon(ABC):
     @abstractmethod
-    def enter_program(self, program: Program):
-        ...
+    def enter_program(self, program: Program): ...  # noqa: E704
 
     @abstractmethod
-    def exit_program(self, exc_type, exc_val, exc_tb):
-        ...
+    def exit_program(self, exc_type, exc_val, exc_tb): ...  # noqa: E704
 
     @abstractmethod
-    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
-        ...
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine): ...  # noqa: E704
 
 
 class QuaCallableEventManager(ProgramAddon):

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pytest
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from qm import SimulationConfig
 import numpy as np
 from qualang_tools.bakery.bakery import baking
@@ -20,9 +20,7 @@ def config():
         c = np.cos(phi)
         s = np.sin(phi)
         N = 1 / ((1 - g**2) * (2 * c**2 - 1))
-        return [
-            float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]
-        ]
+        return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
         "version": 1,
@@ -117,9 +115,7 @@ def config():
 def simulate_program_and_return(config, prog, duration=20000):
     qmm = QuantumMachinesManager()
     qmm.close_all_quantum_machines()
-    job = qmm.simulate(
-        config, prog, SimulationConfig(duration, include_analog_waveforms=True)
-    )
+    job = qmm.simulate(config, prog, SimulationConfig(duration, include_analog_waveforms=True))
     return job
 
 
@@ -153,14 +149,9 @@ def test_bake_with_macro(config):
 
     job = simulate_program_and_return(cfg, prog, 200)
     samples = job.get_simulated_samples()
-    tstamp = int(
-        job.simulated_analog_waveforms()["controllers"]["con1"]["ports"]["1"][0][
-            "timestamp"
-        ]
-    )
+    tstamp = int(job.simulated_analog_waveforms()["controllers"]["con1"]["ports"]["1"][0]["timestamp"])
     assert all(
-        samples.con1.analog["1"][tstamp : tstamp + 200]
-        == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
+        samples.con1.analog["1"][tstamp : tstamp + 200] == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
     )
 
 
@@ -193,12 +184,8 @@ def test_amp_modulation_run(config):
     samples3_data = samples3.con1.analog["1"]
 
     assert len(samples1_data) == len(samples2_data)
-    assert all(
-        [samples1_data[i] == samples3_data[i] for i in range(len(samples1_data))]
-    )
-    assert all(
-        [samples2_data[i] == samples3_data[i] for i in range(len(samples2_data))]
-    )
+    assert all([samples1_data[i] == samples3_data[i] for i in range(len(samples1_data))])
+    assert all([samples2_data[i] == samples3_data[i] for i in range(len(samples2_data))])
 
 
 def test_play_baked_with_existing_digital_wf(config):

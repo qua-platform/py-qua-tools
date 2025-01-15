@@ -174,9 +174,11 @@ def test_frequency_conversion(unit_verbose):
     assert 4.1 * unit_verbose.MHz == 4_100_000
     assert 4.1 * unit_verbose.GHz == 4_100_000_000
 
+
 def test_dBm2volts(unit):
     assert unit.dBm2volts(1) == 0.3548133892335754
     assert unit.dBm2volts(1, Z=100) == 0.5017819071656863
+
 
 def test_volts2dBm(unit):
     assert unit.volts2dBm(0.5) == 3.9794000867203754

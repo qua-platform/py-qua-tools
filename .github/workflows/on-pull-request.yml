@@ -5,11 +5,15 @@ jobs:
     env:
       JUNIT_REPORT_PATH: pytest-junit-report
     runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          python-version: [3.8, 3.10.13, 3.12]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.10.13
+          python-version: ${{ matrix.python-version }}
 
       - name: Setup pip Cache
         id: cache-pip
@@ -43,8 +47,8 @@ jobs:
       - name: Check linting
         run: poetry run poe lint
 
-      - name: Test
-        run: poetry run poe test --junitxml=${JUNIT_REPORT_PATH}/report.xml
+      - name: Run tests
+        run: poetry run poe test --junitxml=test-results-${{ matrix.python-version }}.xml
 
       - name: Build
         run: poetry build
@@ -52,7 +56,7 @@ jobs:
       - name: Collect PyTest report
         id: collect-pytest-reports
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: pytest-report
           path: ${{ env.JUNIT_REPORT_PATH }}
@@ -66,10 +70,17 @@ jobs:
         with:
           files: ${{env.JUNIT_REPORT_PATH}}/*.xml
 
-      - name: Upload dist
-        uses: actions/upload-artifact@v2
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          name: python_pkg
+          name: test-results-python-${{ matrix.python-version }}
+          path: test-results-${{ matrix.python-version }}.xml
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: python_pkg_py${{ matrix.python-version }}
           path: |
             dist/*.tar.gz
             dist/*.whl

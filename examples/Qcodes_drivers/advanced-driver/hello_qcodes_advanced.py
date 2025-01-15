@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import qcodes as qc
 from qcodes import initialise_or_create_database_at, load_or_create_experiment
 from qcodes.utils.dataset.doNd import do2d, do1d, do0d
@@ -21,15 +22,11 @@ db_file_path = os.path.join(os.getcwd(), db_name)
 qc.config.core.db_location = db_file_path
 initialise_or_create_database_at(db_file_path)
 # Initialize qcodes experiment
-experiment = load_or_create_experiment(
-    experiment_name=exp_name, sample_name=sample_name
-)
+experiment = load_or_create_experiment(experiment_name=exp_name, sample_name=sample_name)
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
-opx_instrument = OPXCustomSequence(
-    config, name="OPX_demo", host="127.0.0.1", cluster_name="my_cluster"
-)
+opx_instrument = OPXCustomSequence(config, name="OPX_demo", host="127.0.0.1", cluster_name="my_cluster")
 # Add the OPX instrument to the qcodes station
 station.add_component(opx_instrument)
 
@@ -142,9 +139,7 @@ if run == "rabi_2d":
     opx_instrument.outer_averaging_loop(False)
     opx_instrument.n_avg(n_avg)
     # Axis1 is the most inner loop
-    opx_instrument.set_sweep_parameters(
-        "axis1", pulse_lengths * 4, "ns", "pulse duration"
-    )
+    opx_instrument.set_sweep_parameters("axis1", pulse_lengths * 4, "ns", "pulse duration")
     # Axis2 is the second loop
     opx_instrument.set_sweep_parameters(
         "axis2",

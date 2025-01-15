@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import qcodes as qc
 from qcodes import initialise_or_create_database_at, load_or_create_experiment
 from qcodes.utils.dataset.doNd import do2d, do1d, do0d
@@ -20,9 +21,7 @@ db_file_path = os.path.join(os.getcwd(), db_name)
 qc.config.core.db_location = db_file_path
 initialise_or_create_database_at(db_file_path)
 # Initialize qcodes experiment
-experiment = load_or_create_experiment(
-    experiment_name=exp_name, sample_name=sample_name
-)
+experiment = load_or_create_experiment(experiment_name=exp_name, sample_name=sample_name)
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
@@ -204,12 +203,8 @@ def OPX_1d_scan(simulate=False):
                 ramp_to_zero("gate_1")
 
         with stream_processing():
-            I_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all(
-                "I"
-            )
-            Q_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all(
-                "Q"
-            )
+            I_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
+            Q_st.buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
     return prog
 
 
@@ -234,9 +229,7 @@ if run == "1d":
     do0d(
         opx_instrument.run_exp,
         opx_instrument.resume,
-        opx_instrument.get_measurement_parameter(
-            scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]
-        ),
+        opx_instrument.get_measurement_parameter(scale_factor=[("I", 1235, "pA"), ("Q", 1235, "pA")]),
         opx_instrument.halt,
         do_plot=True,
         exp=experiment,
@@ -368,12 +361,8 @@ def OPX_sliced_scan(simulate=False):
                 ramp_to_zero("gate_1")
 
         with stream_processing():
-            I_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(
-                FUNCTIONS.average()
-            ).save_all("I")
-            Q_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(
-                FUNCTIONS.average()
-            ).save_all("Q")
+            I_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
+            Q_st.buffer(nb_of_slices).buffer(len(biases)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
     return prog
 
 
@@ -387,6 +376,8 @@ if run == "sliced":
     )
     # Axis2 is the second loop
     opx_instrument.set_sweep_parameters("axis2", biases, "V", "Biases")
+    # The readout length is the chunk size (in ns) here
+    opx_instrument.readout_pulse_length(slice_size * 4)
     # Add the custom sequence to the OPX
     opx_instrument.qua_program = OPX_sliced_scan(simulate=True)
     # Simulate program
@@ -443,12 +434,8 @@ def OPX_reflectometry(simulate=False):
                     save(Q, Q_st)
 
         with stream_processing():
-            I_st.buffer(len(frequencies)).buffer(n_avg).map(
-                FUNCTIONS.average()
-            ).save_all("I")
-            Q_st.buffer(len(frequencies)).buffer(n_avg).map(
-                FUNCTIONS.average()
-            ).save_all("Q")
+            I_st.buffer(len(frequencies)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
+            Q_st.buffer(len(frequencies)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
     return prog
 
 
@@ -484,9 +471,7 @@ if run == "datasaver":
             # Get the results from the OPX
             data = opx_instrument.get_res()
             # Store the results in the scodes database
-            datasaver.add_result(
-                (VP1, VP1()), (OPX_param, np.array(list(data.values())))
-            )
+            datasaver.add_result((VP1, VP1()), (OPX_param, np.array(list(data.values()))))
         # Halt the OPX program at the end
         opx_instrument.halt()
         # Get the full dataset

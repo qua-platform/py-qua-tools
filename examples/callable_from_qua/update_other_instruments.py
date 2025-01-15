@@ -1,5 +1,5 @@
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from configuration import *
 from qualang_tools.callable_from_qua import *
 from qualang_tools.loops import from_array
@@ -8,6 +8,7 @@ import numpy as np
 
 # Patch to add the callable from qua functions to the main SDK
 patch_qua_program_addons()
+
 
 # Define your callable_from_qua functions
 # Note that this framework can be easily adapted to update parameters from other instruments using their dedicated API

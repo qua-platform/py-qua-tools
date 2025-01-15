@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import qcodes as qc
 from qcodes import initialise_or_create_database_at, load_or_create_experiment
 from qcodes.utils.dataset.doNd import do2d, do1d, do0d
@@ -20,9 +21,7 @@ db_file_path = os.path.join(os.getcwd(), db_name)
 qc.config.core.db_location = db_file_path
 initialise_or_create_database_at(db_file_path)
 # Initialize qcodes experiment
-experiment = load_or_create_experiment(
-    experiment_name=exp_name, sample_name=sample_name
-)
+experiment = load_or_create_experiment(experiment_name=exp_name, sample_name=sample_name)
 # Initialize the qcodes station to which instruments will be added
 station = qc.Station()
 # Create the OPX instrument class
@@ -129,12 +128,8 @@ def raster_scan(simulate=False):
                         save(I, I_st)
                         save(Q, Q_st)
         with stream_processing():
-            I_st.buffer(N1).buffer(N2).buffer(n_avg).map(FUNCTIONS.average()).save_all(
-                "I"
-            )
-            Q_st.buffer(N1).buffer(N2).buffer(n_avg).map(FUNCTIONS.average()).save_all(
-                "Q"
-            )
+            I_st.buffer(N1).buffer(N2).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
+            Q_st.buffer(N1).buffer(N2).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
 
     return prog
 

@@ -59,8 +59,8 @@ class fetching_tool:
         return self._b_cont or self._b_last
 
     def _format(self, data):
-        if type(data) == np.ndarray:
-            if type(data[0]) == np.void:
+        if type(data) is np.ndarray:
+            if type(data[0]) is np.void:
                 if len(data.dtype) == 1:
                     data = data["value"]
         return data
@@ -114,7 +114,7 @@ def progress_counter(iteration, total, progress_bar=True, percent=True, start_ti
     if percent:
         progress += f"{current_percent:.1f}% (n={iteration + 1}/{total})"
     if start_time is not None:
-        progress += f" --> elapsed time: {time.time()-start_time:.2f}s"
+        progress += f" --> elapsed time: {time.time() - start_time:.2f}s"
 
     print(progress, end="\r")
     if current_percent == 100:

@@ -1,7 +1,7 @@
 import pytest
 from qualang_tools.loops import *
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 from copy import deepcopy
 import numpy as np
 
@@ -98,19 +98,23 @@ def simulate_program_and_return(config, prog):
     return job
 
 
-@pytest.mark.parametrize(["start", "stop" ,"step"],
-                         [ [-0.05, -1, -0.15],
-                           [10, 20, 1],
-                           [20, 71, 2],
-                           [20, 71, 1],
-                           [11, 0, -1],
-                           [0.1, 1, 0.2],
-                           [0, 1, 0.2],
-                           [0, 2, 0.0001],
-                           [-1, 2, 0.00011],
-                           [-1, 1, 0.2],
-                           [0.00015, 1, 0.0001],
-                           [0, -2, -0.001],])
+@pytest.mark.parametrize(
+    ["start", "stop", "step"],
+    [
+        [-0.05, -1, -0.15],
+        [10, 20, 1],
+        [20, 71, 2],
+        [20, 71, 1],
+        [11, 0, -1],
+        [0.1, 1, 0.2],
+        [0, 1, 0.2],
+        [0, 2, 0.0001],
+        [-1, 2, 0.00011],
+        [-1, 1, 0.2],
+        [0.00015, 1, 0.0001],
+        [0, -2, -0.001],
+    ],
+)
 def test_qua_arange(config, start, stop, step):
     def prog_maker(_start, _stop, _step):
         if float(step).is_integer():
@@ -144,33 +148,35 @@ def test_qua_arange(config, start, stop, step):
     assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-@pytest.mark.parametrize(["vector", "qua_type"],
-                         [
-                             [np.logspace(np.log10(10000), np.log10(4), 100), "int"],
-                             [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
-                             [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
-                             [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
-                             [np.logspace(6, 4, 19), "int"],
-                             [np.logspace(3, 6, 199), "int"],
-                             [np.logspace(-3, 0, 99), "fixed"],
-                             [np.logspace(-3.5, -1, 11), "fixed"],
-                             [np.logspace(0.5, -0.5, 22), "fixed"],
-                             [np.logspace(0.5, -3.5, 21), "fixed"],
-                             [np.arange(-7.0547, -2.2141, 0.1015), "fixed"],
-                             [np.arange(-0.05, -1, -0.15), "fixed"],
-                             [np.arange(-1, 2, 0.0006), "fixed"],
-                             [np.arange(-11, -100, -2), "int"],
-                             [np.arange(20, 71, 2), "int"],
-                             [np.linspace(20, 71, 52), "int"],
-                             [np.linspace(0.1, 1, 6), "fixed"],
-                             [np.arange(10, 20, 1), "int"],
-                             [np.arange(20, 71, 1), "int"],
-                             [np.arange(0, 71, 2), "int"],
-                             [np.arange(0, 1, 0.1), "fixed"],
-                             [np.arange(0, 1, 0.2), "fixed"],
-                             [np.arange(0.1, 1, 0.2), "fixed"],
-                             # [np.arange(0.00015, 1, 0.0001), "fixed"],
-                         ])
+@pytest.mark.parametrize(
+    ["vector", "qua_type"],
+    [
+        [np.logspace(np.log10(10000), np.log10(4), 100), "int"],
+        [np.logspace(np.log10(4), np.log10(10000), 29), "int"],
+        [np.logspace(np.log10(50), np.log10(12500), 19), "int"],
+        [np.logspace(np.log10(50000), np.log10(33), 72), "int"],
+        [np.logspace(6, 4, 19), "int"],
+        [np.logspace(3, 6, 199), "int"],
+        [np.logspace(-3, 0, 99), "fixed"],
+        [np.logspace(-3.5, -1, 11), "fixed"],
+        [np.logspace(0.5, -0.5, 22), "fixed"],
+        [np.logspace(0.5, -3.5, 21), "fixed"],
+        [np.arange(-7.0547, -2.2141, 0.1015), "fixed"],
+        [np.arange(-0.05, -1, -0.15), "fixed"],
+        [np.arange(-1, 2, 0.0006), "fixed"],
+        [np.arange(-11, -100, -2), "int"],
+        [np.arange(20, 71, 2), "int"],
+        [np.linspace(20, 71, 52), "int"],
+        [np.linspace(0.1, 1, 6), "fixed"],
+        [np.arange(10, 20, 1), "int"],
+        [np.arange(20, 71, 1), "int"],
+        [np.arange(0, 71, 2), "int"],
+        [np.arange(0, 1, 0.1), "fixed"],
+        [np.arange(0, 1, 0.2), "fixed"],
+        [np.arange(0.1, 1, 0.2), "fixed"],
+        # [np.arange(0.00015, 1, 0.0001), "fixed"],
+    ],
+)
 def test_from_array(config, vector, qua_type):
     def prog_maker(_vector, _qua_type):
         if _qua_type == "int":
@@ -207,10 +213,7 @@ def test_from_array(config, vector, qua_type):
     assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-@pytest.mark.parametrize(["vector", "qua_type"],
-                         [
-                             [np.logspace(np.log10(4), np.log10(10000), 60), "int"]
-                         ])
+@pytest.mark.parametrize(["vector", "qua_type"], [[np.logspace(np.log10(4), np.log10(10000), 60), "int"]])
 def test_from_array_log_error(config, vector, qua_type):
     def prog_maker(_vector, _qua_type):
         if _qua_type == "int":
@@ -240,16 +243,18 @@ def test_from_array_log_error(config, vector, qua_type):
         simulate_program_and_return(cfg, prog_maker(vector, qua_type))
 
 
-@pytest.mark.parametrize(["start", "stop", "N"],
-                         [
-                             [0.1, 1, 5],
-                             [0.1, 0.95, 5],
-                             [-1, 0, 2],
-                             [-1, 1, 2],
-                             [-8, 7, 51],
-                             [-0.1, 0.1, 5000],
-                             [-1, 2, 11],
-                         ])
+@pytest.mark.parametrize(
+    ["start", "stop", "N"],
+    [
+        [0.1, 1, 5],
+        [0.1, 0.95, 5],
+        [-1, 0, 2],
+        [-1, 1, 2],
+        [-8, 7, 51],
+        [-0.1, 0.1, 5000],
+        [-1, 2, 11],
+    ],
+)
 def test_qua_linspace(config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
@@ -272,14 +277,16 @@ def test_qua_linspace(config, start, stop, N):
     assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-@pytest.mark.parametrize(["start", "stop", "N"],
-                         [
-                             [0.5, -2, 24],
-                             [0, -3, 51],
-                             [0, -3, 50],
-                             [-4, 0.5, 11],
-                             [-3.8, 0.2, 7],
-                         ])
+@pytest.mark.parametrize(
+    ["start", "stop", "N"],
+    [
+        [0.5, -2, 24],
+        [0, -3, 51],
+        [0, -3, 50],
+        [-4, 0.5, 11],
+        [-3.8, 0.2, 7],
+    ],
+)
 def test_qua_logspace_fixed(config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
@@ -302,12 +309,14 @@ def test_qua_logspace_fixed(config, start, stop, N):
     assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-@pytest.mark.parametrize(["start", "stop", "N"],
-                         [
-                             [np.log10(500), np.log10(12500), 11],
-                             [np.log10(5000), np.log10(125), 30],
-                             [np.log10(40), np.log10(1001), 51],
-                         ])
+@pytest.mark.parametrize(
+    ["start", "stop", "N"],
+    [
+        [np.log10(500), np.log10(12500), 11],
+        [np.log10(5000), np.log10(125), 30],
+        [np.log10(40), np.log10(1001), 51],
+    ],
+)
 def test_qua_logspace_int(config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:
@@ -330,10 +339,12 @@ def test_qua_logspace_int(config, start, stop, N):
     assert np.allclose(a_list, a_qua, atol=1e-4)
 
 
-@pytest.mark.parametrize(["start", "stop", "N"],
-                         [
-                             [np.log10(4), np.log10(10000), 60],
-                         ])
+@pytest.mark.parametrize(
+    ["start", "stop", "N"],
+    [
+        [np.log10(4), np.log10(10000), 60],
+    ],
+)
 def test_qua_logspace_error(config, start, stop, N):
     def prog_maker(_start, _stop, _N):
         with program() as prog:

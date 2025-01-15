@@ -158,6 +158,7 @@ opx_instrument.qua_program = OPX_0d_scan(simulate=True)
 ### The readout length
 In order to convert the demodulated/integrated results into Volts, and create the setpoints for the raw ADC trace acquisition, 
 the readout length (in nanoseconds) must be passed to the instrument with ``opx_instrument.readout_pulse_length(readout_len)``.
+For the OPX1000, the sampling rate of the readout in Gs/s can also be adjusted using ``opx_instrument.readout_sampling_rate(2)`` (default is 1 Gs/s).
 
 Note that this doesn't update the effective readout length, it is just a ``get`` parameter.
 As shown in the advanced driver section, it is possible to modify the class in order to parametrize the readout length and amplitude.

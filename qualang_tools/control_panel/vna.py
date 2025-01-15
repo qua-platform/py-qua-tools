@@ -1,7 +1,7 @@
 """calling function libraries"""
 
 from qm.qua import *
-from qm.QuantumMachinesManager import QuantumMachinesManager
+from qm import QuantumMachinesManager
 import numpy as np
 import matplotlib.pyplot as plt
 
