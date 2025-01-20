@@ -40,6 +40,10 @@ def drag_gaussian_pulse_waveforms(
     if anharmonicity != detuning:
         # The complex DRAG envelope:
         z += 1j * gauss_der_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
+    elif alpha != 0:
+        raise ValueError(
+            "The complex envelop for the DRAG waveform cannot be created if anharmonicity = detuning and alpha != 0."
+        )
     # The complex detuned DRAG envelope:
     z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
@@ -78,6 +82,10 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detunin
     if anharmonicity != detuning:
         # The complex DRAG envelope:
         z += 1j * sin_wave * (alpha / (2 * np.pi * anharmonicity - 2 * np.pi * detuning))
+    elif alpha != 0:
+        raise ValueError(
+            "The complex envelop for the DRAG waveform cannot be created if anharmonicity = detuning and alpha != 0."
+        )
     # The complex detuned DRAG envelope:
     z *= np.exp(1j * 2 * np.pi * detuning * t * 1e-9)
     I_wf = z.real.tolist()  # The `I` component is the real part of the waveform
