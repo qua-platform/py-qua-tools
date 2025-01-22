@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
+- wirer - Fixed bug in the visualizer for lf-fem and mw-fem.
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
 
 ## [0.18.2] - 2024-12-23
