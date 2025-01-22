@@ -32,7 +32,7 @@ class PortAnnotation:
         if self.signal_type == "digital" and self.instrument_id in ["lf-fem", "mw-fem"]:
             port_size = PORT_SIZE / 2.4
             bbox = dict(facecolor=fill_color, alpha=0.8, edgecolor="none")
-        elif self.instrument_id in ["opx+", "octave"]:
+        elif self.instrument_id in ["opx+", "octave", "lf-fem", "mw-fem"]:
             port_size = PORT_SIZE
             port_label_distance = PORT_SIZE * 1.3
             ax.text(
