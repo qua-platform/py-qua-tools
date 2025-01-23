@@ -19,6 +19,11 @@ class CalibrationResultPlotter:
 
     def __init__(self, data: MixerCalibrationResults):
         self.data = data
+        output_gain = list(self.data.keys())[0][1]
+        self.lo_frequency = list(self.data.keys())[0][0]
+        self.if_data = data[(self.lo_frequency, output_gain)].image
+        self.lo_data = data[(self.lo_frequency, output_gain)]
+        self.if_frequency = list(self.if_data.keys())[0]
 
     @staticmethod
     def _handle_zero_indices_and_masking(data):
@@ -48,51 +53,32 @@ class CalibrationResultPlotter:
         plt.ylabel(ylabel)
         plt.axis("equal")
 
+    @staticmethod
+    def _convert_to_dbm(volts):
+        return 10 * np.log10(volts / (50 * 2) * 1000)
+
     def show_lo_result(
         self,
-        lo_freq: Optional[Number] = None,
-        label: str = "",
     ) -> None:
         """
         Show the result of LO leakage automatic calibration.
 
         Args:
-            lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
             label (str): A label to be used in the plot title.
         """
-        if lo_freq is None:
-            if len(self.data) == 1:
-                lo_freq = list(self.data.keys())[0][0]
-
-            else:
-                print(f"There is a calibration data for {len(self.data)} LO frequencies. You must choose one")
-                return
-
-        try:
-            output_gain = list(self.data.keys())[0][1]
-        except IndexError:
-            print("No valid calibration result")
-            return
-
-        if (lo_freq, output_gain) not in self.data:
-            print(f"No calibration data for LO frequency = {lo_freq / 1e9:.3f}GHz")
-            return
 
         plt.figure(figsize=(11, 8.9))
-        # plt.title(f"LO auto calibration @ {lo_freq/1e9:.3f}GHz")
-
-        lo_data = self.data[(lo_freq, output_gain)]
 
         plt.subplot(222)
 
-        d = lo_data.debug.coarse[0]
+        d = self.lo_data.debug.coarse[0]
 
         q_scan = d.q_scan * 1000
         i_scan = d.i_scan * 1000
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
         lo = self.u.demod2volts(d.lo, 10_000)
-        lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
+        lo_dbm = self._convert_to_dbm(lo)
         dq = np.mean(np.diff(q_scan, axis=1))
         di = np.mean(np.diff(i_scan, axis=0))
 
@@ -104,7 +90,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(q_scan) + 0.5 * dq,
             np.max(i_scan) - 0.5 * di,
-            f"{label}coarse scan\nLO = {lo_freq / 1e9:.3f}GHz",
+            f"coarse scan\nLO = {self.lo_frequency / 1e9:.3f}GHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -166,13 +152,11 @@ class CalibrationResultPlotter:
             verticalalignment="top",
         )
 
-        fine_debug_data = lo_data.debug.fine
-        if fine_debug_data is None:
-            raise ValueError("No fine debug data, cannot plot.")
+        fine_debug_data = self.lo_data.debug.fine
 
         x0_ref, y0_ref = x0, y0
 
-        d = lo_data.debug.fine[0]
+        d = fine_debug_data[0]
 
         x0_fine = d.fit.x_min * 1000 + x0_ref
         y0_fine = d.fit.y_min * 1000 + y0_ref
@@ -198,7 +182,7 @@ class CalibrationResultPlotter:
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
         lo = self.u.demod2volts(d.lo, 10_000)
-        lo_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
+        lo_dbm = self._convert_to_dbm(lo)
 
         width = q_scan[0][1] - q_scan[0][0]
         height = i_scan[1][0] - i_scan[0][0]
@@ -253,7 +237,7 @@ class CalibrationResultPlotter:
         t = plt.text(
             np.min(fine_q_scan) + 0.5 * dq,
             np.max(fine_i_scan) - 0.5 * di,
-            f"fine scan\nLO = {lo_freq / 1e9:.3f}GHz",
+            f"fine scan\nLO = {self.lo_frequency / 1e9:.3f}GHz",
             color="k",
             verticalalignment="top",
         )
@@ -276,7 +260,7 @@ class CalibrationResultPlotter:
         iq_error = self.u.demod2volts(
             p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, 10_000
         )
-        iq_error_dbm = 10 * np.log10(np.abs(iq_error) / (50 * 2) * 1000)
+        iq_error_dbm = self._convert_to_dbm(np.abs(iq_error))
 
         plt.pcolor(
             fine_q_scan,
@@ -307,7 +291,7 @@ class CalibrationResultPlotter:
             "Current result:",
             f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
             "\nAchieved LO supression:",
-            f"{self.get_lo_suppression(data):.3f} dB",
+            f"{self._get_lo_suppression():.3f} dB",
         ]
 
         plt.text(
@@ -321,58 +305,22 @@ class CalibrationResultPlotter:
         plt.box(False)
         plt.xticks([])
         plt.yticks([])
-        plt.suptitle(f"LO auto calibration @ {lo_freq/1e9:.3f}GHz")
+        plt.suptitle(f"LO auto calibration @ {self.lo_frequency/1e9:.3f}GHz")
         plt.tight_layout()
 
     def show_if_result(
         self,
-        lo_freq: Optional[float] = None,
-        if_freq: Optional[float] = None,
-        label: str = "",
     ) -> None:
         """
         Show the result of image sideband automatic calibration.
 
         Args:
-            lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+            lo_frequency (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
             if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
             label (str): A label to be used in the plot title.
         """
-        if lo_freq is None:
-            if len(self.data) == 1:
-                lo_freq = list(self.data)[0][0]
 
-            else:
-                print(f"There is a calibration data for {len(self.data)} LO frequencies. You must choose one")
-                return
-
-        try:
-            output_gain = list(self.data)[0][1]
-        except IndexError:
-            print("No valid calibration result")
-            return
-
-        if (lo_freq, output_gain) not in self.data:
-            print(f"No calibration data for LO frequency = {lo_freq/1e9:.3f}GHz")
-            return
-
-        if_data = self.data[(lo_freq, output_gain)].image
-
-        if len(if_data) == 0:
-            print(f"No IF calibration results for LO frequency = {lo_freq/1e9:.3f}GHz")
-            return
-
-        if if_freq is None:
-            if len(if_data) == 1:
-                if_freq = list(if_data.keys())[0]
-            else:
-                logger.debug(
-                    f"There is a calibration data for {len(if_data)} IF frequencies for "
-                    f"LO frequency = {lo_freq/1e9:.3f}GHz. You must choose one"
-                )
-                return
-
-        if_freq_data = if_data[if_freq]
+        if_freq_data = self.if_data[self.if_frequency]
 
         plt.figure(figsize=(11, 8.9))
 
@@ -385,7 +333,7 @@ class CalibrationResultPlotter:
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
         im = self.u.demod2volts(r.image, 10_000)
-        im_dbm = 10 * np.log10(im / (50 * 2) * 1000)
+        im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
         height = r.g_scan[1][0] - r.g_scan[0][0]
@@ -407,7 +355,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(r.p_scan) + 1.5 * dp,
             np.max(r.g_scan - 1.5 * dg),
-            f"{label}coarse scan\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
+            f"coarse scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -439,7 +387,7 @@ class CalibrationResultPlotter:
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
         im = self.u.demod2volts(r.image, 10_000)
-        im_dbm = 10 * np.log10(im / (50 * 2) * 1000)
+        im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
         height = r.g_scan[1][0] - r.g_scan[0][0]
@@ -462,7 +410,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(r.p_scan) + 1.5 * dp,
             np.max(r.g_scan - 1.5 * dg),
-            f"{label}fine scan\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
+            f"fine scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -476,22 +424,19 @@ class CalibrationResultPlotter:
         image = self.u.demod2volts(
             p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, 10_000
         )
-        image_dbm = 10 * np.log10(np.abs(image) / (50 * 2) * 1000)
+        image_dbm = self._convert_to_dbm(np.abs(image))
 
-        plt.pcolor(r.p_scan, r.g_scan, image_dbm, cmap=CalibrationResultPlotter.custom_cmap)
-        plt.xlabel("phase (rad)")
-        plt.ylabel("gain")
-        plt.axis("equal")
+        self._plot_scan(r.p_scan, r.g_scan, image_dbm, zero_list, width, height, "phase (rad)", "gain")
 
         plt.plot(r.phase, r.gain, "yo", markersize=8)
         plt.plot(r.phase, r.gain, "ro", markersize=4)
 
-        plt.colorbar(label="Power [dBm]")
+        # plt.colorbar(label="Power [dBm]")
 
         plt.text(
             np.min(r.p_scan) + 1.5 * dp,
             np.max(r.g_scan - 1.5 * dg),
-            f"{label}fit error\nLO = {lo_freq/1e9:.3f}GHz\nIF = {if_freq/1e6:.3f}MHz",
+            f"fit error\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -506,7 +451,7 @@ class CalibrationResultPlotter:
             "Calibrated parameters:",
             f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
             "\nAchieved Image sideband supression:",
-            f"{self.get_if_suppression(data):.3f} dB",
+            f"{self._get_if_suppression():.3f} dB",
         ]
 
         plt.text(
@@ -520,12 +465,14 @@ class CalibrationResultPlotter:
         plt.box(False)
         plt.xticks([])
         plt.yticks([])
-        plt.suptitle(f"IMAGE auto calibration: LO = {lo_freq/1e9:.3f}GHz, IF = {if_freq/1e6:.3f}MHz")
+        plt.suptitle(
+            f"IMAGE auto calibration: LO = {self.lo_frequency/1e9:.3f}GHz, IF = {self.if_frequency/1e6:.3f}MHz"
+        )
         plt.tight_layout()
 
     def _get_if_suppression(
         self,
-        lo_freq: Optional[float] = None,
+        lo_frequency: Optional[float] = None,
         if_freq: Optional[float] = None,
     ):
         """
@@ -535,47 +482,14 @@ class CalibrationResultPlotter:
         If the IF frequency is not given, the first IF frequency in the data is used.
 
         Args:
-            lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
+            lo_frequency (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
             if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
 
         Returns:
             float: The reduction of Image sideband power before vs after calibration in dB units.
         """
-        if lo_freq is None:
-            if len(self.data) == 1:
-                lo_freq = list(self.data)[0][0]
 
-            else:
-                print(f"There is a calibration data for {len(self.data)} LO frequencies. You must choose one")
-                return
-
-        try:
-            output_gain = list(self.data)[0][1]
-        except IndexError:
-            print("No valid calibration result")
-            return
-
-        if (lo_freq, output_gain) not in self.data:
-            print(f"No calibration data for LO frequency = {lo_freq/1e9:.3f}GHz")
-            return
-
-        if_data = self.data[(lo_freq, output_gain)].image
-
-        if len(if_data) == 0:
-            print(f"No IF calibration results for LO frequency = {lo_freq/1e9:.3f}GHz")
-            return
-
-        if if_freq is None:
-            if len(if_data) == 1:
-                if_freq = list(if_data.keys())[0]
-            else:
-                logger.debug(
-                    f"There is a calibration data for {len(if_data)} IF frequencies for "
-                    f"LO frequency = {lo_freq/1e9:.3f}GHz. You must choose one"
-                )
-                return
-
-        if_freq_data = if_data[if_freq]
+        if_freq_data = self.if_data[self.if_frequency]
         image_fine = if_freq_data.fine.image
 
         if image_fine.min() > 0.0:
@@ -585,18 +499,17 @@ class CalibrationResultPlotter:
             image_fine[mask] = np.nan
 
         image = self.u.demod2volts(image_fine, 10_000)
-        image_array_dbm = 10 * np.log10(image / (50 * 2) * 1000)
+        image_array_dbm = self._convert_to_dbm(image)
         min_image_dbm = np.nanmin(image_array_dbm)
 
         pol = if_freq_data.fine.fit.pol
         image_0 = self._paraboloid(0, 0, pol)
         image_0_volts = self.u.demod2volts(image_0, 10_000)
-        image_0_dbm = 10 * np.log10(image_0_volts / (50 * 2) * 1000)
+        image_0_dbm = self._convert_to_dbm(image_0_volts)
         return min_image_dbm - image_0_dbm
 
     def _get_lo_suppression(
         self,
-        lo_freq: Optional[float] = None,
     ):
         """
         Calculate the LO leakage suppression achieved by the automatic calibration.
@@ -604,37 +517,15 @@ class CalibrationResultPlotter:
         If the LO frequency is not given, the first LO frequency in the data is used.
         If the IF frequency is not given, the first IF frequency in the data is used.
 
-        Args:
-            lo_freq (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
-
         Returns:
             float: The reduction of LO leakage power before vs after calibration in dB units.
         """
-        if lo_freq is None:
-            if len(self.data) == 1:
-                lo_freq = list(self.data.keys())[0][0]
 
-            else:
-                print(f"There is a calibration data for {len(self.data)} LO frequencies. You must choose one")
-                return
+        i_coarse = self.lo_data.debug.coarse[0].i_scan
+        q_coarse = self.lo_data.debug.coarse[0].q_scan
 
-        try:
-            output_gain = list(self.data.keys())[0][1]
-        except IndexError:
-            print("No valid calibration result")
-            return
-
-        if (lo_freq, output_gain) not in self.data:
-            print(f"No calibration data for LO frequency = {lo_freq / 1e9:.3f}GHz")
-            return
-
-        lo_data = self.data[(lo_freq, output_gain)]
-
-        i_coarse = lo_data.debug.coarse[0].i_scan
-        q_coarse = lo_data.debug.coarse[0].q_scan
-
-        lo_coarse = lo_data.debug.coarse[0].lo
-        lo_fine = lo_data.debug.fine[0].lo
+        lo_coarse = self.lo_data.debug.coarse[0].lo
+        lo_fine = self.lo_data.debug.fine[0].lo
 
         if lo_fine.min() > 0.0:
             pass
@@ -643,14 +534,14 @@ class CalibrationResultPlotter:
             lo_fine[mask] = np.nan
 
         lo = self.u.demod2volts(lo_fine, 10_000)
-        lo_array_dbm = 10 * np.log10(lo / (50 * 2) * 1000)
+        lo_array_dbm = self._convert_to_dbm(lo)
         min_lo_dbm = np.nanmin(lo_array_dbm)
 
         id_i = np.argwhere(i_coarse[:, 0] == 0.0)
         id_q = np.argwhere(q_coarse[0, :] == 0.0)
         lo = lo_coarse[id_i, id_q][0][0]
         lo_0 = self.u.demod2volts(lo, 10_000)
-        lo_0_dbm = 10 * np.log10(lo_0 / (50 * 2) * 1000)
+        lo_0_dbm = self._convert_to_dbm(lo_0)
 
         return min_lo_dbm - lo_0_dbm
 

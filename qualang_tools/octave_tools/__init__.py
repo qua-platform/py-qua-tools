@@ -1,9 +1,4 @@
-from qualang_tools.octave_tools.calibration_result_plotter import (
-    get_if_suppression,
-    get_lo_suppression,
-    show_if_result,
-    show_lo_result,
-)
+from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
 from qualang_tools.octave_tools.octave_tools import (
     get_calibration_parameters_from_db,
     get_correction_for_each_LO_and_IF,
@@ -18,6 +13,4 @@ __all__ = [
     "octave_calibration_tool",
     "show_lo_result",
     "show_if_result",
-    "get_if_suppression",
-    "get_lo_suppression",
 ]
