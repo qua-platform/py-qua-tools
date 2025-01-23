@@ -9,6 +9,7 @@ from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qm.type_hinting.general import Number
 from qualang_tools.units import unit
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,9 +63,6 @@ class CalibrationResultPlotter:
     ) -> None:
         """
         Show the result of LO leakage automatic calibration.
-
-        Args:
-            label (str): A label to be used in the plot title.
         """
 
         plt.figure(figsize=(11, 8.9))
@@ -73,7 +71,7 @@ class CalibrationResultPlotter:
 
         d = self.lo_data.debug.coarse[0]
 
-        q_scan = d.q_scan * 1000
+        q_scan = d.q_scan * 1000  # convert to mV
         i_scan = d.i_scan * 1000
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
