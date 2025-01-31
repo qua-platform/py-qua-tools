@@ -305,7 +305,7 @@ class CalibrationResultPlotter:
             "Current result:",
             f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
             "\nAchieved LO supression:",
-            f"{self._get_lo_suppression():.3f} dB",
+            f"{self.get_lo_suppression():.3f} dB",
         ]
 
         plt.text(
@@ -465,7 +465,7 @@ class CalibrationResultPlotter:
             "Calibrated parameters:",
             f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
             "\nAchieved Image sideband supression:",
-            f"{self._get_if_suppression():.3f} dB",
+            f"{self.get_if_suppression():.3f} dB",
         ]
 
         plt.text(
@@ -484,7 +484,7 @@ class CalibrationResultPlotter:
         )
         plt.tight_layout()
 
-    def _get_if_suppression(
+    def get_if_suppression(
         self,
         lo_frequency: Optional[float] = None,
         if_freq: Optional[float] = None,
@@ -522,7 +522,7 @@ class CalibrationResultPlotter:
         image_0_dbm = self._convert_to_dbm(image_0_volts)
         return min_image_dbm - image_0_dbm
 
-    def _get_lo_suppression(
+    def get_lo_suppression(
         self,
     ):
         """
