@@ -1,3 +1,4 @@
+import inspect
 import logging
 from typing import Optional
 
@@ -5,12 +6,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
+from qm.octave.octave_manager import _add_calibration_entries_to_config
 from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qm.type_hinting.general import Number
 from qualang_tools.units import unit
 
-
 logger = logging.getLogger(__name__)
+
+
+def get_integration_length():
+    # Get the source code of the function
+    source_code = inspect.getsource(_add_calibration_entries_to_config)
+    # Find the line where integration_length is defined
+    for line in source_code.split("\n"):
+        if "integration_length" in line:
+            # Extract the value of integration_length
+            integration_length = int(line.split("=")[1].strip())
+            return integration_length
+    return None
+
+
+integration_length = get_integration_length()
 
 
 class CalibrationResultPlotter:
