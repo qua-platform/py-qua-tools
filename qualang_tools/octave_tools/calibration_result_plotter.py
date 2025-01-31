@@ -91,7 +91,7 @@ class CalibrationResultPlotter:
         i_scan = d.i_scan * 1000
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
-        lo = self.u.demod2volts(d.lo, 10_000)
+        lo = self.u.demod2volts(d.lo, integration_length)
         lo_dbm = self._convert_to_dbm(lo)
         dq = np.mean(np.diff(q_scan, axis=1))
         di = np.mean(np.diff(i_scan, axis=0))
@@ -113,7 +113,7 @@ class CalibrationResultPlotter:
         if d.fit is None:
             return
 
-        x0, y0 = d.fit.x_min * 1000, d.fit.y_min * 1000
+        x0, y0 = d.fit.x_min * 1000, d.fit.y_min * 1000  # Convert to mV
 
         r = (
             np.min(
@@ -195,7 +195,7 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
-        lo = self.u.demod2volts(d.lo, 10_000)
+        lo = self.u.demod2volts(d.lo, integration_length)
         lo_dbm = self._convert_to_dbm(lo)
 
         width = q_scan[0][1] - q_scan[0][0]
@@ -272,7 +272,7 @@ class CalibrationResultPlotter:
         p = d.fit.pol
 
         iq_error = self.u.demod2volts(
-            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, 10_000
+            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, integration_length
         )
         iq_error_dbm = self._convert_to_dbm(np.abs(iq_error))
 
@@ -346,7 +346,7 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
-        im = self.u.demod2volts(r.image, 10_000)
+        im = self.u.demod2volts(r.image, integration_length)
         im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
@@ -400,7 +400,7 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
-        im = self.u.demod2volts(r.image, 10_000)
+        im = self.u.demod2volts(r.image, integration_length)
         im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
@@ -436,7 +436,7 @@ class CalibrationResultPlotter:
         p = r.fit.pol
 
         image = self.u.demod2volts(
-            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, 10_000
+            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, integration_length
         )
         image_dbm = self._convert_to_dbm(np.abs(image))
 
@@ -512,13 +512,13 @@ class CalibrationResultPlotter:
             mask = image_fine == 0.0
             image_fine[mask] = np.nan
 
-        image = self.u.demod2volts(image_fine, 10_000)
+        image = self.u.demod2volts(image_fine, integration_length)
         image_array_dbm = self._convert_to_dbm(image)
         min_image_dbm = np.nanmin(image_array_dbm)
 
         pol = if_freq_data.fine.fit.pol
         image_0 = self._paraboloid(0, 0, pol)
-        image_0_volts = self.u.demod2volts(image_0, 10_000)
+        image_0_volts = self.u.demod2volts(image_0, integration_length)
         image_0_dbm = self._convert_to_dbm(image_0_volts)
         return min_image_dbm - image_0_dbm
 
@@ -547,14 +547,14 @@ class CalibrationResultPlotter:
             mask = lo_fine == 0.0
             lo_fine[mask] = np.nan
 
-        lo = self.u.demod2volts(lo_fine, 10_000)
+        lo = self.u.demod2volts(lo_fine, integration_length)
         lo_array_dbm = self._convert_to_dbm(lo)
         min_lo_dbm = np.nanmin(lo_array_dbm)
 
         id_i = np.argwhere(i_coarse[:, 0] == 0.0)
         id_q = np.argwhere(q_coarse[0, :] == 0.0)
         lo = lo_coarse[id_i, id_q][0][0]
-        lo_0 = self.u.demod2volts(lo, 10_000)
+        lo_0 = self.u.demod2volts(lo, integration_length)
         lo_0_dbm = self._convert_to_dbm(lo_0)
 
         return min_lo_dbm - lo_0_dbm
