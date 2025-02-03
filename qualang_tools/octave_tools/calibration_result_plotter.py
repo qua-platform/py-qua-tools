@@ -8,7 +8,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
 from qm.octave.octave_manager import _add_calibration_entries_to_config
 from qm.octave.octave_mixer_calibration import MixerCalibrationResults
-from qm.type_hinting.general import Number
 from qualang_tools.units import unit
 
 logger = logging.getLogger(__name__)
@@ -35,15 +34,31 @@ class CalibrationResultPlotter:
     u = unit(coerce_to_integer=True)
 
     def __init__(self, data: MixerCalibrationResults):
-        self.data = data
-        output_gain = list(self.data.keys())[0][1]
-        self.lo_frequency = list(self.data.keys())[0][0]
-        self.if_data = data[(self.lo_frequency, output_gain)].image
-        self.lo_data = data[(self.lo_frequency, output_gain)]
-        self.if_frequency = list(self.if_data.keys())[0]
+        """
+        Initialize the CalibrationResultPlotter with calibration data.
+
+        Args:
+            data (MixerCalibrationResults): The mixer calibration results, output of qm.calibrate_element(element).
+        """
+        first_key = next(iter(data))
+        self.lo_frequency = first_key[0]
+        self.output_gain = first_key[1]
+        self.if_data = data[(self.lo_frequency, self.output_gain)].image
+        self.lo_data = data[(self.lo_frequency, self.output_gain)]
+        self.if_frequency = next(iter(self.if_data))
 
     @staticmethod
     def _handle_zero_indices_and_masking(data):
+        """
+        Handle zero indices and masking for the given data.
+        Replaces 0.0 by NaN and returns the indices of zero values.
+
+        Args:
+            data (np.ndarray): The data array to process.
+
+        Returns:
+            list: A list of tuples containing the indices of zero values.
+        """
         zero_idxs = np.where(data == 0.0)
         zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
 
@@ -54,6 +69,19 @@ class CalibrationResultPlotter:
 
     @staticmethod
     def _plot_scan(scan_x, scan_y, data_dbm, zero_list, width, height, xlabel, ylabel):
+        """
+        Plot the scan data.
+
+        Args:
+            scan_x (np.ndarray): The x-axis scan data.
+            scan_y (np.ndarray): The y-axis scan data.
+            data_dbm (np.ndarray): The data in dBm.
+            zero_list (list): List of zero value indices.
+            width (float): Width of the rectangles to plot.
+            height (float): Height of the rectangles to plot.
+            xlabel (str): Label for the x-axis.
+            ylabel (str): Label for the y-axis.
+        """
         plt.pcolor(scan_x, scan_y, data_dbm, cmap=CalibrationResultPlotter.custom_cmap)
         plt.colorbar(label="Power [dBm]")
         ax = plt.gca()
@@ -72,13 +100,32 @@ class CalibrationResultPlotter:
 
     @staticmethod
     def _convert_to_dbm(volts):
+        """
+        Convert voltage to dBm assuming a 50 Ohm impedance.
+
+        Args:
+            volts (np.ndarray): The voltage values.
+
+        Returns:
+            np.ndarray: The converted dBm values.
+        """
         return 10 * np.log10(volts / (50 * 2) * 1000)
 
-    def show_lo_result(
-        self,
-    ) -> None:
+    def show_lo_result(self) -> None:
         """
-        Show the result of LO leakage automatic calibration.
+        Plots the results of the LO leakage calibration process.
+
+        This method generates a series of subplots that visualize the coarse and fine scans of the LO calibration and
+        returns the achieved LO suppression in dB.
+
+        Subplots:
+        - Top Left: Summary of the current result and achieved LO suppression.
+        - Top Right: Coarse scan of Q_dc vs I_dc with LO power in dBm.
+        - Bottom Left: Fit error in dBm.
+        - Bottom Right: Fine scan of Q_dc vs I_dc with LO power in dBm.
+
+        Returns:
+            None
         """
 
         plt.figure(figsize=(11, 8.9))
@@ -111,7 +158,7 @@ class CalibrationResultPlotter:
         )
 
         if d.fit is None:
-            return
+            raise RuntimeError("Fitting failed!")
 
         x0, y0 = d.fit.x_min * 1000, d.fit.y_min * 1000  # Convert to mV
 
@@ -326,12 +373,19 @@ class CalibrationResultPlotter:
         self,
     ) -> None:
         """
-        Show the result of image sideband automatic calibration.
+        Plots the results of the IF image calibration process.
 
-        Args:
-            lo_frequency (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
-            if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
-            label (str): A label to be used in the plot title.
+        This method generates a series of subplots that visualize the coarse and fine scans of the IF image calibration
+        and returns the achieved image suppression in dB.
+
+        Subplots:
+        - Top Left: Summary of the current result and achieved image suppression.
+        - Top Right: Coarse scan of gain vs phase with image power in dBm.
+        - Bottom Left: Fit error in dBm.
+        - Bottom Right: Fine scan of gain vs phase with image power in dBm.
+
+        Returns:
+            None
         """
 
         if_freq_data = self.if_data[self.if_frequency]
@@ -561,4 +615,15 @@ class CalibrationResultPlotter:
 
     @staticmethod
     def _paraboloid(x, y, pol):
+        """
+        Calculate the value of a paraboloid function.
+
+        Args:
+            x (float): The x-coordinate.
+            y (float): The y-coordinate.
+            pol (np.ndarray): The polynomial coefficients.
+
+        Returns:
+            float: The value of the paraboloid at (x, y).
+        """
         return pol[0] + pol[1] * x + pol[2] * y + pol[3] * x**2 + pol[4] * x * y + pol[5] * y**2
