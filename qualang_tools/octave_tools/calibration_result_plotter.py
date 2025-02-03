@@ -111,7 +111,7 @@ class CalibrationResultPlotter:
         """
         return 10 * np.log10(volts / (50 * 2) * 1000)
 
-    def show_lo_result(self) -> None:
+    def show_lo_leakage_calibration_result(self) -> None:
         """
         Plots the results of the LO leakage calibration process.
 
@@ -132,25 +132,25 @@ class CalibrationResultPlotter:
 
         plt.subplot(222)
 
-        d = self.lo_data.debug.coarse[0]
+        d = self.lo_data.debug.coarse[0]  # Get the coarse scan data
 
         q_scan = d.q_scan * 1000  # convert to mV
         i_scan = d.i_scan * 1000
-        zero_list = self._handle_zero_indices_and_masking(d.lo)
+        zero_list = self._handle_zero_indices_and_masking(
+            d.lo
+        )  # Get 0.0 indices and mask them with NaN values before converting to dBm
 
         lo = self.u.demod2volts(d.lo, integration_length)
         lo_dbm = self._convert_to_dbm(lo)
-        dq = np.mean(np.diff(q_scan, axis=1))
-        di = np.mean(np.diff(i_scan, axis=0))
 
-        width = q_scan[0][1] - q_scan[0][0]
+        width = q_scan[0][1] - q_scan[0][0]  # Calculate the width and height of the rectangles to plot
         height = i_scan[1][0] - i_scan[0][0]
 
         self._plot_scan(q_scan, i_scan, lo_dbm, zero_list, width, height, "Q_dc (mV)", "I_dc (mV)")
 
         plt.text(
-            np.min(q_scan) + 0.5 * dq,
-            np.max(i_scan) - 0.5 * di,
+            np.min(q_scan) + 0.5 * width,
+            np.max(i_scan) - 0.5 * height,
             f"coarse scan\nLO = {self.lo_frequency / 1e9:.3f}GHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
@@ -193,8 +193,8 @@ class CalibrationResultPlotter:
 
         plt.plot(*(P + O), "k--", linewidth=0.5)
         plt.text(
-            np.min(q_scan) + 0.5 * dq,
-            np.min(i_scan) + 0.5 * di,
+            np.min(q_scan) + 0.5 * width,
+            np.min(i_scan) + 0.5 * height,
             f"DC phase={d.corrections.dc_phase:.5f}\nDC gain={d.corrections.dc_gain:.5f}",
             color="#ff7f0e",
             verticalalignment="bottom",
@@ -206,7 +206,7 @@ class CalibrationResultPlotter:
 
         plt.text(
             x0,
-            y0 - di * 2,
+            y0 - height * 2,
             f"Q_dc={x0:.2f}mV\nI_dc={y0:.2f}mV",
             color="y",
             horizontalalignment="center",
@@ -237,16 +237,14 @@ class CalibrationResultPlotter:
 
         fine_q_scan = d.q_scan * 1000 + x0_ref
         fine_i_scan = d.i_scan * 1000 + y0_ref
-        dq = np.mean(np.diff(fine_q_scan, axis=1))
-        di = np.mean(np.diff(fine_i_scan, axis=0))
 
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
         lo = self.u.demod2volts(d.lo, integration_length)
         lo_dbm = self._convert_to_dbm(lo)
 
-        width = q_scan[0][1] - q_scan[0][0]
-        height = i_scan[1][0] - i_scan[0][0]
+        width = fine_q_scan[0][1] - fine_q_scan[0][0]
+        height = fine_i_scan[1][0] - fine_i_scan[0][0]
 
         self._plot_scan(fine_q_scan, fine_i_scan, lo_dbm, zero_list, width, height, "Q_dc (mV)", "I_dc (mV)")
 
@@ -284,8 +282,8 @@ class CalibrationResultPlotter:
         plt.plot(*(P + O), "k--", linewidth=0.5)
 
         plt.text(
-            np.min(fine_q_scan) + 0.5 * dq,
-            np.min(fine_i_scan) + 0.5 * di,
+            np.min(fine_q_scan) + 0.5 * width,
+            np.min(fine_i_scan) + 0.5 * height,
             f"DC phase={d.corrections.dc_phase:.5f}\nDC gain={d.corrections.dc_gain:.5f}",
             color="#ff7f0e",
             verticalalignment="bottom",
@@ -296,8 +294,8 @@ class CalibrationResultPlotter:
         plt.plot(x0, y0, "ro", markersize=4)
 
         t = plt.text(
-            np.min(fine_q_scan) + 0.5 * dq,
-            np.max(fine_i_scan) - 0.5 * di,
+            np.min(fine_q_scan) + 0.5 * width,
+            np.max(fine_i_scan) - 0.5 * height,
             f"fine scan\nLO = {self.lo_frequency / 1e9:.3f}GHz",
             color="k",
             verticalalignment="top",
@@ -306,7 +304,7 @@ class CalibrationResultPlotter:
 
         plt.text(
             x0,
-            y0 - di * 2,
+            y0 - height * 2,
             f"Q_dc={x0:.2f}mV\nI_dc={y0:.2f}mV",
             color="y",
             horizontalalignment="center",
@@ -334,8 +332,8 @@ class CalibrationResultPlotter:
         plt.axis("equal")
 
         t = plt.text(
-            np.min(fine_q_scan) + 0.5 * dq,
-            np.max(fine_i_scan) - 1.5 * di,
+            np.min(fine_q_scan) + 0.5 * width,
+            np.max(fine_i_scan) - 1.5 * height,
             "fit error",
             color="k",
         )
@@ -352,7 +350,7 @@ class CalibrationResultPlotter:
             "Current result:",
             f"      I_dc = {y0:.02f}mV, Q_dc = {x0:.2f}mV",
             "\nAchieved LO supression:",
-            f"{self.get_lo_suppression():.3f} dB",
+            f"{self.get_lo_leakage_rejection():.3f} dB",
         ]
 
         plt.text(
@@ -369,7 +367,7 @@ class CalibrationResultPlotter:
         plt.suptitle(f"LO auto calibration @ {self.lo_frequency/1e9:.3f}GHz")
         plt.tight_layout()
 
-    def show_if_result(
+    def show_image_rejection_calibration_result(
         self,
     ) -> None:
         """
@@ -395,9 +393,6 @@ class CalibrationResultPlotter:
         plt.subplot(222)
         r = if_freq_data.coarse
 
-        dp = np.mean(np.diff(r.p_scan, axis=1))
-        dg = np.mean(np.diff(r.g_scan, axis=0))
-
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
         im = self.u.demod2volts(r.image, integration_length)
@@ -413,7 +408,7 @@ class CalibrationResultPlotter:
 
         plt.text(
             r.phase,
-            r.gain - 2 * dg,
+            r.gain - 2 * height,
             f"phase={r.phase:.5f}\ngain={r.gain:.5f}",
             color="y",
             horizontalalignment="center",
@@ -421,8 +416,8 @@ class CalibrationResultPlotter:
         )
 
         plt.text(
-            np.min(r.p_scan) + 1.5 * dp,
-            np.max(r.g_scan - 1.5 * dg),
+            np.min(r.p_scan) + 1.5 * width,
+            np.max(r.g_scan - 1.5 * height),
             f"coarse scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
@@ -445,9 +440,6 @@ class CalibrationResultPlotter:
 
         plt.subplot(224)
 
-        dp = np.mean(np.diff(r.p_scan, axis=1))
-        dg = np.mean(np.diff(r.g_scan, axis=0))
-
         plt.xlabel("phase (rad)")
         plt.ylabel("gain(%)")
         plt.axis("equal")
@@ -468,7 +460,7 @@ class CalibrationResultPlotter:
 
         plt.text(
             r.phase,
-            r.gain - 2 * dg,
+            r.gain - 2 * height,
             f"phase={r.phase:.5f}\ngain={r.gain:.5f}",
             color="y",
             horizontalalignment="center",
@@ -476,8 +468,8 @@ class CalibrationResultPlotter:
         )
 
         plt.text(
-            np.min(r.p_scan) + 1.5 * dp,
-            np.max(r.g_scan - 1.5 * dg),
+            np.min(r.p_scan) + 1.5 * width,
+            np.max(r.g_scan - 1.5 * height),
             f"fine scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
@@ -502,8 +494,8 @@ class CalibrationResultPlotter:
         # plt.colorbar(label="Power [dBm]")
 
         plt.text(
-            np.min(r.p_scan) + 1.5 * dp,
-            np.max(r.g_scan - 1.5 * dg),
+            np.min(r.p_scan) + 1.5 * width,
+            np.max(r.g_scan - 1.5 * height),
             f"fit error\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
@@ -519,7 +511,7 @@ class CalibrationResultPlotter:
             "Calibrated parameters:",
             f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
             "\nAchieved Image sideband supression:",
-            f"{self.get_if_suppression():.3f} dB",
+            f"{self.get_image_rejection():.3f} dB",
         ]
 
         plt.text(
@@ -538,10 +530,8 @@ class CalibrationResultPlotter:
         )
         plt.tight_layout()
 
-    def get_if_suppression(
+    def get_image_rejection(
         self,
-        lo_frequency: Optional[float] = None,
-        if_freq: Optional[float] = None,
     ):
         """
         Calculate the Image sideband suppression achieved by the automatic calibration.
@@ -560,11 +550,7 @@ class CalibrationResultPlotter:
         if_freq_data = self.if_data[self.if_frequency]
         image_fine = if_freq_data.fine.image
 
-        if image_fine.min() > 0.0:
-            pass
-        else:
-            mask = image_fine == 0.0
-            image_fine[mask] = np.nan
+        zero_list = self._handle_zero_indices_and_masking(image_fine)
 
         image = self.u.demod2volts(image_fine, integration_length)
         image_array_dbm = self._convert_to_dbm(image)
@@ -576,7 +562,7 @@ class CalibrationResultPlotter:
         image_0_dbm = self._convert_to_dbm(image_0_volts)
         return min_image_dbm - image_0_dbm
 
-    def get_lo_suppression(
+    def get_lo_leakage_rejection(
         self,
     ):
         """
@@ -595,11 +581,7 @@ class CalibrationResultPlotter:
         lo_coarse = self.lo_data.debug.coarse[0].lo
         lo_fine = self.lo_data.debug.fine[0].lo
 
-        if lo_fine.min() > 0.0:
-            pass
-        else:
-            mask = lo_fine == 0.0
-            lo_fine[mask] = np.nan
+        zero_list = self._handle_zero_indices_and_masking(lo_fine)
 
         lo = self.u.demod2volts(lo_fine, integration_length)
         lo_array_dbm = self._convert_to_dbm(lo)
