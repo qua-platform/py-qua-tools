@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - 
 ### Fixed
  - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
- - two_qubit_rb - Fixed bug in `unsafe=False` option to workaround firmware issue in QOP<3.3.0.
+ - two_qubit_rb - Fixed bug in `unsafe` option to workaround firmware issue in QOP<3.3.0.
 
 ## [0.18.2] - 2024-12-23
 ### Added
