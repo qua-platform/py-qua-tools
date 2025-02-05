@@ -6,10 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
-- 
+
 ### Fixed
- - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
- - two_qubit_rb - Fixed bug in `unsafe` option to workaround firmware issue in QOP<3.3.0.
+- wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
+- two_qubit_rb - Fixed bug in `unsafe` option to workaround firmware issue in QOP<3.3.0.
+- wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
+- wirer - Fixed bug in the visualizer for LF-FEM and MW-FEM.
+- macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
+- simulator - Recast connection ports in `create_simulator_controller_connections` to be `int`, instead of `np.int64`.
+- config/waveform_tools - Allow to set the detuning of a DRAG waveform even when the alpha parameter is 0. 
+
+### Deprecated
+- config/waveform_tools - Remove the deprecated parameter `delta` that was replaced by `anharmonicity` for the DRAG waveforms.
 
 ## [0.18.2] - 2024-12-23
 ### Added
