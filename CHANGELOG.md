@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - wirer - Added test-case for OPX+ and Octave with fixed-frequency tranmsons.
+- wirer - Fixed bug in the visualizer for LF-FEM and MW-FEM.
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
 - simulator - Recast connection ports in `create_simulator_controller_connections` to be `int`, instead of `np.int64`.
 - config/waveform_tools - Allow to set the detuning of a DRAG waveform even when the alpha parameter is 0. 
