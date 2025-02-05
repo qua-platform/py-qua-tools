@@ -80,7 +80,7 @@ class VoltageGateSequence:
                 )
             else:
                 assert duration >= 4, "The duration must be a larger than 16 ns."
-                assert duration % 4 != 0, "The duration must be a multiple integer of 4ns."
+                assert duration % 4 == 0, "The duration must be a multiple integer of 4ns."
 
     def _update_averaged_power(self, level, duration, ramp_duration=None, current_level=None):
         if self.is_QUA(level):
