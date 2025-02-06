@@ -111,6 +111,51 @@ class CalibrationResultPlotter:
         """
         return 10 * np.log10(volts / (50 * 2) * 1000)
 
+    @staticmethod
+    def _plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan, width, height):
+        """
+        Plot the fit elliptical levels.
+
+        Args:
+            d: The data containing fit information.
+            x0: The x-coordinate of the fit minimum.
+            y0: The y-coordinate of the fit minimum.
+            q_scan: The Q scan data.
+            i_scan: The I scan data.
+            width: The width of the rectangles to plot.
+            height: The height of the rectangles to plot.
+        """
+        r = (
+            np.min(
+                [
+                    y0 - np.min(i_scan),
+                    np.max(i_scan) - y0,
+                    x0 - np.min(q_scan),
+                    np.max(q_scan) - x0,
+                ]
+            )
+            * 0.9
+        )
+        ais = np.linspace(0, 1, 361) * 2 * np.pi
+        P = np.array([np.cos(ais), np.sin(ais)]) * r
+
+        O = np.zeros_like(P)
+        O[0] += x0
+        O[1] += y0
+
+        plt.plot(*(P + O), "k:", linewidth=0.5)
+
+        r1, r2 = d.fit.pol_[3] ** -0.5, d.fit.pol_[5] ** -0.5
+        r1, r2 = r1 / np.sqrt(r1 * r2), r2 / np.sqrt(r1 * r2)
+
+        tc = np.cos(d.fit.theta)
+        ts = np.sin(d.fit.theta)
+
+        P = np.array([[r1, 0], [0, r2]]) @ P
+        P = np.array([[tc, ts], [-ts, tc]]) @ P
+
+        plt.plot(*(P + O), "k--", linewidth=0.5)
+
     def show_lo_leakage_calibration_result(self) -> None:
         """
         Plots the results of the LO leakage calibration process.
@@ -162,36 +207,8 @@ class CalibrationResultPlotter:
 
         x0, y0 = d.fit.x_min * 1000, d.fit.y_min * 1000  # Convert to mV
 
-        r = (
-            np.min(
-                [
-                    y0 - np.min(i_scan),
-                    np.max(i_scan) - y0,
-                    x0 - np.min(q_scan),
-                    np.max(q_scan) - x0,
-                ]
-            )
-            * 0.9
-        )
-        ais = np.linspace(0, 1, 361) * 2 * np.pi
-        P = np.array([np.cos(ais), np.sin(ais)]) * r
+        self._plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan, width, height)
 
-        O = np.zeros_like(P)
-        O[0] += x0
-        O[1] += y0
-
-        plt.plot(*(P + O), "k:", linewidth=0.5)
-
-        r1, r2 = d.fit.pol_[3] ** -0.5, d.fit.pol_[5] ** -0.5
-        r1, r2 = r1 / np.sqrt(r1 * r2), r2 / np.sqrt(r1 * r2)
-
-        tc = np.cos(d.fit.theta)
-        ts = np.sin(d.fit.theta)
-
-        P = np.array([[r1, 0], [0, r2]]) @ P
-        P = np.array([[tc, ts], [-ts, tc]]) @ P
-
-        plt.plot(*(P + O), "k--", linewidth=0.5)
         plt.text(
             np.min(q_scan) + 0.5 * width,
             np.min(i_scan) + 0.5 * height,
@@ -250,36 +267,7 @@ class CalibrationResultPlotter:
 
         x0, y0 = d.fit.x_min * 1000 + x0_ref, d.fit.y_min * 1000 + y0_ref
 
-        r = (
-            np.min(
-                [
-                    y0 - np.min(fine_i_scan),
-                    np.max(fine_i_scan) - y0,
-                    x0 - np.min(fine_q_scan),
-                    np.max(fine_q_scan) - x0,
-                ]
-            )
-            * 0.9
-        )
-        ais = np.linspace(0, 1, 361) * 2 * np.pi
-        P = np.array([np.cos(ais), np.sin(ais)]) * r
-
-        O = np.zeros_like(P)
-        O[0] += x0
-        O[1] += y0
-
-        plt.plot(*(P + O), "k:", linewidth=0.5)
-
-        r1, r2 = d.fit.pol_[3] ** -0.5, d.fit.pol_[5] ** -0.5
-        r1, r2 = r1 / np.sqrt(r1 * r2), r2 / np.sqrt(r1 * r2)
-
-        tc = np.cos(d.fit.theta)
-        ts = np.sin(d.fit.theta)
-
-        P = np.array([[r1, 0], [0, r2]]) @ P
-        P = np.array([[tc, ts], [-ts, tc]]) @ P
-
-        plt.plot(*(P + O), "k--", linewidth=0.5)
+        self._plot_fit_elliptical_levels(d, x0, y0, fine_q_scan, fine_i_scan, width, height)
 
         plt.text(
             np.min(fine_q_scan) + 0.5 * width,
