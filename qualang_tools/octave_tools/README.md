@@ -232,14 +232,16 @@ octave_calibration_tool(
 )
 ```
 
-## show_lo_result
+# CalibrationResultPlotter
+
+## show_lo_leakage_calibration_result()
 Plot the LO leakage calibration data.
 The produced plot shows the LO leakage signal as a function of the `I_0` and `Q_O` dc offsets for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
 
 ### Usage example:
 
 ```python
-from qualang_tools.octave_tools import calibration_result_plotter as plotter
+from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
 
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
@@ -248,23 +250,25 @@ qm = qmm.open_qm(config)
 # Calibrate the desired set of LO frequency and IF
 calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
-plotter.show_lo_result(calibration_output)
+plotter = CalibrationResultPlotter(calibration_output)
+
+plotter.show_lo_leakage_calibration_result()
 ```
 
 ### Outputs:
 
-![image](https://github.com/user-attachments/assets/86dc42f2-bc34-43e3-b084-84253c3e0470)
+![image](https://github.com/user-attachments/assets/329755f9-cbdc-4a73-aff5-0e6417c41924)
 
 
 
-## show_if_result
+## show_image_rejection_calibration_result()
 Plot the image sideband calibration data.
 The produced plot shows the image sideband signal as a function of the `dc_gain` and `dc_phase` parameters for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
 
 ### Usage example:
 
 ```python
-from qualang_tools.octave_tools import calibration_result_plotter as plotter
+from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
 
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
@@ -273,19 +277,22 @@ qm = qmm.open_qm(config)
 # Calibrate the desired set of LO frequency and IF
 calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
-plotter.show_if_result(calibration_output)
+plotter = CalibrationResultPlotter(calibration_output)
+
+plotter.show_image_rejection_calibration_result()
 ```
 
 ### Outputs:
 
-![image](https://github.com/user-attachments/assets/e7cd5dc0-6f52-4946-b77a-b178b031f4c3)
+![image](https://github.com/user-attachments/assets/65f25996-877c-4abe-9aad-c631c6a59e23)
 
-## get_lo_supression
-Returns the LO leakage supression after calibration compared to the leakage without calibration.
+
+## get_lo_leakage_rejection()
+Returns the LO leakage supression in dB after calibration compared to the leakage without calibration.
 
 ### Usage example:
 ```python
-from qualang_tools.octave_tools import calibration_result_plotter as plotter
+from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
 
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
@@ -294,16 +301,17 @@ qm = qmm.open_qm(config)
 # Calibrate the desired set of LO frequency and IF
 calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
-plotter.get_lo_supression(calibration_output)
+plotter = CalibrationResultPlotter(calibration_output)
+
+plotter.get_lo_leakage_rejection()
 ```
 
-## get_if_supression
-Returns the image sideband supression after calibration compared to the value without calibration.
+## get_image_rejection()
+Returns the image sideband supression in dB after calibration compared to the value without calibration.
 
 ### Usage example:
 ```python
-from qualang_tools.octave_tools import calibration_result_plotter as plotter
-
+from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
 # Open the qmm and qm
 qmm = QuantumMachinesManager()
 qm = qmm.open_qm(config)
@@ -311,5 +319,7 @@ qm = qmm.open_qm(config)
 # Calibrate the desired set of LO frequency and IF
 calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
-plotter.get_if_supression(calibration_output)
+plotter = CalibrationResultPlotter(calibration_output)
+
+plotter.get_image_rejection()
 ```
