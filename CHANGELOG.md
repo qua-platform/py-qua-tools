@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
 - simulator - Recast connection ports in `create_simulator_controller_connections` to be `int`, instead of `np.int64`.
 - config/waveform_tools - Allow to set the detuning of a DRAG waveform even when the alpha parameter is 0. 
+- bakery - Fix error when waveform samples type was subclass of int/float (e.g. numpy.float64).
 
 ### Deprecated
 - config/waveform_tools - Remove the deprecated parameter `delta` that was replaced by `anharmonicity` for the DRAG waveforms.

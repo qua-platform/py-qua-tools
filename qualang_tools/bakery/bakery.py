@@ -756,8 +756,8 @@ class Baking:
 
                 elif "singleInput" in self._local_config["elements"][qe]:
                     for i in range(len(samples)):
-                        assert (
-                            type(samples[i]) is float or type(samples[i]) is int
+                        assert isinstance(
+                            samples[i], (float, int)
                         ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
                         self._samples_dict[qe]["single"].append(amp * np.cos(freq * i * 1e-9 + phi) * samples[i])
                     self._update_qe_time(qe, len(samples))
