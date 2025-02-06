@@ -154,13 +154,7 @@ class TwoQubitRb:
 
         return gate_ids
 
-    def _gen_qua_program(
-        self,
-        sequence_depths: list[int],
-        num_repeats: int,
-        num_averages: int,
-        unsafe: bool
-    ):
+    def _gen_qua_program(self, sequence_depths: list[int], num_repeats: int, num_averages: int, unsafe: bool):
         with program() as prog:
             sequence_depth = declare(int)
             repeat = declare(int)
@@ -222,7 +216,9 @@ class TwoQubitRb:
                     self._sequence_tracker.make_sequence(sequence)
                 job.insert_input_stream("__gates_len_is__", len(sequence))
                 for qe in self._rb_baker.all_elements:
-                    job.insert_input_stream(f"{self._input_stream_name(qe)}_is", self._decode_sequence_for_element(qe, sequence))
+                    job.insert_input_stream(
+                        f"{self._input_stream_name(qe)}_is", self._decode_sequence_for_element(qe, sequence)
+                    )
 
                 if callback is not None:
                     callback(sequence)
