@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- two-qubit rb - Added feature to plot the two qubit state distribution.
+
+### Fixed
+- two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
 ## [0.19.0] - 2025-02-07
 ### Added
