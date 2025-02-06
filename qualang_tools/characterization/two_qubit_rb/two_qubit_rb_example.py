@@ -138,6 +138,9 @@ plt.show()
 res.plot_fidelity()
 plt.show()
 
+res.plot_two_qubit_state_distribution()
+plt.show()
+
 # verify/save the random sequences created during the experiment
 rb.save_sequences_to_file("sequences.txt")  # saves the gates used in each random sequence
 rb.save_command_mapping_to_file("commands.txt")  # saves mapping from "command id" to sequence
