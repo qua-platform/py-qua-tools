@@ -127,7 +127,8 @@ class RBResult:
         plt.xlabel("Circuit Depth")
         plt.ylabel(fr"Probability to recover to a given state")
         plt.title("2Q State Distribution vs. Circuit Depth")
-        plt.legend(framealpha=0, title="$2Q State $|q_cq_t\rangle$")
+        plt.legend(framealpha=0, title=r"2Q State $\mathbf{|q_cq_t\rangle}$",
+                   title_fontproperties={"weight": "bold"})
         plt.show()
 
 
