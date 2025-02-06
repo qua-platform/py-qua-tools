@@ -11,7 +11,9 @@ class ConstraintsTooStrictException(Exception):
             f"{wiring_spec.io_type.value} channels on the "
             f"{wiring_spec.line_type.value} line for elements "
             f"{','.join([str(e.id) for e in wiring_spec.elements])} with the "
-            f"following constraints: {constraints}"
+            f"following constraints: {constraints}. If you are intentionally trying to "
+            f"allocate multiple lines to the same port, see documentation for the "
+            f"correct approach."
         )
         super(ConstraintsTooStrictException, self).__init__(message)
 

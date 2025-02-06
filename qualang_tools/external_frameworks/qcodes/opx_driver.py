@@ -364,16 +364,18 @@ class OPX(Instrument):
                 self.results["buffers"].append([])
                 self.results["scale_factor"].append(1)
                 # Check if next buffer is for averaging
-                if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                    if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
-                        averaging_buffer = True
+                if hasattr(gene.values[2].list_value.values[1], "list_value"):
+                    if len(gene.values[2].list_value.values[1].list_value.values) > 0:
+                        if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
+                            averaging_buffer = True
             elif gene.values[0].string_value == "buffer":
                 if not averaging_buffer:
                     self.results["buffers"][count].append(int(gene.values[1].string_value))
                     # Check if next buffer is for averaging
-                    if len(gene.values[2].list_value.values[1].list_value.values) > 0:
-                        if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
-                            averaging_buffer = True
+                    if hasattr(gene.values[2].list_value.values[1], "list_value"):
+                        if len(gene.values[2].list_value.values[1].list_value.values) > 0:
+                            if gene.values[2].list_value.values[1].list_value.values[0].string_value == "average":
+                                averaging_buffer = True
                 else:
                     averaging_buffer = False
             elif gene.values[0].string_value == "@macro_adc_trace":
@@ -383,9 +385,11 @@ class OPX(Instrument):
             else:
                 pass
             if len(gene.values) > 2:
-                self._extend_result(gene.values[2].list_value, count, averaging_buffer)
+                if hasattr(gene.values[2], "list_value"):
+                    self._extend_result(gene.values[2].list_value, count, averaging_buffer)
             elif gene.values[0].string_value == "average":
-                self._extend_result(gene.values[1].list_value, count, averaging_buffer)
+                if hasattr(gene.values[1], "list_value"):
+                    self._extend_result(gene.values[1].list_value, count, averaging_buffer)
 
     def _get_stream_processing(self, prog):
         """

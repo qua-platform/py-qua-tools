@@ -66,7 +66,7 @@ class ChannelSpec:
                 if template in constrained_templates:
                     # can't constrain already constrained spec
                     continue
-                if type(template) != type(constraint):
+                if type(template) is not type(constraint):
                     # can't constrain a spec of a different type
                     continue
                 else:

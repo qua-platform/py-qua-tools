@@ -33,15 +33,16 @@ def create_simulator_controller_connections(
                 first_con_port = np.nonzero(unused_connection[i, :])[0]
                 if first_con_port.size == 0:
                     break
-                first_con_port = first_con_port[0]
+                first_con_port = first_con_port[0].item()
                 second_con_port = np.nonzero(unused_connection[j, :])[0]
                 if second_con_port.size == 0:
                     break
-                second_con_port = second_con_port[0]
+                second_con_port = second_con_port[0].item()
                 if i + 1 in actual_controllers and j + 1 in actual_controllers:
                     controller_connections.append(
                         ControllerConnection(
-                            InterOpxChannel(f"con{i+1}", first_con_port), InterOpxChannel(f"con{j+1}", second_con_port)
+                            InterOpxChannel(f"con{i + 1}", first_con_port),
+                            InterOpxChannel(f"con{j + 1}", second_con_port),
                         )
                     )
                     if print_debug:

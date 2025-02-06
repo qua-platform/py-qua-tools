@@ -52,7 +52,7 @@ class InstrumentChannels:
                     and channel.signal_type == existing_channel.signal_type
                 ):
                     if channel.slot is None:
-                        if type(channel) != type(existing_channel):
+                        if type(channel) is not type(existing_channel):
                             pass
                         else:
                             raise ValueError(
