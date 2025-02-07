@@ -90,7 +90,7 @@ class RBResult:
             rb_decay_curve(np.array(circuit_depths_smooth_axis), A, alpha, B),
             color="red",
             linestyle="--",
-            label=f"Exponential Fit",
+            label="Exponential Fit",
         )
 
         plt.text(
@@ -104,7 +104,7 @@ class RBResult:
         )
 
         plt.xlabel("Circuit Depth")
-        plt.ylabel(rf"Probability to recover to $|00\rangle$")
+        plt.ylabel(r"Probability to recover to $|00\rangle$")
         plt.title("2Q Randomized Benchmarking")
         plt.legend(framealpha=0)
         plt.show()
@@ -148,7 +148,7 @@ class RBResult:
         plt.axhline(0.25, color="grey", linestyle="--", linewidth=2, label="2Q mixed-state")
 
         plt.xlabel("Circuit Depth")
-        plt.ylabel(rf"Probability to recover to a given state")
+        plt.ylabel(r"Probability to recover to a given state")
         plt.title("2Q State Distribution vs. Circuit Depth")
         plt.legend(framealpha=0, title=r"2Q State $\mathbf{|q_cq_t\rangle}$", title_fontproperties={"weight": "bold"})
         plt.show()
