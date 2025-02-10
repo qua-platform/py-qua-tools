@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-
+### Fixed
+- octave_tools - Fixed bug in `set_correction_parameters_to_opx`.
+- 
 ## [0.19.0] - 2025-02-07
 ### Added
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
