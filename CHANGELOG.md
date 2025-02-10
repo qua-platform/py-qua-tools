@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - octave_tools - Fixed broken API introduced with qm-qua 1.2.2
+- octave_tools - Fixed bug in `set_correction_parameters_to_opx`.
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
 ### Changed
