@@ -59,7 +59,7 @@ class DoubleExponentialFit:
     def is_double_exponential(self):
         return not (self.C and self.lambda_2)
 
-    def sample(self, m: np.ndarray[int], num_points: int = 100) -> Tuple[np.ndarray, np.ndarray]:
+    def sample(self, m: np.ndarray, num_points: int = 100) -> Tuple[np.ndarray, np.ndarray]:
         x_fit = np.linspace(m[0], m[-1], num_points)
         if self.is_double_exponential:
             y_fit = double_exponential_decay_model(x_fit, self.A, self.B, self.lambda_1, self.C, self.lambda_2)

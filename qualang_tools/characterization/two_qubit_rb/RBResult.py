@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Tuple, Optional, Sequence, List
+from typing import Tuple, Optional, List
 
 import numpy as np
 import xarray as xr
