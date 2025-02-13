@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
+- qm_session - Fixed type hint for output of context manager to correctly annotate the QuantumMachine.
 
 ## [0.19.0] - 2025-02-07
 ### Added
