@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Changed
+- Updated dependencies to remove packages with identified vulnerabilities.
+
+# Removed
+- Removed support for Python 3.8
+
 ## [0.19.0] - 2025-02-07
 ### Added
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
