@@ -1,4 +1,5 @@
-from .two_qubit_rb import *
-from .two_qubit_rb.RBResult import RBResult
+from .TwoQubitRB import TwoQubitRb
+from .TwoQubitRBDebugger import TwoQubitRbDebugger
+from .RBResult import RBResult
 
 __all__ = ["TwoQubitRb", "TwoQubitRbDebugger", "RBResult"]
