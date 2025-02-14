@@ -16,9 +16,9 @@ from scipy.optimize import curve_fit
 class DoubleExponentialInitialGuess:
     A: Optional[float] = 0.25
     B: Optional[float] = 0.75
-    lambda_1: Optional[float] = 0.9
-    C: Optional[float] = 0.8
-    lambda_2: Optional[float] = 0.9
+    lambda_1: Optional[float] = 0.7
+    C: Optional[float] = 0.75
+    lambda_2: Optional[float] = 0.7
 
 
 # default initial guess
@@ -72,11 +72,11 @@ class DoubleExponentialFit:
 
 @dataclass
 class TwoQubitRbFit:
-    ground_state_fit: Optional[DoubleExponentialFit]
-    leakage_fit: Optional[DoubleExponentialFit]
+    ground_state_fit: DoubleExponentialFit
+    leakage_fit: Optional[DoubleExponentialFit] = None
 
 
-def fit_to_single_exponential(circuit_depths, data: xr.DataArray,
+def fit_to_single_exponential(circuit_depths: np.ndarray, data: xr.DataArray,
                               p0: Optional[DoubleExponentialInitialGuess] = None) -> DoubleExponentialFit:
     """
     Fits the RB data to the single-exponential model A + Bλ₁ᵐ.
@@ -95,7 +95,7 @@ def fit_to_single_exponential(circuit_depths, data: xr.DataArray,
         xdata=circuit_depths,
         ydata=data,
         p0=p0,
-        maxfev=10000
+        maxfev=20000
     )
 
     perr = np.sqrt(np.diag(pcov))
@@ -106,8 +106,8 @@ def fit_to_single_exponential(circuit_depths, data: xr.DataArray,
         lambda_2=popt[2], lambda_2_err=perr[2]
     )
 
-def fit_to_double_exponential(data: xr.DataArray, lambda_1: Optional[float] = None,
-                              p0: Optional[DoubleExponentialInitialGuess] = None) -> DoubleExponentialFit:
+def fit_to_double_exponential(circuit_depths: np.ndarray, data: xr.DataArray, lambda_1: Optional[float] = None,
+                              p0: Optional[DoubleExponentialInitialGuess] = None, bounds = None) -> DoubleExponentialFit:
     """
     Fits the RB data to the double-exponential model A + Bλ₁ᵐ + Cλ₂ᵐ.
 
@@ -120,7 +120,7 @@ def fit_to_double_exponential(data: xr.DataArray, lambda_1: Optional[float] = No
     """
 
     if lambda_1 is not None:
-        f = functools.partial(double_exponential_decay_model, lambda_1=lambda_1)
+        f = lambda m, A, B, C, lambda_2: double_exponential_decay_model(m, A, B, lambda_1, C, lambda_2)
         if p0 is None:
             p0 = [_p0.A, _p0.B, _p0.C, _p0.lambda_2]
     else:
@@ -130,10 +130,11 @@ def fit_to_double_exponential(data: xr.DataArray, lambda_1: Optional[float] = No
 
     popt, pcov = curve_fit(
         f=f,
-        xdata=data.circuit_depths,
+        xdata=circuit_depths,
         ydata=data,
         p0=p0,
-        maxfev=10000
+        maxfev=10000,
+        bounds=bounds
     )
 
     perr = np.sqrt(np.diag(pcov))  # Extract standard errors

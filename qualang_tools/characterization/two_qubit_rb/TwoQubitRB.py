@@ -159,7 +159,6 @@ class TwoQubitRb:
             sequence_depth = declare(int)
             repeat = declare(int)
             n_avg = declare(int)
-            state = declare(int)
             length = declare(int)
             progress = declare(int)
             progress_os = declare_stream()

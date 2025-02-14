@@ -3,6 +3,7 @@ from typing import Tuple, Optional, List
 
 import numpy as np
 import xarray as xr
+from matplotlib.figure import Figure
 
 from qualang_tools.characterization.two_qubit_rb.analysis.fitting import (
     fit_to_single_exponential,
@@ -87,11 +88,18 @@ class RBResult:
         probability_of_ground_state, _ = self.probability_of_ground_state()
 
         if self.leakage_was_measured:
-            leakage_fit = fit_to_single_exponential(self.circuit_depths, probability_of_remaining_in_computational_subspace)
-            ground_state_fit = fit_to_double_exponential(self.circuit_depths, probability_of_ground_state, lambda_1=leakage_fit.lambda_1, p0=p0)
+            leakage_fit = fit_to_single_exponential(
+                self.circuit_depths, probability_of_remaining_in_computational_subspace
+            )
+            ground_state_fit = fit_to_double_exponential(
+                self.circuit_depths, probability_of_ground_state, lambda_1=leakage_fit.lambda_2, p0=p0,
+                bounds=[(0, 0, 0, 0), (1, 1, 1, 1)]
+            )
 
         else:
-            ground_state_fit = fit_to_single_exponential(self.circuit_depths, probability_of_ground_state, p0=p0)
+            ground_state_fit = fit_to_single_exponential(
+                self.circuit_depths, probability_of_ground_state, p0=p0
+            )
 
         return TwoQubitRbFit(
             ground_state_fit=ground_state_fit,
@@ -126,22 +134,21 @@ class RBResult:
                 computational subspace, i.e., the probability of measuring |00>, |01>, |10>, or |11>.
                 xarray.DataArray: The standard deviation of the probability along the randomization axis.
         """
-        individual_computational_subspace_states = [0, 1]
-        computational_subspace_state = self.state.isin(individual_computational_subspace_states).all(dim="qubit")
+        computational_subspace_state = (self.state < 2).all(dim="qubit")
         computational_subspace_state_probability = computational_subspace_state.mean(("repeat", "average"))
         computational_subspace_state_probability_err = computational_subspace_state.mean("average").std("repeat")
 
         return computational_subspace_state_probability, computational_subspace_state_probability_err
 
 
-    def plot(self, fit: Optional[TwoQubitRbFit] = None):
+    def plot(self, fit: Optional[TwoQubitRbFit] = None) -> Figure:
         if fit is None:
             fit = self.fit()
 
         y_data, _ = self.probability_of_ground_state()
         fidelity = self.get_fidelity(fit)
         x_fit, y_fit = fit.ground_state_fit.sample(self.circuit_depths)
-        plot_results(
+        fig = plot_results(
             x_data=self.circuit_depths,
             y_data=y_data.data,
             y_err_data=(self.data == 0).all(dim="qubit").mean(dim="average").std(dim="repeat").state.data,
@@ -150,7 +157,9 @@ class RBResult:
             fidelity=fidelity
         )
 
-    def plot_two_qubit_state_distribution(self):
+        return fig
+
+    def plot_two_qubit_state_distribution(self) -> Figure:
         """
         Plot how the two-qubit state is distributed as a function of circuit-depth on average.
         """

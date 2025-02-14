@@ -21,7 +21,7 @@ def calculate_average_two_qubit_clifford_fidelity(fit: TwoQubitRbFit) -> float:
 
     L1 = 0  # leakage error
     if fit.leakage_fit is not None:
-        L1 = (1 - fit.leakage_fit.A) * (1 - fit.leakage_fit.l1)
+        L1 = (1 - fit.leakage_fit.A) * (1 - fit.leakage_fit.lambda_2)
 
     fidelity = (1 / d) * ((d - 1)*fit.ground_state_fit.lambda_2 + 1 - L1)
 
