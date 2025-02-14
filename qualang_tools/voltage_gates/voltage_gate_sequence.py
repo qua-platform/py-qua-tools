@@ -1,9 +1,9 @@
 import numpy as np
 
-from qm.qua._dsl import QuaVariable, QuaExpression
 from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math
 from typing import Union, List, Dict
 from warnings import warn
+from qm.qua import QuaVariableType, QuaExpressionType
 
 
 class VoltageGateSequence:
@@ -72,7 +72,7 @@ class VoltageGateSequence:
 
     @staticmethod
     def _check_duration(duration: int):
-        if duration is not None and not isinstance(duration, (QuaVariable, QuaExpression)):
+        if duration is not None and not isinstance(duration, (QuaVariableType, QuaExpressionType)):
             if duration == 0:
                 warn(
                     "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
@@ -114,14 +114,14 @@ class VoltageGateSequence:
 
     @staticmethod
     def is_QUA(var):
-        return isinstance(var, (QuaVariable, QuaExpression))
+        return isinstance(var, (QuaVariableType, QuaExpressionType))
 
     def add_step(
         self,
-        level: list[Union[float, QuaExpression, QuaVariable]] = None,
-        duration: Union[int, QuaExpression, QuaVariable] = None,
+        level: list[Union[float, QuaExpressionType, QuaVariableType]] = None,
+        duration: Union[int, QuaExpressionType, QuaVariableType] = None,
         voltage_point_name: str = None,
-        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+        ramp_duration: Union[int, QuaExpressionType, QuaVariableType] = None,
     ) -> None:
         """Add a voltage level to the pulse sequence.
         The voltage level is either identified by its voltage_point_name if added to the voltage_point dict beforehand, or by its level and duration.
@@ -188,7 +188,7 @@ class VoltageGateSequence:
                             play(operation * amp((voltage_level - self.current_level[i]) * 4), gate)
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif isinstance(_duration, (QuaVariable, QuaExpression)):
+                elif isinstance(_duration, (QuaVariableType, QuaExpressionType)):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
