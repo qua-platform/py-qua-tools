@@ -128,7 +128,7 @@ class VoltageGateSequence:
         A ramp_duration can be used to ramp to the desired level instead of stepping to it.
 
         :param level: Desired voltage level of the different gates composing the virtual gate in Volt.
-        :param duration: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and larger than 16ns.
+        :param duration: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and either larger than 16ns or 0.
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
@@ -216,11 +216,9 @@ class VoltageGateSequence:
                 if not self.is_QUA(ramp_duration):
                     ramp_rate = 1 / ramp_duration
                     play(ramp((voltage_level - self.current_level[i]) * ramp_rate), gate, duration=ramp_duration >> 2)
-                    if not self.is_QUA(_duration):
-                        if _duration > 0:
-                            wait(_duration >> 2, gate)
-                    else:
+                    if self.is_QUA(_duration) or _duration > 0:
                         wait(_duration >> 2, gate)
+
                 else:
                     ramp_rate = declare(fixed)
                     assign(ramp_rate, (voltage_level - self.current_level[i]) * Math.div(1, ramp_duration))
