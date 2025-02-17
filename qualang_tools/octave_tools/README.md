@@ -2,8 +2,8 @@
 This library includes tools to improve the users Octave experience.
 
 ## get_calibration_parameters_from_db
-This function will look into the calibration database and return the correction parameters (offsets and correction 
-matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
+This function will look into the calibration database and return the correction parameters (offsets and correction
+matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain.
 
 The correction parameters are returned in the format of a dictionary:
 ```
@@ -18,7 +18,7 @@ If no calibration parameters are found in the database, the function will either
 
 
 ### Usage example
- 
+
 ```python
 from qualang_tools.octave_tools import get_calibration_parameters_from_db
 
@@ -35,14 +35,14 @@ qm.octave.set_lo_frequency("qubit", 5e9)
 qm.octave.set_rf_output_gain("qubit", -7)
 # Get the correction parameters corresponding to the desired parameters:
 param_qubit = get_calibration_parameters_from_db(
-    path_to_database="", config=config, element="qubit", 
-    LO=5e9, IF=50e6, gain=-7, 
+    path_to_database="", config=config, element="qubit",
+    LO=5e9, IF=50e6, gain=-7,
     verbose_level=1)
 ```
 
 ## set_correction_parameters_to_opx
-This function will look into the calibration database and update the correction parameters in Python, (offsets and 
-correction matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain. 
+This function will look into the calibration database and update the correction parameters in Python, (offsets and
+correction matrix) corresponding to a given set of intermediate frequency, Octave LO frequency and gain.
 
 The goal to give the user the ability to easily update the correction parameters while sweeping the LO frequency
 in Python for instance.
@@ -82,7 +82,7 @@ qm = qmm.open_qm(config)
 # Set the Octave gain
 qm.octave.set_rf_output_gain("qubit", 0)
 # Loop over the LO frequencies
-for i in range(len(lo_frequencies)):  
+for i in range(len(lo_frequencies)):
     # Set the frequency and gain of the LO source
     qm.octave.set_lo_frequency("qubit", lo_frequencies[i])
     # Update the correction parameters
@@ -111,7 +111,7 @@ provided ```IF_list```. For instance, if a list of 100 intermediate frequencies 
     to 10, then only 10 correction parameters will be returned for the returned equally spaced intermediate frequencies.
 
 The goal is to perform a wide frequency sweep (scan the LO frequency in Python and the IF in QUA) and update the
-mixer correction parameters for each LO frequency and a few intermediate frequencies, given by ```nb_of_updates```, 
+mixer correction parameters for each LO frequency and a few intermediate frequencies, given by ```nb_of_updates```,
 in QUA.
 
 If the flag ```calibrate``` is set to True (the opened Quantum Machine needs to be provided), then the specified element will be calibrated at the given frequencies
@@ -141,7 +141,7 @@ f_max_external = 5.5e9 - f_max
 df_external = f_max - f_min
 lo_frequencies = np.arange(f_min_external, f_max_external + df_external / 2, df_external)
 
-# Get the list of intermediate frequencies at which the correction matrix will 
+# Get the list of intermediate frequencies at which the correction matrix will
 # be updated in QUA and the corresponding correction matrix elements
 IFs, c00, c01, c10, c11, offset_I, offset_Q = get_correction_for_each_LO_and_IF(
     path_to_database="",
@@ -185,9 +185,9 @@ with program() as LO_sweep_prog:
                             )
                 # Play the pulse
                 ...
-                
+
 # Loop over the LO frequencies
-for i in range(len(lo_frequencies)):  
+for i in range(len(lo_frequencies)):
     # Set the frequency and gain of the LO source
     qm.octave.set_lo_frequency("qubit", lo_frequencies[i])
     # Resume the QUA program (escape the 'pause' statement)
@@ -199,7 +199,7 @@ for i in range(len(lo_frequencies)):
 ```
 
 ## calibrate_several_frequencies
-Calibrate a given element for a set of LO and intermediate frequencies. 
+Calibrate a given element for a set of LO and intermediate frequencies.
 Each set of correction parameters will be saved in the calibration database.
 
 ### Usage example
@@ -235,8 +235,7 @@ octave_calibration_tool(
 # CalibrationResultPlotter
 
 ## show_lo_leakage_calibration_result()
-Plot the LO leakage calibration data.
-The produced plot shows the LO leakage signal as a function of the `I_0` and `Q_O` dc offsets for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
+Generate a plot of the LO leakage and image rejection calibration data. The resulting plot illustrates the LO leakage signal and image rejection as a function of the `I_dc` and `Q_dc` DC offsets, including an initial coarse scan and a finer zoom-in scan on the minimum. Additionally, a third plot displays the fit error of the fine scan.
 
 ### Usage example:
 
@@ -252,18 +251,18 @@ calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
 plotter = CalibrationResultPlotter(calibration_output)
 
-plotter.show_lo_leakage_calibration_result()
+fig = plotter.show_lo_leakage_calibration_result()
 ```
 
 ### Outputs:
 
 ![image](https://github.com/user-attachments/assets/329755f9-cbdc-4a73-aff5-0e6417c41924)
 
-
+**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave downconversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the supression in dB unit will be correct in any case.
 
 ## show_image_rejection_calibration_result()
 Plot the image sideband calibration data.
-The produced plot shows the image sideband signal as a function of the `dc_gain` and `dc_phase` parameters for an initial coarse scan and a finer zoom-in scan on the minima. A third plot shows the fit error of the fine scan.
+The produced plot shows the image sideband signal as a function of the `dc_gain` and `dc_phase` parameters for an initial coarse scan and a finer zoom-in scan on the minimum. A third plot shows the fit error of the fine scan.
 
 ### Usage example:
 
@@ -279,16 +278,17 @@ calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
 plotter = CalibrationResultPlotter(calibration_output)
 
-plotter.show_image_rejection_calibration_result()
+fig = plotter.show_image_rejection_calibration_result()
 ```
 
 ### Outputs:
 
 ![image](https://github.com/user-attachments/assets/65f25996-877c-4abe-9aad-c631c6a59e23)
 
+**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave downconversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the supression in dB unit will be correct in any case.
 
-## get_lo_leakage_rejection()
-Returns the LO leakage supression in dB after calibration compared to the leakage without calibration.
+## get_lo_leakage_rejection() and get_image_rejection()
+Returns the LO leakage and image sideband supression in dB after calibration compared to no calibration at all.
 
 ### Usage example:
 ```python
@@ -303,23 +303,15 @@ calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
 
 plotter = CalibrationResultPlotter(calibration_output)
 
-plotter.get_lo_leakage_rejection()
+lo_rejection = plotter.get_lo_leakage_rejection()
+image_rejection = plotter.get_image_rejection()
+
+print(f'The calibration achieved an LO leakeage supression of {lo_rejection:.2f} dB and an image sideband supression of {image_rejection:.2f} dB.')
 ```
 
-## get_image_rejection()
-Returns the image sideband supression in dB after calibration compared to the value without calibration.
+### Outputs:
 
-### Usage example:
-```python
-from qualang_tools.octave_tools.calibration_result_plotter import CalibrationResultPlotter
-# Open the qmm and qm
-qmm = QuantumMachinesManager()
-qm = qmm.open_qm(config)
 
-# Calibrate the desired set of LO frequency and IF
-calibration_output = qm.calibrate_element("resonator", {6e9: (100e6,)})
-
-plotter = CalibrationResultPlotter(calibration_output)
-
-plotter.get_image_rejection()
+```
+The calibration achieved an LO leakeage supression of -27.23 dB and an image sideband supression of -42.27 dB.
 ```
