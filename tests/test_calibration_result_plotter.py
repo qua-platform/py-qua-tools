@@ -20,6 +20,7 @@ test_data = {
         "lo_leakage": -27.22687176440225,
         "image_zero_handling": [(16, 17)],
         "voltages_to_dbm": np.array([1, 2, 3]),
+        "integration_length": 10_000,
     },
 }
 
@@ -69,5 +70,7 @@ def test_convert_to_dbm():
     result = CalibrationResultPlotter._convert_to_dbm(volts)
     np.testing.assert_array_almost_equal(result, expected_dbm)
 
+def test_integration_length():
+    assert CalibrationResultPlotter._get_integration_length() == test_data["results"]["integration_length"]
 
 
