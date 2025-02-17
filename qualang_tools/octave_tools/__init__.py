@@ -11,6 +11,5 @@ __all__ = [
     "set_correction_parameters_to_opx",
     "get_correction_for_each_LO_and_IF",
     "octave_calibration_tool",
-    "show_lo_result",
-    "show_if_result",
+    "CalibrationResultPlotter",
 ]
