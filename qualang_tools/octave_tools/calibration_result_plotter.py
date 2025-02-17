@@ -83,7 +83,9 @@ class CalibrationResultPlotter:
             ylabel (str): Label for the y-axis.
         """
         plt.pcolor(scan_x, scan_y, data_dbm, cmap=CalibrationResultPlotter.custom_cmap)
-        plt.colorbar(label="Power [dBm]")
+        mesh = plt.pcolor(scan_x, scan_y, data_dbm, cmap=CalibrationResultPlotter.custom_cmap)
+        mesh.set_array(data_dbm)
+        plt.colorbar(mesh, label="Power [dBm]")
         ax = plt.gca()
         for ii, _ in enumerate(zero_list):
             rect = Rectangle(
