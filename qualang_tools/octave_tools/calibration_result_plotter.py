@@ -2,6 +2,7 @@ import inspect
 import logging
 from typing import Optional
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -11,21 +12,6 @@ from qm.octave.octave_mixer_calibration import MixerCalibrationResults
 from qualang_tools.units import unit
 
 logger = logging.getLogger(__name__)
-
-
-def get_integration_length():
-    # Get the source code of the function
-    source_code = inspect.getsource(_add_calibration_entries_to_config)
-    # Find the line where integration_length is defined
-    for line in source_code.split("\n"):
-        if "integration_length" in line:
-            # Extract the value of integration_length
-            integration_length = int(line.split("=")[1].strip())
-            return integration_length
-    return None
-
-
-integration_length = get_integration_length()
 
 
 class CalibrationResultPlotter:
@@ -46,6 +32,7 @@ class CalibrationResultPlotter:
         self.if_data = data[(self.lo_frequency, self.output_gain)].image
         self.lo_data = data[(self.lo_frequency, self.output_gain)]
         self.if_frequency = next(iter(self.if_data))
+        self.integration_length = self._get_integration_length()
 
     @staticmethod
     def _handle_zero_indices_and_masking(data):
@@ -158,12 +145,16 @@ class CalibrationResultPlotter:
 
         plt.plot(*(P + O), "k--", linewidth=0.5)
 
-    def show_lo_leakage_calibration_result(self) -> None:
+    def show_lo_leakage_calibration_result(self) -> matplotlib.figure.Figure:
         """
         Plots the results of the LO leakage calibration process.
 
         This method generates a series of subplots that visualize the coarse and fine scans of the LO calibration and
-        returns the achieved LO suppression in dB.
+        returns the achieved LO suppression in dB when comparing the power without calibrating the mixers vs
+        after calibration. The powers shown correspond to the power seen by the OPX+ inputs when the signal is routed
+        internally through the Octave.
+
+        Note: The power at the Octave RF output may vary up to 10dBm.
 
         Subplots:
         - Top Left: Summary of the current result and achieved LO suppression.
@@ -172,10 +163,10 @@ class CalibrationResultPlotter:
         - Bottom Right: Fine scan of Q_dc vs I_dc with LO power in dBm.
 
         Returns:
-            None
+            matplotlib.figure.Figure: The generated figure.
         """
 
-        plt.figure(figsize=(11, 8.9))
+        fig = plt.figure(figsize=(11, 8.9))
 
         plt.subplot(222)
 
@@ -187,7 +178,7 @@ class CalibrationResultPlotter:
             d.lo
         )  # Get 0.0 indices and mask them with NaN values before converting to dBm
 
-        lo = self.u.demod2volts(d.lo, integration_length)
+        lo = self.u.demod2volts(d.lo, self.integration_length)
         lo_dbm = self._convert_to_dbm(lo)
 
         width = q_scan[0][1] - q_scan[0][0]  # Calculate the width and height of the rectangles to plot
@@ -259,7 +250,7 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(d.lo)
 
-        lo = self.u.demod2volts(d.lo, integration_length)
+        lo = self.u.demod2volts(d.lo, self.integration_length)
         lo_dbm = self._convert_to_dbm(lo)
 
         width = fine_q_scan[0][1] - fine_q_scan[0][0]
@@ -307,7 +298,7 @@ class CalibrationResultPlotter:
         p = d.fit.pol
 
         iq_error = self.u.demod2volts(
-            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, integration_length
+            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - d.lo, self.integration_length
         )
         iq_error_dbm = self._convert_to_dbm(np.abs(iq_error))
 
@@ -357,14 +348,20 @@ class CalibrationResultPlotter:
         plt.suptitle(f"LO auto calibration @ {self.lo_frequency/1e9:.3f}GHz")
         plt.tight_layout()
 
+        return fig
+
     def show_image_rejection_calibration_result(
         self,
-    ) -> None:
+    ) -> matplotlib.figure.Figure:
         """
         Plots the results of the IF image calibration process.
 
         This method generates a series of subplots that visualize the coarse and fine scans of the IF image calibration
-        and returns the achieved image suppression in dB.
+        and returns the achieved image suppression in dB when comparing the power without calibrating the mixers vs
+        after calibration. The powers shown correspond to the power seen by the OPX+ inputs when the signal is routed
+        internally through the Octave.
+
+        Note: The power at the Octave RF output may vary up to 10dBm.
 
         Subplots:
         - Top Left: Summary of the current result and achieved image suppression.
@@ -373,19 +370,19 @@ class CalibrationResultPlotter:
         - Bottom Right: Fine scan of gain vs phase with image power in dBm.
 
         Returns:
-            None
+            matplotlib.figure.Figure: The generated figure.
         """
 
         if_freq_data = self.if_data[self.if_frequency]
 
-        plt.figure(figsize=(11, 8.9))
+        fig = plt.figure(figsize=(11, 8.9))
 
         plt.subplot(222)
         r = if_freq_data.coarse
 
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
-        im = self.u.demod2volts(r.image, integration_length)
+        im = self.u.demod2volts(r.image, self.integration_length)
         im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
@@ -436,7 +433,7 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(r.image)
 
-        im = self.u.demod2volts(r.image, integration_length)
+        im = self.u.demod2volts(r.image, self.integration_length)
         im_dbm = self._convert_to_dbm(im)
 
         width = r.p_scan[0][1] - r.p_scan[0][0]
@@ -472,7 +469,7 @@ class CalibrationResultPlotter:
         p = r.fit.pol
 
         image = self.u.demod2volts(
-            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, integration_length
+            p[0] + p[1] * X + p[2] * Y + p[3] * X**2 + p[4] * X * Y + p[5] * Y**2 - r.image, self.integration_length
         )
         image_dbm = self._convert_to_dbm(np.abs(image))
 
@@ -520,21 +517,16 @@ class CalibrationResultPlotter:
         )
         plt.tight_layout()
 
+        return fig
+
     def get_image_rejection(
         self,
     ):
         """
         Calculate the Image sideband suppression achieved by the automatic calibration.
 
-        If the LO frequency is not given, the first LO frequency in the data is used.
-        If the IF frequency is not given, the first IF frequency in the data is used.
-
-        Args:
-            lo_frequency (Optional[float]): The LO frequency in Hz. If not provided, the first LO frequency in data is used.
-            if_freq (Optional[float]): The IF frequency in Hz. If not provided, the first IF frequency in data is used.
-
         Returns:
-            float: The reduction of Image sideband power before vs after calibration in dB units.
+            float: The reduction of Image sideband power without vs after calibration in dB units.
         """
 
         if_freq_data = self.if_data[self.if_frequency]
@@ -542,13 +534,13 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(image_fine)
 
-        image = self.u.demod2volts(image_fine, integration_length)
+        image = self.u.demod2volts(image_fine, self.integration_length)
         image_array_dbm = self._convert_to_dbm(image)
         min_image_dbm = np.nanmin(image_array_dbm)
 
         pol = if_freq_data.fine.fit.pol
         image_0 = self._paraboloid(0, 0, pol)
-        image_0_volts = self.u.demod2volts(image_0, integration_length)
+        image_0_volts = self.u.demod2volts(image_0, self.integration_length)
         image_0_dbm = self._convert_to_dbm(image_0_volts)
         return min_image_dbm - image_0_dbm
 
@@ -558,11 +550,8 @@ class CalibrationResultPlotter:
         """
         Calculate the LO leakage suppression achieved by the automatic calibration.
 
-        If the LO frequency is not given, the first LO frequency in the data is used.
-        If the IF frequency is not given, the first IF frequency in the data is used.
-
         Returns:
-            float: The reduction of LO leakage power before vs after calibration in dB units.
+            float: The reduction of LO leakage power without vs after calibration in dB units.
         """
 
         i_coarse = self.lo_data.debug.coarse[0].i_scan
@@ -573,14 +562,14 @@ class CalibrationResultPlotter:
 
         zero_list = self._handle_zero_indices_and_masking(lo_fine)
 
-        lo = self.u.demod2volts(lo_fine, integration_length)
+        lo = self.u.demod2volts(lo_fine, self.integration_length)
         lo_array_dbm = self._convert_to_dbm(lo)
         min_lo_dbm = np.nanmin(lo_array_dbm)
 
         id_i = np.argwhere(i_coarse[:, 0] == 0.0)
         id_q = np.argwhere(q_coarse[0, :] == 0.0)
         lo = lo_coarse[id_i, id_q][0][0]
-        lo_0 = self.u.demod2volts(lo, integration_length)
+        lo_0 = self.u.demod2volts(lo, self.integration_length)
         lo_0_dbm = self._convert_to_dbm(lo_0)
 
         return min_lo_dbm - lo_0_dbm
@@ -599,3 +588,15 @@ class CalibrationResultPlotter:
             float: The value of the paraboloid at (x, y).
         """
         return pol[0] + pol[1] * x + pol[2] * y + pol[3] * x**2 + pol[4] * x * y + pol[5] * y**2
+
+    @staticmethod
+    def _get_integration_length():
+        # Get the source code of the function
+        source_code = inspect.getsource(_add_calibration_entries_to_config)
+        # Find the line where integration_length is defined
+        for line in source_code.split("\n"):
+            if "integration_length" in line:
+                # Extract the value of integration_length
+                integration_length = int(line.split("=")[1].strip())
+                return integration_length
+        return None
