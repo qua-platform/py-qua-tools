@@ -11,33 +11,38 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.13"
+python = ">=3.9, <3.13"
 matplotlib = "^3.4.2"
-numpy = [
-    { version = ">=1.17.0, <2", python = ">=3.8,<3.12" },
-    { version = ">=1.26.0, <2", python = ">=3.12" },
-]
-qm-qua = { version = ">=1.1.7", python = ">=3.8,<3.13" }
-scipy = [
-    { version = ">=1.7.1, <1.10.0", python = ">=3.8,<3.12" },
-    { version = ">=1.11.0", python = ">=3.12" },
-]
+numpy = ">=1.26.0, <2"
+qm-qua = ">=1.1.7"
+scipy = ">=1.11.0"
+scikit-learn = ">=1.5.0"
+grpclib = "0.4.5"
+
+# interplot
+dill = { version = "^0.3.4", optional = true }
+pypiwin32 = { version = "^223", optional = true, markers = "sys_platform == 'win32'" }
+ipython = { version = "^8.10.0", optional = true }
+
+# configbuilder
 pandas = { version = ">=1.2.4", optional = true }
 dash = { version = "^2.0.0", optional = true }
 dash-html-components = { version = "^2.0.0", optional = true }
 dash-core-components = { version = "^2.0.0", optional = true }
-dash-bootstrap-components = { version = "^1.6.0", optional = true, python = ">=3.8,<4" }
+dash-bootstrap-components = { version = "^1.6.0", optional = true}
 dash-cytoscape = { version = "^0.3.0", optional = true }
 dash-table = { version = "^5.0.0", optional = true }
 dash-dangerously-set-inner-html = { version = "^0.0.2", optional = true }
 docutils = { version = ">=0.14.0 <= 0.21", optional = true }
-waitress = { version = "^2.0.0", optional = true }
-dill = { version = "^0.3.4", optional = true }
-pypiwin32 = { version = "^223", optional = true, markers = "sys_platform == 'win32'" }
-ipython = { version = "^8.10.0", optional = true }
+waitress = { version = "^3.0.1", optional = true }
+
+# datahandler
 xarray = { version = "^2023.0.0", optional = true }
-scikit-learn = "^1.0.2"
-grpclib = "0.4.5"
+netCDF4 = { version = "^1.7.2", optional = true  }
+
+# two-qubit-rb
+cirq = { version = "1.2.0", python = ">=3.10", optional = true }
+tqdm = { version = "^4.67.1", optional = true  }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -62,10 +67,6 @@ configbuilder = [
 ]
 datahandler = ["xarray", "netcdf4"]
 two-qubit-rb = ["xarray", "cirq", "tqdm"]
-
-[tool.poetry.dependencies.cirq]
-version = "1.2.0"
-python = ">=3.10"
 
 [tool.black]
 line-length = 120
