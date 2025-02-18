@@ -27,10 +27,10 @@ class RBResult:
         Initializes the xarray Dataset to store the RB experiment data.
         """
         self.data = xr.Dataset(
-            data_vars={"state": (["circuit_depth", "repeat", "average"], self.state)},
+            data_vars={"state": (["repeat", "circuit_depth", "average"], self.state)},
             coords={
-                "circuit_depth": self.circuit_depths,
                 "repeat": range(self.num_repeats),
+                "circuit_depth": self.circuit_depths,
                 "average": range(self.num_averages),
             },
         )
@@ -64,23 +64,93 @@ class RBResult:
     def plot_with_fidelity(self):
         """
         Plots the RB fidelity as a function of circuit depth, including a fit to an exponential decay model.
-        The fitted curve is overlaid with the raw data points.
+        The fitted curve is overlaid with the raw data points, and error bars are included.
         """
         A, alpha, B = self.fit_exponential()
         fidelity = self.get_fidelity(alpha)
 
+        # Compute error bars
+        error_bars = (self.data == 0).mean(dim="average").std(dim="repeat").state.data
+
         plt.figure()
-        plt.plot(self.circuit_depths, self.get_decay_curve(), "o", label="Data")
+        plt.errorbar(
+            self.circuit_depths,
+            self.get_decay_curve(),
+            yerr=error_bars,
+            fmt=".",
+            capsize=2,
+            elinewidth=0.5,
+            color="blue",
+            label="Experimental Data",
+        )
+
+        circuit_depths_smooth_axis = np.linspace(self.circuit_depths[0], self.circuit_depths[-1], 100)
+        plt.plot(
+            circuit_depths_smooth_axis,
+            rb_decay_curve(np.array(circuit_depths_smooth_axis), A, alpha, B),
+            color="red",
+            linestyle="--",
+            label="Exponential Fit",
+        )
+
+        plt.text(
+            0.5,
+            0.95,
+            f"2Q Clifford Fidelity = {fidelity * 100:.2f}%",
+            horizontalalignment="center",
+            verticalalignment="top",
+            fontdict={"fontsize": "large", "fontweight": "bold"},
+            transform=plt.gca().transAxes,
+        )
+
+        plt.xlabel("Circuit Depth")
+        plt.ylabel(r"Probability to recover to $|00\rangle$")
+        plt.title("2Q Randomized Benchmarking")
+        plt.legend(framealpha=0)
+        plt.show()
+
+    def plot_two_qubit_state_distribution(self):
+        """
+        Plot how the two-qubit state is distributed as a function of circuit-depth on average.
+        """
         plt.plot(
             self.circuit_depths,
-            rb_decay_curve(np.array(self.circuit_depths), A, alpha, B),
-            "-",
-            label=f"Fidelity={fidelity * 100:.3f}%\nalpha={alpha:.4f}",
+            (self.data.state == 0).mean(dim="average").mean(dim="repeat").data,
+            label=r"$|00\rangle$",
+            marker=".",
+            color="c",
+            linewidth=3,
         )
+        plt.plot(
+            self.circuit_depths,
+            (self.data.state == 1).mean(dim="average").mean(dim="repeat").data,
+            label=r"$|01\rangle$",
+            marker=".",
+            color="b",
+            linewidth=1,
+        )
+        plt.plot(
+            self.circuit_depths,
+            (self.data.state == 2).mean(dim="average").mean(dim="repeat").data,
+            label=r"$|10\rangle$",
+            marker=".",
+            color="y",
+            linewidth=1,
+        )
+        plt.plot(
+            self.circuit_depths,
+            (self.data.state == 3).mean(dim="average").mean(dim="repeat").data,
+            label=r"$|11\rangle$",
+            marker=".",
+            color="r",
+            linewidth=1,
+        )
+        plt.axhline(0.25, color="grey", linestyle="--", linewidth=2, label="2Q mixed-state")
+
         plt.xlabel("Circuit Depth")
-        plt.ylabel("Fidelity")
-        plt.title("2Q Randomized Benchmarking Fidelity")
-        plt.legend()
+        plt.ylabel(r"Probability to recover to a given state")
+        plt.title("2Q State Distribution vs. Circuit Depth")
+        plt.legend(framealpha=0, title=r"2Q State $\mathbf{|q_cq_t\rangle}$", title_fontproperties={"weight": "bold"})
         plt.show()
 
     def fit_exponential(self):
@@ -95,7 +165,7 @@ class RBResult:
         """
         decay_curve = self.get_decay_curve()
 
-        popt, _ = curve_fit(rb_decay_curve, self.circuit_depths, decay_curve, p0=[0.75, -0.1, 0.25], maxfev=10000)
+        popt, _ = curve_fit(rb_decay_curve, self.circuit_depths, decay_curve, p0=[0.75, 0.9, 0.25], maxfev=10000)
         A, alpha, B = popt
 
         return A, alpha, B
