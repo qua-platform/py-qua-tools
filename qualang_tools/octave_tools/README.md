@@ -257,7 +257,8 @@ fig = plotter.show_lo_leakage_calibration_result()
 
 ### Outputs:
 
-![image](https://github.com/user-attachments/assets/329755f9-cbdc-4a73-aff5-0e6417c41924)
+![image](https://github.com/user-attachments/assets/8b051dcd-9786-4637-8610-f10e9bc7b9d0)
+
 
 **IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave down-conversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the suppression in dB unit will be correct in any case.
 
