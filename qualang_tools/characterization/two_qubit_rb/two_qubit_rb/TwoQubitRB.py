@@ -171,8 +171,8 @@ class TwoQubitRb:
             }
 
             assign(progress, 0)
-            with for_each_(sequence_depth, sequence_depths):
-                with for_(repeat, 0, repeat < num_repeats, repeat + 1):
+            with for_(repeat, 0, repeat < num_repeats, repeat + 1):
+                with for_each_(sequence_depth, sequence_depths):
                     assign(progress, progress + 1)
                     save(progress, progress_os)
                     advance_input_stream(gates_len_is)
@@ -187,8 +187,9 @@ class TwoQubitRb:
                         save(state, state_os)
 
             with stream_processing():
-                state_os.buffer(len(sequence_depths), num_repeats, num_averages).save("state")
+                state_os.buffer(num_repeats, len(sequence_depths), num_averages).save("state")
                 progress_os.save("progress")
+
         return prog
 
     def _input_stream_name(self, element: str):
@@ -208,14 +209,16 @@ class TwoQubitRb:
         num_repeats: int,
         callback: Optional[Callable[[List[int]], None]] = None,
     ):
-        for sequence_depth in sequence_depths:
-            for repeat in range(num_repeats):
+        for repeat in range(num_repeats):
+            for sequence_depth in sequence_depths:
                 sequence = self._gen_rb_sequence(sequence_depth)
                 if self._sequence_tracker is not None:
                     self._sequence_tracker.make_sequence(sequence)
                 job.insert_input_stream("__gates_len_is__", len(sequence))
                 for qe in self._rb_baker.all_elements:
-                    job.insert_input_stream(f"{qe}_is", self._decode_sequence_for_element(qe, sequence))
+                    job.insert_input_stream(
+                        f"{self._input_stream_name(qe)}_is", self._decode_sequence_for_element(qe, sequence)
+                    )
 
                 if callback is not None:
                     callback(sequence)
