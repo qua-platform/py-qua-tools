@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
+- Octave tools Calibration Result Plotter
 - two-qubit rb - Added feature to plot the two qubit state distribution.
 
 ### Fixed
@@ -26,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - wirer - Fixed bug in the visualizer for LF-FEM and MW-FEM.
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
 - simulator - Recast connection ports in `create_simulator_controller_connections` to be `int`, instead of `np.int64`.
-- config/waveform_tools - Allow to set the detuning of a DRAG waveform even when the alpha parameter is 0. 
+- config/waveform_tools - Allow to set the detuning of a DRAG waveform even when the alpha parameter is 0.
 - bakery - Fix error when waveform samples type was subclass of int/float (e.g. numpy.float64).
 
 ### Deprecated
@@ -117,7 +118,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - simulator - ``create_simulator_controller_connections`` now creates the connections with a different algorithm that uses all available optical connections.
 - simulator - ``create_simulator_controller_connections`` order of input parameters has changed.
 - External_frameworks/qcodes - Fixed the unit of phase
-- External_frameworks/qcodes - Added a flag to allow for the phase to remain wrapped 
+- External_frameworks/qcodes - Added a flag to allow for the phase to remain wrapped
 - results - Add a warning when timeout is reached in ``wait_until_job_is_paused``.
 
 ### Deprecated
@@ -134,7 +135,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - External_frameworks/qcodes - Added ``update_readout_length()`` to update locally the readout length of a given readout element and operation.
-- External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated. 
+- External_frameworks/qcodes - Added ``update_qm()`` to update the quantum machine (close and re-open it) in case the config has been updated.
 - External_frameworks/qcodes - Added ``live_plotting()`` to fetch and plot the OPX results while the program is running.
 - Unit - Added `volts2dBm` and `dBm2volts`.
 
@@ -177,7 +178,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Config.helper_tools - Added the function `transform_negative_delays()` to adjust a config containing negative delays by offsetting all delays by the most negative one.
 
 ### Fixed
-- Fixed the loops library to support `qm-qua` 1.1.0  
+- Fixed the loops library to support `qm-qua` 1.1.0
 
 ## [0.13.2] - 2023-02-23
 ### Added
@@ -210,9 +211,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.12.0] - 2022-08-29
 ### Changed
-- **Breaking change!** - Waveform tools - Added a missing 2$\pi$ factor into `detuning` parameter in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
+- **Breaking change!** - Waveform tools - Added a missing 2$\pi$ factor into `detuning` parameter in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`.
   This will produce different results compared to previous versions, to get the same results, divide the `detuning` parameter by 2pi. Both `detuning`, `delta`, and `anharmonicity` are now expected in`Hz` rather than `rad`; a 2$\pi$ multiplication occurs in the built-in function.
-- Waveform tools - Renamed argument `delta` to `anharmonicity` in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`. 
+- Waveform tools - Renamed argument `delta` to `anharmonicity` in `drag_gaussian_pulse_waveforms` and `drag_cosine_pulse_waveforms`.
   `delta` is still accepted but will be deprecated in future versions.
 - ConfigBuilder - renamed arguments (backward compatible) in Element and MeasureElement classes.
 - ConfigBuilder - renamed AnalogOutputPort attribute channel_weights to crosstalk
@@ -286,7 +287,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Interactive plotlib - Support for 2d plot, better data manipulation and better fits
 - Waveform tools - Added the waveform tool package, currently including scripts for creating Gaussian and Cosine DRAG waveforms
-- Control Panel - VNA Mode - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and 
+- Control Panel - VNA Mode - This module allows to configure the OPX as a VNA for a given element (readout resonator for instance) and
 operation (readout pulse for instance) already defined in the configuration.
 
 ## [0.7.2] - 2022-03-15
@@ -296,12 +297,12 @@ operation (readout pulse for instance) already defined in the configuration.
 ## [0.7.1] - 2022-03-13
 ### Fixed
 - Interactive Plotting Toolbox - Fixed several small issues when loading a figure
-- Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown. 
+- Integration Weights Tool - When compressing and plotting integration weights, the correct label is shown.
 - Set minimum version of docutils dependency to 0.14
 - Fix config builder GUI imports
 ### Added
-- Interactive Plotting Toolbox - Added default markers when fitting 
-- Interactive Plotting Toolbox - Improved example and added a demo video 
+- Interactive Plotting Toolbox - Added default markers when fitting
+- Interactive Plotting Toolbox - Improved example and added a demo video
 - readme for config builder GUI
 
 ## [0.7.0] - 2022-02-10
@@ -317,7 +318,7 @@ operation (readout pulse for instance) already defined in the configuration.
 
 ## [0.6.4] - 2022-01-25
 ### Fixed
-- Bakery - Using "delete_samples()" did not update the element internal time tracking. 
+- Bakery - Using "delete_samples()" did not update the element internal time tracking.
 
 ## [0.6.3] - 2022-01-24
 ### Added
