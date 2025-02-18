@@ -235,7 +235,8 @@ octave_calibration_tool(
 # CalibrationResultPlotter
 
 ## show_lo_leakage_calibration_result()
-Generate a plot of the LO leakage and image rejection calibration data. The resulting plot illustrates the LO leakage signal and image rejection as a function of the `I_dc` and `Q_dc` DC offsets, including an initial coarse scan and a finer zoom-in scan on the minimum. Additionally, a third plot displays the fit error of the fine scan.
+Plot the calibration data for the LO leakage.
+The resulting plot illustrates the LO leakage signal as a function of the `I_dc` and `Q_dc` DC offsets, including an initial coarse scan and a finer zoom-in scan on the minimum. Additionally, a third plot displays the fit error of the fine scan.
 
 ### Usage example:
 
@@ -258,10 +259,10 @@ fig = plotter.show_lo_leakage_calibration_result()
 
 ![image](https://github.com/user-attachments/assets/329755f9-cbdc-4a73-aff5-0e6417c41924)
 
-**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave downconversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the supression in dB unit will be correct in any case.
+**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave down-conversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the suppression in dB unit will be correct in any case.
 
 ## show_image_rejection_calibration_result()
-Plot the image sideband calibration data.
+Plot the calibration data for the image sideband.
 The produced plot shows the image sideband signal as a function of the `dc_gain` and `dc_phase` parameters for an initial coarse scan and a finer zoom-in scan on the minimum. A third plot shows the fit error of the fine scan.
 
 ### Usage example:
@@ -285,10 +286,10 @@ fig = plotter.show_image_rejection_calibration_result()
 
 ![image](https://github.com/user-attachments/assets/65f25996-877c-4abe-9aad-c631c6a59e23)
 
-**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave downconversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the supression in dB unit will be correct in any case.
+**IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave down-conversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the suppression in dB unit will be correct in any case.
 
 ## get_lo_leakage_rejection() and get_image_rejection()
-Returns the LO leakage and image sideband supression in dB after calibration compared to no calibration at all.
+Returns the LO leakage and image sideband suppression in dB after calibration compared to no calibration at all.
 
 ### Usage example:
 ```python
@@ -306,12 +307,12 @@ plotter = CalibrationResultPlotter(calibration_output)
 lo_rejection = plotter.get_lo_leakage_rejection()
 image_rejection = plotter.get_image_rejection()
 
-print(f'The calibration achieved an LO leakeage supression of {lo_rejection:.2f} dB and an image sideband supression of {image_rejection:.2f} dB.')
+print(f'The calibration achieved an LO leakage suppression of {lo_rejection:.2f} dB and an image sideband suppression of {image_rejection:.2f} dB.')
 ```
 
 ### Outputs:
 
 
 ```
-The calibration achieved an LO leakeage supression of -27.23 dB and an image sideband supression of -42.27 dB.
+The calibration achieved an LO leakeage suppression of -27.23 dB and an image sideband suppression of -42.27 dB.
 ```
