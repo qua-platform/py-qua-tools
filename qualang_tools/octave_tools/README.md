@@ -284,7 +284,8 @@ fig = plotter.show_image_rejection_calibration_result()
 
 ### Outputs:
 
-![image](https://github.com/user-attachments/assets/65f25996-877c-4abe-9aad-c631c6a59e23)
+![image](https://github.com/user-attachments/assets/d33c2e5f-bb12-4582-9559-a9cb774aa831)
+
 
 **IMPORTANT NOTE**: The colorbar represents the power seen at the OPX inputs when routing the signal internally through the Octave down-conversion chain. The actual power out of the Octave RF output may vary up to 10 dBm, but the suppression in dB unit will be correct in any case.
 
