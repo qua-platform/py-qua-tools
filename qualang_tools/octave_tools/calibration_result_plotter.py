@@ -99,7 +99,7 @@ class CalibrationResultPlotter:
         return 10 * np.log10(volts / (50 * 2) * 1000)
 
     @staticmethod
-    def _plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan, width, height):
+    def _plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan):
         """
         Plot the fit elliptical levels.
 
@@ -107,10 +107,8 @@ class CalibrationResultPlotter:
             d: The data containing fit information.
             x0: The x-coordinate of the fit minimum.
             y0: The y-coordinate of the fit minimum.
-            q_scan: The Q scan data.
-            i_scan: The I scan data.
-            width: The width of the rectangles to plot.
-            height: The height of the rectangles to plot.
+            q_scan: The 'Q' scan data.
+            i_scan: The 'I' scan data.
         """
         r = (
             np.min(
@@ -198,7 +196,7 @@ class CalibrationResultPlotter:
 
         x0, y0 = d.fit.x_min * 1000, d.fit.y_min * 1000  # Convert to mV
 
-        self._plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan, width, height)
+        self._plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan)
 
         plt.text(
             np.min(q_scan) + 0.5 * width,
@@ -258,7 +256,7 @@ class CalibrationResultPlotter:
 
         x0, y0 = d.fit.x_min * 1000 + x0_ref, d.fit.y_min * 1000 + y0_ref
 
-        self._plot_fit_elliptical_levels(d, x0, y0, fine_q_scan, fine_i_scan, width, height)
+        self._plot_fit_elliptical_levels(d, x0, y0, fine_q_scan, fine_i_scan)
 
         plt.text(
             np.min(fine_q_scan) + 0.5 * width,
