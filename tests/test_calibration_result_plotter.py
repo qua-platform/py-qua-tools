@@ -39,7 +39,6 @@ def test_image_rejection():
 def test_lo_leakage():
     calibration_output = open_test_data()
     plotter = CalibrationResultPlotter(calibration_output)
-    print(plotter.get_lo_leakage_rejection())
     assert plotter.get_lo_leakage_rejection() == test_data["results"]["lo_leakage"]
 
 
