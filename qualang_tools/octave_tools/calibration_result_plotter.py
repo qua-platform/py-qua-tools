@@ -341,7 +341,7 @@ class CalibrationResultPlotter:
         plt.box(False)
         plt.xticks([])
         plt.yticks([])
-        plt.suptitle(f"LO auto calibration @ {self.lo_frequency/1e9:.3f}GHz")
+        plt.suptitle(f"LO auto calibration @ {self.lo_frequency / 1e9:.3f}GHz")
         plt.tight_layout()
 
         return fig
@@ -401,7 +401,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(r.p_scan) + 1.5 * width,
             np.max(r.g_scan - 1.5 * height),
-            f"coarse scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
+            f"coarse scan\nLO = {self.lo_frequency / 1e9:.3f}GHz\nIF = {self.if_frequency / 1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -453,7 +453,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(r.p_scan) + 1.5 * width,
             np.max(r.g_scan - 1.5 * height),
-            f"fine scan\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
+            f"fine scan\nLO = {self.lo_frequency / 1e9:.3f}GHz\nIF = {self.if_frequency / 1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -479,7 +479,7 @@ class CalibrationResultPlotter:
         plt.text(
             np.min(r.p_scan) + 1.5 * width,
             np.max(r.g_scan - 1.5 * height),
-            f"fit error\nLO = {self.lo_frequency/1e9:.3f}GHz\nIF = {self.if_frequency/1e6:.3f}MHz",
+            f"fit error\nLO = {self.lo_frequency / 1e9:.3f}GHz\nIF = {self.if_frequency / 1e6:.3f}MHz",
             color="k",
             bbox=dict(facecolor="w", alpha=0.8),
             verticalalignment="top",
@@ -492,7 +492,7 @@ class CalibrationResultPlotter:
 
         content = [
             "Calibrated parameters:",
-            f"      gain = {r.gain*100:.02f}%, phase = {r.phase*180.0/np.pi:.2f}deg",
+            f"      gain = {r.gain * 100:.02f}%, phase = {r.phase * 180.0 / np.pi:.2f}deg",
             "\nAchieved Image sideband supression:",
             f"{self.get_image_rejection():.3f} dB",
         ]
@@ -509,7 +509,7 @@ class CalibrationResultPlotter:
         plt.xticks([])
         plt.yticks([])
         plt.suptitle(
-            f"IMAGE auto calibration: LO = {self.lo_frequency/1e9:.3f}GHz, IF = {self.if_frequency/1e6:.3f}MHz"
+            f"IMAGE auto calibration: LO = {self.lo_frequency / 1e9:.3f}GHz, IF = {self.if_frequency / 1e6:.3f}MHz"
         )
         plt.tight_layout()
 
@@ -527,8 +527,6 @@ class CalibrationResultPlotter:
 
         if_freq_data = self.if_data[self.if_frequency]
         image_fine = if_freq_data.fine.image
-
-        zero_list = self._handle_zero_indices_and_masking(image_fine)
 
         image = self.u.demod2volts(image_fine, self.integration_length)
         image_array_dbm = self._convert_to_dbm(image)
@@ -555,8 +553,6 @@ class CalibrationResultPlotter:
 
         lo_coarse = self.lo_data.debug.coarse[0].lo
         lo_fine = self.lo_data.debug.fine[0].lo
-
-        zero_list = self._handle_zero_indices_and_masking(lo_fine)
 
         lo = self.u.demod2volts(lo_fine, self.integration_length)
         lo_array_dbm = self._convert_to_dbm(lo)
