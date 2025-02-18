@@ -528,6 +528,7 @@ class CalibrationResultPlotter:
         if_freq_data = self.if_data[self.if_frequency]
         image_fine = if_freq_data.fine.image
 
+        _ = self._handle_zero_indices_and_masking(image_fine)
         image = self.u.demod2volts(image_fine, self.integration_length)
         image_array_dbm = self._convert_to_dbm(image)
         min_image_dbm = np.nanmin(image_array_dbm)
@@ -554,6 +555,7 @@ class CalibrationResultPlotter:
         lo_coarse = self.lo_data.debug.coarse[0].lo
         lo_fine = self.lo_data.debug.fine[0].lo
 
+        _ = self._handle_zero_indices_and_masking(lo_fine)
         lo = self.u.demod2volts(lo_fine, self.integration_length)
         lo_array_dbm = self._convert_to_dbm(lo)
         min_lo_dbm = np.nanmin(lo_array_dbm)
