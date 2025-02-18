@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
+## [0.19.1] - 2025-02-17
+### Changed
+- Updated dependencies to remove packages with identified vulnerabilities.
+
+### Removed
+- Removed support for Python 3.8
+
 ## [0.19.0] - 2025-02-07
 ### Added
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
@@ -414,7 +421,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...HEAD
+[0.19.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...v0.19.0
 [0.18.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.1...v0.18.2
 [0.18.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.0...v0.18.1
