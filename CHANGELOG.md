@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - characterization/two_qubit_rb - Migrate standard two-qubit randomized benchmarking implementation.
 
 ### Fixed
+- multi_user - fix filtering to remove error message with qm-qua > 1.1.7
 - two_qubit_rb - Fixed bug in `unsafe` option to workaround firmware issue in QOP<3.3.0.
 - wirer - Fixed bug in the visualizer for LF-FEM and MW-FEM.
 - macros/long_wait - Fix issue with `threshold_for_looping` not enforced to be an integer.
