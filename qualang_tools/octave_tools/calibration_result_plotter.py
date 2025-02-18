@@ -198,15 +198,6 @@ class CalibrationResultPlotter:
 
         self._plot_fit_elliptical_levels(d, x0, y0, q_scan, i_scan)
 
-        plt.text(
-            np.min(q_scan) + 0.5 * width,
-            np.min(i_scan) + 0.5 * height,
-            f"DC phase={d.corrections.dc_phase:.5f}\nDC gain={d.corrections.dc_gain:.5f}",
-            color="#ff7f0e",
-            verticalalignment="bottom",
-            horizontalalignment="left",
-        )
-
         plt.plot(x0, y0, "yo", markersize=8)
         plt.plot(x0, y0, "ro", markersize=4)
 
@@ -257,15 +248,6 @@ class CalibrationResultPlotter:
         x0, y0 = d.fit.x_min * 1000 + x0_ref, d.fit.y_min * 1000 + y0_ref
 
         self._plot_fit_elliptical_levels(d, x0, y0, fine_q_scan, fine_i_scan)
-
-        plt.text(
-            np.min(fine_q_scan) + 0.5 * width,
-            np.min(fine_i_scan) + 0.5 * height,
-            f"DC phase={d.corrections.dc_phase:.5f}\nDC gain={d.corrections.dc_gain:.5f}",
-            color="#ff7f0e",
-            verticalalignment="bottom",
-            horizontalalignment="left",
-        )
 
         plt.plot(x0, y0, "yo", markersize=8)
         plt.plot(x0, y0, "ro", markersize=4)
