@@ -44,10 +44,10 @@ class CalibrationResultPlotter:
         Returns:
             list: A list of tuples containing the indices of zero values.
         """
-        zero_idxs = np.where(data == 0.0)
+        zero_idxs = np.where((data == 0.0) | np.isnan(data))
         zero_list = list(zip(zero_idxs[0], zero_idxs[1]))
 
-        mask = data == 0.0
+        mask = (data == 0.0) | np.isnan(data)
         data[mask] = np.nan
 
         return zero_list
