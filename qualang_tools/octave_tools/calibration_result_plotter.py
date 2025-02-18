@@ -1,7 +1,5 @@
 import inspect
 import logging
-from typing import Optional
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
