@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Octave tools Calibration Result Plotter
 - two-qubit rb - Added feature to plot the two qubit state distribution.
-
+- voltage_gates - Added the ability to set the ramp duration as a QUA variable.
+- 
 ### Fixed
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
@@ -46,7 +47,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - wirer - Support for fixed-frequency transmons, i.e., cross-resonant drive lines and zz drive lines
 - examples/Qcodes_drivers: Added examples with the OPX1000.
 - external_frameworks/qcodes - Added the `readout_sampling_rate` parameter for the OPX1000.
-- voltage_gates - Added the ability to set the ramp duration as a QUA variable.
 
 ### Fixed
 - external_frameworks/qcodes - Fixed the connection message and OPX identification to include the OPX1000 and QOP 2.4.
