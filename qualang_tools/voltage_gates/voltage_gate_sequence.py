@@ -238,7 +238,7 @@ class VoltageGateSequence:
         self._check_duration(duration)
         for i, gate in enumerate(self._elements):
             if not self.is_QUA(self.average_power[i]):
-                compensation_amp = -0.001 * self.average_power[i] / duration
+                compensation_amp = -0.0009765625 * self.average_power[i] / duration
                 operation = self._add_op_to_config(
                     gate, "compensation", amplitude=compensation_amp - self.current_level[i], length=duration
                 )
