@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Added
+- Octave tools Calibration Result Plotter
 - two-qubit rb - Added analysis for the leakage RB protocol when the f-state is discriminated.
 - two-qubit rb - Added feature to plot the two qubit state distribution.
 
