@@ -118,8 +118,10 @@ def fit_to_double_exponential(
     """
 
     if lambda_1 is not None:
+
         def f(m, A, B, C, lambda_2):
             double_exponential_decay_model(m, A, B, lambda_1, C, lambda_2)
+
         if p0 is None:
             p0 = [_p0.A, _p0.B, _p0.C, _p0.lambda_2]
     else:
