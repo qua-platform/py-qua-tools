@@ -1,4 +1,4 @@
-from qualang_tools.characterization.two_qubit_rb.analysis.fitting import DoubleExponentialFit, TwoQubitRbFit
+from qualang_tools.characterization.two_qubit_rb.analysis.fitting import TwoQubitRbFit
 
 
 def calculate_average_two_qubit_clifford_fidelity(fit: TwoQubitRbFit) -> float:

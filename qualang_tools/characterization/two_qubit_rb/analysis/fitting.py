@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-import functools
 
 from qualang_tools.characterization.two_qubit_rb.analysis.models import (
     single_exponential_decay_model,
@@ -119,7 +118,8 @@ def fit_to_double_exponential(
     """
 
     if lambda_1 is not None:
-        f = lambda m, A, B, C, lambda_2: double_exponential_decay_model(m, A, B, lambda_1, C, lambda_2)
+        def f(m, A, B, C, lambda_2):
+            double_exponential_decay_model(m, A, B, lambda_1, C, lambda_2)
         if p0 is None:
             p0 = [_p0.A, _p0.B, _p0.C, _p0.lambda_2]
     else:
