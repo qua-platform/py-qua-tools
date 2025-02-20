@@ -7,7 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Octave tools Calibration Result Plotter
 - two-qubit rb - Added feature to plot the two qubit state distribution.
-
+- voltage_gates - Added the ability to set the ramp duration as a QUA variable.
+- 
 ### Fixed
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
