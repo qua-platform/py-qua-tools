@@ -137,7 +137,7 @@ class VoltageGateSequence:
         if ramp_duration is not None:
             if self.is_QUA(ramp_duration):
                 warn(
-                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns otherwise you will have a gap or an error.",
+                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur, otherwise use a python variable.",
                     stacklevel=2,
                 )
 
