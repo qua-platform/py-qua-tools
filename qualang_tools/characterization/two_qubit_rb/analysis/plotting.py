@@ -13,7 +13,7 @@ def plot_results(
     y_err_data: np.ndarray,
     x_fit: np.ndarray,
     y_fit: np.ndarray,
-    fidelity: Optional[float] = None
+    fidelity: Optional[float] = None,
 ) -> Figure:
     """
     Plots the RB fidelity as a function of circuit depth, including a fit to an exponential decay model.
@@ -21,18 +21,15 @@ def plot_results(
     """
     fig = plt.figure()
     plt.errorbar(
-        x_data, y_data, yerr=y_err_data, fmt=".", capsize=2, elinewidth=0.5, color="blue",
-        label="Experimental Data"
+        x_data, y_data, yerr=y_err_data, fmt=".", capsize=2, elinewidth=0.5, color="blue", label="Experimental Data"
     )
 
-    plt.plot(
-        x_fit, y_fit, color="red", linestyle="--",
-        label="Exponential Fit"
-    )
+    plt.plot(x_fit, y_fit, color="red", linestyle="--", label="Exponential Fit")
 
     if fidelity is not None:
         plt.text(
-            x=0.5, y=0.95,
+            x=0.5,
+            y=0.95,
             s=f"2Q Clifford Fidelity = {fidelity * 100:.2f}%",
             horizontalalignment="center",
             verticalalignment="top",

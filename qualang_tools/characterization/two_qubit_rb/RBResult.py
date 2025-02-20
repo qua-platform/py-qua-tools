@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from qualang_tools.characterization.two_qubit_rb.analysis.fitting import (
     fit_to_single_exponential,
     fit_to_double_exponential,
-    TwoQubitRbFit
+    TwoQubitRbFit,
 )
 from qualang_tools.characterization.two_qubit_rb.analysis.plotting import plot_results
 
@@ -28,6 +28,7 @@ class RBResult:
         state_control (np.ndarray): Measured control-qubit states from the RB experiment.
         state_target (np.ndarray): Measured target-qubit states from the RB experiment.
     """
+
     circuit_depths: np.ndarray
     num_repeats: int
     num_averages: int
@@ -39,22 +40,24 @@ class RBResult:
         Initializes the xarray Dataset to store the RB experiment data.
         """
         self.data = xr.Dataset(
-            data_vars={"state": (["repeat", "circuit_depth", "average", "qubit"],
-                       np.stack((self.state_control, self.state_target), axis=-1))},
+            data_vars={
+                "state": (
+                    ["repeat", "circuit_depth", "average", "qubit"],
+                    np.stack((self.state_control, self.state_target), axis=-1),
+                )
+            },
             coords={
                 "repeat": range(self.num_repeats),
                 "circuit_depth": self.circuit_depths,
                 "average": range(self.num_averages),
-                "qubit": ["control", "target"]
+                "qubit": ["control", "target"],
             },
         )
         self.state = self.data.state
 
-
     @property
     def leakage_was_measured(self):
         return (self.state > 1).any()
-
 
     def fit(self, p0: Optional[List[float]] = None) -> TwoQubitRbFit:
         """
@@ -84,7 +87,10 @@ class RBResult:
         """
         leakage_fit = None
 
-        probability_of_remaining_in_computational_subspace, _ = self.probability_of_remaining_in_computational_subspace()
+        (
+            probability_of_remaining_in_computational_subspace,
+            _,
+        ) = self.probability_of_remaining_in_computational_subspace()
         probability_of_ground_state, _ = self.probability_of_ground_state()
 
         if self.leakage_was_measured:
@@ -92,14 +98,15 @@ class RBResult:
                 self.circuit_depths, probability_of_remaining_in_computational_subspace
             )
             ground_state_fit = fit_to_double_exponential(
-                self.circuit_depths, probability_of_ground_state, lambda_1=leakage_fit.lambda_2, p0=p0,
-                bounds=[(0, 0, 0, 0), (1, 1, 1, 1)]
+                self.circuit_depths,
+                probability_of_ground_state,
+                lambda_1=leakage_fit.lambda_2,
+                p0=p0,
+                bounds=[(0, 0, 0, 0), (1, 1, 1, 1)],
             )
 
         else:
-            ground_state_fit = fit_to_single_exponential(
-                self.circuit_depths, probability_of_ground_state, p0=p0
-            )
+            ground_state_fit = fit_to_single_exponential(self.circuit_depths, probability_of_ground_state, p0=p0)
 
         return TwoQubitRbFit(
             ground_state_fit=ground_state_fit,
@@ -125,7 +132,6 @@ class RBResult:
 
         return ground_state_probability, ground_state_probability_err
 
-
     def probability_of_remaining_in_computational_subspace(self) -> Tuple[xr.DataArray, xr.DataArray]:
         """
         Returns:
@@ -140,7 +146,6 @@ class RBResult:
 
         return computational_subspace_state_probability, computational_subspace_state_probability_err
 
-
     def plot(self, fit: Optional[TwoQubitRbFit] = None) -> Figure:
         if fit is None:
             fit = self.fit()
@@ -154,7 +159,7 @@ class RBResult:
             y_err_data=(self.data == 0).all(dim="qubit").mean(dim="average").std(dim="repeat").state.data,
             x_fit=x_fit,
             y_fit=y_fit,
-            fidelity=fidelity
+            fidelity=fidelity,
         )
 
         return fig

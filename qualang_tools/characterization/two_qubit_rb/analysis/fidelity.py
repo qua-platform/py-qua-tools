@@ -4,8 +4,8 @@ from qualang_tools.characterization.two_qubit_rb.analysis.fitting import DoubleE
 def calculate_average_two_qubit_clifford_fidelity(fit: TwoQubitRbFit) -> float:
     """
     Calculates the average 2Q Clifford gate-set fidelity.
-    
-    If leakage data is present, subtracts leakage error, then the 
+
+    If leakage data is present, subtracts leakage error, then the
     leakage error is removed from the final calculation, according to
     the Leakage Randomized Benchmarking protocol by Wood & Gambetta.
 
@@ -23,10 +23,9 @@ def calculate_average_two_qubit_clifford_fidelity(fit: TwoQubitRbFit) -> float:
     if fit.leakage_fit is not None:
         L1 = (1 - fit.leakage_fit.A) * (1 - fit.leakage_fit.lambda_2)
 
-    fidelity = (1 / d) * ((d - 1)*fit.ground_state_fit.lambda_2 + 1 - L1)
+    fidelity = (1 / d) * ((d - 1) * fit.ground_state_fit.lambda_2 + 1 - L1)
 
     return fidelity
-
 
 
 def get_interleaved_gate_fidelity(num_qubits: int, reference_alpha: float, interleaved_alpha: float):

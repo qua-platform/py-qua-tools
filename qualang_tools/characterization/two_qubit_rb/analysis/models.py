@@ -9,8 +9,9 @@ def single_exponential_decay_model(m: np.ndarray, A: float, B: float, _lambda: f
     return A + B * _lambda**m
 
 
-def double_exponential_decay_model(m: np.ndarray, A: float, B: float, lambda_1: float,
-                                   C: float, lambda_2: float) -> np.ndarray:
+def double_exponential_decay_model(
+    m: np.ndarray, A: float, B: float, lambda_1: float, C: float, lambda_2: float
+) -> np.ndarray:
     """
     Double-exponential decay model.
         A + Bλ₁ᵐ + Cλ₂ᵐ.
