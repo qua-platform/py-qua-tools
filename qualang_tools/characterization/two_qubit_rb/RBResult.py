@@ -168,4 +168,4 @@ class RBResult:
         """
         Plot how the two-qubit state is distributed as a function of circuit-depth on average.
         """
-        plot_two_qubit_state_distribution(self.data)
+        return plot_two_qubit_state_distribution(self.data)
