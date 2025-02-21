@@ -10,21 +10,6 @@ import re
 logger = logging.getLogger(__name__)
 
 
-@contextmanager
-def timer(label: str):
-    """
-    Context manager for timing code blocks.
-
-    Args:
-        label (str): Label to identify the timed block.
-    """
-    t0 = time.perf_counter()
-    logger.debug(f"Timer started for: {label}")
-    yield
-    elapsed = time.perf_counter() - t0
-    logger.debug(f"{label} - time taken: {elapsed:.3f} seconds")
-
-
 def timer_decorator(func):
     """
     Decorator to time the execution of a function and log the elapsed time.
@@ -102,20 +87,21 @@ class XarrayDataFetcher:
             logger.warning("Axes must be a dictionary; ignoring axes.")
             return None
 
-        axes = {}
+        new_axes = {}
         for key, val in axes.items():
             if isinstance(val, xr.DataArray):
                 if val.dims == ("dim_0",):
                     val = val.rename({"dim_0": key})
                 val.name = key
-                axes[key] = val
+                new_axes[key] = val
 
             elif isinstance(val, np.ndarray):
-                axes[key] = xr.DataArray(val, name=key, dims=(key,))
+                new_axes[key] = xr.DataArray(val, name=key, dims=(key,))
             else:
                 logger.warning(
                     f"Axes must be a dictionary of xr.DataArray or np.ndarray instances; ignoring axis {key}."
                 )
+        return new_axes
 
     @timer_decorator
     def retrieve_latest_data(self):
@@ -307,7 +293,7 @@ class XarrayDataFetcher:
             logger.debug("Acquisition not started yet; marking as started.")
             self._started_acquisition = True
             self._finished_acquisition = False
-            self.t_start = time.perf_counter()
+            self.t_start = time.time()
             return True
 
         is_processing = self.job.result_handles.is_processing()
