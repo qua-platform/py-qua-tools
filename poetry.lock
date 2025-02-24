@@ -4848,4 +4848,4 @@ two-qubit-rb = ["cirq", "tqdm", "xarray"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9, <3.13"
-content-hash = "242b9eb77d0dc9c17e36059116a05d56bf8838fdb51021117813fb23dd3eeb90"
+content-hash = "395a1be1ec65bcc6356f95e60ce4e38da39948e5c9d7abef5813b7a4ba59bfaa"
