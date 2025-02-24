@@ -8,10 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Octave tools Calibration Result Plotter
 - two-qubit rb - Added feature to plot the two qubit state distribution.
 - voltage_gates - Added the ability to set the ramp duration as a QUA variable.
-- Updated matplotlib requirement to ^3.8.0 to support the Octave Tools Plotter
+
 ### Fixed
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
+### Changed
+- Updated matplotlib requirement to ^3.8.0 to support the Octave Tools Plotter
+  
 ## [0.19.1] - 2025-02-17
 ### Changed
 - Updated dependencies to remove packages with identified vulnerabilities.
