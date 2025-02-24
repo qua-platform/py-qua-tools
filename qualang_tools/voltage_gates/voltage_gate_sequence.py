@@ -1,6 +1,6 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_, save
 from typing import Union, List, Dict, Optional
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
@@ -240,26 +240,46 @@ class VoltageGateSequence:
             self._check_duration(duration)
         for i, gate in enumerate(self._elements):
             if not self.is_QUA(self.average_power[i]):
-                # Ensure that the relative amplitude is maxed to max_amplitude
-                relative_amp = max_amplitude - np.abs(self.current_level[i])
                 # Exact duration of the compensation pulse
-                duration = max(np.abs(0.0009765625 * self.average_power[i] / relative_amp), 16)
+                duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
                 # Duration as an integer multiple of 4ns
-                duration_4ns = (int(np.ceil(duration)) // 4) * 4
+                duration_4ns = max((int(np.ceil(duration)) // 4 + 1) * 4, 48)
                 # Corrected amplitude to account for the duration casting to integer
-                amplitude = -np.sign(self.average_power[i]) * relative_amp * duration / duration_4ns
-                operation = self._add_op_to_config(
-                    gate, "compensation", amplitude=amplitude - self.current_level[i], length=duration_4ns
-                )
-                play(operation, gate)
+                amplitude = -np.sign(self.average_power[i]) * max_amplitude * duration / duration_4ns
+                operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration_4ns)
+                play(operation * amp((amplitude - self.current_level[i]) * 4), gate)
             else:
-                operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration)
-                compensation_amp = declare(fixed)
+                operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=16)
                 eval_average_power = declare(int)
+                duration = declare(int)
+                duration_4ns = declare(int)
+                duration_4ns_pow2 = declare(int)
+                duration_4ns_pow2_cur = declare(int)
+                relative_amp = declare(fixed)
+                amplitude = declare(fixed)
+                # Ensure that the relative amplitude is maxed to max_amplitude
+                # assign(relative_amp, max_amplitude - Math.abs(self.current_level[i]))
+                assign(relative_amp, max_amplitude)
+                # Exact duration of the compensation pulse
                 assign(eval_average_power, self.average_power[i])
-                assign(compensation_amp, -Cast.mul_fixed_by_int(0.0009765625 / duration, eval_average_power))
-                play(operation * amp((compensation_amp - self.current_level[i]) * 4), gate)
+                assign(duration, Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude))
+                # Ensure that it is larger than 16ns
+                with if_(duration < 16):
+                    assign(duration, 16)
+                # Duration as an integer multiple of 4ns
+                assign(duration_4ns, (duration>>2)<<2)
+                # Take the closest power of 2 for reducing gaps + 1 to avoid sending too much power
+                assign(duration_4ns_pow2, 29 + Math.msb(duration_4ns))
+                # Get the actual compensation pulse duration
+                assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
+                # Corrected amplitude to account for the actual duration with respect to the exact one
+                with if_(eval_average_power > 0):
+                    assign(amplitude, -Cast.mul_fixed_by_int(relative_amp >> duration_4ns_pow2, duration))
+                with else_():
+                    assign(amplitude, Cast.mul_fixed_by_int(relative_amp >> duration_4ns_pow2, duration))
+                play(operation * amp((amplitude - self.current_level[i]) << 2), gate, duration = duration_4ns_pow2_cur >> 2)
             self.current_level[i] = amplitude
+            #TODO test on a scope!!
 
     def ramp_to_zero(self, duration: int = None):
         """Ramp all the gate voltages down to zero Volt and reset the averaged voltage derived for defining the compensation pulse.
