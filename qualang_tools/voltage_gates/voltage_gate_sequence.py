@@ -230,11 +230,22 @@ class VoltageGateSequence:
                             wait(_duration >> 2, gate)
             self.current_level[i] = voltage_level
 
-    def add_compensation_pulse(self, max_amplitude: float=0.35, duration: Optional[int]=None) -> None:
+    def _ramp_to_compensation_level(self, max_amplitude: float=0.35, slew_rate: Optional[float]=None):
+        voltage_excursion = max_amplitude - self.ramp
+
+    @staticmethod
+    def _round_to_fixed(x, number_of_bits=12):
+        """
+        function which rounds 'x' to 'number_of_bits' of precision to help reduce the accumulation of fixed point arithmetic errors
+        """
+        return round((2 ** number_of_bits) * x) / (2 ** number_of_bits)
+
+    def add_compensation_pulse(self, max_amplitude: float=0.35, slew_rate: Optional[float]=None, duration: Optional[int]=None) -> None:
         """Add a compensation pulse of the specified duration whose amplitude is derived from the previous operations.
         TODO
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.35V.
         :param duration: Duration of the compensation pulse in clock cycles (4ns). Must be larger than 4 clock cycles.
+        :param slew_rate: Maximum slew rate in V/ns.
         """
         if duration is not None:
             self._check_duration(duration)
@@ -246,8 +257,41 @@ class VoltageGateSequence:
                 duration_4ns = max((int(np.ceil(duration)) // 4 + 1) * 4, 48)
                 # Corrected amplitude to account for the duration casting to integer
                 amplitude = -np.sign(self.average_power[i]) * max_amplitude * duration / duration_4ns
-                operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration_4ns)
-                play(operation * amp((amplitude - self.current_level[i]) * 4), gate)
+
+                if slew_rate is None:
+                    operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration_4ns)
+                    play(operation * amp((amplitude - self.current_level[i]) * 4), gate)
+                    # ramp_rate = (amplitude - self.current_level[i]) / 16
+                    # ramp_duration = 16
+                    # ramp_rate2 = amplitude / 16
+                    # ramp_duration2 = 16
+                else:
+
+                    ramp_rate = slew_rate
+                    ramp_duration = max((int(np.ceil(np.abs(amplitude - self.current_level[i]) / ramp_rate)) // 4) * 4, 16)
+                    ramp_rate = (amplitude - self.current_level[i]) / ramp_duration
+                    ramp_duration2 = max((int(np.ceil(amplitude / ramp_rate)) // 4) * 4, 16)
+                    ramp_rate2 = amplitude / ramp_duration2
+                    print("--")
+                    print(ramp_rate)
+                    print(ramp_duration)
+                    while duration_4ns - (ramp_duration + ramp_duration2) < 16:
+                        # Duration as an integer multiple of 4ns
+                        duration_4ns +=  4
+                        # Corrected amplitude to account for the duration casting to integer
+                        amplitude = -np.sign(self.average_power[i]) * max_amplitude * duration / duration_4ns
+                        ramp_rate = slew_rate
+                        ramp_duration = max(
+                            (int(np.ceil(np.abs(amplitude - self.current_level[i]) / ramp_rate)) // 4) * 4, 16)
+                        ramp_rate = (amplitude - self.current_level[i]) / ramp_duration
+                        ramp_duration2 = max((int(np.ceil(amplitude / ramp_rate)) // 4) * 4, 16)
+                        ramp_rate2 = amplitude / ramp_duration2
+                    print(ramp_rate)
+                    print(ramp_duration)
+                    print("--")
+                    play(ramp(ramp_rate), gate, duration=ramp_duration >> 2)
+                    wait((duration_4ns - ((ramp_duration + ramp_duration2)>>1)) >> 2, gate)
+                    play(ramp(-ramp_rate2), gate, duration=ramp_duration2 >> 2)
             else:
                 operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=16)
                 eval_average_power = declare(int)
@@ -278,6 +322,15 @@ class VoltageGateSequence:
                 with else_():
                     assign(amplitude, Cast.mul_fixed_by_int(relative_amp >> duration_4ns_pow2, duration))
                 play(operation * amp((amplitude - self.current_level[i]) << 2), gate, duration = duration_4ns_pow2_cur >> 2)
+                # TODO
+                # if slew_rate is None:
+                #     ramp_rate = (amplitude - self.current_level[i]) >> 4
+                #     ramp_duration = 16
+                #     ramp_rate2 = amplitude >> 4
+                #     ramp_duration2 = 16
+                #     play(ramp(ramp_rate), gate, duration=ramp_duration >> 2)
+                #     wait((duration_4ns_pow2_cur - 2 * ramp_duration) >> 2, gate)
+                #     play(ramp(-ramp_rate2), gate, duration=ramp_duration2 >> 2)
             self.current_level[i] = amplitude
             #TODO test on a scope!!
 
