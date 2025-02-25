@@ -17,6 +17,7 @@ class VoltageGateSequence:
 
         The `configuration` provided will be updated to include necessary operations and waveforms for the sequence.
 
+        **Warning: The framework and compensation pulse derivation is working only for sequences shorter than 8ms.**
         :param configuration: A dictionary representing the OPX configuration (this will be modified)
         :param elements: A list of elements (strings) involved in the virtual gate operations.
         """
