@@ -105,7 +105,8 @@ In the example above:
 
 ### `add_compensation_pulse`
 
-Add a compensation pulse of the specified duration whose amplitude is derived from the previous operations. This ensures that the average voltage seen by the gates remains zero over time.
+Add a compensation pulse whose duration is derived automatically based on the sequence and the maximum amplitude allowed. 
+This ensures that the average voltage seen by the gates remains zero over time.
 
 ```python
 def add_compensation_pulse(self, max_amplitude: float=0.35) -> None:
