@@ -240,7 +240,8 @@ class VoltageGateSequence:
         if duration is not None:
             warn(
                 "The duration argument is deprecated and will soon be ignored. From qualang-tools 0.20 the compensation pulse duration is derived automatically based on the maximum amplitude allowed.",
-                DeprecationWarning, stacklevel=2,
+                DeprecationWarning,
+                stacklevel=2,
             )
             self._check_duration(duration)
 
