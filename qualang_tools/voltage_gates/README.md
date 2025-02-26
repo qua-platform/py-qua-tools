@@ -6,6 +6,8 @@ The `VoltageGateSequence` class facilitates the creation and management of compl
 
 > **Note**: Make sure the check the timing of the pulses in simulation or use `strict_timing()` to avoid real-time gaps!
 
+> **Warning**: The framework and compensation pulse derivation is working only for sequences shorter than 8ms.
+
 ## Features
 
 - **Dynamic Voltage Control**: Defines voltage levels (points) in gate-space and durations for multiple elements.
@@ -103,23 +105,25 @@ In the example above:
 
 ### `add_compensation_pulse`
 
-Add a compensation pulse of the specified duration whose amplitude is derived from the previous operations. This ensures that the average voltage seen by the gates remains zero over time.
+Add a compensation pulse whose duration is derived automatically based on the sequence and the maximum amplitude allowed. 
+This ensures that the average voltage seen by the gates remains zero over time.
 
 ```python
-def add_compensation_pulse(self, duration: int) -> None:
+def add_compensation_pulse(self, max_amplitude: float=0.35) -> None:
 ```
 
-- **duration**: Duration of the compensation pulse in clock cycles (4ns). Must be larger than 4 clock cycles.
+- **max_amplitude**: Maximum amplitude allowed for the compensation pulse in V. Default is 0.35V.
 
 **Example Usage**:
 
 ```python
 # Add a compensation pulse with a duration of 1000 ns
-seq.add_compensation_pulse(duration=1000)
+seq.add_compensation_pulse(max_amplitude=0.49)
 ```
 
 In the example above:
-- A compensation pulse with a duration of 1000 nanoseconds is added to the sequence to balance the average voltage.
+- A compensation pulse with a maximum amplitude of 0.49V is added to the sequence to balance the average voltage. 
+Its duration is derived automatically based on the sequence and the maximum amplitude allowed. 
 
 ### `ramp_to_zero`
 
@@ -188,12 +192,10 @@ with program() as PSB_search_prog:
             # Play fast pulse
             seq.add_step(voltage_point_name="idle", ramp_duration=200)
             seq.add_step(duration=1000, level=[x, y], ramp_duration=200)
-            seq.add_compensation_pulse(duration=1000)
+            seq.add_compensation_pulse()
 
             # do some measurement on the dot after manipulation
             # ...
-
-            align()
 
             # Ramp the voltage down to zero at the end of the triangle (needed with sticky elements)
             seq.ramp_to_zero(duration=500)
