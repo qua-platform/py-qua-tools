@@ -44,11 +44,21 @@ def get_calibration_parameters_from_db(
 
     param = {"offsets": {}, "correction_matrix": ()}
     if lo_cal is not None:
-        param["offsets"]["I"] = lo_cal.i0
-        param["offsets"]["Q"] = lo_cal.q0
+        if hasattr(lo_cal, "get_i0"):
+            param["offsets"]["I"] = lo_cal.get_i0()
+        else:
+            param["offsets"]["I"] = lo_cal.i0
+        if hasattr(lo_cal, "get_q0"):
+            param["offsets"]["I"] = lo_cal.get_q0()
+        else:
+            param["offsets"]["I"] = lo_cal.q0
 
         if if_cal is not None:
-            param["correction_matrix"] = if_cal.correction
+            if hasattr(if_cal, "get_correction"):
+                param["correction_matrix"] = if_cal.get_correction()
+            else:
+                param["correction_matrix"] = if_cal.correction
+
         else:
             if verbose_level == 2:
                 raise Warning(
