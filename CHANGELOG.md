@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - voltage_gates - Added the ability to set the ramp duration as a QUA variable.
 
 ### Fixed
+- octave_tools - Fixed broken API introduced with qm-qua 1.2.2
 - two-qubit rb - Swapped the order of the circuit_depth and repeat axis for better performance.
 
 ### Changed
