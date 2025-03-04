@@ -63,6 +63,20 @@ class SequenceTracker:
 
         print(f"Verification passed for all {len(self._sequences_as_gates)} sequence(s).")
 
+    def calculate_sequence_unitary(self, sequence: List[Gate]) -> np.ndarray:
+        """
+        Calculate the result of applying a list of gates in `sequence` to
+        the multi-qubit ground-state.
+        """
+        U = None
+        for gate in sequence:
+            if U is None:
+                U = gate.matrix()
+            else:
+                U = gate.matrix() @ U
+
+        return U
+
     def calculate_resultant_state(self, sequence: List[Gate]) -> np.ndarray:
         """
         Calculate the result of applying a list of gates in `sequence` to

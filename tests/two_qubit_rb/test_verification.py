@@ -3,36 +3,19 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from qm.qua import declare
 
 cirq = pytest.importorskip("cirq")
 
-from qualang_tools.bakery.bakery import Baking
-from qualang_tools.characterization.two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
+from qualang_tools.characterization.two_qubit_rb import TwoQubitRb
 from qualang_tools.characterization.two_qubit_rb.TwoQubitRBDebugger import phased_xz_command_sequences
 
 
-def test_all_verification(config):
+def test_all_verification(config, bake_phased_xz, bake_cz, bake_cnot, prep, meas):
     """
     Tests that a variety of random sequences are tracked, successfully verified
     by unitary-based simulation, and output to file. Tests that mapping from
     command-id to gate is also properly saved to file.
     """
-
-    def bake_phased_xz(baker: Baking, q, x, z, a):
-        pass
-
-    def bake_cz(baker: Baking, q1, q2):
-        pass
-
-    def bake_cnot(baker: Baking, q1, q2):
-        pass
-
-    def prep():
-        pass
-
-    def meas():
-        pass
 
     cz_generator = {"CZ": bake_cz}
     cnot_generator = {"CNOT": bake_cnot}
@@ -62,22 +45,7 @@ def test_all_verification(config):
         rb.verify_sequences()
 
 
-def test_debugger_bell_state_circuit(config):
-    def bake_phased_xz(baker: Baking, q, x, z, a):
-        pass
-
-    def bake_cz(baker: Baking, q1, q2):
-        pass
-
-    def bake_cnot(baker: Baking, q1, q2):
-        pass
-
-    def prep():
-        pass
-
-    def meas():
-        return declare(bool), declare(bool)
-
+def test_debugger_bell_state_circuit(config, bake_phased_xz, bake_cz, bake_cnot, prep, meas):
     cz_generator = {"CZ": bake_cz}
 
     rb = TwoQubitRb(
