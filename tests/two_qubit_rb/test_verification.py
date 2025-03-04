@@ -9,7 +9,7 @@ cirq = pytest.importorskip("cirq")
 
 from qualang_tools.bakery.bakery import Baking
 from qualang_tools.characterization.two_qubit_rb import TwoQubitRb, TwoQubitRbDebugger
-from qualang_tools.characterization.two_qubit_rb.two_qubit_rb.TwoQubitRBDebugger import phased_xz_command_sequences
+from qualang_tools.characterization.two_qubit_rb.TwoQubitRBDebugger import phased_xz_command_sequences
 
 
 def test_all_verification(config):
