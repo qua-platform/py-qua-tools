@@ -123,8 +123,8 @@ def set_correction_parameters_to_opx(
             job.set_element_correction(element, param["correction_matrix"])
         else:
             mixer_name = qm.get_config()["elements"][element]["mixInputs"]["mixer"]
-            lo_conf = qm.get_config()["elements"]["q0.resonator"]["mixInputs"]["lo_frequency"]
-            if_conf = qm.get_config()["elements"]["q0.resonator"]["intermediate_frequency"]
+            lo_conf = qm.get_config()["elements"][element]["mixInputs"]["lo_frequency"]
+            if_conf = qm.get_config()["elements"][element]["intermediate_frequency"]
             if IF != if_conf:
                 print(
                     "WARNING: the intermediate frequency doesn't match the one defined in the config, which means that the loaded correction matrix may not be optimal."
