@@ -25,6 +25,7 @@ class VoltageGateSequence:
         self._elements = elements
         # The OPX configuration
         self._config = configuration
+        self._check_OPX1000()
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
@@ -42,6 +43,34 @@ class VoltageGateSequence:
             "waveforms": {"single": "step_wf"},
         }
         self._config["waveforms"]["step_wf"] = {"type": "constant", "sample": 0.25}
+
+    def _check_OPX1000(self):
+        opx1000 = False
+
+        for con in self._config["controllers"].keys():
+            if "type" in self._config["controllers"][con].keys():
+                if self._config["controllers"][con]["type"] == "opx1000":
+                    opx1000 = True
+            if opx1000:
+                warn(
+                    "A bug currently prevents the VoltageGateSequence from working when using the amplified mode of the OPX1000 LF-FEM with ramps.",
+                    stacklevel=2,
+                )
+
+    def _check_amplified_mode(self, element: str):
+        con = self._config["elements"][element]["singleInput"]["port"][0]
+        if "type" in self._config["controllers"][con].keys():
+            if self._config["controllers"][con]["type"] == "opx1000":
+                fem = self._config["elements"][element]["singleInput"]["port"][1]
+                ch = self._config["elements"][element]["singleInput"]["port"][2]
+                if self._config["controllers"][con]["fems"][fem]["type"] == "LF":
+                    if (
+                        self._config["controllers"][con]["fems"][fem]["analog_outputs"][ch]["output_mode"]
+                        == "amplified"
+                    ):
+                        raise RuntimeWarning(
+                            "A bug currently prevents the VoltageGateSequence from working when using the amplified mode of the OPX1000 LF-FEM with ramps."
+                        )
 
     def _check_name(self, name, key):
         if name in key:
@@ -210,6 +239,7 @@ class VoltageGateSequence:
 
             # Play a ramp
             else:
+                self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
                 self.average_power[i] += self._update_averaged_power(
                     voltage_level, _duration, ramp_duration, self.current_level[i]
                 )
