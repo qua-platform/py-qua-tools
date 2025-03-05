@@ -22,14 +22,17 @@ phased_xz_command_sequences = {
     r"I \otimes -\frac{X}{2}": [6],  # X/2 on qubit 1, Identity on qubit 2
     r"-\frac{X}{2} \otimes -\frac{X}{2}": [7],  # X/2 on both qubits
     r"\text{CZ}": [74],  # Controlled-Z (CZ) gate
-    r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [4, 248],
+    r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [
+        4,
+        248,
+    ],
     r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
     r"(-\frac{X}{2} \otimes I), \text{CNOT}": [1, 239],  # X/2 on qubit 2, followed by CNOT
     r"(X \otimes I), \text{CNOT}": [721, 239],  # X/2 on qubit 2, followed by CNOT
     r"(I \otimes X), \text{SWAP}": [724, 39, 489],  # X on qubit 1, followed by SWAP
     r"(X \otimes X), \text{CZ}": [725, 74],  # XX, followed by CZ
-    r"((X \otimes X), \text{CZ}) x2": [725, 74]*2,  # (XX, followed by CZ) x2
-    r"((X \otimes X), \text{CZ}) x3": [725, 74]*3  # (XX, followed by CZ) x3
+    r"((X \otimes X), \text{CZ}) x2": [725, 74] * 2,  # (XX, followed by CZ) x2
+    r"((X \otimes X), \text{CZ}) x3": [725, 74] * 3,  # (XX, followed by CZ) x3
 }
 
 
