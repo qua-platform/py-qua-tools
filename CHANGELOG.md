@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.19.3] - 2025-03-06
 ### Fixed
 - octave_tools - Fixed typo in `get_calibration_parameters_from_db`.
 
@@ -433,7 +435,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...HEAD
+[0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
 [0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...v0.19.2
 [0.19.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...v0.19.0
