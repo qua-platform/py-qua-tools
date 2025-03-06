@@ -67,4 +67,6 @@ def test_unitary_equivalence(sequence_tracker, label, command_ids):
     U = sequence_tracker.calculate_sequence_unitary(sequence)
 
     expected_circuit = expected_circuits[label]
+    if label ==  r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}":
+        print("hi")
     assert np.allclose(U, cirq.unitary(expected_circuit))

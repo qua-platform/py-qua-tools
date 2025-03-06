@@ -23,8 +23,9 @@ phased_xz_command_sequences = {
     r"-\frac{X}{2} \otimes -\frac{X}{2}": [7],  # X/2 on both qubits
     r"\text{CZ}": [74],  # Controlled-Z (CZ) gate
     r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [
-        4,
-        248,
+        # 4,
+        # 248,
+        252  # temporary revert
     ],
     r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
     r"(-\frac{X}{2} \otimes I), \text{CNOT}": [1, 239],  # X/2 on qubit 2, followed by CNOT
