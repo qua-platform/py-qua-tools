@@ -49,9 +49,9 @@ def get_calibration_parameters_from_db(
         else:
             param["offsets"]["I"] = lo_cal.i0
         if hasattr(lo_cal, "get_q0"):
-            param["offsets"]["I"] = lo_cal.get_q0()
+            param["offsets"]["Q"] = lo_cal.get_q0()
         else:
-            param["offsets"]["I"] = lo_cal.q0
+            param["offsets"]["Q"] = lo_cal.q0
 
         if if_cal is not None:
             if hasattr(if_cal, "get_correction"):
