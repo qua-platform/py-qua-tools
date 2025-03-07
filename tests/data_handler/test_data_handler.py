@@ -55,7 +55,7 @@ def test_data_handler_metadata(tmp_path):
         "metadata": {**metadata, "name": "my_data", "data_path": expected_data_folder},
         "id": 1,
         "data": {},
-        "parents": [],
+        "ancestors": [],
     }
     assert file_node == expected_file_node
 

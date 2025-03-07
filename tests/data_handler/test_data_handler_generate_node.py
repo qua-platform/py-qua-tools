@@ -16,7 +16,7 @@ def test_generate_node_contents_empty_folder(tmp_path):
         "metadata": {"name": "msmt_name", "data_path": f"2023-02-01/#1_msmt_name_123456"},
         "data": {},
         "id": 1,
-        "parents": [],
+        "ancestors": [],
     }
 
 
@@ -32,7 +32,7 @@ def test_generate_node_contents_with_idx_and_created_at(tmp_path):
         "metadata": {"name": None, "data_path": f"2023-02-01/#{idx}_None_123456"},
         "data": {},
         "id": idx,
-        "parents": [1],
+        "ancestors": [1],
     }
 
 
@@ -49,7 +49,7 @@ def test_generate_node_contents_with_all_parameters(tmp_path):
         "metadata": {"name": None, "data_path": f"2023-02-01/#{idx}_None_123456", "key": "value"},
         "data": {},
         "id": idx,
-        "parents": [1],
+        "ancestors": [1],
     }
 
 
@@ -69,5 +69,5 @@ def test_generate_node_contents_with_existing_folder_properties(tmp_path):
         "metadata": {"name": "msmt_name", "data_path": f"2023-02-01/#2_msmt_name_123456"},
         "data": {},
         "id": 2,
-        "parents": [1],
+        "ancestors": [1],
     }

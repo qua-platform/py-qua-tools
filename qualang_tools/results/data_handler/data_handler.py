@@ -179,7 +179,7 @@ class DataHandler:
             "metadata": metadata,
             "data": self.node_data,  # TODO Add self.node_data
             "id": idx,
-            "parents": [idx - 1] if idx > 1 else [],
+            "ancestors": [idx - 1] if idx > 1 else [],
         }
 
     def create_data_folder(

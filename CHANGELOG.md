@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- data_handler - Changed the `parents` key to `ancestors` for consistency with the timeline structure and qualibrate
+
 ### Fixed
 - octave_tools - Fixed typo in `get_calibration_parameters_from_db`.
 
