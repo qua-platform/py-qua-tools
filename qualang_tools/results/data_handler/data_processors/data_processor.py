@@ -6,6 +6,9 @@ __all__ = ["DataProcessor"]
 
 
 class DataProcessor(ABC):
+    # Default separator for filename keys in the processed data
+    nested_separator: str = "."
+
     def process(self, data):
         return data
 
