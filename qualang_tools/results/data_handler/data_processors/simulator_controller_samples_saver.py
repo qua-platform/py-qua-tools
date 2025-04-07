@@ -21,7 +21,7 @@ class SimulatorControllerSamplesSaver(DataProcessor):
                     # analog structure: {"{int}-{int}: array}
                     "analog": dict(val.analog),
                     "digital": dict(val.digital),
-                    "analog_sampling_rate": dict(getattr(val, "analog_sampling_rate", {}})),
+                    "analog_sampling_rate": dict(getattr(val, "analog_sampling_rate", {})),
                 }
             except Exception:
                 logger.warning(f"Could not serialise simulator controller samples for {keys}")
