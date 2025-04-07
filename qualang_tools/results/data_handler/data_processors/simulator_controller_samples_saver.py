@@ -23,10 +23,9 @@ class SimulatorControllerSamplesSaver(DataProcessor):
                     "digital": dict(val.digital),
                     "analog_sampling_rate": dict(getattr(val, "analog_sampling_rate", {})),
                 }
+                update_nested_dict(processed_data, keys, serialised_samples)
             except Exception:
                 logger.warning(f"Could not serialise simulator controller samples for {keys}")
                 continue
-
-            update_nested_dict(processed_data, keys, serialised_samples)
 
         return processed_data
