@@ -1,4 +1,4 @@
-from qualang_tools.results.data_handler.data_processors import iterate_nested_dict
+from qualang_tools.results.data_handler.data_processors.helpers import iterate_nested_dict
 
 
 def test_iterate_nested_dict_empty():
