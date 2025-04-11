@@ -34,7 +34,7 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
 
     """
     if not timeout > 0:
-        raise ValueError(f"timeout={timeout} but must be positive")
+        raise ValueError(f"{timeout=} must be positive")
     qm_log = logging.getLogger("qm.api.frontend_api")  # formerly "qm"
     filt = BusyFilter()
     is_busy = True
