@@ -15,7 +15,6 @@ msg = (
 class BusyFilter(logging.Filter):
     def filter(self, record):
         return not ("already uses" in record.getMessage() or msg in record.getMessage())
-        # return False
 
 
 @contextmanager
@@ -36,8 +35,7 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
     """
     if not timeout > 0:
         raise ValueError(f"timeout={timeout} but must be positive")
-    qm_log = logging.getLogger("qm.api.frontend_api")
-    # qm_log = logging.getLogger("qm")
+    qm_log = logging.getLogger("qm.api.frontend_api")  # formerly "qm"
     filt = BusyFilter()
     is_busy = True
     printed = False
@@ -47,7 +45,6 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
         try:
             qm_log.addFilter(filt)
             qm = qmm.open_qm(config, close_other_machines=False)
-            # qm_log.warning(f"QOP is busy. Waiting for it to free up for {timeout}s...")
         except Exception as e:
             if (
                 hasattr(e, "errors")
