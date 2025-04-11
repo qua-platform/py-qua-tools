@@ -1,6 +1,7 @@
 import logging
 from contextlib import contextmanager
 from time import sleep
+from typing import Generator
 
 from qm import QuantumMachine
 from qm import QuantumMachinesManager
@@ -17,7 +18,7 @@ class BusyFilter(logging.Filter):
 
 
 @contextmanager
-def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) -> QuantumMachine:
+def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) -> Generator[QuantumMachine, None, None]:
     """
     This context manager allows a user to _try_ to
     open a quantum machine, and if it is not possible since its resources are currently in use,

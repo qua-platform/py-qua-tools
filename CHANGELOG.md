@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Add support for WaveformReport in data handler
 
+### Fixed
+- qm_session - Fixed type hint for output of context manager to correctly annotate the QuantumMachine.
+
 ## [0.19.3] - 2025-03-06
 ### Fixed
 - octave_tools - Fixed typo in `get_calibration_parameters_from_db`.
