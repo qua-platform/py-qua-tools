@@ -71,7 +71,7 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
         raise TimeoutError(f"While waiting for QOP to free, reached timeout: {timeout}s")
     try:
         yield qm
-        while qm.get_running_job() is not None:
+        while qm.get_jobs(status=["Running"]):
             sleep(0.2)
     except KeyboardInterrupt:
         pass
