@@ -14,11 +14,10 @@ from .constants import *
 
 class Instruments:
     """
-    Class to add the static information about which QM instruments will be used
-    in an experimental setup. Upon adding an instrument with one of the `add_` methods,
-    its available channels will be enumerated and added individually to a public
-    data structure of "available" channels. Later, these can be moved into a public
-    data structure of "used" channels during allocation.
+    Class to add the static information about which QM instruments will be used in an experimental setup.
+    Upon adding an instrument with one of the `add_` methods, its available channels will be enumerated and added
+    individually to a public data structure of "available" channels.
+    Later, these can be moved into a public data structure of "used" channels during allocation.
     """
 
     def __init__(self):
