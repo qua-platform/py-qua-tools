@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - Add support for WaveformReport in data handler
+- Documentation for the user-facing Wirer API.
 
 ### Fixed
 - qm_session - Fixed type hint for output of context manager to correctly annotate the QuantumMachine.
