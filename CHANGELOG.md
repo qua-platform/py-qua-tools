@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.19.4] - 2025-04-30
 ### Added
 - Add support for WaveformReport in data handler
 - Documentation for the user-facing Wirer API.
@@ -11,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - qm_session - Fixed type hint for output of context manager to correctly annotate the QuantumMachine.
 - qm_session - Fixed filtering to remove error message with qm-qua >= 1.2.0
-- callable_from_qua - Can now be used with the old API with deprecations.
+- callable_from_qua - Can now be used with the OPX1000.
 
 ## [0.19.3] - 2025-03-06
 ### Fixed
@@ -443,8 +445,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...HEAD
-[0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...HEAD
+[0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...v0.19.4
+[0.19.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
 [0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...v0.19.2
 [0.19.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.18.2...v0.19.0
