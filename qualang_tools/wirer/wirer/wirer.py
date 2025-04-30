@@ -35,6 +35,37 @@ def allocate_wiring(
     block_used_channels: bool = True,
     clear_wiring_specifications: bool = True,
 ):
+    """
+    Allocates available instrument channels to quantum elements based on their wiring specifications.
+
+    This function takes the wiring specifications from the provided `Connectivity` instance and attempts
+    to allocate channels for each specification to the available instrument channels within the `Instruments` instance.
+
+    The allocation is done in a sequence based on the line types specified in the `line_type_fill_order`. The function
+    handles different frequency requirements, either DC or RF, and manages the reuse of available channels depending on
+    the `block_used_channels` flag.
+
+    The allocation process involves the following steps:
+    1. The function iterates over the wiring specifications (`specs`) based on their `line_type`, attempting to allocate
+       channels for each `WiringSpec`.
+    2. For each specification, the relevant allocation function (`_allocate_wiring`) is called to allocate DC or RF channels.
+    3. If `clear_wiring_specifications` is `True`, the specifications are cleared after the allocation.
+    4. If `block_used_channels` is `False`, any channels that were previously used but are no longer allocated are returned
+       to the available channels list.
+
+    Args:
+        connectivity (Connectivity): An instance of the `Connectivity` class containing the wiring specifications to be allocated.
+        instruments (Instruments): An instance of the `Instruments` class that manages available and used channels.
+        block_used_channels (bool, optional): If `True`, prevents previously used channels from being returned to the available pool.
+            Defaults to `True`.
+        clear_wiring_specifications (bool, optional): If `True`, clears the list of wiring specifications in `connectivity`
+            after allocation. Defaults to `True`.
+
+    Raises:
+        ConstraintsTooStrictException: If the constraints for a wiring specification are too strict, preventing allocation.
+        NotEnoughChannelsException: If there are not enough available channels to satisfy the wiring specification.
+    """
+
     line_type_fill_order = [
         WiringLineType.RESONATOR,
         WiringLineType.DRIVE,
