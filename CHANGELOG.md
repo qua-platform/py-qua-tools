@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-## [0.19.4] - 2025-04-11
+## [0.19.4] - 2025-04-30
 ### Added
 - Add support for WaveformReport in data handler
 - Documentation for the user-facing Wirer API.
