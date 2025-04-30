@@ -10,9 +10,9 @@ class ConnectivityBase:
     """
     The base class for managing quantum element wiring configurations.
 
-    This class serves as the foundation for storing and managing placeholders for 
-    quantum elements (such as qubits and qubit pairs) and their associated wiring 
-    specifications. It tracks each element's unique ID and the specific wiring 
+    This class serves as the foundation for storing and managing placeholders for
+    quantum elements (such as qubits and qubit pairs) and their associated wiring
+    specifications. It tracks each element's unique ID and the specific wiring
     configurations required to integrate those elements into a quantum setup.
 
     The wiring specifications include details such as:
@@ -23,20 +23,20 @@ class ConnectivityBase:
     - The associated high-level quantum components (e.g., qubits, resonators, etc.).
 
     Attributes:
-        elements (Dict[ElementId, Element]): A dictionary mapping each element's 
+        elements (Dict[ElementId, Element]): A dictionary mapping each element's
                                               unique ID to its corresponding `Element` object.
-        specs (List[WiringSpec]): A list of all the wiring specifications (placeholders) 
+        specs (List[WiringSpec]): A list of all the wiring specifications (placeholders)
                                   added for the quantum elements.
     """
 
     def __init__(self):
         """
-        Initializes a new `ConnectivityBase` instance with empty storage for elements 
+        Initializes a new `ConnectivityBase` instance with empty storage for elements
         and wiring specifications.
 
         This constructor sets up two primary containers:
         - `self.elements`: A dictionary that holds the quantum elements (e.g., qubits).
-        - `self.specs`: A list that stores wiring specifications that detail how 
+        - `self.specs`: A list that stores wiring specifications that detail how
                         the quantum elements are connected and configured.
         """
         self.elements: Dict[ElementId, Element] = {}
@@ -55,10 +55,10 @@ class ConnectivityBase:
         """
         Adds wiring specifications (placeholders) for quantum elements.
 
-        This method allows the addition of one or more wiring specifications for 
-        a set of quantum elements. Each specification defines the configuration of 
-        how the element will be wired, including frequency, input/output lines, 
-        line type, triggering conditions, and channel constraints. The specifications 
+        This method allows the addition of one or more wiring specifications for
+        a set of quantum elements. Each specification defines the configuration of
+        how the element will be wired, including frequency, input/output lines,
+        line type, triggering conditions, and channel constraints. The specifications
         serve as placeholders, and no channels are actually allocated at this stage.
 
         Args:
@@ -66,10 +66,10 @@ class ConnectivityBase:
             io_type (WiringIOType): The input/output configuration for the element (e.g., input, output, or both).
             line_type (Union[WiringLineType, str]): The type of line for the wiring (e.g., resonator, drive, flux).
             triggered (bool): Whether the wiring is triggered (e.g., by an external event).
-            constraints (ChannelSpec): Any channel constraints that should be applied (e.g., frequency domain, 
+            constraints (ChannelSpec): Any channel constraints that should be applied (e.g., frequency domain,
                                        slot availability, etc.).
             elements (List[Element]): The quantum elements to which the wiring specifications apply.
-            shared_line (bool, optional): Whether the wiring specification should apply to a shared line 
+            shared_line (bool, optional): Whether the wiring specification should apply to a shared line
                                           (defaults to False).
 
         Returns:
@@ -95,8 +95,8 @@ class ConnectivityBase:
         """
         Creates `Element` objects for a list of qubits.
 
-        This method constructs `Element` objects for each qubit reference in the provided `qubits` list 
-        and adds them to the internal `self.elements` dictionary. If the element for a qubit already exists, 
+        This method constructs `Element` objects for each qubit reference in the provided `qubits` list
+        and adds them to the internal `self.elements` dictionary. If the element for a qubit already exists,
         it will not be recreated.
 
         Args:
@@ -121,8 +121,8 @@ class ConnectivityBase:
         """
         Creates `Element` objects for a list of qubit pairs.
 
-        This method constructs `Element` objects for each qubit pair reference in the provided `qubit_pairs` list 
-        and adds them to the internal `self.elements` dictionary. If the element for a qubit pair already exists, 
+        This method constructs `Element` objects for each qubit pair reference in the provided `qubit_pairs` list
+        and adds them to the internal `self.elements` dictionary. If the element for a qubit pair already exists,
         it will not be recreated.
 
         Args:
@@ -159,11 +159,10 @@ class ConnectivityBase:
         """
         Adds a single `Element` object to the internal storage.
 
-        This method adds a single `Element` object to the internal `self.elements` dictionary, using 
+        This method adds a single `Element` object to the internal `self.elements` dictionary, using
         the element's unique ID as the key.
 
         Args:
             element (Element): The `Element` object to add to the internal storage.
         """
         self.elements[element.id] = element
-

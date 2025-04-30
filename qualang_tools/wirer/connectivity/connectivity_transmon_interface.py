@@ -8,12 +8,12 @@ class Connectivity(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a transmon-based QPU setup.
 
-    This class defines and stores placeholders for quantum elements (e.g., qubits and resonators) 
-    and specifies the wiring requirements for each of their control and readout lines. It enables 
-    the configuration of line types (e.g., drive, flux, resonator), their I/O roles, and associated 
+    This class defines and stores placeholders for quantum elements (e.g., qubits and resonators)
+    and specifies the wiring requirements for each of their control and readout lines. It enables
+    the configuration of line types (e.g., drive, flux, resonator), their I/O roles, and associated
     frequency domains (RF or DC), as well as constraints for channel allocation.
 
-    The API is designed to model a variety of qubit configurations, such as fixed-frequency and 
+    The API is designed to model a variety of qubit configurations, such as fixed-frequency and
     flux-tunable transmons, along with pairwise coupling mechanisms like cross-resonance and ZZ drive.
     """
 
@@ -21,7 +21,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for resonator and drive lines for fixed-frequency transmons.
 
-        This method configures the wiring specifications (placeholders) for a set of fixed-frequency transmons, 
+        This method configures the wiring specifications (placeholders) for a set of fixed-frequency transmons,
         including the resonator and qubit drive lines. No channels are allocated at this stage.
 
         Args:
@@ -34,7 +34,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for resonator, drive, and flux lines for flux-tunable transmons.
 
-        This method configures the wiring specifications (placeholders) for flux-tunable transmons, including 
+        This method configures the wiring specifications (placeholders) for flux-tunable transmons, including
         resonator, qubit drive, and flux bias lines. No channels are allocated at this stage.
 
         Args:
@@ -48,7 +48,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds a specification (placeholder) for a resonator line for the specified qubits.
 
-        This method configures a resonator line specification (placeholder) that can handle both input and output, 
+        This method configures a resonator line specification (placeholder) that can handle both input and output,
         typically for reading out the state of qubits. It also allows optional triggering and constraints on
         which channel configurations can be allocated for this line.
 
@@ -77,7 +77,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for drive lines for the specified qubits.
 
-        This method configures the qubit drive line specifications (placeholders), which are typically used to apply 
+        This method configures the qubit drive line specifications (placeholders), which are typically used to apply
         control signals to qubits. It allows optional triggering and constraints on which channel configurations
         can be allocated for this line.
 
@@ -122,7 +122,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for flux bias lines for the specified qubits.
 
-        This method configures flux bias line specifications (placeholders), typically used for DC control, to tune 
+        This method configures flux bias line specifications (placeholders), typically used for DC control, to tune
         the qubits' frequency. One can also specify constraints on which channel configurations can be allocated
         for this line.
 
@@ -144,7 +144,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for flux lines for a pair of qubits.
 
-        This method configures flux line specifications (placeholders), typically for controlling couplers or other 
+        This method configures flux line specifications (placeholders), typically for controlling couplers or other
         interactions between qubit pairs. One can also specify constraints on which channel configurations can
         be allocated for this line.
 
@@ -168,7 +168,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for cross-resonance drive lines for a pair of qubits.
 
-        This method configures cross-resonance line specifications (placeholders) for two qubits, 
+        This method configures cross-resonance line specifications (placeholders) for two qubits,
         typically used to implement two-qubit gate operations. One can also specify constraints on which
         channel configurations can be allocated for this line.
 
@@ -193,7 +193,7 @@ class Connectivity(ConnectivityBase):
         """
         Adds specifications (placeholders) for ZZ drive lines for a pair of qubits.
 
-        This method configures ZZ drive line specifications (placeholders) for two qubits, typically used 
+        This method configures ZZ drive line specifications (placeholders) for two qubits, typically used
         for two-qubit gate operations, in the RF frequency domain. One can also specify constraints on which
         channel configurations can be allocated for this line.
 
