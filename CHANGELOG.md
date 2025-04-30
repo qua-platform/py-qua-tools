@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - qm_session - Fixed type hint for output of context manager to correctly annotate the QuantumMachine.
 - qm_session - Fixed filtering to remove error message with qm-qua >= 1.2.0
+- callable_from_qua - Can now be used with the old API with deprecations.
 
 ## [0.19.3] - 2025-03-06
 ### Fixed

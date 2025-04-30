@@ -1,13 +1,12 @@
 from typing import Dict, Optional
+
+import qm.api
+from qm import QuantumMachine
 from qm.api.models.compiler import CompilerOptionArguments
 from qm.jobs.running_qm_job import RunningQmJob
-
-
 from qm.program import Program
 from qm.qua._dsl import _ProgramScope as _ProgramScope_qua
-from qm import QuantumMachine
 from qm.simulate.interface import SimulationConfig
-
 
 __all__ = [
     "patch_qua_program_addons",
@@ -67,6 +66,36 @@ def QM_execute_patched(
     return return_val
 
 
+QM_execute_old_api = qm.api.v2.qm_api_old.QmApiWithDeprecations.execute
+
+
+def QM_execute_patched_old_api(
+    self,
+    program: Program,
+    duration_limit: int = 1000,
+    data_limit: int = 20000,
+    force_execution: int = False,
+    dry_run: int = False,
+    simulate: Optional[SimulationConfig] = None,
+    compiler_options: Optional[CompilerOptionArguments] = None,
+) -> RunningQmJob:
+    return_val = QM_execute_old_api(
+        self,
+        program,
+        duration_limit,
+        data_limit,
+        force_execution,
+        dry_run,
+        simulate,
+        compiler_options=compiler_options,
+    )
+
+    for program_addon in program.addons.values():
+        program_addon.execute_program(program=program, quantum_machine=self)
+
+    return return_val
+
+
 def patch_qua_program_addons():
     import qm.qua._dsl
 
@@ -86,3 +115,8 @@ def patch_qua_program_addons():
         print("qm.QuantumMachine.QuantumMachine.execute already patched, not patching")
     else:
         qm.QuantumMachine.execute = QM_execute_patched
+
+    if qm.api.v2.qm_api_old.QmApiWithDeprecations.execute is QM_execute_patched_old_api:
+        print("qm.QuantumMachine.QuantumMachine.execute already patched, not patching")
+    else:
+        qm.api.v2.qm_api_old.QmApiWithDeprecations.execute = QM_execute_patched_old_api
