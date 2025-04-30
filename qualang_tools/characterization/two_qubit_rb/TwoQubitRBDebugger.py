@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 from matplotlib import pyplot as plt
-from qm import Program, QuantumMachinesManager
+from qm import Program, QuantumMachinesManager, generate_qua_script
 from qm.qua import *
 from tqdm import tqdm
 
@@ -46,7 +46,11 @@ class TwoQubitRbDebugger:
         """
         self.rb = rb
 
+<<<<<<< Updated upstream:qualang_tools/characterization/two_qubit_rb/TwoQubitRBDebugger.py
     def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, unsafe: bool = False):
+=======
+    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, simulate: bool = False):
+>>>>>>> Stashed changes:qualang_tools/characterization/two_qubit_rb/two_qubit_rb/TwoQubitRBDebugger.py
         """
         Run a program testing selected commands containing only combinations of PhasedXZ
         gates and other fundamental gates, which lead to a variety of transformations on
@@ -65,8 +69,13 @@ class TwoQubitRbDebugger:
 
         prog = self._phased_xz_commands_program(len(sequences), num_averages, unsafe)
 
-        qm = qmm.open_qm(self.rb._config)
-        job = qm.execute(prog)
+        with open("script.py", "w+") as f:
+            f.write(generate_qua_script(prog, self.rb._config))
+
+        # qm = qmm.open_qm(self.rb._config)
+        #
+        # job = qm.execute(prog)
+        job = None
 
         self._insert_all_input_stream(job, sequences)
 
@@ -80,12 +89,17 @@ class TwoQubitRbDebugger:
     def _insert_all_input_stream(self, job, sequences):
         for sequence in tqdm(sequences, desc="Running test-sequences", unit="sequence"):
             self.sequence_tracker.make_sequence(sequence)
-            job.insert_input_stream("__gates_len_is__", len(sequence))
+            # job.insert_input_stream("__gates_len_is__", len(sequence))
             for qe in self.rb._rb_baker.all_elements:
+<<<<<<< Updated upstream:qualang_tools/characterization/two_qubit_rb/TwoQubitRBDebugger.py
                 job.insert_input_stream(
                     f"{self._input_stream_name_from_element(str(qe))}_is",
                     self.rb._decode_sequence_for_element(qe, sequence),
                 )
+=======
+                print(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+                # job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+>>>>>>> Stashed changes:qualang_tools/characterization/two_qubit_rb/two_qubit_rb/TwoQubitRBDebugger.py
 
     def _phased_xz_commands_program(self, num_sequences: int, num_averages: int, unsafe: bool) -> Program:
         with program() as prog:

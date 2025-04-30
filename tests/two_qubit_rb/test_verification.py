@@ -3,6 +3,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+<<<<<<< Updated upstream
+=======
+import tqdm
+from qm.qua import declare
+>>>>>>> Stashed changes
 
 cirq = pytest.importorskip("cirq")
 
@@ -45,7 +50,26 @@ def test_all_verification(config, bake_phased_xz, bake_cz, bake_cnot, prep, meas
         rb.verify_sequences()
 
 
+<<<<<<< Updated upstream
 def test_debugger_bell_state_circuit(config, bake_phased_xz, bake_cz, bake_cnot, prep, meas):
+=======
+def test_debugger_bell_state_circuit(config):
+    def bake_phased_xz(baker: Baking, q, x, z, a):
+        pass
+
+    def bake_cz(baker: Baking, q1, q2):
+        pass
+
+    def bake_cnot(baker: Baking, q1, q2):
+        pass
+
+    def prep():
+        pass
+
+    def meas():
+        return declare(bool), declare(bool)
+
+>>>>>>> Stashed changes
     cz_generator = {"CZ": bake_cz}
 
     rb = TwoQubitRb(
