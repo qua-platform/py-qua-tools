@@ -46,11 +46,7 @@ class TwoQubitRbDebugger:
         """
         self.rb = rb
 
-<<<<<<< Updated upstream:qualang_tools/characterization/two_qubit_rb/TwoQubitRBDebugger.py
-    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, unsafe: bool = False):
-=======
     def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, simulate: bool = False):
->>>>>>> Stashed changes:qualang_tools/characterization/two_qubit_rb/two_qubit_rb/TwoQubitRBDebugger.py
         """
         Run a program testing selected commands containing only combinations of PhasedXZ
         gates and other fundamental gates, which lead to a variety of transformations on
@@ -91,17 +87,10 @@ class TwoQubitRbDebugger:
             self.sequence_tracker.make_sequence(sequence)
             # job.insert_input_stream("__gates_len_is__", len(sequence))
             for qe in self.rb._rb_baker.all_elements:
-<<<<<<< Updated upstream:qualang_tools/characterization/two_qubit_rb/TwoQubitRBDebugger.py
-                job.insert_input_stream(
-                    f"{self._input_stream_name_from_element(str(qe))}_is",
-                    self.rb._decode_sequence_for_element(qe, sequence),
-                )
-=======
                 print(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
                 # job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
->>>>>>> Stashed changes:qualang_tools/characterization/two_qubit_rb/two_qubit_rb/TwoQubitRBDebugger.py
 
-    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int, unsafe: bool) -> Program:
+    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
         with program() as prog:
             n_avg = declare(int)
             state = declare(int)
@@ -123,7 +112,7 @@ class TwoQubitRbDebugger:
                 assign(length, gates_len_is[0])
                 with for_(n_avg, 0, n_avg < num_averages, n_avg + 1):
                     self.rb._prep_func()
-                    self.rb._rb_baker.run(gates_is, length, unsafe=unsafe)
+                    self.rb._rb_baker.run(gates_is, length)
                     out1, out2 = self.rb._measure_func()
                     assign(state, (Cast.to_int(out2) << 1) + Cast.to_int(out1))
                     save(state, state_os)
