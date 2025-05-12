@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- qm_session - Fix logging filtering to work on both the OPX+ and OPX1000.
 
 ## [0.19.4] - 2025-04-30
 ### Added
