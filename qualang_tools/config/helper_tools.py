@@ -3,6 +3,120 @@ from copy import deepcopy as _deepcopy
 from typing import List, Tuple
 import json as _json
 from pprint import pprint
+import numpy as np
+from qualang_tools.units import unit
+from qualang_tools.config.intrument_limits import (
+    OCTAVE_GAIN_MAX,
+    OCTAVE_GAIN_MIN,
+    OCTAVE_GAIN_STEP,
+    OPX_AMPLITUDE_MIN,
+    OPX_AMPLITUDE_MAX,
+    OPX1000_MW_POWER_STEP,
+    OPX1000_MW_POWER_MIN,
+    OPX1000_MW_POWER_MAX,
+    OPX1000_MW_AMPLITUDE_MIN,
+    OPX1000_MW_BANDS,
+)
+
+
+def get_band(freq):
+    """Determine the MW fem DAC band corresponding to a given frequency.
+
+    Args:
+        freq (float): The frequency in Hz.
+
+    Returns:
+        int: The Nyquist band number.
+
+    Raises:
+        ValueError: If the frequency is outside the MW fem bandwidth.
+    """
+    possible_bands = []
+    distance_from_edge = []
+    for band in OPX1000_MW_BANDS:
+        if OPX1000_MW_BANDS[band][0] <= freq <= OPX1000_MW_BANDS[band][1]:
+            possible_bands.append(band)
+            distance_from_edge.append(min(freq - OPX1000_MW_BANDS[band][0], OPX1000_MW_BANDS[band][1] - freq))
+    if len(possible_bands) > 0:
+        return possible_bands[np.argmax(distance_from_edge)]
+    else:
+        raise ValueError(
+            f"The specified frequency {freq} Hz is outside of the MW fem bandwidth [{min(min(OPX1000_MW_BANDS.values())) * 1e-6} MHz, {max(max(OPX1000_MW_BANDS.values())) * 1e-9} GHz]"
+        )
+
+
+def _closest_number(lst, target):
+    return min(lst, key=lambda x: abs(x - target))
+
+
+def get_full_scale_power_dBm_and_amplitude(desired_power: float, max_amplitude: float = 0.5) -> tuple[int, float]:
+    """Get the full_scale_power_dbm and waveform amplitude for the MW FEM to output the specified desired power.
+
+    The keyword `full_scale_power_dbm` is the maximum power of normalized pulse waveforms in [-1,1].
+    To convert to voltage:
+        power_mw = 10**(full_scale_power_dbm / 10)
+        max_voltage_amp = np.sqrt(2 * power_mw * 50 / 1000)
+        amp_in_volts = waveform * max_voltage_amp
+        ^ equivalent to OPX+ amp
+    Its range is -11dBm to +16dBm with 3dBm steps.
+
+    Args:
+        desired_power (float): Desired output power in dBm.
+        max_amplitude (float, optional): Maximum allowed waveform amplitude in V. Default is 0.5V.
+
+    Returns:
+        tuple[float, float]: The full_scale_power_dBm and waveform amplitude realizing the desired power.
+    """
+    allowed_power = np.arange(
+        OPX1000_MW_POWER_MIN, OPX1000_MW_POWER_MAX + OPX1000_MW_POWER_STEP / 2, OPX1000_MW_POWER_STEP, dtype=int
+    ).tolist()
+
+    resulting_power = desired_power - 20 * np.log10(max_amplitude)
+    if resulting_power < 0:
+        full_scale_power_dBm = _closest_number(
+            allowed_power, max(resulting_power + OPX1000_MW_POWER_STEP, OPX1000_MW_POWER_MIN)
+        )
+    else:
+        full_scale_power_dBm = _closest_number(
+            allowed_power, min(resulting_power + OPX1000_MW_POWER_STEP, OPX1000_MW_POWER_MAX)
+        )
+    amplitude = 10 ** ((desired_power - full_scale_power_dBm) / 20)
+    if (
+        OPX1000_MW_POWER_MIN <= full_scale_power_dBm <= OPX1000_MW_POWER_MAX
+        and -max_amplitude <= amplitude <= max_amplitude
+    ):
+        return full_scale_power_dBm, amplitude
+    else:
+        raise ValueError(
+            f"The desired power is outside the specifications ([{OPX1000_MW_POWER_MIN}; +{OPX1000_MW_POWER_MAX}]dBm, [{OPX1000_MW_AMPLITUDE_MIN}; +{OPX1000_MW_AMPLITUDE_MIN}]), got ({full_scale_power_dBm}; {amplitude})"
+        )
+
+
+def get_octave_gain_and_amplitude(desired_power: float, max_amplitude: float = 0.125) -> tuple[float, float]:
+    """Get the Octave gain and IF amplitude for the Octave to output the specified desired power.
+
+    Args:
+        desired_power (float): Desired output power in dBm.
+        max_amplitude (float, optional): Maximum allowed IF amplitude provided by the OPX to the Octave in V. Default is 0.125V, which is the optimum for driving the Octave up-conversion mixers.
+
+    Returns:
+        tuple[float, float]: The Octave gain and IF amplitude realizing the desired power.
+    """
+    u = unit(coerce_to_integer=True)
+
+    resulting_power = desired_power - u.volts2dBm(max_amplitude)
+    if resulting_power < 0:
+        octave_gain = round(max(desired_power - u.volts2dBm(max_amplitude) + OCTAVE_GAIN_STEP, OCTAVE_GAIN_MIN) * 2) / 2
+    else:
+        octave_gain = round(min(desired_power - u.volts2dBm(max_amplitude) + OCTAVE_GAIN_STEP, OCTAVE_GAIN_MAX) * 2) / 2
+    amplitude = u.dBm2volts(desired_power - octave_gain)
+
+    if OCTAVE_GAIN_MIN <= octave_gain <= OCTAVE_GAIN_MAX and -max_amplitude <= amplitude < max_amplitude:
+        return octave_gain, amplitude
+    else:
+        raise ValueError(
+            f"The desired power is outside the specifications ([{OCTAVE_GAIN_MIN}; +{OCTAVE_GAIN_MAX}]dBm, [{OPX_AMPLITUDE_MIN}; +{OPX_AMPLITUDE_MAX})V), got ({octave_gain}; {amplitude})"
+        )
 
 
 def transform_negative_delays(config, create_new_config=False):
