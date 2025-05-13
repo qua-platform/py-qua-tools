@@ -11,7 +11,7 @@ from qualang_tools.config.builder import ConfigBuilder
 from qualang_tools.config.components import *
 from qualang_tools.config.primitive_components import *
 from qualang_tools.config.parameters import Parameter, ConfigVars
-from qualang_tools.config.helper_tools import QuaConfig
+from qualang_tools.config.helper_tools import QuaConfig, get_band, get_octave_gain_and_amplitude, get_full_scale_power_dBm_and_amplitude
 
 __all__ = [
     "drag_gaussian_pulse_waveforms",
@@ -55,4 +55,7 @@ __all__ = [
     "Parameter",
     "ConfigVars",
     "QuaConfig",
+    "get_band",
+    "get_octave_gain_and_amplitude",
+    "get_full_scale_power_dBm_and_amplitude"
 ]
