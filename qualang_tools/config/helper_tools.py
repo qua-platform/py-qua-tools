@@ -84,7 +84,7 @@ def get_full_scale_power_dBm_and_amplitude(desired_power: float, max_amplitude: 
     amplitude = 10 ** ((desired_power - full_scale_power_dBm) / 20)
     if (
         OPX1000_MW_POWER_MIN <= full_scale_power_dBm <= OPX1000_MW_POWER_MAX
-        and OPX1000_MW_AMPLITUDE_MIN <= amplitude <= OPX1000_MW_AMPLITUDE_MAX
+        and -max_amplitude <= amplitude <= max_amplitude
     ):
         return full_scale_power_dBm, amplitude
     else:
@@ -112,7 +112,7 @@ def get_octave_gain_and_amplitude(desired_power: float, max_amplitude: float = 0
         octave_gain = round(min(desired_power - u.volts2dBm(max_amplitude) + OCTAVE_GAIN_STEP, OCTAVE_GAIN_MAX) * 2) / 2
     amplitude = u.dBm2volts(desired_power - octave_gain)
 
-    if OCTAVE_GAIN_MIN <= octave_gain <= OCTAVE_GAIN_MAX and OPX_AMPLITUDE_MIN <= amplitude < OPX_AMPLITUDE_MAX:
+    if OCTAVE_GAIN_MIN <= octave_gain <= OCTAVE_GAIN_MAX and -max_amplitude <= amplitude < max_amplitude:
         return octave_gain, amplitude
     else:
         raise ValueError(
