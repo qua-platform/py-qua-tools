@@ -15,7 +15,6 @@ from qualang_tools.config.intrument_limits import (
     OPX1000_MW_POWER_MIN,
     OPX1000_MW_POWER_MAX,
     OPX1000_MW_AMPLITUDE_MIN,
-    OPX1000_MW_AMPLITUDE_MAX,
     OPX1000_MW_BANDS,
 )
 
