@@ -18,7 +18,7 @@ def from_array(var, array):
 
     :param var: the QUA variable that will be looped over (int or fixed).
     :param array: a Python list or numpy array containing the values over which `a` will be looping. The spacing must be even in linear or logarithmic scales and it cannot be a QUA array.
-    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
+    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua.for_.
     """
 
     # Check for array length
@@ -142,7 +142,7 @@ def qua_arange(var, start, stop, step):
     :param start: Start of interval. The interval includes this value. Must be a Python variable.
     :param stop: End of interval. The interval does not include this value. Must be a Python variable.
     :param step: Spacing between values. Must be a Python variable.
-    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
+    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua.for_.
     """
     # Check QUA vs python variables
     if not isinstance(var, Variable):
@@ -183,7 +183,7 @@ def qua_linspace(var, start, stop, num):
     :param start: The starting value of the sequence. The interval includes this value. Must be a Python variable.
     :param stop: The end value of the sequence. The interval includes this value within the 2**-28 fixed point accuracy. Must be a Python variable.
     :param num: Number of samples to generate. Must be a Python variable.
-    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
+    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua.for_.
     """
     # Check QUA vs python variables
     if not isinstance(var, Variable):
@@ -224,7 +224,7 @@ def qua_logspace(var, start, stop, num):
     :param start: The starting value of the sequence as 10**start in linear space. The interval includes this value. Must be a Python variable.
     :param stop: The end value of the sequence as 10**stop in linear space. The interval includes this value within the 2**-28 fixed point accuracy. Must be a Python variable.
     :param num: Number of samples to generate. Must be a Python variable.
-    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua._dsl.for_.
+    :return: QUA for_ loop parameters (var, init, cond, update) as defined in https://qm-docs.qualang.io/api_references/qua/dsl_main?highlight=for_#qm.qua.for_.
     """
     # Check QUA vs python variables
     if not isinstance(var, Variable):
