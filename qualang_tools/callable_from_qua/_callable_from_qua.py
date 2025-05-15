@@ -8,7 +8,6 @@ from qm.program import Program
 from qm.qua import declare_stream, save, pause, align
 from qm.exceptions import QmQuaException
 from qm import QuantumMachine
-from qm.qua._dsl import _ResultSource
 from packaging.version import Version
 import qm
 
@@ -20,6 +19,13 @@ if Version(qm.__version__) < Version("1.2.2"):
     QuaVariable = _Variable
 else:
     from qm.qua.type_hints import QuaVariable
+
+# TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
+#  else block to the top)
+if Version(qm.__version__) < Version("1.2.4"):
+    from qm.qua._dsl import _ResultSource as ResultStreamSource
+else:
+    from qm.qua.type_hints import ResultStreamSource
 
 
 __all__ = ["ProgramAddon", "callable_from_qua"]
@@ -46,27 +52,27 @@ def _get_program_scope():
 @dataclasses.dataclass
 class QuaCallableArgument:
     tag: str
-    stream: _ResultSource
+    stream: ResultStreamSource
 
 
 class QuaCallable:
     def __init__(
         self,
         fn: callable,
-        qua_callable_stream: _ResultSource,
+        qua_callable_stream: ResultStreamSource,
         qua_callable_id: int,
         args: List[Any],
         kwargs: Dict[str, Any],
     ):
         self._fn = fn
         self._qua_callable_id = qua_callable_id
-        self._streams: Dict[str, _ResultSource] = {}
+        self._streams: Dict[str, ResultStreamSource] = {}
         self._declare(qua_callable_stream, args, kwargs)
         self._last_arg_fetch: Dict[str, int] = {}
 
     def _declare(
         self,
-        qua_callable_stream: _ResultSource,
+        qua_callable_stream: ResultStreamSource,
         args: List[Any],
         kwargs: Dict[str, Any],
     ):
