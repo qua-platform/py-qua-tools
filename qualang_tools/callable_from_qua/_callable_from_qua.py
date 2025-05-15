@@ -5,38 +5,78 @@ from typing import List, Any, Dict
 from functools import wraps
 from qm import QmJob
 from qm.program import Program
-from qm.qua import declare_stream, save, pause
+from qm.qua import declare_stream, save, pause, align
 from qm.exceptions import QmQuaException
 from qm import QuantumMachine
-from qm.qua._dsl import _ResultSource, _Variable, align, _get_root_program_scope
+from packaging.version import Version
+import qm
+
+
+# TODO: Remove this if block when we drop support for qm < 1.2.2 (and move the import that is currently in the
+#  else block to the top)
+if Version(qm.__version__) < Version("1.2.2"):
+    from qm.qua._dsl import _Variable
+
+    QuaVariable = _Variable
+else:
+    from qm.qua.type_hints import QuaVariable
+
+# TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
+#  else block to the top)
+if Version(qm.__version__) < Version("1.2.4"):
+    from qm.qua._dsl import _ResultSource as ResultStreamSource
+else:
+    from qm.qua.type_hints import ResultStreamSource
+
 
 __all__ = ["ProgramAddon", "callable_from_qua"]
+
+
+def _get_program_scope():
+    # TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
+    #  else block to the top)
+    qua_below_1_2_4 = Version(qm.__version__) < Version("1.2.4")
+    if qua_below_1_2_4:
+        try:
+            from qm.qua._dsl import _get_root_program_scope
+
+            return _get_root_program_scope()
+        except IndexError:
+            raise RuntimeError("Cannot get program scope. Please run this function inside a QUA program.")
+    else:
+        from qm.qua._scope_management.scopes_manager import scopes_manager
+        from qm.qua import NoScopeFoundException
+
+        try:
+            return scopes_manager.program_scope
+        except NoScopeFoundException:
+            raise RuntimeError("Cannot get program scope. Please run this function inside a QUA program.")
 
 
 @dataclasses.dataclass
 class QuaCallableArgument:
     tag: str
-    stream: _ResultSource
+    stream: ResultStreamSource
 
 
 class QuaCallable:
     def __init__(
         self,
         fn: callable,
-        qua_callable_stream: _ResultSource,
+        qua_callable_stream: ResultStreamSource,
         qua_callable_id: int,
         args: List[Any],
         kwargs: Dict[str, Any],
     ):
         self._fn = fn
         self._qua_callable_id = qua_callable_id
-        self._streams: Dict[str, _ResultSource] = {}
+        self._streams: Dict[str, ResultStreamSource] = {}
         self._declare(qua_callable_stream, args, kwargs)
         self._last_arg_fetch: Dict[str, int] = {}
 
     def _declare(
         self,
-        qua_callable_stream: _ResultSource,
+        qua_callable_stream: ResultStreamSource,
         args: List[Any],
         kwargs: Dict[str, Any],
     ):
@@ -48,7 +88,7 @@ class QuaCallable:
         align()
 
     def _convert_to_qua_arg(self, arg_id: str, arg):
-        if isinstance(arg, _Variable):
+        if isinstance(arg, QuaVariable):
             tag = f"__qua_callable__{self._qua_callable_id}__{arg_id}"
             stream = declare_stream()
             save(arg, stream)
@@ -104,7 +144,7 @@ class QuaCallableEventManager(ProgramAddon):
 
         try:
             # Check if we are already inside a program
-            _get_root_program_scope()
+            _get_program_scope()
             self.declare_all()
         except QmQuaException:
             ...
@@ -175,7 +215,7 @@ def callable_from_qua(func: callable):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            program = _get_root_program_scope()._program
+            program = _get_program_scope()._program
         except IndexError:
             return func(*args, **kwargs)
 
