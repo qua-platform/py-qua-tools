@@ -4,13 +4,11 @@ from typing import Dict, Any, Generator, List, Tuple, Optional
 def iterate_nested_dict(
     d: Dict[str, Any], parent_keys: Optional[List[str]] = None
 ) -> Generator[Tuple[List[str], Any], None, None]:
-    """Iterate over a nested dictionary
+    """Iterate over a nested dictionary (dicts only).
 
     :param d: The dictionary to iterate over
     :param parent_keys: The keys of the parent dictionary. Used for recursion
-
     :return: A generator that yields a tuple of the keys and the value
-
     """
     if parent_keys is None:
         parent_keys = []
@@ -21,18 +19,48 @@ def iterate_nested_dict(
             yield from iterate_nested_dict(v, parent_keys=keys)
 
 
-def update_nested_dict(d: dict, keys: List[Any], value: Any) -> None:
-    """Update a nested dictionary with a new value
+def iterate_nested_dict_with_lists(
+    d: Any, parent_keys: Optional[List[str]] = None
+) -> Generator[Tuple[List[str], Any], None, None]:
+    """Iterate over a nested dictionary and lists.
 
-    :param d: The dictionary to update
-    :param keys: The keys to the value to update
+    :param d: The dictionary or list to iterate over
+    :param parent_keys: The keys of the parent dictionary. Used for recursion
+    :return: A generator that yields a tuple of the keys and the value
+    """
+    if parent_keys is None:
+        parent_keys = []
+    if isinstance(d, dict):
+        for k, v in d.items():
+            keys = parent_keys + [k]
+            yield keys, v
+            yield from iterate_nested_dict_with_lists(v, parent_keys=keys)
+    elif isinstance(d, list):
+        for idx, item in enumerate(d):
+            keys = parent_keys + [str(idx)]
+            yield keys, item
+            yield from iterate_nested_dict_with_lists(item, parent_keys=keys)
+
+
+def update_nested_dict(d: dict, keys: list, value: Any) -> None:
+    """Update a nested dictionary or list with a new value
+
+    :param d: The dictionary or list to update
+    :param keys: The keys (or string indices) to the value to update
     :param value: The new value to set
     """
-    subdict = d
+    sub = d
     for key in keys[:-1]:
-        subdict = subdict[key]
-
-    subdict[keys[-1]] = value
+        if isinstance(sub, list):
+            idx = int(key)
+            sub = sub[idx]
+        else:
+            sub = sub[key]
+    last_key = keys[-1]
+    if isinstance(sub, list):
+        sub[int(last_key)] = value
+    else:
+        sub[last_key] = value
 
 
 def copy_nested_dict(d: dict) -> dict:
