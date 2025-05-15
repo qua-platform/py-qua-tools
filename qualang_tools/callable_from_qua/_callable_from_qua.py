@@ -16,6 +16,7 @@ import qm
 #  else block to the top)
 if Version(qm.__version__) < Version("1.2.2"):
     from qm.qua._dsl import _Variable
+
     QuaVariable = _Variable
 else:
     from qm.qua.type_hints import QuaVariable
@@ -30,6 +31,7 @@ else:
 
 __all__ = ["ProgramAddon", "callable_from_qua"]
 
+
 def _get_program_scope():
     # TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
     #  else block to the top)
@@ -37,12 +39,14 @@ def _get_program_scope():
     if qua_below_1_2_4:
         try:
             from qm.qua._dsl import _get_root_program_scope
+
             return _get_root_program_scope()
         except IndexError:
             raise RuntimeError("Cannot get program scope. Please run this function inside a QUA program.")
     else:
         from qm.qua._scope_management.scopes_manager import scopes_manager
         from qm.qua import NoScopeFoundException
+
         try:
             return scopes_manager.program_scope
         except NoScopeFoundException:
