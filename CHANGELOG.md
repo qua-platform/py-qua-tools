@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - qm_session - Fix logging filtering to work on both the OPX+ and OPX1000.
+- voltage_gates - Fix an inaccuracy in the derivation of the compensation pulse amplitude when fixing its duration.
 
 
 ## [0.19.4] - 2025-04-30
