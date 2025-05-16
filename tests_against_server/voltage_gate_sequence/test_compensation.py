@@ -34,6 +34,7 @@ with program() as prog:
 
     # Navigate through the charge stability map
     seq.add_step(voltage_point_name="initialization", level=[a, -a, b, -b])
+    seq.add_step(level=[-a, a, -b, b])
     # seq.add_step(voltage_point_name="initialization", level=[0.07, -0.07, 0.01, -0.01])
     # seq.add_step(voltage_point_name="idle", ramp_duration=t_R, duration=t)
     # seq.add_step(voltage_point_name="readout", ramp_duration=t_R, duration=t)
@@ -47,7 +48,7 @@ with program() as prog:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host="172.16.33.101", cluster_name="CS_2")
+qmm = QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name)
 from qm.qua import *
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
