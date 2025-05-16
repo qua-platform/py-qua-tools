@@ -11,8 +11,8 @@ from qualang_tools.external_frameworks.qcodes.opx_driver import OPX
 #############################################
 #                  Config                   #
 #############################################
-qop_ip = "127.0.0.1"  # Akiva OPX1000
-cluster_name = "Cluster_1"   # Write your cluster_name if version >= QOP220
+qop_ip = "172.16.33.115"  # Akiva OPX1000
+cluster_name = "CS_3"   # Write your cluster_name if version >= QOP220
 qop_port = None  # Write the QOP port if version < QOP220
 
 def get_config(fem = 3):
@@ -73,7 +73,7 @@ def get_config(fem = 3):
                     "out1": ("con1", fem, 1),
                     "out2": ("con1", fem, 2),
                 },
-                "time_of_flight": 24,
+                "time_of_flight": 28,
                 "smearing": 0,
             },
         },
@@ -181,7 +181,7 @@ VP1 = MyCounter("counter1", "Vp1")
 VP2 = MyCounter("counter2", "Vp2")
 
 #####################################
-run = "datasaver"
+run = "live_plotting"
 # Pass the readout length (in ns) to the class to convert the demodulated/integrated data into Volts
 # and create the setpoint Parameter for raw adc trace acquisition
 opx_instrument.readout_pulse_length(1000)
@@ -349,11 +349,11 @@ if run == "1d":
     # and create the setpoint Parameter for raw adc trace acquisition
     opx_instrument.readout_pulse_length(readout_length)
     # Add the custom sequence to the OPX
-    opx_instrument.qua_program = OPX_1d_scan(simulate=True)
-    # Simulate program
-    opx_instrument.sim_time(10_000)
-    opx_instrument.simulate()
-    opx_instrument.plot_simulated_wf()
+    # opx_instrument.qua_program = OPX_1d_scan(simulate=True)
+    # # Simulate program
+    # opx_instrument.sim_time(10_000)
+    # opx_instrument.simulate()
+    # opx_instrument.plot_simulated_wf()
     # Execute program
     opx_instrument.qua_program = OPX_1d_scan(simulate=False)
     # Here we add a scale factor to convert the data from V to pA
@@ -405,7 +405,7 @@ def OPX_2d_scan(simulate=False):
                     with else_():
                         play("bias" * amp(gate_2_prefactor), "gate_2")
 
-                    wait(200 // 4, "readout_element")
+                    wait(2000 // 4, "readout_element")
                     measure(
                         "readout",
                         "readout_element",
@@ -433,9 +433,9 @@ if run == "2d":
     # Add the custom sequence to the OPX
     opx_instrument.qua_program = OPX_2d_scan(simulate=True)
     # Simulate program
-    opx_instrument.sim_time(100_000)
-    opx_instrument.simulate()
-    opx_instrument.plot_simulated_wf()
+    # opx_instrument.sim_time(10_000)
+    # opx_instrument.simulate()
+    # opx_instrument.plot_simulated_wf()
     # Execute program
     opx_instrument.qua_program = OPX_2d_scan(simulate=False)
     do0d(
@@ -446,6 +446,7 @@ if run == "2d":
         do_plot=True,
         exp=experiment,
     )
+
 
 #####################################
 #        SLICED INT & do0d          #
@@ -621,3 +622,95 @@ if run == "datasaver":
         dataset = datasaver.dataset
     # Plot the dataset
     plot_dataset(dataset)
+
+
+#####################################
+#        2D SWEEP & do0d            #
+#####################################
+# Shows how to perform a 2D sweep with the OPX without
+# scanning any external parameters with the do0d function
+gate_1_step = 0.01
+gate_1_biases = np.arange(-0.2, 0.2, gate_1_step)
+gate_1_prefactor = gate_1_step / 0.1
+
+gate_2_step = 0.005
+gate_2_biases = np.arange(0, 0.25, gate_2_step)
+gate_2_prefactor = gate_2_step / 0.1
+
+
+def OPX_2d_scan(simulate=False):
+    with program() as prog:
+        n = declare(int)
+        i = declare(int)
+        j = declare(int)
+        I = declare(fixed)
+        Q = declare(fixed)
+        I_st = declare_stream()
+        Q_st = declare_stream()
+        n_st = declare_stream()
+        if not simulate:
+            pause()
+
+        with for_(n, 0, n<10000, n+1):
+            save(n, n_st)
+            with for_(i, 0, i < len(gate_1_biases), i + 1):
+                with if_(i == 0):
+                    play("bias" * amp(0), "gate_1")
+                with else_():
+                    play("bias" * amp(gate_1_prefactor), "gate_1")
+
+                with for_(j, 0, j < len(gate_2_biases), j + 1):
+                    with if_(j == 0):
+                        play("bias" * amp(0), "gate_2")
+                    with else_():
+                        play("bias" * amp(gate_2_prefactor), "gate_2")
+
+                    wait(2000 // 4, "readout_element")
+                    measure(
+                        "readout",
+                        "readout_element",
+                        None,
+                        integration.full("cos", I, "out1"),
+                        integration.full("cos", Q, "out2"),
+                    )
+                    save(I, I_st)
+                    save(Q, Q_st)
+                    wait(2000)
+
+                ramp_to_zero("gate_2")
+            ramp_to_zero("gate_1")
+
+        with stream_processing():
+            n_st.save("iteration")
+            I_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).save("I")
+            Q_st.buffer(len(gate_2_biases)).buffer(len(gate_1_biases)).save("Q")
+    return prog
+
+
+if run == "live_plotting":
+    # Axis1 is the most inner loop
+    opx_instrument.set_sweep_parameters("axis1", gate_2_biases, "V", "Gate 2 biases")
+    # Axis2 is the second loop
+    opx_instrument.set_sweep_parameters("axis2", gate_1_biases, "V", "Gate 1 biases")
+    # Add the custom sequence to the OPX
+    # opx_instrument.qua_program = OPX_2d_scan(simulate=True)
+    # Simulate program
+    # opx_instrument.sim_time(10_000)
+    # opx_instrument.simulate()
+    # opx_instrument.plot_simulated_wf()
+    # Execute program
+    opx_instrument.qua_program = OPX_2d_scan(simulate=False)
+    # Compile the QUA program and execute it
+    opx_instrument.run_exp()
+    # Exit the pause() statement and start the sequence
+    opx_instrument.job.resume()
+    # Fetch the data in real-time and plot them
+    opx_instrument.live_plotting(["I", "Q","iteration"], number_of_runs=10000)
+    # Update the data counter to save the last dataset to the qcodes database
+    opx_instrument.counter = n_avg
+    # Store the results in the qcodes database
+    do0d(
+        opx_instrument.get_measurement_parameter(),
+        do_plot=True,
+        exp=experiment,
+    )

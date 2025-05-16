@@ -55,7 +55,7 @@ class OPX(Instrument):
         self.job = None
         self.counter = 0
         self.demod_factor = 1
-        self.results = {"names": [], "types": [], "buffers": [], "units": []}
+        self.results = {"names": [], "types": [], "saving_type": [], "buffers": [], "units": [], "scale_factor": []}
         self.prog_id = None
         self.simulated_wf = {}
         self.unwrap_phase = unwrap_phase
@@ -313,9 +313,14 @@ class OPX(Instrument):
                 out = None
                 # demodulated or integrated data
                 self.result_handles.get(self.results["names"][i]).wait_for_values(self.counter)
+                if self.results["saving_type"][i] == "save":
+                    out = self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)
+                elif self.results["saving_type"][i] == "saveAll":
+                    out = self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"]
+                else:
+                    raise RuntimeError(f"Unknown 'saving_type', got {self.results['saving_type'][i]}")
                 if self.results["types"][i] == "IQ":
-                    out = (
-                        -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
+                    out = -(out
                         * 4096
                         / (self.readout_pulse_length() * self.readout_sampling_rate())
                         * self.demod_factor
@@ -323,11 +328,9 @@ class OPX(Instrument):
                     )
                 # raw adc traces
                 elif self.results["types"][i] == "adc":
-                    out = (
-                        -(self.result_handles.get(self.results["names"][i]).fetch(self.counter - 1)["value"])
-                        / 4096
-                        * self.results["scale_factor"][i]
-                    )
+                    out = -out / 4096 * self.results["scale_factor"][i]
+                else:
+                    raise RuntimeError(f"Unknown 'types', got {self.results['types'][i]}")
                 # Reshape data
                 if len(self.results["buffers"][i]) == 2:
                     output[self.results["names"][i]] = out.reshape(
@@ -357,12 +360,13 @@ class OPX(Instrument):
         """
 
         if len(gene.values) > 0:
-            if gene.values[0].string_value == "saveAll":
+            if gene.values[0].string_value == "saveAll" or gene.values[0].string_value == "save":
                 self.results["names"].append(gene.values[1].string_value)
                 self.results["types"].append("IQ")
                 self.results["units"].append("V")
                 self.results["buffers"].append([])
                 self.results["scale_factor"].append(1)
+                self.results["saving_type"].append(gene.values[0].string_value)
                 # Check if next buffer is for averaging
                 if hasattr(gene.values[2].list_value.values[1], "list_value"):
                     if len(gene.values[2].list_value.values[1].list_value.values) > 0:
@@ -399,8 +403,9 @@ class OPX(Instrument):
         """
         count = 0
         for i in prog.result_analysis._result_analysis.model:
-            self._extend_result(i, count, False)
-            count += 1
+            if len(i.values) > 0 and i.values[1].string_value not in ["iteration", "n", "counter"]:
+                self._extend_result(i, count, False)
+                count += 1
 
     def set_sweep_parameters(self, scanned_axis, setpoints, unit=None, label=None):
         """
@@ -446,6 +451,7 @@ class OPX(Instrument):
         self.results = {
             "names": [],
             "types": [],
+            "saving_type": [],
             "buffers": [],
             "units": [],
             "scale_factor": [],
@@ -606,7 +612,7 @@ class OPX(Instrument):
                 else:
                     # Convert the results into Volts
                     data = (
-                        -data[-1]
+                        -data[:]
                         * 4096
                         / int(self.readout_pulse_length() * self.readout_sampling_rate())
                         * self.demod_factor
