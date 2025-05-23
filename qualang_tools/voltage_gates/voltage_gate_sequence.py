@@ -335,8 +335,8 @@ class VoltageGateSequence:
                     amplitude = declare(fixed)
                     eval_average_power = declare(int)
                     assign(eval_average_power, self.average_power[i])
-                    assign(amplitude, -Cast.mul_fixed_by_int(0.09765625 / duration, eval_average_power))
-                    assign(amplitude, amplitude * 0.01)
+                    assign(amplitude, -Cast.mul_fixed_by_int(0.01 / duration, eval_average_power))
+                    assign(amplitude, amplitude * 0.09765625)
                     play(operation * amp((amplitude - self.current_level[i]) * 4), gate)
 
             self.current_level[i] = amplitude
