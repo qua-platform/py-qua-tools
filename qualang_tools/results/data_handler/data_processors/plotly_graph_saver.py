@@ -46,6 +46,4 @@ class PlotlyGraphSaver(DataProcessor):
             elif self.file_format.lower() == "json":
                 fig.write_json(str(file_path))
             else:
-                raise NotImplementedError(
-                    f"File format {self.file_format} is not supported for Plotly graphs"
-                )
+                raise NotImplementedError(f"File format {self.file_format} is not supported for Plotly graphs")
