@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - config - Added helper functions to get the MW-FEM band from the desired output frequency. 
 - config - Added helper functions to get the gain/full_scale_power_dbm and waveform amplitude from the desired output power.
+- data_handler - Added support for plotly data saving
 
 ### Fixed
 - qm_session - Fix logging filtering to work on both the OPX+ and OPX1000.
