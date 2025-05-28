@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.19.5] - 2025-05-30
 ### Added
 - config - Added helper functions to get the MW-FEM band from the desired output frequency. 
 - config - Added helper functions to get the gain/full_scale_power_dbm and waveform amplitude from the desired output power.
@@ -454,7 +456,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...HEAD
+[0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
 [0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...v0.19.4
 [0.19.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
 [0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...v0.19.2
