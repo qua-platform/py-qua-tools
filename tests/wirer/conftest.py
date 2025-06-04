@@ -57,3 +57,16 @@ def instruments_1opx_2external_mixer() -> Instruments:
     instruments.add_opx_plus(controllers=[1])
     instruments.add_external_mixer(indices=[1, 2])
     return instruments
+
+
+@pytest.fixture()
+def instruments_5opx1000() -> Instruments:
+    instruments = Instruments()
+    instruments.add_lf_fem(controller=1, slots=[1, 2])
+    instruments.add_lf_fem(controller=2, slots=[1, 2])
+    instruments.add_lf_fem(controller=3, slots=[1, 2])
+    instruments.add_lf_fem(controller=4, slots=[1, 2])
+    instruments.add_mw_fem(controller=5, slots=[3, 7])
+    instruments.add_octave(indices=[1, 2])
+    return instruments
+

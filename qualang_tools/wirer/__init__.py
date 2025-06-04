@@ -1,7 +1,7 @@
 from .instruments import Instruments
 from .connectivity import Connectivity
 from .wirer.wirer import allocate_wiring
-from .visualizer.visualizer import visualize
+from .visualizer.web_visualizer import visualize
 from .wirer.channel_specs_interface import (
     mw_fem_spec,
     lf_fem_spec,
