@@ -98,10 +98,15 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QM Instrument Config</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://www.quantum-machines.co/wp-content/uploads/2025/03/cropped-QM_Favicon_32x32-1-192x192.png" sizes="192x192">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        * {{
+            font-family: 'Poppins', sans-serif;
+            font-weight: 300;
+        }}
+        
         body {{
             margin: 0;
             padding: 10px;
@@ -116,7 +121,6 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
 
         .page-heading {{
             text-align: center;
-            font-family: 'Poppins', sans-serif;
             font-weight: 700;
             font-size: 32;
             margin: 20px 0 10px;
@@ -125,13 +129,15 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
 
         .figure-container {{
             margin-bottom: 5px;
-            text-align: center;
+            text-align: left;
         }}
         
         .figure-caption {{
+            padding: 0px;
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin: 0px;
+            margin-left: 10px;
             color: #333;
         }}
 
@@ -217,6 +223,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
             figures_html += f"""
             <div class="figure-container">
                 <!-- Remove the caption and use the title as tooltip -->
+                <p class="figure-caption">{fig_data['title'].replace('_', ' #')}</p>
                 <img src="data:image/png;base64,{fig_data['data']}" 
                      alt="{fig_data['title']}" 
                      title="{fig_data['title'].replace('_', ' #')}" 

@@ -52,7 +52,6 @@ def test_empty_opx_octave_visualization(instruments_1opx_1octave):
     visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
 
-@pytest.mark.skip(reason="plotting")
 def test_basic_superconducting_qubit_example_multi_chassis(instruments_5opx1000):
     connectivity = Connectivity()
     # Define arbitrary set of qubits and qubit pairs for convenience
