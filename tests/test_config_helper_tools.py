@@ -242,3 +242,89 @@ def test_transform_negative_delays(negative_delay_config):
     # Test that the updated config is correct with create_new_config=False
     transform_negative_delays(negative_delay_config)
     assert test_config == negative_delay_config
+
+
+@pytest.mark.parametrize(
+    "freq, expected_output",
+    list(
+        zip(
+            [
+                OPX1000_MW_BANDS[2][1] - 50e6,
+                OPX1000_MW_BANDS[2][1] - 600e6,
+                OPX1000_MW_BANDS[2][0] - 50e6,
+                OPX1000_MW_BANDS[2][0] + 600e6,
+            ],
+            [3, 2, 1, 2],
+        )
+    ),
+)
+def test_get_band(freq, expected_output):
+    result = get_band(freq)
+    assert result == expected_output
+
+
+@pytest.mark.parametrize("freq", [OPX1000_MW_BANDS[1][0] - 5e6, OPX1000_MW_BANDS[3][1] + 5e6])
+def test_get_band_error(freq):
+    with pytest.raises(
+        Exception,
+        match=f"The specified frequency {freq} Hz is outside of the MW fem bandwidth",
+    ):
+        get_band(freq)
+
+
+@pytest.mark.parametrize(
+    "desired_power, max_amplitude, expected_output",
+    list(
+        zip(
+            [0, -60, OPX1000_MW_POWER_MAX, 0],
+            [1, 1, 1, 0.5],
+            [
+                (4, 0.6309573444801932),
+                (OPX1000_MW_POWER_MIN, 0.0035481338923357532),
+                (OPX1000_MW_POWER_MAX, 1.0),
+                (10, 0.31622776601683794),
+            ],
+        )
+    ),
+)
+def test_get_full_scale_power_dBm_and_amplitude(desired_power, max_amplitude, expected_output):
+    result = get_full_scale_power_dBm_and_amplitude(desired_power, max_amplitude)
+    assert result == expected_output
+
+
+@pytest.mark.parametrize("desired_power, max_amplitude", list(zip([OPX1000_MW_POWER_MAX], [0.9])))
+def test_get_full_scale_power_dBm_and_amplitude_error(desired_power, max_amplitude):
+    with pytest.raises(
+        Exception,
+        match="The desired power is outside the specifications",
+    ):
+        get_full_scale_power_dBm_and_amplitude(desired_power, max_amplitude)
+
+
+@pytest.mark.parametrize(
+    "desired_power, max_amplitude, expected_output",
+    list(
+        zip(
+            [0, -60, 10, 0],
+            [0.125, 1.25, 0.125, 0.5],
+            [
+                (8.5, 0.11885022274370186),
+                (OCTAVE_GAIN_MIN, 0.0031622776601683794),
+                (18.5, 0.11885022274370186),
+                (-3.5, 0.47315125896148047),
+            ],
+        )
+    ),
+)
+def test_get_octave_gain_and_amplitude(desired_power, max_amplitude, expected_output):
+    result = get_octave_gain_and_amplitude(desired_power, max_amplitude)
+    assert result == expected_output
+
+
+@pytest.mark.parametrize("desired_power, max_amplitude", list(zip([OCTAVE_GAIN_MAX], [0.1])))
+def test_get_octave_gain_and_amplitude_error(desired_power, max_amplitude):
+    with pytest.raises(
+        Exception,
+        match="The desired power is outside the specifications",
+    ):
+        get_octave_gain_and_amplitude(desired_power, max_amplitude)

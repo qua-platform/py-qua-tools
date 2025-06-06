@@ -1,7 +1,7 @@
 [flake8]
 max-line-length = 88
 select = C,E,F,W,B,B950
-ignore = E203, E501, W503, E741, B950, F405, F403, E231, E713, W604, E241, E221, E222, E225
+ignore = E203, E501, W503, E741, B950, F405, F403, E231, E713, W604, E241, E221, E222, E225, E702
 exclude = **/tests/**
 per-file-ignores =
     qualang_tools/config/components.py:E743

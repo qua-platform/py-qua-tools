@@ -394,7 +394,6 @@ class ManualOutputControl:
                     qm.close()
         self.analog_job.halt()
         self.analog_qm.close()
-        self.qmm.close()
 
     def _process_config(self, config_original, elements_to_control=None):
         """
@@ -532,7 +531,7 @@ class ManualOutputControl:
                 "frequency": self.analog_config["elements"][element].get("intermediate_frequency"),
             }
 
-        opx_plus = True if self.qmm.version()["server"][0] == "2" else False
+        opx_plus = True if self.qmm.version_dict()["server"][0] == "2" else False
         for con in list(config["controllers"].keys()):
             if opx_plus and pulser_count[con] > 18:
                 raise Exception(

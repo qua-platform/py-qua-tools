@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+- control_panel - Fix call to `qmm.version` that had changed in qm.qua >= 1.2.1.
+- control_panel - Remove `qmm.close` call, after it was deprecated in qm.qua >= 1.2.1.
+
+## [0.19.5] - 2025-05-30
+### Added
+- config - Added helper functions to get the MW-FEM band from the desired output frequency. 
+- config - Added helper functions to get the gain/full_scale_power_dbm and waveform amplitude from the desired output power.
+- data_handler - Added support for plotly data saving
+
+### Fixed
+- qm_session - Fix logging filtering to work on both the OPX+ and OPX1000.
+- voltage_gates - Fix an inaccuracy in the derivation of the compensation pulse amplitude when fixing its duration.
+
 
 ## [0.19.4] - 2025-04-30
 ### Added
@@ -445,7 +458,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...HEAD
+[0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
 [0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...v0.19.4
 [0.19.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
 [0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...v0.19.2

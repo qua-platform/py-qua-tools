@@ -3,6 +3,7 @@ from qm.qua import *
 
 def assign_variables_to_element(element, *variables):
     """
+    -- Relevant only for <QOP2.4.4 --
     Forces the given variables to be used by the given element thread. Useful as a workaround for when the compiler
     wrongly assigns variables which can cause gaps.
     To be used at the beginning of a program, will add a 16ns wait to the given element. Use an `align()` if needed.
