@@ -59,14 +59,7 @@ def QM_execute_patched(
     compiler_options: Optional[CompilerOptionArguments] = None,
 ) -> RunningQmJob:
     return_val = QM_execute(
-        self,
-        program,
-        duration_limit,
-        data_limit,
-        force_execution,
-        dry_run,
-        simulate,
-        compiler_options,
+        self, program, duration_limit, data_limit, force_execution, dry_run, simulate, compiler_options,
     )
 
     for program_addon in program.addons.values():
