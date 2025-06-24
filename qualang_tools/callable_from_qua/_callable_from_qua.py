@@ -119,16 +119,13 @@ class QuaCallable:
 
 class ProgramAddon(ABC):
     @abstractmethod
-    def enter_program(self, program: Program):
-        ...  # noqa: E704
+    def enter_program(self, program: Program): ...  # noqa: E704
 
     @abstractmethod
-    def exit_program(self, exc_type, exc_val, exc_tb):
-        ...  # noqa: E704
+    def exit_program(self, exc_type, exc_val, exc_tb): ...  # noqa: E704
 
     @abstractmethod
-    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
-        ...  # noqa: E704
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine): ...  # noqa: E704
 
 
 class QuaCallableEventManager(ProgramAddon):
