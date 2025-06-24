@@ -35,7 +35,10 @@ class QuaCallable:
         self._last_arg_fetch: Dict[str, int] = {}
 
     def _declare(
-        self, qua_callable_stream: _ResultSource, args: List[Any], kwargs: Dict[str, Any],
+        self,
+        qua_callable_stream: _ResultSource,
+        args: List[Any],
+        kwargs: Dict[str, Any],
     ):
         align()
         self._args = [self._convert_to_qua_arg(f"__pos__{i}", arg) for i, arg in enumerate(args)]
@@ -76,16 +79,13 @@ class QuaCallable:
 
 class ProgramAddon(ABC):
     @abstractmethod
-    def enter_program(self, program: Program):
-        ...  # noqa: E704
+    def enter_program(self, program: Program): ...  # noqa: E704
 
     @abstractmethod
-    def exit_program(self, exc_type, exc_val, exc_tb):
-        ...  # noqa: E704
+    def exit_program(self, exc_type, exc_val, exc_tb): ...  # noqa: E704
 
     @abstractmethod
-    def execute_program(self, program: Program, quantum_machine: QuantumMachine):
-        ...  # noqa: E704
+    def execute_program(self, program: Program, quantum_machine: QuantumMachine): ...  # noqa: E704
 
 
 class QuaCallableEventManager(ProgramAddon):
