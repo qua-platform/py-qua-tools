@@ -332,15 +332,3 @@ by specifying a new parameter ```baking_index ``` that shall be set to the bakin
 ```b_ref.get_baking_index() ```
 3. One can finally specify the ```overrides ``` argument of the ```qm.queue.add_compiled ``` with the dictionary
 ```b_new.get_waveforms_dict() ```
-
-## High resolution (<1ns) dynamical decoupling
-
-It is possible to achieve resolutions which are much lower than the sampling rates. In the attached CPMG and XY8 
-examples, we are scanning tau with a resolution of 0.1ns. This can only be achieved when using a smooth function for the
-pi pulses, such as Gaussians. The Gaussians centers are shifted by the correct amount, and then sampled every ns.
-This effectively converts the 16-bit vertical resolution into temporal resolution.
-
-In the CPMG example, we have 1000 pulses with taus of ~100ns. Saving this entire sequence is not possible, so it is 
-being cut into **blocks** of 20 pulses. These 20 pulses have a total duration which is a multiple of the clock cycle, 
-allowing multiple blocks to be concatenated without gaps.
-Memory considerations limit the number of different taus which can be scanned with a single program. 
