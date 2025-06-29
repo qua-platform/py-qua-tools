@@ -5,9 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 ### Changed
-- **Breaking change!**
+- **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
 - control_panel - Remove `qmm.close` call, after it was deprecated in qm.qua >= 1.2.1.
-- requirements - Change qm-qua requirement to >=1.2.2
+- requirements - Change qm-qua requirement to >= 1.2.2
 
 ### Fixed
 - control_panel - Fix call to `qmm.version` that had changed in qm.qua >= 1.2.1.
