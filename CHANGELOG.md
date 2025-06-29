@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
+- requirements - Change qm-qua requirement to >=1.2.2
+
 ### Added
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
 
@@ -13,7 +17,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Removed
 - control_panel - Remove `qmm.close` call, after it was deprecated in qm.qua >= 1.2.1.
-- **Breaking change!** requirements - Change qm-qua requirement to >=1.2.2
 
 ## [0.19.5] - 2025-05-30
 ### Added
