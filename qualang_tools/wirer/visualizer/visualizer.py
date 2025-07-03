@@ -1,7 +1,5 @@
 from typing import List
 
-import matplotlib.pyplot as plt
-
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 from qualang_tools.wirer.instruments.instrument_channels import InstrumentChannels
 from qualang_tools.wirer.visualizer.instrument_figure_manager import InstrumentFigureManager

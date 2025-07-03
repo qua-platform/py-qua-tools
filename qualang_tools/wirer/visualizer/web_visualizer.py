@@ -5,8 +5,11 @@ from typing import List, Optional
 import matplotlib.pyplot as plt
 import webbrowser
 
+import importlib.resources as pkg_resources
+
 from qualang_tools.wirer.instruments.instrument_channels import InstrumentChannels
 from qualang_tools.wirer.visualizer.instrument_figure_manager import InstrumentFigureManager
+from qualang_tools.wirer import visualizer
 
 
 class WebInstrumentFigureManager(InstrumentFigureManager):
@@ -57,7 +60,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
 
             # Save figure to bytes buffer
             img_buffer = io.BytesIO()
-            fig.patch.set_facecolor(f"#ffffff")  # Transparent figure background
+            fig.patch.set_facecolor("#ffffff")  # Transparent figure background
             fig.savefig(img_buffer, format="png", dpi=150, bbox_inches="tight")
             img_buffer.seek(0)
 
@@ -91,130 +94,8 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
     def _generate_html(self, figure_data: List[dict]) -> str:
         """Generate the HTML content with embedded figures"""
 
-        html_template = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QM Instrument Config</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://www.quantum-machines.co/wp-content/uploads/2025/03/cropped-QM_Favicon_32x32-1-192x192.png" sizes="192x192">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        * {{
-            font-family: 'Poppins', sans-serif;
-            font-weight: 300;
-        }}
-        
-        body {{
-            margin: 0;
-            padding: 10px;
-            background: #ffffff;
-            font-family: Arial, sans-serif;
-        }}
-
-        .container {{
-            max-width: 1400px;
-            margin: 0 auto;
-        }}
-
-        .page-heading {{
-            text-align: center;
-            font-weight: 700;
-            font-size: 32;
-            margin: 20px 0 10px;
-            color: #161616
-        }}
-
-        .figure-container {{
-            margin-bottom: 5px;
-            text-align: left;
-        }}
-        
-        .figure-caption {{
-            padding: 0px;
-            font-size: 14px;
-            font-weight: bold;
-            margin: 0px;
-            margin-left: 10px;
-            color: #333;
-        }}
-
-        .figure-image {{
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }}
-        
-        .icon-buttons {{
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 9999;
-        }}
-        .icon-buttons button {{
-            background: none;
-            border: none;
-            font-size: 20px;
-            margin-left: 8px;
-            cursor: pointer;
-            padding: 4px;
-        }}
-        .icon-buttons button:hover {{
-            color: #0072ce;
-        }}
-
-        @media (max-width: 768px) {{
-            body {{
-                padding: 5px;
-            }}
-
-            .figure-container {{
-                margin-bottom: 3px;
-            }}
-        }}
-    </style>
-    <script>
-    function saveAsHTML() {{
-        const blob = new Blob([document.documentElement.outerHTML], {{type: 'text/html' }});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'qm_instrument_config.html';
-        a.click();
-    }}
-
-    function saveAsImage() {{
-        const targetDiv = document.getElementById('figs'); // <-- ID of your target div
-
-        html2canvas(targetDiv, {{ useCORS: true, allowTaint: true }}).then(canvas => {{
-            const a = document.createElement('a');
-            a.href = canvas.toDataURL('image/png');
-            a.download = 'qm-instrument-config.png';
-            a.click();
-        }});
-    }}
-
-
-    </script>
-    
-</head>
-<body>
-    <h1 class="page-heading">QM Instrument Config</h1>
-    
-
-    <div class="icon-buttons">
-        <button onclick="saveAsHTML()" title="Save as HTML">💾</button>
-        <button onclick="saveAsImage()" title="Save as Image">🖼️</button>
-    </div>
-
-    <div class="container">
-        {figures_html}
-    </div>
-</body>
-</html>
-        """
+        with pkg_resources.files(visualizer).joinpath("web_template.html").open("r", encoding="utf-8") as f:
+            html_template = f.read()
 
         # Generate figure HTML
         figures_html = '<div id="figs">'
@@ -224,9 +105,9 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
             <div class="figure-container">
                 <!-- Remove the caption and use the title as tooltip -->
                 <p class="figure-caption">{fig_data['title'].replace('_', ' #')}</p>
-                <img src="data:image/png;base64,{fig_data['data']}" 
-                     alt="{fig_data['title']}" 
-                     title="{fig_data['title'].replace('_', ' #')}" 
+                <img src="data:image/png;base64,{fig_data['data']}"
+                     alt="{fig_data['title']}"
+                     title="{fig_data['title'].replace('_', ' #')}"
                      class="figure-image"
                      style="transition: none;">
             </div>
