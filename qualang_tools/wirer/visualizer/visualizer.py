@@ -1,7 +1,5 @@
 from typing import List
 
-import matplotlib.pyplot as plt
-
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 from qualang_tools.wirer.instruments.instrument_channels import InstrumentChannels
 from qualang_tools.wirer.visualizer.instrument_figure_manager import InstrumentFigureManager
@@ -101,23 +99,3 @@ def draw_annotations(manager: InstrumentFigureManager, annotations: List[PortAnn
         ax = manager.get_ax(annotation.con, annotation.slot, annotation.instrument_id)
         annotation.draw(ax)
         annotation.title_axes(ax)
-
-
-def visualize(qubit_dict, available_channels=None):
-    # Invert the qubit dictionary for easier annotation processing
-    inverted_dict = invert_qubit_dict(qubit_dict)
-
-    # Prepare annotations and labels
-    annotations = make_annotations(inverted_dict)
-    annotations = merge_annotations_on_same_channel(annotations)
-
-    # Manage figures and draw
-    manager = InstrumentFigureManager()
-
-    if available_channels is not None:
-        available_channel_annotations = make_unused_channel_annotations(available_channels)
-        draw_annotations(manager, available_channel_annotations)
-
-    draw_annotations(manager, annotations)
-
-    plt.show()

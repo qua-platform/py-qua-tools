@@ -4,7 +4,10 @@ version = "v0.19.5"
 description = "The qualang_tools package includes various tools related to QUA programs in Python"
 authors = ["Quantum Machines <info@quantum-machines.co>"]
 license = "BSD-3-Clause"
-packages = [{ include = "qualang_tools" }]
+packages = [
+    { include = "qualang_tools" },
+    { include = "qualang_tools/wirer/visualizer/web_template.html", format = "sdist" }
+]
 include = []
 exclude = ["**/tests/**"]
 readme = "README.md"
