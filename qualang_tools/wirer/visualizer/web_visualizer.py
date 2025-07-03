@@ -110,7 +110,8 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
                      title="{fig_data['title'].replace('_', ' #')}"
                      class="figure-image"
                      style="transition: none;">
-            </div>"""
+            </div>
+"""
 
         figures_html += "</div>"
 
