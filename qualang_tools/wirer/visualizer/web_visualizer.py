@@ -11,6 +11,7 @@ from qualang_tools.wirer.visualizer.instrument_figure_manager import InstrumentF
 
 class WebInstrumentFigureManager(InstrumentFigureManager):
     """Extended figure manager that can export figures to web format"""
+
     def __init__(self):
         super().__init__()
         self.figure_objects = {}  # Store actual Figure objects
@@ -40,6 +41,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
     @property
     def instrument_id_mapping(self):
         from qualang_tools.wirer.visualizer.layout import instrument_id_mapping
+
         return instrument_id_mapping
 
     def export_figures_to_html(self, output_path: str = "instrument_visualization.html"):
@@ -55,24 +57,22 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
 
             # Save figure to bytes buffer
             img_buffer = io.BytesIO()
-            fig.patch.set_facecolor(f'#ffffff')  # Transparent figure background
-            fig.savefig(img_buffer, format='png', dpi=150, bbox_inches='tight')
+            fig.patch.set_facecolor(f"#ffffff")  # Transparent figure background
+            fig.savefig(img_buffer, format="png", dpi=150, bbox_inches="tight")
             img_buffer.seek(0)
 
             # Encode to base64
-            img_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
+            img_base64 = base64.b64encode(img_buffer.read()).decode("utf-8")
             img_buffer.close()
 
-            figure_data.append({
-                'key': key,
-                'title': key,  # Use key as title since suptitle is removed
-                'data': img_base64
-            })
+            figure_data.append(
+                {"key": key, "title": key, "data": img_base64}  # Use key as title since suptitle is removed
+            )
 
         # Move OPX+ and OPX1000 figures to the end
         def priority(fig):
-            title = fig['title'].lower()
-            if 'opx' in title:
+            title = fig["title"].lower()
+            if "opx" in title:
                 return 1  # Lower priority: appear later
             return 0  # Higher priority: appear first
 
@@ -82,7 +82,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
         html_content = self._generate_html(figure_data)
 
         # Write to file
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
 
         print(f"Visualization exported to: {output_path}")
@@ -232,13 +232,17 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
             </div>
             """
 
-        figures_html += '</div>'
+        figures_html += "</div>"
 
         return html_template.format(figures_html=figures_html)
 
 
-def visualize_web(qubit_dict, available_channels: Optional[InstrumentChannels] = None,
-                  output_path: str = None, show_matplotlib: bool = False):
+def visualize_web(
+    qubit_dict,
+    available_channels: Optional[InstrumentChannels] = None,
+    output_path: str = None,
+    show_matplotlib: bool = False,
+):
     """
     Create web-based visualization of instrument wiring
 
@@ -253,8 +257,11 @@ def visualize_web(qubit_dict, available_channels: Optional[InstrumentChannels] =
     """
     # Import functions from your existing visualizer
     from qualang_tools.wirer.visualizer.visualizer import (
-        invert_qubit_dict, make_annotations, merge_annotations_on_same_channel,
-        make_unused_channel_annotations, draw_annotations
+        invert_qubit_dict,
+        make_annotations,
+        merge_annotations_on_same_channel,
+        make_unused_channel_annotations,
+        draw_annotations,
     )
 
     # Process data same as original visualizer
@@ -284,7 +291,7 @@ def visualize_web(qubit_dict, available_channels: Optional[InstrumentChannels] =
         plt.show()
     else:
         # Close matplotlib figures to save memory
-        plt.close('all')
+        plt.close("all")
 
     return html_path
 
@@ -298,8 +305,11 @@ def visualize(qubit_dict, available_channels=None, use_matplotlib=None):
     """
     if use_matplotlib:
         from qualang_tools.wirer.visualizer.visualizer import (
-            invert_qubit_dict, make_annotations, merge_annotations_on_same_channel,
-            make_unused_channel_annotations, draw_annotations
+            invert_qubit_dict,
+            make_annotations,
+            merge_annotations_on_same_channel,
+            make_unused_channel_annotations,
+            draw_annotations,
         )
 
         # Replicate original visualize logic
@@ -316,10 +326,4 @@ def visualize(qubit_dict, available_channels=None, use_matplotlib=None):
         draw_annotations(manager, annotations)
         plt.show()
     else:
-         webbrowser.open(
-             visualize_web(
-                qubit_dict,
-                available_channels,
-                show_matplotlib=False
-            )
-         )
+        webbrowser.open(visualize_web(qubit_dict, available_channels, show_matplotlib=False))
