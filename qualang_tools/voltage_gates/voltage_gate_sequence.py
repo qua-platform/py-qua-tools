@@ -25,7 +25,6 @@ class VoltageGateSequence:
         self._elements = elements
         # The OPX configuration
         self._config = configuration
-        self._check_OPX1000()
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
@@ -44,19 +43,6 @@ class VoltageGateSequence:
         }
         self._config["waveforms"]["step_wf"] = {"type": "constant", "sample": 0.25}
 
-    def _check_OPX1000(self):
-        opx1000 = False
-
-        for con in self._config["controllers"].keys():
-            if "type" in self._config["controllers"][con].keys():
-                if self._config["controllers"][con]["type"] == "opx1000":
-                    opx1000 = True
-            if opx1000:
-                warn(
-                    "A bug currently prevents the VoltageGateSequence from working when using the amplified mode of the OPX1000 LF-FEM with ramps.",
-                    stacklevel=2,
-                )
-
     def _check_amplified_mode(self, element: str):
         con = self._config["elements"][element]["singleInput"]["port"][0]
         if "type" in self._config["controllers"][con].keys():
@@ -68,8 +54,9 @@ class VoltageGateSequence:
                         self._config["controllers"][con]["fems"][fem]["analog_outputs"][ch]["output_mode"]
                         == "amplified"
                     ):
-                        raise RuntimeWarning(
-                            "A bug currently prevents the VoltageGateSequence from working when using the amplified mode of the OPX1000 LF-FEM with ramps."
+                        warn(
+                            "Combining ramps with the amplified mode of the LF-FEM is only working from QOP330 onwards. \nThe ramp_rate is amplified by a factor of 5 in earlier versions.",
+                            stacklevel=2,
                         )
 
     def _check_name(self, name, key):
