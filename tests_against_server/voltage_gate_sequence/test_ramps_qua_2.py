@@ -2,14 +2,9 @@
 Squares (Python + QUA) + Ramps (None) + Compensation (max_amplitude=0.45)
 """
 
-from configuration_lf import *
-
 from qm import generate_qua_script
 from qm.qua import *
-from qm import QuantumMachinesManager
-import matplotlib.pyplot as plt
-import numpy as np
-from validation_utils import validate_program, simulate_program, get_linear_ramp
+from validation_utils import *
 
 
 ###################
@@ -19,7 +14,7 @@ from validation_utils import validate_program, simulate_program, get_linear_ramp
 
 # %% 1 consecutive compensation pulses
 print("1 single compensation pulse:")
-level_init = [0.8, -0.1]
+level_init = [MAX_AMP, -0.1]
 duration_init = 1000
 level_manip = [0.5, -0.3]
 ramp_to_manip = 100
@@ -35,7 +30,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
@@ -67,7 +62,7 @@ validate_program(samples, requested_wf_p, requested_wf_m)
 # print(generate_qua_script(prog, config))
 
 # %% 2 consecutive compensation pulses
-level_init = [0.8, -0.1]
+level_init = [MAX_AMP, -0.1]
 duration_init = 3000
 level_manip = [0.5, -0.3]
 ramp_to_manip = 100
@@ -83,7 +78,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
@@ -115,7 +110,7 @@ validate_program(samples, requested_wf_p, requested_wf_m)
 # print(generate_qua_script(prog, config))
 
 # %% 2 consecutive compensation pulses - ramp rate in QUA
-level_init = [0.8, -0.1]
+level_init = [MAX_AMP, -0.1]
 duration_init = 3000
 level_manip = [0.5, -0.3]
 ramp_to_manip = 1000
@@ -131,7 +126,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
@@ -164,7 +159,7 @@ validate_program(samples, requested_wf_p, requested_wf_m)
 
 
 # %% 2 consecutive compensation pulses ramp rate and duration in QUA
-level_init = [0.8, -0.1]
+level_init = [MAX_AMP, -0.1]
 duration_init = 3000
 level_manip = [0.5, -0.3]
 ramp_to_manip = 1000
@@ -180,7 +175,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
