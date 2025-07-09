@@ -40,7 +40,7 @@ default_additional_files = {
 #####################
 con = "con1"
 fem = 5  # Should be the LF-FEM index, e.g., 1
-port_P1 = 6 # --> scope 7
+port_P1 = 6  # --> scope 7
 port_P2 = 3
 # Set octave_config to None if no octave are present
 octave_config = None
