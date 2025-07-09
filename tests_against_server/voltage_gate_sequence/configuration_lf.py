@@ -42,13 +42,17 @@ con = "con1"
 fem = 5  # Should be the LF-FEM index, e.g., 1
 port_P1 = 6  # --> scope 7
 port_P2 = 3
+
+# For the automatic testing
+MAX_AMP = 0.8
+sampling_rate = 2
+
 # Set octave_config to None if no octave are present
 octave_config = None
 
 #############################################
 #              OPX PARAMETERS               #
 #############################################
-sampling_rate = int(1e9)  # or, int(2e9)
 
 ######################
 #       READOUT      #
@@ -132,7 +136,7 @@ config = {
                             #   2 GS/s: uses two cores per output
                             # NOTE: duration parameterization of arb. waveforms, sticky elements and chirping
                             #       aren't yet supported in 2 GS/s.
-                            "sampling_rate": sampling_rate,
+                            "sampling_rate": 1e9,
                             # At 1 GS/s, use the "upsampling_mode" to optimize output for
                             #   modulated pulses (optimized for modulated pulses):      "mw"    (default)
                             #   unmodulated pulses (optimized for clean step response): "pulse"
@@ -143,28 +147,28 @@ config = {
                             "offset": 0.0,
                             # "output_mode": "amplified",
                             "output_mode": "direct",
-                            "sampling_rate": sampling_rate,
+                            "sampling_rate": 1e9,
                             "upsampling_mode": "pulse",
                         },
                         # Sensor gate
                         3: {
                             "offset": 0.0,
                             "output_mode": "direct",
-                            "sampling_rate": sampling_rate,
+                            "sampling_rate": 1e9,
                             "upsampling_mode": "pulse",
                         },
                         # RF Reflectometry
                         7: {
                             "offset": 0.0,
                             "output_mode": "direct",
-                            "sampling_rate": sampling_rate,
+                            "sampling_rate": 1e9,
                             "upsampling_mode": "mw",
                         },
                         # DC readout
                         8: {
                             "offset": 0.0,
                             "output_mode": "direct",
-                            "sampling_rate": sampling_rate,
+                            "sampling_rate": 1e9,
                             "upsampling_mode": "pulse",
                         },
                     },
@@ -173,8 +177,8 @@ config = {
                         2: {},  # TTL for QDAC
                     },
                     "analog_inputs": {
-                        1: {"offset": 0.0, "gain_db": 0, "sampling_rate": sampling_rate},  # RF reflectometry input
-                        2: {"offset": 0.0, "gain_db": 0, "sampling_rate": sampling_rate},  # DC readout input
+                        1: {"offset": 0.0, "gain_db": 0, "sampling_rate": 1e9},  # RF reflectometry input
+                        2: {"offset": 0.0, "gain_db": 0, "sampling_rate": 1e9},  # DC readout input
                     },
                 }
             },

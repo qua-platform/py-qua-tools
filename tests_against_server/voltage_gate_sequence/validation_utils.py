@@ -1,4 +1,4 @@
-from configuration_lf import *
+from configuration import *
 
 from qm import SimulationConfig, QuantumMachinesManager
 from qm_saas import QOPVersion, QmSaas

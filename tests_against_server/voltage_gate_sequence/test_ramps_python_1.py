@@ -2,14 +2,9 @@
 Squares (Python + QUA) + Ramps (None) + Compensation (max_amplitude=0.45)
 """
 
-from configuration_lf import *
-
 from qm import generate_qua_script
 from qm.qua import *
-from qm import QuantumMachinesManager
-import matplotlib.pyplot as plt
-import numpy as np
-from validation_utils import validate_program, simulate_program, get_linear_ramp
+from validation_utils import *
 
 
 ###################
@@ -35,7 +30,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
@@ -80,7 +75,7 @@ seq.add_points("initialization", level_init, duration_init)
 seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
-sampling_rate = 2
+
 requested_wf_p, requested_wf_m = [
     (
         [level_init[i]] * duration_init * sampling_rate
