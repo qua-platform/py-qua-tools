@@ -5,8 +5,6 @@ from typing import Union, List, Dict
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
 
-BASE_OPERATION_AMPLITUDE = 0.5
-BASE_OPERATION_AMPLITUDE_BIT_SHIFT = int(np.log2(1/BASE_OPERATION_AMPLITUDE))
 
 class VoltageGateSequence:
     def __init__(self, configuration: Dict, elements: List[str]):
@@ -35,15 +33,18 @@ class VoltageGateSequence:
         self.average_power = [0 for _ in self._elements]
         self._expression = None
         self._expression2 = None
+        self.base_operation = {}
         # Add to the config the step operation (length=16ns & amp=0.25V)
         for el in self._elements:
-            self._config["elements"][el]["operations"]["step"] = "step_pulse"
-        self._config["pulses"]["step_pulse"] = {
-            "operation": "control",
-            "length": 16,
-            "waveforms": {"single": "step_wf"},
-        }
-        self._config["waveforms"]["step_wf"] = {"type": "constant", "sample": BASE_OPERATION_AMPLITUDE}
+            base_amplitude = self._check_amplified_mode(el)
+            self.base_operation[el] = {"amplitude": base_amplitude, "bit_shift":int(np.log2(1/base_amplitude))}
+            self._config["elements"][el]["operations"]["step"] = f"{el}_step_pulse"
+            self._config["pulses"][f"{el}_step_pulse"] = {
+                "operation": "control",
+                "length": 16,
+                "waveforms": {"single": f"{el}_step_wf"},
+            }
+            self._config["waveforms"][f"{el}_step_wf"] = {"type": "constant", "sample": base_amplitude}
 
     def _check_amplified_mode(self, element: str):
         con = self._config["elements"][element]["singleInput"]["port"][0]
@@ -56,10 +57,10 @@ class VoltageGateSequence:
                         self._config["controllers"][con]["fems"][fem]["analog_outputs"][ch]["output_mode"]
                         == "amplified"
                     ):
-                        warn(
-                            "Combining ramps with the amplified mode of the LF-FEM is only working from QOP330 onwards. \nThe ramp_rate is amplified by a factor of 5 in earlier versions.",
-                            stacklevel=2,
-                        )
+                        return 0.5
+
+        return 0.25
+
 
     def _check_name(self, name, key):
         if name in key:
@@ -193,7 +194,7 @@ class VoltageGateSequence:
                 if self.is_QUA(voltage_level) or self.is_QUA(self.current_level[i]):
                     # if dynamic duration --> play step and wait
                     if self.is_QUA(_duration):
-                        play("step" * amp((voltage_level - self.current_level[i]) << BASE_OPERATION_AMPLITUDE_BIT_SHIFT), gate)
+                        play("step" * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]), gate)
                         wait((_duration - 16) >> 2, gate)
                     # if constant duration --> new operation and play(*amp(..))
                     else:
@@ -201,10 +202,10 @@ class VoltageGateSequence:
                             operation = self._add_op_to_config(
                                 gate,
                                 "step",
-                                amplitude=BASE_OPERATION_AMPLITUDE,
+                                amplitude=self.base_operation[gate]["amplitude"],
                                 length=_duration,
                             )
-                            play(operation * amp((voltage_level - self.current_level[i]) << BASE_OPERATION_AMPLITUDE_BIT_SHIFT), gate)
+                            play(operation * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]), gate)
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
                 elif isinstance(_duration, (QuaExpression, QuaVariable)):
@@ -322,7 +323,7 @@ class VoltageGateSequence:
                     play(ramp(ramp_rate), gate, duration=4)
                     wait((duration_4ns_pow2_cur - 16)>> 2, gate)
                 else:
-                    operation = self._add_op_to_config(gate, "compensation", amplitude=BASE_OPERATION_AMPLITUDE, length=duration)
+                    operation = self._add_op_to_config(gate, "compensation", amplitude=self.base_operation[gate]["amplitude"], length=duration)
                     amplitude = declare(fixed)
                     eval_average_power = declare(int)
                     assign(eval_average_power, self.average_power[i])
@@ -330,7 +331,7 @@ class VoltageGateSequence:
                     # The calculation is done in two steps to avoid rounding errors
                     assign(amplitude, -Cast.mul_fixed_by_int(0.01 / duration, eval_average_power))
                     assign(amplitude, amplitude * 0.09765625)
-                    play(operation * amp((amplitude - self.current_level[i]) << BASE_OPERATION_AMPLITUDE_BIT_SHIFT), gate)
+                    play(operation * amp((amplitude - self.current_level[i]) << self.base_operation[gate]["bit_shift"]), gate)
 
             self.current_level[i] = amplitude
 
