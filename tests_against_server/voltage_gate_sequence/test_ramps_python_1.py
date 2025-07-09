@@ -17,7 +17,6 @@ from validation_utils import validate_program, simulate_program, get_linear_ramp
 ###################
 
 
-
 # %% 1 consecutive compensation pulses
 print("1 single compensation pulse:")
 level_init = [0.1, -0.1]
@@ -37,11 +36,16 @@ seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
 sampling_rate = 2
-requested_wf_p, requested_wf_m = [([level_init[i]] * duration_init * sampling_rate
-                + get_linear_ramp(level_init[i], level_manip[i], ramp_to_manip, sampling_rate)
-                + [level_manip[i]] * duration_manip * sampling_rate
-                + get_linear_ramp(level_manip[i], level_readout[i], ramp_to_readout, sampling_rate)
-                + [level_readout[i]] * duration_readout * sampling_rate) for i in range(2)]
+requested_wf_p, requested_wf_m = [
+    (
+        [level_init[i]] * duration_init * sampling_rate
+        + get_linear_ramp(level_init[i], level_manip[i], ramp_to_manip, sampling_rate)
+        + [level_manip[i]] * duration_manip * sampling_rate
+        + get_linear_ramp(level_manip[i], level_readout[i], ramp_to_readout, sampling_rate)
+        + [level_readout[i]] * duration_readout * sampling_rate
+    )
+    for i in range(2)
+]
 
 
 with program() as prog:
@@ -77,11 +81,16 @@ seq.add_points("idle", level_manip, duration_manip)
 seq.add_points("readout", level_readout, duration_readout)
 
 sampling_rate = 2
-requested_wf_p, requested_wf_m = [([level_init[i]] * duration_init * sampling_rate
-                + get_linear_ramp(level_init[i], level_manip[i], ramp_to_manip, sampling_rate)
-                + [level_manip[i]] * duration_manip * sampling_rate
-                + get_linear_ramp(level_manip[i], level_readout[i], ramp_to_readout, sampling_rate)
-                + [level_readout[i]] * duration_readout * sampling_rate) for i in range(2)]
+requested_wf_p, requested_wf_m = [
+    (
+        [level_init[i]] * duration_init * sampling_rate
+        + get_linear_ramp(level_init[i], level_manip[i], ramp_to_manip, sampling_rate)
+        + [level_manip[i]] * duration_manip * sampling_rate
+        + get_linear_ramp(level_manip[i], level_readout[i], ramp_to_readout, sampling_rate)
+        + [level_readout[i]] * duration_readout * sampling_rate
+    )
+    for i in range(2)
+]
 
 
 with program() as prog:
