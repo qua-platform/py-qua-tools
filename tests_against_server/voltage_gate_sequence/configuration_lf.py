@@ -39,7 +39,9 @@ default_additional_files = {
 # OPX configuration #
 #####################
 con = "con1"
-fem = 1  # Should be the LF-FEM index, e.g., 1
+fem = 5  # Should be the LF-FEM index, e.g., 1
+port_P1 = 6 # --> scope 7
+port_P2 = 3
 # Set octave_config to None if no octave are present
 octave_config = None
 
@@ -64,7 +66,7 @@ reflectometry_readout_length = 1 * u.us
 reflectometry_readout_amp = 30 * u.mV
 
 # Time of flight
-time_of_flight = 24
+time_of_flight = 28
 
 ######################
 #      DC GATES      #
@@ -73,12 +75,12 @@ time_of_flight = 24
 ## Section defining the points from the charge stability map - can be done in the config
 # Relevant points in the charge stability map as ["P1", "P2"] in V
 level_init = [0.1, -0.1]
-level_manip = [0.2, -0.2]
+level_manip = [0.7, -0.7]
 level_readout = [0.12, -0.12]
 
 # Duration of each step in ns
 duration_init = 30000
-duration_manip = 1000
+duration_manip = 5000
 duration_readout = readout_len + 100
 duration_compensation_pulse = 4 * u.us
 
@@ -117,14 +119,14 @@ config = {
                     "type": "LF",
                     "analog_outputs": {
                         # P1
-                        1: {
+                        port_P1: {
                             # DC Offset applied to the analog output at the beginning of a program.
                             "offset": 0.0,
                             # The "output_mode" can be used to tailor the max voltage and frequency bandwidth, i.e.,
                             #   "direct":    1Vpp (-0.5V to 0.5V), 750MHz bandwidth (default)
                             #   "amplified": 5Vpp (-2.5V to 2.5V), 330MHz bandwidth
                             # Note, 'offset' takes absolute values, e.g., if in amplified mode and want to output 2.0 V, then set "offset": 2.0
-                            "output_mode": "direct",
+                            "output_mode": "amplified",
                             # The "sampling_rate" can be adjusted by using more FEM cores, i.e.,
                             #   1 GS/s: uses one core per output (default)
                             #   2 GS/s: uses two cores per output
@@ -137,9 +139,10 @@ config = {
                             "upsampling_mode": "pulse",
                         },
                         # P2
-                        2: {
+                        port_P2: {
                             "offset": 0.0,
-                            "output_mode": "amplified",
+                            # "output_mode": "amplified",
+                            "output_mode": "direct",
                             "sampling_rate": sampling_rate,
                             "upsampling_mode": "pulse",
                         },
@@ -180,7 +183,7 @@ config = {
     "elements": {
         "P1": {
             "singleInput": {
-                "port": (con, fem, 1),
+                "port": (con, fem, port_P1),
             },
             "operations": {
                 "step": "P1_step_pulse",
@@ -190,7 +193,7 @@ config = {
         },
         "P1_sticky": {
             "singleInput": {
-                "port": (con, fem, 1),
+                "port": (con, fem, port_P1),
             },
             "sticky": {"analog": True, "duration": hold_offset_duration},
             "operations": {
@@ -199,7 +202,7 @@ config = {
         },
         "P2": {
             "singleInput": {
-                "port": (con, fem, 2),
+                "port": (con, fem, port_P2),
             },
             "operations": {
                 "step": "P2_step_pulse",
@@ -209,7 +212,7 @@ config = {
         },
         "P2_sticky": {
             "singleInput": {
-                "port": (con, fem, 2),
+                "port": (con, fem, port_P2),
             },
             "sticky": {"analog": True, "duration": hold_offset_duration},
             "operations": {
@@ -339,7 +342,7 @@ config = {
         },
         "trigger_pulse": {
             "operation": "control",
-            "length": 1000,
+            "length": 100,
             "digital_marker": "ON",
         },
         "reflectometry_readout_pulse": {
