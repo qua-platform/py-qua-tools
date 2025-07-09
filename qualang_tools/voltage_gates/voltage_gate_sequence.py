@@ -271,9 +271,11 @@ class VoltageGateSequence:
                     duration_4ns = max((int(np.ceil(comp_duration)) // 4 + 1) * 4, 48)
                     # Corrected amplitude to account for the duration casting to integer
                     amplitude = -np.sign(self.average_power[i]) * max_amplitude * comp_duration / duration_4ns
-                    # 3 cc gap between compensation pulse and ramp to zero
-                    operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration_4ns - 12)
-                    play(operation * amp((amplitude - self.current_level[i]) * 4), gate)
+                    # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
+                    ramp_rate = (amplitude - self.current_level[i]) / 16
+                    play(ramp(ramp_rate), gate, duration=4)
+                    wait((duration_4ns - 16) // 4, gate)
+
                 else:
                     amplitude = -0.0009765625 * self.average_power[i] / duration
                     operation = self._add_op_to_config(
@@ -282,7 +284,6 @@ class VoltageGateSequence:
                     play(operation, gate)
             else:
                 if duration is None:
-                    operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=16)
                     eval_average_power = declare(int)
                     comp_duration = declare(int)
                     duration_4ns = declare(int)
@@ -290,10 +291,10 @@ class VoltageGateSequence:
                     duration_4ns_pow2_cur = declare(int)
                     amplitude = declare(fixed)
                     # Exact duration of the compensation pulse
-                    # take into account a gap of 96ns for the derivation of the compensation pulse
+                    # take into account a gap of 110ns for the derivation of the compensation pulse
                     assign(
                         eval_average_power,
-                        self.average_power[i] + Cast.mul_int_by_fixed(256 * 1024, self.current_level[i]),
+                        self.average_power[i] + Cast.mul_int_by_fixed(96 * 1024, self.current_level[i]),
                     )
                     assign(
                         comp_duration, Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude)
@@ -312,11 +313,12 @@ class VoltageGateSequence:
                         assign(amplitude, -Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
                     with else_():
                         assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
-                    play(
-                        operation * amp((amplitude - self.current_level[i]) << 2),
-                        gate,
-                        duration=duration_4ns_pow2_cur >> 2,
-                    )
+
+                    # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
+                    ramp_rate = declare(fixed)
+                    assign(ramp_rate, (amplitude - self.current_level[i]) >> 4)
+                    play(ramp(ramp_rate), gate, duration=4)
+                    wait((duration_4ns_pow2_cur - 16)>> 2, gate)
                 else:
                     operation = self._add_op_to_config(gate, "compensation", amplitude=0.25, length=duration)
                     amplitude = declare(fixed)
