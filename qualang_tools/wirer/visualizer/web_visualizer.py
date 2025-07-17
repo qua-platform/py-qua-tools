@@ -101,7 +101,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
         figures_html = '<div id="figs">'
 
         for i, fig_data in enumerate(figure_data):
-            figures_html += f""" 
+            figures_html += f"""
             <div class="figure-container">
                 <!-- Remove the caption and use the title as tooltip -->
                 <p class="figure-caption">{fig_data['title'].replace('_', ' #')}</p>
