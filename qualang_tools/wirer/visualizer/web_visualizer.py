@@ -100,8 +100,8 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
         # Generate figure HTML
         figures_html = '<div id="figs">'
 
-        for i, fig_data in enumerate(figure_data):  # noqa
-            figures_html += f"""
+        for i, fig_data in enumerate(figure_data):
+            figures_html += f""" 
             <div class="figure-container">
                 <!-- Remove the caption and use the title as tooltip -->
                 <p class="figure-caption">{fig_data['title'].replace('_', ' #')}</p>
@@ -110,7 +110,7 @@ class WebInstrumentFigureManager(InstrumentFigureManager):
                      title="{fig_data['title'].replace('_', ' #')}"
                      class="figure-image"
                      style="transition: none;">
-            </div>"""
+            </div>"""  # noqa: E272
 
         figures_html += "</div>"
 
