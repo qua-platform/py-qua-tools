@@ -52,6 +52,13 @@ def instruments_2lf_2mw() -> Instruments:
 
 
 @pytest.fixture()
+def instruments_2mw() -> Instruments:
+    instruments = Instruments()
+    instruments.add_mw_fem(controller=1, slots=[1, 2])
+    return instruments
+
+
+@pytest.fixture()
 def instruments_1opx_2external_mixer() -> Instruments:
     instruments = Instruments()
     instruments.add_opx_plus(controllers=[1])
