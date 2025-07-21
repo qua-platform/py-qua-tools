@@ -9,6 +9,7 @@ from .instrument_channel import (
     InstrumentChannelExternalMixerDigitalInput,
 )
 from .instrument_channels import *
+from .instrument_pulsers import *
 from .constants import *
 
 
@@ -23,6 +24,8 @@ class Instruments:
     def __init__(self):
         self.used_channels = InstrumentChannels()
         self.available_channels = InstrumentChannels()
+        self.used_pulsers = InstrumentPulsers()
+        self.available_pulsers = InstrumentPulsers()
 
     def add_external_mixer(self, indices: Union[List[int], int]):
         """
@@ -90,6 +93,11 @@ class Instruments:
             slots = [slots]
 
         for slot in slots:
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
+
+        for slot in slots:
             for port in range(1, NUM_LF_FEM_INPUT_PORTS + 1):
                 channel = InstrumentChannelLfFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
@@ -123,6 +131,11 @@ class Instruments:
             slots = [slots]
 
         for slot in slots:
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
+
+        for slot in slots:
             for port in range(1, NUM_MW_FEM_INPUT_PORTS + 1):
                 channel = InstrumentChannelMwFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
@@ -154,6 +167,11 @@ class Instruments:
         """
         if isinstance(controllers, int):
             controllers = [controllers]
+
+        for controller in controllers:
+            for idx in range(1, NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=None)
+                self.available_pulsers.add(pulser)
 
         for controller in controllers:
             for port in range(1, NUM_OPX_PLUS_INPUT_PORTS + 1):
