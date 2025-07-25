@@ -11,7 +11,7 @@ def test_add_dummy_line(instruments_2lf_2mw):
 
     connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=qubits, constraints=mw_fem_spec(slot=7))
-    connectivity.add_qubit_drive_lines(qubits=qubits, constraints=mw_fem_spec(slot=7))
+    connectivity.add_qubit_drive_lines(qubits=qubits, constraints=mw_fem_spec(slot=3))
     connectivity.add_qubit_flux_lines(qubits=qubits)
     connectivity.add_qubit_pair_flux_lines(qubit_pairs=qubit_pairs, constraints=lf_fem_spec(out_slot=2))
 
