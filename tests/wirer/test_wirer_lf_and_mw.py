@@ -42,9 +42,16 @@ def test_6q_allocation(instruments_2lf_2mw):
                 ][i],
             )
 
-        # drive channels are on MW-FEM
-        for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.DRIVE]):
-            assert pytest.channels_are_equal(channel, [InstrumentChannelMwFemOutput(con=1, port=qubit + 1, slot=3)][i])
+        # drive channels are on MW-FEM, these will be allocated until pulsers are exhausted on FEM 3 and will then
+        # be continued to be allocated on FEM 7
+        drive_channel_distribution = {1: [3, 2], 2: [3, 3], 3: [7, 1], 4: [7, 2], 5: [7, 3], 6: [7, 4]}
+        for channel in connectivity.elements[QubitReference(qubit)].channels[WiringLineType.DRIVE]:
+            expected_channel = InstrumentChannelMwFemOutput(
+                con=1,
+                slot=drive_channel_distribution[qubit][0],
+                port=drive_channel_distribution[qubit][1]
+            )
+            assert pytest.channels_are_equal(channel, expected_channel)
 
     for i, pair in enumerate(qubit_pairs):
         # coupler channels should have some port as pair index since they're allocated sequentially, but on slot 2

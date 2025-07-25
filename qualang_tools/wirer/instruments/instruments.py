@@ -93,11 +93,6 @@ class Instruments:
             slots = [slots]
 
         for slot in slots:
-            for idx in range(NUM_THREADS_PER_FEM):
-                pulser = Pulser(controller=controller, slot=slot)
-                self.available_pulsers.add(pulser)
-
-        for slot in slots:
             for port in range(1, NUM_LF_FEM_INPUT_PORTS + 1):
                 channel = InstrumentChannelLfFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
@@ -109,6 +104,10 @@ class Instruments:
             for port in range(1, NUM_LF_FEM_DIGITAL_OUTPUT_PORTS + 1):
                 channel = InstrumentChannelLfFemDigitalOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
+
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
 
     def add_mw_fem(self, controller: int, slots: Union[List[int], int]):
         """
@@ -131,11 +130,6 @@ class Instruments:
             slots = [slots]
 
         for slot in slots:
-            for idx in range(NUM_THREADS_PER_FEM):
-                pulser = Pulser(controller=controller, slot=slot)
-                self.available_pulsers.add(pulser)
-
-        for slot in slots:
             for port in range(1, NUM_MW_FEM_INPUT_PORTS + 1):
                 channel = InstrumentChannelMwFemInput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
@@ -147,6 +141,10 @@ class Instruments:
             for port in range(1, NUM_MW_FEM_OUTPUT_PORTS + 1):
                 channel = InstrumentChannelMwFemDigitalOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
+
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
 
     def add_opx_plus(self, controllers: Union[List[int], int]):
         """
@@ -169,11 +167,6 @@ class Instruments:
             controllers = [controllers]
 
         for controller in controllers:
-            for idx in range(1, NUM_THREADS_PER_FEM):
-                pulser = Pulser(controller=controller, slot=None)
-                self.available_pulsers.add(pulser)
-
-        for controller in controllers:
             for port in range(1, NUM_OPX_PLUS_INPUT_PORTS + 1):
                 channel = InstrumentChannelOpxPlusInput(con=controller, port=port)
                 self.available_channels.add(channel)
@@ -191,3 +184,9 @@ class Instruments:
             for port in range(2, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1, 2):
                 channel = InstrumentChannelOpxPlusDigitalOutput(con=controller, port=port)
                 self.available_channels.add(channel)
+
+            # Finally add the pulsers for this controller.
+            for idx in range(1, NUM_THREADS_PER_OPX_PLUS):
+                pulser = Pulser(controller=controller, slot=None)
+                self.available_pulsers.add(pulser)
+

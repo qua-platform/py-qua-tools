@@ -26,8 +26,8 @@ def assign_channels_to_spec(
                 if spec.line_type not in element.channels:
                     element.channels[spec.line_type] = []
                 element.channels[spec.line_type].append(channel)
+                # Remove available pulsers as we add elements.
                 if channel.instrument_id == 'mw-fem' and channel.io_type == 'output':
-                    # If it is, we need to remove the pulser from the available pulsers
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                 elif channel.instrument_id == 'lf-fem' and channel.io_type == 'output':
@@ -69,13 +69,12 @@ def _assign_channels_to_spec(
         )
     )
 
-    # Now filter out all channels, that have no more pulsers available on the FEM.
+    # Now filter out all channels, that have no more pulsers available on the device.
     available_channels = [
         channel
         for channel in available_channels
         if available_pulsers.filter_by_slot(channel.con, channel.slot)
     ]
-
 
     candidate_channels = []
     for channel in available_channels:
@@ -84,10 +83,10 @@ def _assign_channels_to_spec(
             continue
 
         candidate_channels = [channel]
-        if channel.instrument_id == 'mw-fem':
+        if channel.instrument_id == 'mw-fem' and channel.io_type == 'output':
             available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
             available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-        else:
+        elif channel.io_type == 'output':
             available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
 
         # base case: all channels allocated properly
