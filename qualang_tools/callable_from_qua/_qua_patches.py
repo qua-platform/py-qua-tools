@@ -9,10 +9,10 @@ from qm.program import Program
 from qm.simulate.interface import SimulationConfig
 import qm
 
-# TODO: Remove this if block when we drop support for qm < 1.2.4 (and keep only the import that is currently in the
+# TODO: Remove this if block when we drop support for qm < 1.2.3 (and keep only the import that is currently in the
 #  else block)
-qua_below_1_2_4 = Version(qm.__version__) < Version("1.2.4")
-if qua_below_1_2_4:
+qua_below_1_2_3 = Version(qm.__version__) < Version("1.2.3")
+if qua_below_1_2_3:
     from qm.qua._dsl import _ProgramScope as _ProgramScope_qua
 else:
     from qm.qua._scope_management._core_scopes import _ProgramScope as _ProgramScope_qua
@@ -114,9 +114,9 @@ def patch_qua_program_addons():
 
         Program.addons: Dict[str, ProgramAddon] = {}
 
-    # TODO: Remove this if block when we drop support for qm < 1.2.4 (and keep only the import that is currently in the
+    # TODO: Remove this if block when we drop support for qm < 1.2.3 (and keep only the import that is currently in the
     #  else block)
-    if qua_below_1_2_4:
+    if qua_below_1_2_3:
         import qm.qua._dsl
 
         if qm.qua._dsl._ProgramScope is _ProgramScope:

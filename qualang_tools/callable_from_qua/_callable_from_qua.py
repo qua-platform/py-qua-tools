@@ -21,9 +21,9 @@ if Version(qm.__version__) < Version("1.2.2"):
 else:
     from qm.qua.type_hints import QuaVariable
 
-# TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
+# TODO: Remove this if block when we drop support for qm < 1.2.3 (and move the import that is currently in the
 #  else block to the top)
-if Version(qm.__version__) < Version("1.2.4"):
+if Version(qm.__version__) < Version("1.2.3"):
     from qm.qua._dsl import _ResultSource as ResultStreamSource
 else:
     from qm.qua.type_hints import ResultStreamSource
@@ -33,10 +33,10 @@ __all__ = ["ProgramAddon", "callable_from_qua"]
 
 
 def _get_program_scope():
-    # TODO: Remove this if block when we drop support for qm < 1.2.4 (and move the import that is currently in the
+    # TODO: Remove this if block when we drop support for qm < 1.2.3 (and move the import that is currently in the
     #  else block to the top)
-    qua_below_1_2_4 = Version(qm.__version__) < Version("1.2.4")
-    if qua_below_1_2_4:
+    qua_below_1_2_3 = Version(qm.__version__) < Version("1.2.3")
+    if qua_below_1_2_3:
         try:
             from qm.qua._dsl import _get_root_program_scope
 
