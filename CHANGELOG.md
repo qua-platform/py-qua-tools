@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
 
 ### Fixed
+- voltage_gates - Improve compensation pulse generation and allow playing ramps in amplified mode.
 - control_panel - Fix call to `qmm.version` that had changed in qm.qua >= 1.2.1.
 
 ### Removed
