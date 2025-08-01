@@ -2,6 +2,9 @@ from typing import List
 
 from qualang_tools.wirer.connectivity.wiring_spec import WiringSpec
 from qualang_tools.wirer.instruments import Instruments
+from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelMwFemOutput, InstrumentChannelLfFem, \
+    InstrumentChannelLfFemOutput, InstrumentChannelOpxPlusOutput
+from qualang_tools.wirer.instruments.instrument_pulsers import Pulser
 from qualang_tools.wirer.wirer.channel_specs import ChannelTemplate
 from qualang_tools.wirer.wirer.context_manager_multi_object_temp_attr_setting import MultiObjectTempAttrUpdater
 
@@ -26,14 +29,18 @@ def assign_channels_to_spec(
                 if spec.line_type not in element.channels:
                     element.channels[spec.line_type] = []
                 element.channels[spec.line_type].append(channel)
-                # Remove available pulsers as we add elements.
-                if channel.instrument_id == 'mw-fem' and channel.io_type == 'output':
+                # Keep track of the pulsers.
+                if type(channel) is InstrumentChannelMwFemOutput:
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                elif channel.instrument_id == 'lf-fem' and channel.io_type == 'output':
+                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                elif type(channel) is InstrumentChannelLfFemOutput:
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                elif channel.instrument_id == 'opx+' and channel.io_type == 'output':
+                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                elif type(channel) is InstrumentChannelOpxPlusOutput:
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
+                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
 
     return len(candidate_channels) == len(channel_templates)
 
@@ -83,11 +90,6 @@ def _assign_channels_to_spec(
             continue
 
         candidate_channels = [channel]
-        if channel.instrument_id == 'mw-fem' and channel.io_type == 'output':
-            available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-            available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-        elif channel.io_type == 'output':
-            available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
 
         # base case: all channels allocated properly
         if len(channel_templates) == 1:
@@ -118,6 +120,11 @@ def _assign_channels_to_spec(
 
             # otherwise, a successful allocation has been made
             else:
+                if type(channel) is InstrumentChannelMwFemOutput:
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+                elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
                 continue
 
     return candidate_channels
