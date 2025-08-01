@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
+- requirements - Change qm-qua requirement to >=1.2.2
+
 ### Added
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
 
@@ -16,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.19.5] - 2025-05-30
 ### Added
-- config - Added helper functions to get the MW-FEM band from the desired output frequency. 
+- config - Added helper functions to get the MW-FEM band from the desired output frequency.
 - config - Added helper functions to get the gain/full_scale_power_dbm and waveform amplitude from the desired output power.
 - data_handler - Added support for plotly data saving
 
@@ -53,7 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 - Updated matplotlib requirement to ^3.8.0 to support the Octave Tools Plotter
-  
+
 ## [0.19.1] - 2025-02-17
 ### Changed
 - Updated dependencies to remove packages with identified vulnerabilities.
