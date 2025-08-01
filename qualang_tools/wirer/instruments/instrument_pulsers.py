@@ -45,7 +45,7 @@ class InstrumentPulsers:
         try:
             self.stack.remove(pulser)
         except ValueError:
-            raise ValueError(f"Pulser {pulser} does not exist in the stack.")
+            raise ValueError(f"Pulser {pulser} does not exist in the stack. All the pulsers were used up.")
 
     def remove_by_slot(self, controller: int, slot: int):
         """
