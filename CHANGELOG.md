@@ -4,10 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+
+## [0.20.0] - 2025-08-04
+### Changed
+- **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
+- requirements - Change qm-qua requirement to >=1.2.2
+
 ### Added
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
 
 ### Fixed
+- voltage_gates - Improve compensation pulse generation and allow playing ramps in amplified mode.
 - control_panel - Fix call to `qmm.version` that had changed in qm.qua >= 1.2.1.
 
 ### Removed
@@ -15,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [0.19.5] - 2025-05-30
 ### Added
-- config - Added helper functions to get the MW-FEM band from the desired output frequency. 
+- config - Added helper functions to get the MW-FEM band from the desired output frequency.
 - config - Added helper functions to get the gain/full_scale_power_dbm and waveform amplitude from the desired output power.
 - data_handler - Added support for plotly data saving
 
@@ -52,7 +59,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 - Updated matplotlib requirement to ^3.8.0 to support the Octave Tools Plotter
-  
+
 ## [0.19.1] - 2025-02-17
 ### Changed
 - Updated dependencies to remove packages with identified vulnerabilities.
@@ -464,8 +471,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...HEAD
-[0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...v0.20.0
+[0.19.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
 [0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...v0.19.4
 [0.19.3]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.2...v0.19.3
 [0.19.2]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.1...v0.19.2

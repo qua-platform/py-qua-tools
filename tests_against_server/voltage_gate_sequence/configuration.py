@@ -12,8 +12,16 @@ u = unit(coerce_to_integer=True)
 # Network parameters #
 ######################
 qop_ip = "127.0.0.1"  # Write the QM router IP address
-cluster_name = "Cluster_1"  # Write your cluster_name if version >= QOP220
+cluster_name = "my_cluster"  # Write your cluster_name if version >= QOP220
 qop_port = None  # Write the QOP port if version < QOP220
+
+fem = 1  # Should be 1 for OPX+
+port_P1 = 1  # --> scope 7
+port_P2 = 2
+
+# For the automatic testing
+MAX_AMP = 0.4
+sampling_rate = 1
 
 # Path to save data
 octave_config = None
@@ -84,8 +92,8 @@ config = {
     "controllers": {
         "con1": {
             "analog_outputs": {
-                1: {"offset": 0.0},  # P1
-                2: {"offset": 0.0},  # P2
+                port_P1: {"offset": 0.0},  # P1
+                port_P2: {"offset": 0.0},  # P2
                 3: {"offset": 0.0},  # Sensor gate
                 4: {"offset": 0.0},  # Sensor gate
                 9: {"offset": 0.0},  # RF reflectometry
@@ -104,7 +112,7 @@ config = {
     "elements": {
         "P1": {
             "singleInput": {
-                "port": ("con1", 1),
+                "port": ("con1", port_P1),
             },
             "operations": {
                 "step": "P1_step_pulse",
@@ -114,7 +122,7 @@ config = {
         },
         "P1_sticky": {
             "singleInput": {
-                "port": ("con1", 1),
+                "port": ("con1", port_P1),
             },
             "sticky": {"analog": True, "duration": hold_offset_duration},
             "operations": {
@@ -141,7 +149,7 @@ config = {
         },
         "P2": {
             "singleInput": {
-                "port": ("con1", 2),
+                "port": ("con1", port_P2),
             },
             "operations": {
                 "step": "P2_step_pulse",
@@ -151,7 +159,7 @@ config = {
         },
         "P2_sticky": {
             "singleInput": {
-                "port": ("con1", 2),
+                "port": ("con1", port_P2),
             },
             "sticky": {"analog": True, "duration": hold_offset_duration},
             "operations": {
