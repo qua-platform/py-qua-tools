@@ -138,7 +138,7 @@ def ramp_to_zero(self, duration: int = None):
 **Example Usage**:
 
 ```python
-# Ramp all gate voltages down to zero over 500 ns
+# Ramp all gate voltages down to zero over 500 clock cycles
 seq.ramp_to_zero(duration=500)
 ```
 
