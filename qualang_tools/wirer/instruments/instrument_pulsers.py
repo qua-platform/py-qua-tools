@@ -34,9 +34,6 @@ class InstrumentPulsers:
     def add(self, pulser: Pulser):
         if not isinstance(pulser, Pulser):
             raise TypeError("Only instances of Pulser can be added to the stack.")
-        # check if there is already a pulser with the same con, slot, and number
-        if len(self.filter_by_slot(pulser.controller, pulser.slot)) > NUM_THREADS_PER_FEM:
-            raise ResourceWarning(f"Reached maximum number of pulsers for controller {pulser.controller} and slot {pulser.slot}. Will not add {pulser}.")
         self.stack.append(pulser)
 
     def remove(self, pulser: Pulser):
