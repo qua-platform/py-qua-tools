@@ -35,10 +35,7 @@ def assign_channels_to_spec(
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                     instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
                     instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
-                elif type(channel) is InstrumentChannelLfFemOutput:
-                    instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
-                elif type(channel) is InstrumentChannelOpxPlusOutput:
+                elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
                     instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                     instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
 
@@ -76,11 +73,13 @@ def _assign_channels_to_spec(
         )
     )
 
-    # Now filter out all channels, that have no more pulsers available on the device.
+    # filter out all channels, that have no more pulsers available on the device
+    channels_with_pulsers = (InstrumentChannelLfFemOutput, InstrumentChannelMwFemOutput, InstrumentChannelOpxPlusOutput)
     available_channels = [
         channel
         for channel in available_channels
-        if available_pulsers.filter_by_slot(channel.con, channel.slot)
+        if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot)
+            ) or not isinstance(channel, channels_with_pulsers)
     ]
 
     candidate_channels = []
@@ -93,6 +92,12 @@ def _assign_channels_to_spec(
 
         # base case: all channels allocated properly
         if len(channel_templates) == 1:
+            if type(channel) is InstrumentChannelMwFemOutput:
+                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+            elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
+                pass
+                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
             break
 
         # recursive case: allocate remaining channels
@@ -120,11 +125,6 @@ def _assign_channels_to_spec(
 
             # otherwise, a successful allocation has been made
             else:
-                if type(channel) is InstrumentChannelMwFemOutput:
-                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-                elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
-                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
                 continue
 
     return candidate_channels

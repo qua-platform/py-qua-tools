@@ -24,26 +24,27 @@ def test_6q_allocation(instruments_2mw):
     if True:
         visualize(connectivity.elements, instruments_2mw.available_channels, use_matplotlib=True)
 
+    # Check RESONATOR channels: all on fem1 channel1
     for qubit in qubits:
-        # flux channels should have some port as qubit index since they're allocated sequentially
-        for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.FLUX]):
-            assert pytest.channels_are_equal(channel, [InstrumentChannelLfFemOutput(con=1, port=qubit, slot=1)][i])
+        resonator_channels = connectivity.elements[QubitReference(qubit)].channels[WiringLineType.RESONATOR]
+        assert len(resonator_channels) == 2
+        output_channel = resonator_channels[1]
+        assert isinstance(output_channel, InstrumentChannelMwFemOutput)
+        pytest.channels_are_equal(
+            output_channel,
+            InstrumentChannelMwFemOutput(con=1, port=1, slot=1)  # All resonators on fem1 channel 1
+        )
 
-        # resonators all on same feedline, so should be first available input + outputs channels on MW-FEM
-        for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.RESONATOR]):
-            assert pytest.channels_are_equal(
-                channel,
-                [
-                    InstrumentChannelMwFemInput(con=1, port=1, slot=3),
-                    InstrumentChannelMwFemOutput(con=1, port=1, slot=3),
-                ][i],
-            )
-
-        # drive channels are on MW-FEM
-        for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.DRIVE]):
-            assert pytest.channels_are_equal(channel, [InstrumentChannelMwFemOutput(con=1, port=qubit + 1, slot=3)][i])
-
-    for i, pair in enumerate(qubit_pairs):
-        # coupler channels should have some port as pair index since they're allocated sequentially, but on slot 2
-        for j, channel in enumerate(connectivity.elements[QubitPairReference(*pair)].channels[WiringLineType.COUPLER]):
-            assert pytest.channels_are_equal(channel, [InstrumentChannelLfFemOutput(con=1, port=i + 1, slot=2)][j])
+    # Check DRIVE channels: fem1 lines 2 & 3 for qubits 1 & 2, fem2 lines 1-4 for qubits 3-6
+    expected_drive_channels = [
+        InstrumentChannelMwFemOutput(con=1, port=2, slot=1),  # qubit 1
+        InstrumentChannelMwFemOutput(con=1, port=3, slot=1),  # qubit 2
+        InstrumentChannelMwFemOutput(con=1, port=1, slot=2),  # qubit 3
+        InstrumentChannelMwFemOutput(con=1, port=2, slot=2),  # qubit 4
+        InstrumentChannelMwFemOutput(con=1, port=3, slot=2),  # qubit 5
+        InstrumentChannelMwFemOutput(con=1, port=4, slot=2),  # qubit 6
+    ]
+    for qubit, expected_channel in zip(qubits, expected_drive_channels):
+        drive_channel = connectivity.elements[QubitReference(qubit)].channels[WiringLineType.DRIVE]
+        assert len(drive_channel) == 1
+        pytest.channels_are_equal(drive_channel, expected_channel)

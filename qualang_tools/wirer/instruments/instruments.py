@@ -186,7 +186,7 @@ class Instruments:
                 self.available_channels.add(channel)
 
             # Finally add the pulsers for this controller.
-            for idx in range(1, NUM_THREADS_PER_OPX_PLUS):
+            for idx in range(NUM_THREADS_PER_OPX_PLUS):
                 pulser = Pulser(controller=controller, slot=None)
                 self.available_pulsers.add(pulser)
 
