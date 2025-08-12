@@ -189,4 +189,3 @@ class Instruments:
             for idx in range(NUM_THREADS_PER_OPX_PLUS):
                 pulser = Pulser(controller=controller, slot=None)
                 self.available_pulsers.add(pulser)
-

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
-
-from qualang_tools.wirer.instruments.constants import NUM_THREADS_PER_FEM
+from copy import deepcopy
 
 
 @dataclass(eq=False, frozen=False)
@@ -28,6 +27,7 @@ class InstrumentPulsers:
     Each Pulser entry contains the Controller and FEM Slot on which the thread is running. This wrapper
     can be interacted with as if it were the underlying stack dictionary.
     """
+
     def __init__(self):
         self.stack = []
 
@@ -61,14 +61,14 @@ class InstrumentPulsers:
         filtered_pulsers = [pulser for pulser in self.stack if pulser.controller == controller]
         return filtered_pulsers
 
-    def filter_by_slot(self, controller:int, slot: int):
+    def filter_by_slot(self, controller: int, slot: int):
         """
         Returns a list of pulsers that match the given controller.
         """
         filtered_pulsers = [pulser for pulser in self.stack if pulser.controller == controller and pulser.slot == slot]
         return filtered_pulsers
 
-    def filter_unallocated_by_slot(self, controller:int, slot: int):
+    def filter_unallocated_by_slot(self, controller: int, slot: int):
         """
         Returns a list of pulsers that are not allocated.
         """
@@ -88,7 +88,6 @@ class InstrumentPulsers:
             return self.stack[index]
 
     def deepcopy(self):
-        from copy import deepcopy
         new_stack = InstrumentPulsers()
         new_stack.stack = [deepcopy(pulser) for pulser in self.stack]
         return new_stack
@@ -109,4 +108,3 @@ class InstrumentPulsers:
                 pulser.allocated = False
         else:
             raise ValueError("Must specify either controller, both controller and slot or None.")
-
