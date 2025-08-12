@@ -2,8 +2,11 @@ from typing import List
 
 from qualang_tools.wirer.connectivity.wiring_spec import WiringSpec
 from qualang_tools.wirer.instruments import Instruments
-from qualang_tools.wirer.instruments.instrument_channel import InstrumentChannelMwFemOutput, InstrumentChannelLfFem, \
-    InstrumentChannelLfFemOutput, InstrumentChannelOpxPlusOutput
+from qualang_tools.wirer.instruments.instrument_channel import (
+    InstrumentChannelMwFemOutput,
+    InstrumentChannelLfFemOutput,
+    InstrumentChannelOpxPlusOutput,
+)
 from qualang_tools.wirer.instruments.instrument_pulsers import Pulser
 from qualang_tools.wirer.wirer.channel_specs import ChannelTemplate
 from qualang_tools.wirer.wirer.context_manager_multi_object_temp_attr_setting import MultiObjectTempAttrUpdater
@@ -78,8 +81,8 @@ def _assign_channels_to_spec(
     available_channels = [
         channel
         for channel in available_channels
-        if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot)
-            ) or not isinstance(channel, channels_with_pulsers)
+        if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot))
+        or not isinstance(channel, channels_with_pulsers)
     ]
 
     candidate_channels = []
