@@ -97,6 +97,29 @@ class Connectivity(ConnectivityBase):
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
         )
 
+    def add_qubit_detuned_drive_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
+        """
+        Adds specifications (placeholders) for detuned drive lines for the specified qubits.
+
+        This method configures the detuned qubit drive line specifications (placeholders), which are typically used to apply
+        control signals to zz drive. It allows optional triggering and constraints on which channel configurations
+        can be allocated for this line.
+
+        No channels are allocated at this stage.
+
+        Args:
+            qubits (QubitsType): The qubits to configure the detuned drive lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the qubit drive lines.
+        """
+        elements = self._make_qubit_elements(qubits)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DETUNED_DRIVE, triggered, constraints, elements
+        )
+
     def add_qubit_charge_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
         """
         Adds specifications (placeholders) for charge lines for the specified qubits.
