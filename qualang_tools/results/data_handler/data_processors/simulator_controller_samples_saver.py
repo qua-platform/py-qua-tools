@@ -1,6 +1,12 @@
 import logging
 
-from qm.results.simulator_samples import SimulatorControllerSamples
+try:
+    from qm import SimulatorControllerSamples
+except ImportError:
+    try:
+        from qm.results.simulator_samples import SimulatorControllerSamples
+    except ImportError:
+        from qm.simulate._simulator_samples import SimulatorControllerSamples
 
 from .helpers import copy_nested_dict, iterate_nested_dict, update_nested_dict
 from .data_processor import DataProcessor
@@ -21,11 +27,15 @@ class SimulatorControllerSamplesSaver(DataProcessor):
                     # analog structure: {"{int}-{int}: array}
                     "analog": dict(val.analog),
                     "digital": dict(val.digital),
-                    "analog_sampling_rate": dict(getattr(val, "analog_sampling_rate", {})),
+                    "analog_sampling_rate": dict(
+                        getattr(val, "analog_sampling_rate", {})
+                    ),
                 }
                 update_nested_dict(processed_data, keys, serialised_samples)
             except Exception:
-                logger.warning(f"Could not serialise simulator controller samples for {keys}")
+                logger.warning(
+                    f"Could not serialise simulator controller samples for {keys}"
+                )
                 continue
 
         return processed_data
