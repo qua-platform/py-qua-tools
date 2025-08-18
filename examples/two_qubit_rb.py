@@ -132,7 +132,8 @@ res = rb.run(
 # num_circuits_per_depth ~ how many random circuits within one depth
 # num_shots_per_circuit ~ repetitions of the same circuit (averaging)
 
-res.plot_hist()
+fit = res.fit()
+res.plot(fit)
 plt.show()
 
 res.plot_fidelity()
