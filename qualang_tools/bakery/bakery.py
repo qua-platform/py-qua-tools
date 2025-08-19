@@ -1054,8 +1054,9 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if type(amp) is list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
-                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(*amp), qe)
+                        else:    
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
 
         else:
             for qe in qe_set:
@@ -1074,8 +1075,9 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if type(amp) is list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
-                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(*amp), qe, truncate=trunc)
+                        else:    
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
 
         for qe in qe_set:
             if self._qe_dict[qe]["phase"] != 0:
