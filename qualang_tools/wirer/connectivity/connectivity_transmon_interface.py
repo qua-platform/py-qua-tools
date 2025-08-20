@@ -119,6 +119,30 @@ class Connectivity(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DETUNED_DRIVE, triggered, constraints, elements
         )
+    
+    def add_qubit_drive_correction_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
+        """
+        Adds specifications (placeholders) for drive lines for the specified qubits.
+
+        This method configures the qubit drive line specifications (placeholders), which are typically used to apply
+        control signals to qubits. It allows optional triggering and constraints on which channel configurations
+        can be allocated for this line.
+
+        No channels are allocated at this stage.
+
+
+        Args:
+            qubits (QubitsType): The qubits to configure the drive correction lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the qubit drive correction lines.
+        """
+        elements = self._make_qubit_elements(qubits)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE_CORRECTION, triggered, constraints, elements
+        )
 
     def add_qubit_charge_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
         """
