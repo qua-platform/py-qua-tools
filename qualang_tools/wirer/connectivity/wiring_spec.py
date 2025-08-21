@@ -37,7 +37,6 @@ class WiringLineType(Enum):
     CROSS_RESONANCE = "cr"
     ZZ_DRIVE = "zz"
     DETUNED_DRIVE = "xy_detuned"
-    DRIVE_CORRECTION = "xy_correction"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -48,7 +47,6 @@ COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 DETUNED_DRIVE = WiringLineType.DETUNED_DRIVE
-DRIVE_CORRECTION = WiringLineType.DRIVE_CORRECTION
 
 
 class WiringSpec:
