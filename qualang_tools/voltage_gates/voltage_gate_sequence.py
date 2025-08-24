@@ -30,6 +30,28 @@ class VoltageGateSequence:
         self._elements = elements
         # The OPX configuration
         self._config = configuration
+        # Determine if bias tee compensation is needed
+        if time_constants is None:
+            self._compensation = False
+        elif isinstance(time_constants, float):
+            self._compensation = True
+            self._time_constants = [time_constants] * len(elements)
+        elif isinstance(time_constants, list):
+            self._compensation = True
+            if len(time_constants) != len(elements):
+                raise ValueError(
+                    "If a list is provided for time_constants, its length must match the number of elements."
+                )
+            if not all(isinstance(tc, (float, int)) for tc in time_constants):
+                raise TypeError(
+                    "All entries in time_constants must be floats (or ints)."
+                )
+            # Convert ints to floats to be consistent
+            self.time_constants = [float(tc) for tc in time_constants]
+        else:
+            raise TypeError(
+                "time_constants must be None, a float, or a list of floats."
+            )
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
