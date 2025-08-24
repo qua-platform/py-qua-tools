@@ -33,9 +33,10 @@ class VoltageGateSequence:
         # Determine if bias tee compensation is needed
         if time_constants is None:
             self._compensation = False
-        elif isinstance(time_constants, float):
+        elif isinstance(time_constants, (float, int)):
             self._compensation = True
-            self._time_constants = [time_constants] * len(elements)
+            # Accept single int or float, convert to float
+            self.time_constants = [float(time_constants)] * len(elements)
         elif isinstance(time_constants, list):
             self._compensation = True
             if len(time_constants) != len(elements):
