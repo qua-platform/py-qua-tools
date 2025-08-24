@@ -36,7 +36,7 @@ class VoltageGateSequence:
         elif isinstance(time_constants, (float, int)):
             self._compensation = True
             # Accept single int or float, convert to float
-            self.time_constants = [float(time_constants)] * len(elements)
+            self._time_constants = [float(time_constants)] * len(elements)
         elif isinstance(time_constants, list):
             self._compensation = True
             if len(time_constants) != len(elements):
@@ -48,10 +48,10 @@ class VoltageGateSequence:
                     "All entries in time_constants must be floats (or ints)."
                 )
             # Convert ints to floats to be consistent
-            self.time_constants = [float(tc) for tc in time_constants]
+            self._time_constants = [float(tc) for tc in time_constants]
         else:
             raise TypeError(
-                "time_constants must be None, a float, or a list of floats."
+                "time_constants must be None, a float (or int), or a list of floats (or ints)."
             )
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
@@ -86,7 +86,6 @@ class VoltageGateSequence:
                         == "amplified"
                     ):
                         return 0.5
-
         return 0.25
 
     def _check_name(self, name, key):
