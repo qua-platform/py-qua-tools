@@ -11,7 +11,7 @@ class VoltageGateSequence:
             self, 
             configuration: Dict, 
             elements: List[str], 
-            time_constants: Optional[Union[float, List[float]]] = None):
+            time_constants: Optional[Union[float, int, List[Union[float, int]]]] = None):
         """
         Initializes a VirtualGateSequence object for designing arbitrary pulse sequences using virtual gates.
 
@@ -31,28 +31,31 @@ class VoltageGateSequence:
         # The OPX configuration
         self._config = configuration
         # Determine if bias tee compensation is needed
-        if time_constants is None:
-            self._compensation = False
-        elif isinstance(time_constants, (float, int)):
+        self._compensation = False
+        if time_constants:
             self._compensation = True
-            # Accept single int or float, convert to float
-            self._time_constants = [float(time_constants)] * len(elements)
-        elif isinstance(time_constants, list):
-            self._compensation = True
-            if len(time_constants) != len(elements):
-                raise ValueError(
-                    "If a list is provided for time_constants, its length must match the number of elements."
-                )
-            if not all(isinstance(tc, (float, int)) for tc in time_constants):
+            self._gate_voltage = 0.0 # the voltage seen by the gate after the bias tee
+            self._comp_voltage = 0.0 # the voltage applied by the awg before the bias tee
+        # Check if time constants have proper type
+        if self._compensation:
+            if isinstance(time_constants, (float, int)):
+                # Accept single int or float, convert to float
+                self._time_constants = [float(time_constants)] * len(elements)
+            elif isinstance(time_constants, list):
+                if len(time_constants) != len(elements):
+                    raise ValueError(
+                        "If a list is provided for time_constants, its length must match the number of elements."
+                    )
+                if not all(isinstance(tc, (float, int)) for tc in time_constants):
+                    raise TypeError(
+                        "All entries in time_constants must be floats (or ints)."
+                    )
+                # Convert ints to floats to be consistent
+                self._time_constants = [float(tc) for tc in time_constants]
+            else:
                 raise TypeError(
-                    "All entries in time_constants must be floats (or ints)."
+                    "time_constants must be None, a float (or int), or a list of floats (or ints)."
                 )
-            # Convert ints to floats to be consistent
-            self._time_constants = [float(tc) for tc in time_constants]
-        else:
-            raise TypeError(
-                "time_constants must be None, a float (or int), or a list of floats (or ints)."
-            )
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
