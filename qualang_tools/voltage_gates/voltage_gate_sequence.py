@@ -1,13 +1,17 @@
 import numpy as np
 
 from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
 
 
 class VoltageGateSequence:
-    def __init__(self, configuration: Dict, elements: List[str]):
+    def __init__(
+            self, 
+            configuration: Dict, 
+            elements: List[str], 
+            time_constants: Optional[Union[float, List[float]]] = None):
         """
         Initializes a VirtualGateSequence object for designing arbitrary pulse sequences using virtual gates.
 
@@ -20,6 +24,7 @@ class VoltageGateSequence:
         **Warning: The framework and compensation pulse derivation is working only for sequences shorter than 8ms.**
         :param configuration: A dictionary representing the OPX configuration (this will be modified)
         :param elements: A list of elements (strings) involved in the virtual gate operations.
+        :param time_constants: the value (float) or list of values of the time contants for bias tees on the elements.
         """
         # List of the elements involved in the virtual gates
         self._elements = elements
