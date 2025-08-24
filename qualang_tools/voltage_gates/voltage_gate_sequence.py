@@ -165,7 +165,7 @@ class VoltageGateSequence:
     def is_QUA(var):
         return isinstance(var, (QuaExpression, QuaVariable))
 
-    def add_step(
+    def _add_step_internal(
         self,
         level: list[Union[float, QuaExpression, QuaVariable]] = None,
         duration: Union[int, QuaExpression, QuaVariable] = None,
@@ -247,7 +247,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif isinstance(_duration, (QuaExpression, QuaVariable)):
+                elif __class__.is_QUA(_duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
