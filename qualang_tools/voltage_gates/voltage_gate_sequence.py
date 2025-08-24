@@ -219,6 +219,8 @@ class VoltageGateSequence:
                 raise TypeError(
                     "The provided level must be a list of same length as the number of elements involved in the virtual gate."
                 )
+        else: 
+            level = self._voltage_points[voltage_point_name]["coordinates"]
 
         self._check_duration(ramp_duration)
         if ramp_duration is not None:
@@ -228,18 +230,14 @@ class VoltageGateSequence:
                     stacklevel=2,
                 )
 
-        if voltage_point_name is not None and duration is None:
+        if duration is None:
             _duration = self._voltage_points[voltage_point_name]["duration"]
         else:
             _duration = duration
         self._check_duration(_duration)
 
         for i, gate in enumerate(self._elements):
-            if voltage_point_name is not None:
-                voltage_level = self._voltage_points[voltage_point_name]["coordinates"][i]
-            else:
-                voltage_point_name = "unregistered_value"
-                voltage_level = level[i]
+            voltage_level = level[i]
 
             # Play a step
             if ramp_duration is None:
