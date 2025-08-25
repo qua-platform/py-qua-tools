@@ -181,11 +181,43 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
+        # Check input value for duration
+        if voltage_point_name is None:
+            if duration is None:
+                raise RuntimeError(
+                    "Either the voltage_point_name or the duration must be provided."
+                )
+            else: _duration = duration
+        else: _duration = self._voltage_points[voltage_point_name]["duration"]
+        self._check_duration(_duration)
+        
+        # Check input value for level
+        if (level is None) == (voltage_point_name is None):
+            raise ValueError(
+                "You must provide either 'level' or 'voltage_point_name', but not both."
+            )
+        if level is not None:
+            if (type(level) is not list) or (len(level) != len(self._elements)):
+                raise TypeError(
+                    "The provided level must be a list of same length as the number of elements involved in the virtual gate."
+                )
+        else: 
+            level = self._voltage_points[voltage_point_name]["coordinates"]
+
+        # Check input value for ramp duration
+        self._check_duration(ramp_duration)
+        if ramp_duration is not None:
+            if self.is_QUA(ramp_duration):
+                warn(
+                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur, otherwise use a python variable.",
+                    stacklevel=2,
+                )
+
         if self._compensation:
             # do compensated steps
             pass
         else: 
-            self._add_step_internal(level, duration, voltage_point_name, ramp_duration)
+            self._add_step_internal(level=level, duration=_duration, ramp_duration=ramp_duration)
 
     def _add_step_internal(
         self,
@@ -203,38 +235,6 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
-        # Check input values
-        if voltage_point_name is None and duration is None:
-            raise RuntimeError(
-                "Either the voltage_point_name or the duration must be provided."
-            )
-        
-        if (level is None) == (voltage_point_name is None):
-            raise ValueError(
-                "You must provide either 'level' or 'voltage_point_name', but not both."
-            )
-        
-        if level is not None:
-            if (type(level) is not list) or (len(level) != len(self._elements)):
-                raise TypeError(
-                    "The provided level must be a list of same length as the number of elements involved in the virtual gate."
-                )
-        else: 
-            level = self._voltage_points[voltage_point_name]["coordinates"]
-
-        self._check_duration(ramp_duration)
-        if ramp_duration is not None:
-            if self.is_QUA(ramp_duration):
-                warn(
-                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur, otherwise use a python variable.",
-                    stacklevel=2,
-                )
-
-        if duration is None:
-            _duration = self._voltage_points[voltage_point_name]["duration"]
-        else:
-            _duration = duration
-        self._check_duration(_duration)
 
         for i, gate in enumerate(self._elements):
             voltage_level = level[i]
