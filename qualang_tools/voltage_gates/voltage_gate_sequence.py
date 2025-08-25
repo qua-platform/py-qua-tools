@@ -246,7 +246,6 @@ class VoltageGateSequence:
         self,
         level: list[Union[float, QuaExpression, QuaVariable]] = None,
         duration: Union[int, QuaExpression, QuaVariable] = None,
-        voltage_point_name: str = None,
         ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
         ) -> None:
         """Add a voltage level to the pulse sequence.
@@ -258,7 +257,7 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
-
+        voltage_point_name = "unregistered_value"
         for i, gate in enumerate(self._elements):
             voltage_level = level[i]
 
