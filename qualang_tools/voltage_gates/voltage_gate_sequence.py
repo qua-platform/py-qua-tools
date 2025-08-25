@@ -34,8 +34,7 @@ class VoltageGateSequence:
         self._compensation = False
         if time_constants:
             self._compensation = True
-            self._gate_voltage = 0.0 # the voltage seen by the gate after the bias tee
-            self._comp_voltage = 0.0 # the voltage applied by the awg before the bias tee
+            self._comp_offset = [0.0 for _ in self._elements] # difference between the voltage applied by the awg before the bias tee and the voltage seen by the gate after the bias tee
         # Check if time constants have proper type
         if self._compensation:
             if isinstance(time_constants, (float, int)):
