@@ -213,9 +213,16 @@ class VoltageGateSequence:
                     stacklevel=2,
                 )
 
+        # Add the step, accounting for compensation if needed
         if self._compensation:
             # do compensated steps
-            pass
+            if ramp_duration is None or ramp_duration == 0:
+                # perform compensation only on level
+                pass
+            else:
+                # play ramp
+                # then play compensation on level
+                pass
         else: 
             self._add_step_internal(level=level, duration=_duration, ramp_duration=ramp_duration)
 
@@ -241,12 +248,12 @@ class VoltageGateSequence:
 
             # Play a step
             if ramp_duration is None:
-                self.average_power[i] += self._update_averaged_power(voltage_level, _duration)
+                self.average_power[i] += self._update_averaged_power(voltage_level, duration)
 
                 # Dynamic amplitude change...
                 if self.is_QUA(voltage_level) or self.is_QUA(self.current_level[i]):
                     # if dynamic duration --> play step and wait
-                    if self.is_QUA(_duration):
+                    if self.is_QUA(duration):
                         play(
                             "step"
                             * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
@@ -255,12 +262,12 @@ class VoltageGateSequence:
                         wait((_duration - 16) >> 2, gate)
                     # if constant duration --> new operation and play(*amp(..))
                     else:
-                        if _duration > 0:
+                        if duration > 0:
                             operation = self._add_op_to_config(
                                 gate,
                                 "step",
                                 amplitude=self.base_operation[gate]["amplitude"],
-                                length=_duration,
+                                length=duration,
                             )
                             play(
                                 operation
@@ -271,7 +278,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif __class__.is_QUA(_duration):
+                elif __class__.is_QUA(duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
@@ -286,7 +293,7 @@ class VoltageGateSequence:
                         gate,
                         voltage_point_name,
                         amplitude=voltage_level - self.current_level[i],
-                        length=_duration,
+                        length=duration,
                     )
                     play(operation, gate)
 
@@ -294,24 +301,24 @@ class VoltageGateSequence:
             else:
                 self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
                 self.average_power[i] += self._update_averaged_power(
-                    voltage_level, _duration, ramp_duration, self.current_level[i]
+                    voltage_level, duration, ramp_duration, self.current_level[i]
                 )
 
                 if not self.is_QUA(ramp_duration):
                     ramp_rate = 1 / ramp_duration
                     play(ramp((voltage_level - self.current_level[i]) * ramp_rate), gate, duration=ramp_duration >> 2)
-                    if self.is_QUA(_duration) or _duration > 0:
-                        wait(_duration >> 2, gate)
+                    if self.is_QUA(duration) or duration > 0:
+                        wait(duration >> 2, gate)
 
                 else:
                     ramp_rate = declare(fixed)
                     assign(ramp_rate, (voltage_level - self.current_level[i]) * Math.div(1, ramp_duration))
                     play(ramp(ramp_rate), gate, duration=ramp_duration >> 2)
-                    if self.is_QUA(_duration):
-                        wait((_duration >> 2) - 9, gate)
+                    if self.is_QUA(duration):
+                        wait((duration >> 2) - 9, gate)
                     else:
-                        if _duration > 0:
-                            wait(_duration >> 2, gate)
+                        if duration > 0:
+                            wait(duration >> 2, gate)
             self.current_level[i] = voltage_level
 
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
