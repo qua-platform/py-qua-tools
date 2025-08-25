@@ -169,11 +169,11 @@ class VoltageGateSequence:
         """Calculates the end voltage of a compensation ramp to account for decay the in a bias tee.
 
         Args:
-            voltage (float): Voltage at the start of the ramp
+            voltage (list of float): Voltage at the start of the ramp
             duration (int): Duration of the step in nanoseconds
-            time_constant (int): Time constant of the bias tee in nanoseconds
+            time_constant (list of int): Time constant of the bias tee in nanoseconds
         """
-        return voltage * (1 + duration/time_constant)
+        return [V * (1 + d / tc) for V, d, tc in zip(voltage, [duration]*len(time_constant), time_constant)]
 
     def add_step(
         self,
@@ -231,11 +231,14 @@ class VoltageGateSequence:
                 pass
                 # self._add_step_internal(level=level, duration=None, ramp_duration=_duration)
             else:
-                # play ramp
-                # self._add_step_internal(level=level, duration=None, ramp_duration=ramp_duration)
+                _comp_level = self.calculate_ramp(level, _duration, self._time_constants)
+                # play ramp (the ramp is not compensated)
+                self._add_step_internal(level=level, duration=None, ramp_duration=ramp_duration)
                 # then play compensation on level
-                # self._add_step_internal(level=level, duration=None, ramp_duration=_duration)
-                pass
+                if _duration is not None and _duration != 0:
+                    self._add_step_internal(level=_comp_level, duration=None, ramp_duration=_duration)
+                    # update compensation offset
+                    self._comp_offset = [co + cl - l for co, cl, l in zip(self._comp_offset, _comp_level, level)]
         else: 
             self._add_step_internal(level=level, duration=_duration, ramp_duration=ramp_duration)
 
@@ -291,7 +294,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif __class__.is_QUA(duration):
+                elif self.is_QUA(duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
