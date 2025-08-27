@@ -1,5 +1,5 @@
 from .channel_spec import ChannelSpec
-from .types import QubitsType, QubitPairsType
+from .types import QubitsType, QubitPairsType, TwpasType
 from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 
@@ -96,6 +96,30 @@ class Connectivity(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
         )
+    
+    def add_twpa_drive_lines(self, twpas: TwpasType, triggered: bool = False, constraints: ChannelSpec = None):
+        """
+        Adds specifications (placeholders) for drive lines for the specified qubits.
+
+        This method configures the qubit drive line specifications (placeholders), which are typically used to apply
+        control signals to qubits. It allows optional triggering and constraints on which channel configurations
+        can be allocated for this line.
+
+        No channels are allocated at this stage.
+
+
+        Args:
+            qubits (QubitsType): The qubits to configure the drive lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the qubit drive lines.
+        """
+        elements = self._make_twpa_elements(twpas)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.PUMP, triggered, constraints, elements
+        ) 
 
     def add_qubit_charge_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
         """
