@@ -167,6 +167,17 @@ class VoltageGateSequence:
     @staticmethod
     def is_QUA(var):
         return isinstance(var, (QuaExpression, QuaVariable))
+    
+    @staticmethod
+    def calculate_ramp(voltage, duration, time_constant):
+        """Calculates the end voltage of a compensation ramp to account for decay in a bias tee.
+
+        Args:
+            voltage (float): Voltage applied at the start of the step
+            duration (int): Duration of the step in nanoseconds
+            time_constant (int): Time constant of the bias tee in nanoseconds
+        """
+        return voltage * (1 + duration/time_constant)
 
     def add_step(
         self,
@@ -185,9 +196,13 @@ class VoltageGateSequence:
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
         if self._compensation:
-            self._add_compensated_step_internal(level, duration, voltage_point_name, ramp_duration)
+            self._add_compensated_step_internal(
+                level, duration, voltage_point_name, ramp_duration
+                )
         else:
-            self._add_step_internal(level, duration, voltage_point_name, ramp_duration)
+            self._add_step_internal(
+                level, duration, voltage_point_name, ramp_duration
+                )
 
     def _add_compensated_step_internal(
         self,
