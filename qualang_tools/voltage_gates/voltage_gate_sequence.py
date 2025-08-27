@@ -185,9 +185,18 @@ class VoltageGateSequence:
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
         if self._compensation:
-            pass
+            self._add_compensated_step_internal(level, duration, voltage_point_name, ramp_duration)
         else:
             self._add_step_internal(level, duration, voltage_point_name, ramp_duration)
+
+    def _add_compensated_step_internal(
+        self,
+        level: list[Union[float, QuaExpression, QuaVariable]] = None,
+        duration: Union[int, QuaExpression, QuaVariable] = None,
+        voltage_point_name: str = None,
+        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+    ) -> None:
+        pass
 
     def _add_step_internal(
         self,
@@ -271,7 +280,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif isinstance(_duration, (QuaExpression, QuaVariable)):
+                elif self.is_QUA(_duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
