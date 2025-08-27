@@ -172,12 +172,11 @@ class VoltageGateSequence:
     def calculate_ramp(voltage, duration, time_constant):
         """Calculates the end voltage of a compensation ramp to account for decay in a bias tee.
 
-        Args:
-            voltage (float): Voltage applied at the start of the step
-            duration (int): Duration of the step in nanoseconds
-            time_constant (int): Time constant of the bias tee in nanoseconds
+        :param voltage (list(float)): Voltage applied at the start of the step
+        :param duration (int): Duration of the step in nanoseconds
+        :param time_constant (list(int)): Time constant of the bias tee in nanoseconds
         """
-        return voltage * (1 + duration/time_constant)
+        return [V * (1 + d / tc) for V, d, tc in zip(voltage, [duration]*len(time_constant), time_constant)]
 
     def add_step(
         self,
