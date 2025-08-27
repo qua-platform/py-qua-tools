@@ -210,7 +210,37 @@ class VoltageGateSequence:
         voltage_point_name: str = None,
         ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
     ) -> None:
-        pass
+        # Check input value for duration
+        if voltage_point_name is None:
+            if duration is None:
+                raise RuntimeError(
+                    "Either the voltage_point_name or the duration must be provided."
+                )
+            else: _duration = duration
+        else: _duration = self._voltage_points[voltage_point_name]["duration"]
+        self._check_duration(_duration)
+                
+        # Check input value for level
+        if (level is None) == (voltage_point_name is None):
+            raise ValueError(
+                "You must provide either 'level' or 'voltage_point_name', but not both."
+            )
+        if level is not None:
+            if (type(level) is not list) or (len(level) != len(self._elements)):
+                raise TypeError(
+                    "The provided level must be a list of same length as the number of elements involved in the virtual gate."
+                )
+        else: 
+            level = self._voltage_points[voltage_point_name]["coordinates"]
+        
+        # Check input value for ramp duration
+        self._check_duration(ramp_duration)
+        if ramp_duration is not None:
+            if self.is_QUA(ramp_duration):
+                warn(
+                    "\nYou are using a QUA variable for the ramp duration. Make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur. Otherwise use a python variable.",
+                    stacklevel=2,
+                )
 
     def _add_step_internal(
         self,
