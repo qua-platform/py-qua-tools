@@ -247,31 +247,32 @@ class VoltageGateSequence:
             raise ValueError("Duration and ramp duration cannot both be zero or None.")
         
         # Play the compensated step
-        self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
         for i, gate in enumerate(self._elements):
+            voltage_level = level[i]
+            self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
             step_t = 0  # used if there is no ramp the desired voltage level
             if ramp_duration is not None:
                 self.average_power[i] += self._update_averaged_power(
-                    level = level + self._comp_offset[i], 
+                    level = voltage_level + self._comp_offset[i], 
                     duration = 0, 
                     ramp_duration = ramp_duration, 
                     current_level = self.current_level[i] + self._comp_offset[i]
                 )
                 # Play the ramp to the step start voltage
                 # This ramp is not adjusted to account for the bias tee decay
-                self._perform_ramp(gate, level-self.current_level[i], ramp_duration)
+                self._perform_ramp(gate, voltage_level-self.current_level[i], ramp_duration)
             else:
                 # if there is no ramp to reach the desired level
                 # play a very short ramp
                 step_t = 16
                 self.average_power[i] += self._update_averaged_power(
-                    level = level + self._comp_offset[i], 
+                    level = voltage_level + self._comp_offset[i], 
                     duration = 0, 
                     ramp_duration = step_t, 
                     current_level = self.current_level[i] + self._comp_offset[i]
                 )
-                self._perform_ramp(gate, level-self.current_level[i], step_t)
-            self.current_level[i] = level
+                self._perform_ramp(gate, voltage_level-self.current_level[i], step_t)
+            self.current_level[i] = voltage_level
 
             if _duration is not None:
                 voltage_offset = self.calculate_voltage_offset(
@@ -280,10 +281,10 @@ class VoltageGateSequence:
                     time_constant = self._time_constants[i]
                     )
                 self.average_power[i] += self._update_averaged_power(
-                    level = level + self._comp_offset[i] + voltage_offset, 
+                    level = voltage_level + self._comp_offset[i] + voltage_offset, 
                     duration = 0, 
                     ramp_duration = _duration - step_t, 
-                    current_level = level + self._comp_offset[i]
+                    current_level = voltage_level + self._comp_offset[i]
                 )
                 # Play the step which is now a ramp to compensate for the bias tee decay
                 self._perform_ramp(gate, voltage_offset, _duration - step_t)
