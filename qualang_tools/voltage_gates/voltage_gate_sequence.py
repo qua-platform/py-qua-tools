@@ -251,7 +251,7 @@ class VoltageGateSequence:
             voltage_level = level[i]
             self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
             step_t = 0  # used if there is no ramp the desired voltage level
-            if ramp_duration is not None:
+            if ramp_duration is not None and ramp_duration!=0:
                 self.average_power[i] += self._update_averaged_power(
                     level = voltage_level + self._comp_offset[i], 
                     duration = 0, 
