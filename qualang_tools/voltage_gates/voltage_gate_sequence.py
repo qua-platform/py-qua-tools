@@ -514,7 +514,8 @@ class VoltageGateSequence:
                     )
 
             self.current_level[i] = amplitude
-            self._comp_offset[i] = 0
+            if self._compensation:
+                self._comp_offset[i] = 0
 
     def ramp_to_zero(self, duration: int = None):
         """Ramp all the gate voltages down to zero Volt and reset the averaged voltage derived for defining the compensation pulse.
