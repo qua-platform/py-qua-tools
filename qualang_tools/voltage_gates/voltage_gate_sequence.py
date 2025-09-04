@@ -470,8 +470,8 @@ class VoltageGateSequence:
                     duration_4ns_pow2_cur = declare(int)
                     amplitude = declare(fixed)
                     # determine the voltage offset caused by bias tee compensation
+                    v_offset = declare(fixed)
                     if self._compensation:
-                        v_offset = declare(fixed)
                         assign(v_offset, self._comp_offset[i])
                     else:
                         assign(v_offset, 0)
