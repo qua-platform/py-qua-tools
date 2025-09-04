@@ -442,6 +442,7 @@ class VoltageGateSequence:
 
         for i, gate in enumerate(self._elements):
             if not self.is_QUA(self.average_power[i]):
+                v_offset = 0 if not self._compensation else self._comp_offset[i]
                 if duration is None:
                     # Exact duration of the compensation pulse
                     comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
@@ -450,14 +451,14 @@ class VoltageGateSequence:
                     # Corrected amplitude to account for the duration casting to integer
                     amplitude = -np.sign(self.average_power[i]) * max_amplitude * comp_duration / duration_4ns
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
-                    ramp_rate = (amplitude - self.current_level[i]) / 16
+                    ramp_rate = (amplitude - self.current_level[i] - v_offset) / 16
                     play(ramp(ramp_rate), gate, duration=4)
                     wait((duration_4ns - 16) // 4, gate)
 
                 else:
                     amplitude = -0.0009765625 * self.average_power[i] / duration
                     operation = self._add_op_to_config(
-                        gate, "compensation", amplitude=amplitude - self.current_level[i], length=duration
+                        gate, "compensation", amplitude=amplitude - self.current_level[i]- v_offset, length=duration
                     )
                     play(operation, gate)
             else:
@@ -468,6 +469,12 @@ class VoltageGateSequence:
                     duration_4ns_pow2 = declare(int)
                     duration_4ns_pow2_cur = declare(int)
                     amplitude = declare(fixed)
+                    # determine the voltage offset caused by bias tee compensation
+                    if self._compensation:
+                        v_offset = declare(fixed)
+                        assign(v_offset, self._comp_offset[i])
+                    else:
+                        assign(v_offset, 0)
                     # Exact duration of the compensation pulse
                     # take into account a gap of 110ns for the derivation of the compensation pulse
                     assign(
@@ -494,7 +501,7 @@ class VoltageGateSequence:
 
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
                     ramp_rate = declare(fixed)
-                    assign(ramp_rate, (amplitude - self.current_level[i]) >> 4)
+                    assign(ramp_rate, (amplitude - self.current_level[i] - v_offset) >> 4)
                     play(ramp(ramp_rate), gate, duration=4)
                     wait((duration_4ns_pow2_cur - 16) >> 2, gate)
                 else:
@@ -509,7 +516,7 @@ class VoltageGateSequence:
                     assign(amplitude, -Cast.mul_fixed_by_int(0.01 / duration, eval_average_power))
                     assign(amplitude, amplitude * 0.09765625)
                     play(
-                        operation * amp((amplitude - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
+                        operation * amp((amplitude - self.current_level[i] - v_offset) << self.base_operation[gate]["bit_shift"]),
                         gate,
                     )
 
