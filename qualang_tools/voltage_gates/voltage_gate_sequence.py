@@ -1,6 +1,6 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_, elif_
 from typing import Union, List, Dict
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
@@ -33,6 +33,7 @@ class VoltageGateSequence:
         self.average_power = [0 for _ in self._elements]
         self._expression = None
         self._expression2 = None
+        self._voltage_tolerance = 0.0001 # limit for adding compensation. must be positive.
         self.base_operation = {}
         # Add to the config the step operation (length=16ns & amp=0.25V)
         for el in self._elements:
@@ -258,6 +259,8 @@ class VoltageGateSequence:
                     else:
                         if _duration > 0:
                             wait(_duration >> 2, gate)
+            if isinstance(voltage_level, int):
+                voltage_level = float(voltage_level)
             self.current_level[i] = voltage_level
 
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
@@ -304,6 +307,8 @@ class VoltageGateSequence:
                     amplitude = declare(fixed)
                     # Exact duration of the compensation pulse
                     # take into account a gap of 110ns for the derivation of the compensation pulse
+                    # if isinstance(self.current_level[i], int):
+                    #     self.current_level[i] = float(self.current_level[i])
                     assign(
                         eval_average_power,
                         self.average_power[i] + Cast.mul_int_by_fixed(96 * 1024, self.current_level[i]),
@@ -321,9 +326,9 @@ class VoltageGateSequence:
                     # Get the actual compensation pulse duration
                     assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
                     # Corrected amplitude to account for the actual duration with respect to the exact one
-                    with if_(eval_average_power > 0):
+                    with if_(eval_average_power > self._voltage_tolerance):
                         assign(amplitude, -Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
-                    with else_():
+                    with elif_(eval_average_power < -self._voltage_tolerance):
                         assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
 
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
