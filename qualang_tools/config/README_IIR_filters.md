@@ -9,7 +9,7 @@ When operating qubits and aiming for high-fidelity single- and two-qubit gates, 
 
 This file provides tools for calculating the correction parameters needed to implement digital filters with the OPX1000. In particular, it focuses on generating the IIR filter coefficients that can be directly inserted into the OPX1000 configuration file, making it seamless to implement high-fidelity gates.
 
-More background on digital filters can be found in the [QUA documenation page](https://docs.quantum-machines.co/1.2.2/docs/Guides/output_filter/?h=digital+filhttps://docs.quantum-machines.co/1.2.2/docs/Guides/output_filter/?h=digital+fil).
+More background on digital filters can be found in the [QUA documenation page](https://docs.quantum-machines.co/latest/docs/Guides/output_filter).
 
 ## IIR correction filter functions
 
