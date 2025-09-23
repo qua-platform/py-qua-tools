@@ -1,4 +1,4 @@
-# Digital fitler correction fitting functions
+# Digital filter correction fitting functions
 
 ## Overveiw of digital fitlers
 
