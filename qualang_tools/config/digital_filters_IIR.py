@@ -37,10 +37,10 @@ def sequential_exp_fit(
     4. Repeat for faster components
     
     Args:
-        t (array): Time points in nanoseconds
-        y (array): Data points (normalized amplitude)
-        start_fractions (list): List of fractions (0 to 1) indicating where to start fitting each component
-        fixed_taus (list, optional): Fixed tau values for each exponential component. 
+        t (array): Time points in nanoseconds, representing the time resolution of the pulse.
+        y (array): Amplitude values of the pulse in volts.
+        start_fractions (list): List of fractions (0 to 1) indicating where to start fitting each component. Choice is user defined.
+        fixed_taus (list, optional): Fixed tau values (in nanoseconds) for each exponential component. 
                                    If provided, only amplitudes are fitted, taus are constrained.
                                    Must have same length as start_fractions.
         a_dc (float, optional): Fixed constant term. If provided, the constant term is not fitted.
@@ -50,7 +50,7 @@ def sequential_exp_fit(
         tuple: (components, a_dc, residual) where:
             - components: List of (amplitude, tau) pairs for each fitted component
             - a_dc: Fitted constant term or the fixed constant term
-            - residual: Residual after subtracting all components
+            - residual: The difference between the measured data and the fitted curve after subtracting all exponential components.
     """
     
     components = []  # List to store (amplitude, tau) pairs
@@ -136,19 +136,19 @@ def sequential_exp_fit(
     return components, a_dc, y_residual
 
 
-def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=True):
+def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=True):
     """
     Optimize the start_fractions by minimizing the RMS between the data and the fitted sum 
     of exponentials using scipy.optimize.minimize.
     
     Args:
-        t (array): Time points in nanoseconds
-        y (array): Data points (normalized amplitude)
-        base_fractions (list): Initial guess for start fractions
-        bounds_scale (float): Scale factor for bounds around base fractions (0.5 means ±50%)
-        fixed_taus (list, optional): Fixed tau values for each exponential component. 
+        t (array): Time points in nanoseconds, representing the time resolution of the pulse.
+        y (array): Amplitude values of the pulse in volts.
+        start_fractions (list): Initial guess for start fractions. Choice is user defined. 
+        bounds_scale (float): Scale factor for bounds around start fractions (0.5 means ±50%)
+        fixed_taus (list, optional): Fixed tau values (in nanoseconds) for each exponential component. 
                                    If provided, only amplitudes are fitted, taus are constrained.
-                                   Must have same length as base_fractions.
+                                   Must have same length as start_fractions.
         a_dc (float, optional): Constant term. If not provided, the constant term is fitted from 
                                 the tail of the data.
         verbose (bool): Whether to print detailed fitting information
@@ -158,8 +158,8 @@ def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=
     """
     # Validate fixed_taus parameter
     if fixed_taus is not None:
-        if len(fixed_taus) != len(base_fractions):
-            raise ValueError("fixed_taus must have the same length as base_fractions")
+        if len(fixed_taus) != len(start_fractions):
+            raise ValueError("fixed_taus must have the same length as start_fractions")
         if any(tau <= 0 for tau in fixed_taus):
             raise ValueError("All fixed_taus values must be positive")
     
@@ -173,7 +173,7 @@ def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=
             return 1e6  # Return large value if constraint is violated
                 
         components, _, residual = sequential_exp_fit(t, y, x, fixed_taus=fixed_taus, a_dc=a_dc, verbose=verbose)
-        if len(components) == len(base_fractions):
+        if len(components) == len(start_fractions):
             current_rms = np.sqrt(np.mean(residual**2))
         else:
             current_rms = 1e6 # Return large value if fitting fails
@@ -183,19 +183,19 @@ def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=
 
     # Define bounds for optimization
     bounds = []
-    for base in base_fractions:
-        min_val = base * (1 - bounds_scale)
-        max_val = base * (1 + bounds_scale)
+    for start in start_fractions:
+        min_val = start * (1 - bounds_scale)
+        max_val = start * (1 + bounds_scale)
         bounds.append((min_val, max_val))
     
     print("\nOptimizing start_fractions using scipy.optimize.minimize...")
-    print(f"Initial values: {[f'{f:.5f}' for f in base_fractions]}")
+    print(f"Initial values: {[f'{f:.5f}' for f in start_fractions]}")
     print(f"Bounds: ±{bounds_scale*100}% around initial values")
     
     # Run optimization
     result = minimize(
         objective,
-        x0=base_fractions,
+        x0=start_fractions,
         bounds=bounds,
         method='Nelder-Mead',  # This method works well for non-smooth functions
         options={'disp': True, 'maxiter': 200}
@@ -207,7 +207,7 @@ def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=
         components, a_dc, best_residual = sequential_exp_fit(t, y, best_fractions, fixed_taus=fixed_taus, a_dc=a_dc, verbose=False)
         best_rms = np.sqrt(np.mean(best_residual**2))
         print("\nOptimization successful!")
-        print(f"Initial fractions: {[f'{f:.5f}' for f in base_fractions]}")
+        print(f"Initial fractions: {[f'{f:.5f}' for f in start_fractions]}")
         print(f"Optimized fractions: {[f'{f:.5f}' for f in best_fractions]}")
         if fixed_taus is not None:
             print(f"Fixed taus: {[f'{tau:.3f} ns' for tau in fixed_taus]}")
@@ -215,7 +215,7 @@ def optimize_start_fractions(t, y, base_fractions, bounds_scale=0.5, fixed_taus=
         print(f"Number of iterations: {result.nit}")
     else:
         print("\nOptimization failed. Using initial values.")
-        best_fractions = base_fractions
+        best_fractions = start_fractions
         components, a_dc, best_residual = sequential_exp_fit(t, y, best_fractions, fixed_taus=fixed_taus, a_dc=a_dc, verbose=False)
         best_rms = np.sqrt(np.mean(best_residual**2))
     
@@ -275,14 +275,13 @@ def plot_fit(t_data: np.ndarray, y_data: np.ndarray, components: List[Tuple[floa
 # %%
 # load data
 with nc.Dataset('/Users/fabioansaloni/Downloads/ds2.h5', 'r') as f:
-    print(f.variables['time'])
     t_data = np.array(f.variables['time'][:])
     y_data = np.squeeze(np.array(f.variables['flux_response'][:]))
 
 # fit data
-fitting_base_fractions = [0.8, 0.6, 0.3, 0.2, 0.02]
-# fitting_base_fractions = [0.6, 0.3, 0.02]
-success, best_fractions, components, a_dc, best_rms = optimize_start_fractions(t_data, y_data, fitting_base_fractions)
+fitting_start_fractions = [0.8, 0.6, 0.3, 0.2, 0.02]
+# fitting_start_fractions = [0.6, 0.3, 0.02]
+success, best_fractions, components, a_dc, best_rms = optimize_start_fractions(t_data, y_data,fitting_start_fractions)
 
 # plot data and fit
 fig, axs = plot_fit(t_data, y_data, components, a_dc)
