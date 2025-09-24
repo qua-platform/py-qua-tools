@@ -318,8 +318,6 @@ class VoltageGateSequence:
                         amplitude = declare(fixed)
                         # Exact duration of the compensation pulse
                         # take into account a gap of 110ns for the derivation of the compensation pulse
-                        # if isinstance(self.current_level[i], int):
-                        #     self.current_level[i] = float(self.current_level[i])
                         assign(
                             eval_average_power,
                             self.average_power[i] + Cast.mul_int_by_fixed(96 * 1024, self.current_level[i]),
