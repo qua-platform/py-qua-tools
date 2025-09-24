@@ -41,12 +41,12 @@ The original uncorrected control pulse was obtained through the [cryoscope exper
 
 As the data are save in the ```.h5``` file, we can now follow the workflow introduced above. In order to succesfully implement the corrections we use the following ```fitting_start_fractions``` = [0.6, 0.3, 0.02] and we obtain the following result
 
-<img align="center" src="image.PNG" alt="drawing" width="800"/>
+<img align="center" src="image.png" alt="drawing" width="800"/>
 
 In this case, only three coefficients were required to reproduce the transfer function of the setup, and these coefficients can be directly used in the configuration file.
 
 Here is a second example, measured on the same setup but from a different qubit. This time we used: ```fitting_start_fractions``` = [0.8, 0.6, 0.3, 0.2, 0.02] and obtained the following result:
 
-<img align="center" src="image1.PNG" alt="drawing" width="800"/>
+<img align="center" src="image1.png" alt="drawing" width="800"/>
 
 In this second case, five coefficients were required to fully reproduce the transfer function because the high-frequency coaxial cable in the fridge was different.
