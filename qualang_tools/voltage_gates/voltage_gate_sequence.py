@@ -268,7 +268,6 @@ class VoltageGateSequence:
 
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
         """Add a compensation pulse of the specified amplitude whose duration is derived automatically from the previous operations and the maximum amplitude allowed.
-        Unless otherwise specified (by setting go_to_zero to False), the voltage is ramped to zero volts before the compensation pulse is calculated and applied.
         Note that the derivation of the compensation pulse parameters in real-time may add a gap up to 300ns before playing the pulse, but the voltage will be maintained.
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
         """
