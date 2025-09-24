@@ -153,8 +153,9 @@ class VoltageGateSequence:
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
         self._check_duration(duration)
-        if ramp_duration == 0:
-            ramp_duration = None
+        if isinstance(ramp_duration, (int, float)):
+            if ramp_duration == 0:
+                ramp_duration = None
         self._check_duration(ramp_duration)
         if ramp_duration is not None:
             if self.is_QUA(ramp_duration):
