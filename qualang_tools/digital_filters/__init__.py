@@ -8,6 +8,7 @@ from qualang_tools.digital_filters.filters import (
     highpass_correction,
     bounce_and_delay_correction,
 )
+from qualang_tools.digital_filters.digital_filters_iir import optimize_start_fractions, plot_fit
 
 __all__ = [
     "QOPVersion",
@@ -18,4 +19,6 @@ __all__ = [
     "multi_exponential_decay",
     "highpass_correction",
     "bounce_and_delay_correction",
+    "optimize_start_fractions",
+    "plot_fit",
 ]
