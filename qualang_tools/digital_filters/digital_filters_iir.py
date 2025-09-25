@@ -25,7 +25,7 @@ def sequential_exp_fit(
     start_fractions: List[float],
     fixed_taus: List[float] = None,
     a_dc: float = None,
-    verbose: bool = True,
+    verbose: bool = 1,
 ) -> Tuple[List[Tuple[float, float]], float, np.ndarray]:
     """
     Fit multiple exponentials sequentially by:
@@ -42,7 +42,7 @@ def sequential_exp_fit(
                                    If provided, only amplitudes are fitted, taus are constrained.
                                    Must have same length as start_fractions.
         a_dc (float, optional): Fixed constant term. If provided, the constant term is not fitted.
-        verbose (bool): Whether to print detailed fitting information
+        verbose (int): Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information)
 
     Returns:
         tuple: (components, a_dc, residual) where:
@@ -132,7 +132,7 @@ def sequential_exp_fit(
     return components, a_dc, y_residual
 
 
-def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=True):
+def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=1):
     """
     Optimize the start_fractions by minimizing the RMS between the data and the fitted sum
     of exponentials using scipy.optimize.minimize.
@@ -147,7 +147,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
                                    Must have same length as start_fractions.
         a_dc (float, optional): Constant term. If not provided, the constant term is fitted from
                                 the tail of the data.
-        verbose (bool): Whether to print detailed fitting information
+        verbose (int): Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information)
 
     Returns:
         tuple: (success, best_fractions, best_components, best_dc, best_rms)
@@ -182,8 +182,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
         min_val = start * (1 - bounds_scale)
         max_val = start * (1 + bounds_scale)
         bounds.append((min_val, max_val))
-
-    if verbose:
+    if verbose > 0:
         print("\nOptimizing start_fractions using scipy.optimize.minimize...")
         print(f"Initial values: {[f'{f:.5f}' for f in start_fractions]}")
         print(f"Bounds: ±{bounds_scale * 100}% around initial values")
@@ -204,7 +203,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
             t, y, best_fractions, fixed_taus=fixed_taus, a_dc=a_dc, verbose=False
         )
         best_rms = np.sqrt(np.mean(best_residual**2))
-        if verbose:
+        if verbose > 0:
             print("\nOptimization successful!")
             print(f"Initial fractions: {[f'{f:.5f}' for f in start_fractions]}")
             print(f"Optimized fractions: {[f'{f:.5f}' for f in best_fractions]}")
@@ -213,7 +212,8 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
             print(f"Final RMS: {best_rms:.3e}")
             print(f"Number of iterations: {result.nit}")
     else:
-        print("\nOptimization failed. Using initial values.")
+        if verbose > 0:
+            print("\nOptimization failed. Using initial values.")
         best_fractions = start_fractions
         components, a_dc, best_residual = sequential_exp_fit(
             t, y, best_fractions, fixed_taus=fixed_taus, a_dc=a_dc, verbose=False
@@ -221,7 +221,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
         best_rms = np.sqrt(np.mean(best_residual**2))
 
     components = [(amp * np.exp(t[0] / tau), tau) for amp, tau in components]
-    if verbose:
+    if verbose > 0:
         print("Optimized components [(a1, tau1), (a2, tau2)...]:")
         print(components)
     return result.success, best_fractions, components, a_dc, best_rms
