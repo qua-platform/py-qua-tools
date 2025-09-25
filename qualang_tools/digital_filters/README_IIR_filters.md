@@ -19,7 +19,7 @@ This repository is optimized for estimating IIR filter corrections and includes 
 The workflow assumes that distorted pulse data have already been measured at the qubit level and saved in a ```.h5```  (NetCDF) file.
 
 ### Features
-1. Single exponential model implements a simple exponential decay model: f(t) = Ae^(-t/\$\tau$)
+1. Single exponential model implements a simple exponential decay model: $f(t) = Ae^{(-t/\tau)}$
 2. Sequential multi-exponential fitting
     - Automatically estimates a constant (DC) offset from the data tail
     - Fits the slowest time constants first, subtracts them, and then extracts faster components.
@@ -40,13 +40,46 @@ Below is an example of implementing the IIR digital filter using the OPX1000 to 
 
 The original uncorrected control pulse was obtained through the [cryoscope experiment](https://pubs.aip.org/aip/apl/article/116/5/054001/38884/Time-domain-characterization-and-correction-of-on), where the LF-FEM channel of the OPX1000 was used to control the qubit flux response. Here the corresponding [QUA implementation](https://github.com/qua-platform/qua-libs/blob/main/Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/17_cryoscope_1ns.py). Because the flux pulse is distorted by the dilution refrigerator transmission lines, the qubit exhibits a quantum state response directly dependent on the pulse distortion. From this, the actual pulse shape at the qubit can be reconstructed.
 
-As the data are saved in the ```.h5``` file, we can now follow the workflow introduced above. In order to successfully implement the corrections we use the following ```fitting_start_fractions``` = [0.6, 0.3, 0.02] and we obtain the following result
+As the data are saved in the ```.h5``` file, we can now follow the workflow introduced above:
+````python
+from qualang_tools.digital_filters import optimize_start_fractions, plot_fit
+import numpy as np
+import netCDF4 as nc
+
+# load data
+with nc.Dataset('path_to_dataset.h5', 'r') as f:
+    t_data = np.array(f.variables['time'][:])
+    y_data = np.squeeze(np.array(f.variables['flux_response'][:]))
+
+# fit data
+# fitting_start_fractions = [0.6, 0.3, 0.02]
+fitting_start_fractions = [0.8, 0.6, 0.3, 0.2, 0.02]
+success, best_fractions, components, a_dc, best_rms = optimize_start_fractions(t_data, y_data, fitting_start_fractions)
+
+# plot data and fit
+fig, axs = plot_fit(t_data, y_data, components, a_dc)
+
+# parameters to update in config
+A_list = [component[0] / a_dc for component in components]
+tau_list = [component[1] for component in components]
+exponential_filter = list(zip(A_list, tau_list))
+# Assuming that we want to update the filters on analog output port 1 of LF-fem 1
+output_port = config["controllers"]["con1"]["fems"][1]["analog_outputs"][1]
+output_port["filter"] = {
+   "exponential_dc_gain": a_dc,
+   "exponential": exponential_filter,
+   "feedforward": []
+}
+````
+The exact implementation depends on the data and the number of exponential components to correct.
+For instance, on a given qubit and using ```fitting_start_fractions``` = [0.6, 0.3, 0.02] we can obtain the following result:
 
 <img src="three_exponentials.png" alt="drawing" width="950"/>
 
 In this case, only three coefficients were required to reproduce the transfer function of the setup, and these coefficients can be directly used in the configuration file.
 
-Here is a second example, measured on the same setup but from a different qubit. This time we used: ```fitting_start_fractions``` = [0.8, 0.6, 0.3, 0.2, 0.02] and obtained the following result:
+Here is a second example, measured on the same setup but from a different qubit. 
+This time we used: ```fitting_start_fractions``` = [0.8, 0.6, 0.3, 0.2, 0.02] and obtained the following result:
 
 <img src="five_exponentials.png" alt="drawing" width="950"/>
 
