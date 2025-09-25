@@ -134,23 +134,60 @@ def sequential_exp_fit(
 
 def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=1):
     """
-    Optimize the start_fractions by minimizing the RMS between the data and the fitted sum
-    of exponentials using scipy.optimize.minimize.
-
-    Args:
-        t (array): Time points in nanoseconds, representing the time resolution of the pulse.
-        y (array): Amplitude values of the pulse in volts.
-        start_fractions (list): Initial guess for start fractions. Choice is user defined.
-        bounds_scale (float): Scale factor for bounds around start fractions (0.5 means ±50%)
-        fixed_taus (list, optional): Fixed tau values (in nanoseconds) for each exponential component.
-                                   If provided, only amplitudes are fitted, taus are constrained.
-                                   Must have same length as start_fractions.
-        a_dc (float, optional): Constant term. If not provided, the constant term is fitted from
-                                the tail of the data.
-        verbose (int): Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information)
-
-    Returns:
-        tuple: (success, best_fractions, best_components, best_dc, best_rms)
+        Optimize the start fractions for a sum of exponentials fit to data by minimizing the RMS error
+    between the data and the fitted sum using `scipy.optimize.minimize`.
+    This function attempts to find the optimal set of start fractions (time points at which each exponential
+    component begins) that best fit the provided data with a sum of exponentials. Optionally, the time constants
+    (taus) for each component can be fixed. The optimization is performed by minimizing the root mean square (RMS)
+    of the residuals between the data and the fitted model.
+    Parameters
+    ----------
+    t : np.ndarray
+        1D array of time points in nanoseconds, representing the time resolution of the pulse.
+    y : np.ndarray
+        1D array of amplitude values of the pulse in volts, corresponding to each time point in `t`.
+    start_fractions : list of float
+        Initial guess for the start fractions (time points) for each exponential component. Must be in descending order.
+    bounds_scale : float, optional
+        Scale factor for bounds around start fractions during optimization (default is 0.5, meaning ±50%).
+    fixed_taus : list of float or None, optional
+        If provided, a list of fixed tau values (in nanoseconds) for each exponential component. If set, only amplitudes
+        are fitted and taus are constrained. Must have the same length as `start_fractions`.
+    a_dc : float or None, optional
+        Constant (DC) term. If not provided, the constant term is estimated from the tail of the data.
+    verbose : int, optional
+        Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information) (default is 1)
+    Returns
+    -------
+    success : bool
+        True if the optimization converged successfully, False otherwise.
+    best_fractions : list of float
+        The optimized start fractions (time points) for each exponential component.
+    best_components : list of tuple (float, float)
+        List of (amplitude, tau) tuples for each fitted exponential component.
+    best_dc : float
+        The fitted or provided constant (DC) term.
+    best_rms : float
+        The root mean square (RMS) of the residuals for the best fit.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> t = np.linspace(0, 100, 101)
+    >>> y = 2.0 * np.exp(-t / 10) + 1.0 * np.exp(-t / 30) + 0.1 + 0.05 * np.random.randn(len(t))
+    >>> start_fractions = [80, 40]
+    >>> success, best_fractions, best_components, best_dc, best_rms = optimize_start_fractions(
+    ...     t, y, start_fractions, bounds_scale=0.5, fixed_taus=None, a_dc=None, verbose=False
+    ... )
+    >>> print("Success:", success)
+    >>> print("Best fractions:", best_fractions)
+    >>> print("Best components (amp, tau):", best_components)
+    >>> print("Best DC:", best_dc)
+    >>> print("Best RMS:", best_rms)
+    Notes
+    -----
+    - The function requires that `start_fractions` are in descending order.
+    - If `fixed_taus` is provided, it must have the same length as `start_fractions` and all values must be positive.
+    - The function uses `sequential_exp_fit` internally to perform the fitting for each set of start fractions.
     """
     # Validate fixed_taus parameter
     if fixed_taus is not None:
