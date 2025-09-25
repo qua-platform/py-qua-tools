@@ -183,9 +183,10 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
         max_val = start * (1 + bounds_scale)
         bounds.append((min_val, max_val))
 
-    print("\nOptimizing start_fractions using scipy.optimize.minimize...")
-    print(f"Initial values: {[f'{f:.5f}' for f in start_fractions]}")
-    print(f"Bounds: ±{bounds_scale * 100}% around initial values")
+    if verbose:
+        print("\nOptimizing start_fractions using scipy.optimize.minimize...")
+        print(f"Initial values: {[f'{f:.5f}' for f in start_fractions]}")
+        print(f"Bounds: ±{bounds_scale * 100}% around initial values")
 
     # Run optimization
     result = minimize(
@@ -203,13 +204,14 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
             t, y, best_fractions, fixed_taus=fixed_taus, a_dc=a_dc, verbose=False
         )
         best_rms = np.sqrt(np.mean(best_residual**2))
-        print("\nOptimization successful!")
-        print(f"Initial fractions: {[f'{f:.5f}' for f in start_fractions]}")
-        print(f"Optimized fractions: {[f'{f:.5f}' for f in best_fractions]}")
-        if fixed_taus is not None:
-            print(f"Fixed taus: {[f'{tau:.3f} ns' for tau in fixed_taus]}")
-        print(f"Final RMS: {best_rms:.3e}")
-        print(f"Number of iterations: {result.nit}")
+        if verbose:
+            print("\nOptimization successful!")
+            print(f"Initial fractions: {[f'{f:.5f}' for f in start_fractions]}")
+            print(f"Optimized fractions: {[f'{f:.5f}' for f in best_fractions]}")
+            if fixed_taus is not None:
+                print(f"Fixed taus: {[f'{tau:.3f} ns' for tau in fixed_taus]}")
+            print(f"Final RMS: {best_rms:.3e}")
+            print(f"Number of iterations: {result.nit}")
     else:
         print("\nOptimization failed. Using initial values.")
         best_fractions = start_fractions
@@ -219,7 +221,9 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
         best_rms = np.sqrt(np.mean(best_residual**2))
 
     components = [(amp * np.exp(t[0] / tau), tau) for amp, tau in components]
-    print(components)
+    if verbose:
+        print("Optimized components [(a1, tau1), (a2, tau2)...]:")
+        print(components)
     return result.success, best_fractions, components, a_dc, best_rms
 
 
