@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed
+- voltage_gates - Levels with voltage values of `0` will no longer cause issues in sequences that contain QUA variables.
+- voltage_gates - Sequences with an average voltage of `0` are now handled properly and no compensation pulse is generated.
+- voltage_gates - Ramp durations of `0` are now treated as `None` to avoid errors.
+
 ## [0.20.0] - 2025-08-04
 ### Changed
 - **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
