@@ -16,7 +16,7 @@ More background on digital filters can be found in the [QUA documentation page](
 
 This repository is optimized for estimating IIR filter corrections and includes tools to fit time-series data with multiple exponential decay components. It is especially useful for analyzing physical systems (e.g., flux or exchange pulse response signals) where the response can be modeled as a sum of exponential decays plus a constant background term.
 
-The workflow assumes that distorted pulse data have already been measured at the qubit level and saved in a ```.h5```  (NetCDF) file.
+The workflow assumes that distorted pulse data have already been measured at the qubit level and saved in a ```.h5``` (NetCDF) file.
 
 ### Features
 1. Single exponential model implements a simple exponential decay model: $f(t) = Ae^{(-t/\tau)}$
@@ -26,7 +26,7 @@ The workflow assumes that distorted pulse data have already been measured at the
     - Can constrain decay constants $\tau$ or fit them freely.
 
 ### Workflow
-1. Import data in ```.h5```  (NetCDF) file.
+1. Import data in ```.h5``` (NetCDF) file.
 2. Define the ```fitting_start_fractions```. This list defines the number of exponential components (by its size) and provides heuristic, user-chosen starting guesses for their regions.
 These fractions are optimized automatically, but the number of exponents is fixed; in the future, this selection will be automated to avoid user intervention.
 3. Run the optimization ```optimize_start_fractions``` and plot the final result using ```plot_fit```
