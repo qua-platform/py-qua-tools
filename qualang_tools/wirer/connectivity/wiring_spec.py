@@ -38,6 +38,8 @@ class WiringLineType(Enum):
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
     ZZ_DRIVE = "zz"
+    LASER = "la"
+    SPCM = "spcm"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -47,6 +49,8 @@ CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
+LASER = WiringLineType.LASER
+SPCM = WiringLineType.SPCM
 
 
 class WiringSpec:
