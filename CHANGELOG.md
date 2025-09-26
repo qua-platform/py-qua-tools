@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
 - requirements - Change qm-qua requirement to >=1.2.2
+- digital_filters - Add a routine to fit multiple exponentials and extract the corresponding IIR filter components.
 
 ### Added
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
