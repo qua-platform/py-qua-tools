@@ -126,7 +126,7 @@ def allocate_dc_channels(spec: WiringSpec, instruments: Instruments):
         # LF-FEM, Single analog output
         ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital(),
         # OPX+, Single analog output
-        ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital()
+        ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital(),
     ]
 
     allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
@@ -168,10 +168,11 @@ def allocate_do_channels(spec: WiringSpec, instruments: Instruments):
         # LF-FEM, Single digital output
         ChannelSpecLfFemDigital(),
         # OPX+, Single digital output
-        ChannelSpecOpxPlusDigital()
+        ChannelSpecOpxPlusDigital(),
     ]
 
     allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
+
 
 def allocate_channels(
     wiring_spec: WiringSpec, channel_specs: List[ChannelSpec], instruments: Instruments, same_con: bool, same_slot: bool
