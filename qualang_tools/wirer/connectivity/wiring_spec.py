@@ -11,10 +11,12 @@ if TYPE_CHECKING:
 class WiringFrequency(Enum):
     DC = "DC"
     RF = "RF"
+    DO = "DO"
 
 
 DC = WiringFrequency.DC
 RF = WiringFrequency.RF
+DO = WiringFrequency.DO
 
 
 class WiringIOType(Enum):

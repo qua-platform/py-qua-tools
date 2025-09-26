@@ -111,6 +111,9 @@ def _allocate_wiring(spec: WiringSpec, instruments: Instruments):
     elif spec.frequency == WiringFrequency.RF:
         allocate_rf_channels(spec, instruments)
 
+    elif spec.frequency == WiringFrequency.DO:
+        allocate_do_channels(spec, instruments)
+
     else:
         raise NotImplementedError()
 
@@ -156,6 +159,19 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
 
     allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True)
 
+
+def allocate_do_channels(spec: WiringSpec, instruments: Instruments):
+    """
+    Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
+    """
+    dc_specs = [
+        # LF-FEM, Single digital output
+        ChannelSpecLfFemDigital(),
+        # OPX+, Single digital output
+        ChannelSpecOpxPlusDigital()
+    ]
+
+    allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
 
 def allocate_channels(
     wiring_spec: WiringSpec, channel_specs: List[ChannelSpec], instruments: Instruments, same_con: bool, same_slot: bool
