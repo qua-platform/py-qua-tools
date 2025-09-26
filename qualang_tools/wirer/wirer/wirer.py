@@ -119,7 +119,12 @@ def allocate_dc_channels(spec: WiringSpec, instruments: Instruments):
     """
     Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
     """
-    dc_specs = [ChannelSpecLfFemSingle(), ChannelSpecOpxPlusSingle()]
+    dc_specs = [
+        # LF-FEM, Single analog output
+        ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital(),
+        # OPX+, Single analog output
+        ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital()
+    ]
 
     allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
 
