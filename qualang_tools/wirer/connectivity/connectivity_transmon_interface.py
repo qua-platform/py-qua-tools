@@ -142,7 +142,9 @@ class Connectivity(ConnectivityBase):
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX, triggered, constraints, elements
         )
 
-    def add_qubit_pair_flux_lines(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
+    def add_qubit_pair_flux_lines(
+        self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
+    ):
         """
         Adds specifications (placeholders) for flux lines for a pair of qubits.
 
