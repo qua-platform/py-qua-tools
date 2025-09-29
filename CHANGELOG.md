@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** - `video_mode` became `live_mode` to avoid confusion with the video mode tool used to tune up quantum dots devices.
 
 ### Fixed
 - voltage_gates - Levels with voltage values of `0` will no longer cause issues in sequences that contain QUA variables.
