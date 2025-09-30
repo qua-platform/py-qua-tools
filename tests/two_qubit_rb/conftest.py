@@ -1,6 +1,10 @@
 from pathlib import Path
 import numpy as np
 import pytest
+
+from qualang_tools.bakery.bakery import Baking
+from qualang_tools.characterization.two_qubit_rb import TwoQubitRb
+from qualang_tools.characterization.two_qubit_rb.verification import SequenceTracker
 from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms
 from qualang_tools.units import unit
 from qualang_tools.config.waveform_tools import flattop_gaussian_waveform
@@ -181,7 +185,7 @@ ge_threshold_q2 = 0.0
 #############################################
 #                  Config                   #
 #############################################
-@pytest.fixture
+@pytest.fixture(scope="module")
 def config() -> dict:
     config = {
         "version": 1,
@@ -557,3 +561,48 @@ def config() -> dict:
     }
 
     return config
+
+@pytest.fixture(scope="module")
+def bake_phased_xz():
+    def func(baker: Baking, q, x, z, a):
+        pass
+
+    return func
+
+@pytest.fixture(scope="module")
+def bake_cz():
+    def func(baker: Baking, q1, q2):
+        pass
+
+    return func
+
+@pytest.fixture(scope="module")
+def bake_cnot():
+    def func(baker: Baking, q1, q2):
+        pass
+
+    return func
+
+@pytest.fixture(scope="module")
+def prep():
+    def func():
+        pass
+
+    return func
+
+@pytest.fixture(scope="module")
+def meas():
+    def func():
+        pass
+
+    return func
+
+@pytest.fixture(scope="module")
+def sequence_tracker(config, bake_phased_xz, bake_cz, prep, meas) -> SequenceTracker:
+    cz_generator = {"CZ": bake_cz}
+
+    rb = TwoQubitRb(
+        config, bake_phased_xz, cz_generator, prep, meas, verify_generation=False, interleaving_gate=None
+    )
+
+    return rb._sequence_tracker

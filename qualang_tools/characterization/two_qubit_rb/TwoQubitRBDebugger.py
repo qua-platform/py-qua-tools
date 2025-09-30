@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 from matplotlib import pyplot as plt
-from qm import Program, QuantumMachinesManager
+from qm import Program, QuantumMachinesManager, generate_qua_script
 from qm.qua import *
 from tqdm import tqdm
 
@@ -18,15 +18,22 @@ phased_xz_command_sequences = {
     r"I \otimes X": [724],  # X on qubit 1, Identity on qubit 2
     r"X \otimes I": [721],  # X on qubit 2, Identity on qubit 1
     r"X \otimes X": [725],  # X on both qubits
-    r"\frac{X}{2} \otimes I": [1],  # X/2 on qubit 2, Identity on qubit 1
-    r"I \otimes \frac{X}{2}": [6],  # X/2 on qubit 1, Identity on qubit 2
-    r"\frac{X}{2} \otimes \frac{X}{2}": [7],  # X/2 on both qubits
+    r"-\frac{X}{2} \otimes I": [1],  # X/2 on qubit 2, Identity on qubit 1
+    r"I \otimes -\frac{X}{2}": [6],  # X/2 on qubit 1, Identity on qubit 2
+    r"-\frac{X}{2} \otimes -\frac{X}{2}": [7],  # X/2 on both qubits
     r"\text{CZ}": [74],  # Controlled-Z (CZ) gate
-    r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [252],
+    r"(\frac{Y}{2} \otimes -\frac{Y}{2}), \text {CZ}, (I \otimes \frac{Y}{2}) \Rightarrow |\Phi^+\rangle_{Bell}": [
+        # 4,
+        # 248,
+        252  # temporary revert
+    ],
     r"\text{CNOT}": [12, 347],  # X/2 on qubit 2, followed by CNOT
-    r"(\frac{X}{2} \otimes I), \text{CNOT}": [1, 4, 63],  # X/2 on qubit 2, followed by CNOT
-    r"(X \otimes I), \text{CNOT}": [724, 4, 63],  # X/2 on qubit 2, followed by CNOT
-    r"(I \otimes X), \text{SWAP}": [724, 48, 498],  # X on qubit 1, followed by SWAP
+    r"(-\frac{X}{2} \otimes I), \text{CNOT}": [1, 239],  # X/2 on qubit 2, followed by CNOT
+    r"(X \otimes I), \text{CNOT}": [721, 239],  # X/2 on qubit 2, followed by CNOT
+    r"(I \otimes X), \text{SWAP}": [724, 39, 489],  # X on qubit 1, followed by SWAP
+    r"(X \otimes X), \text{CZ}": [725, 74],  # XX, followed by CZ
+    r"((X \otimes X), \text{CZ}) x2": [725, 74] * 2,  # (XX, followed by CZ) x2
+    r"((X \otimes X), \text{CZ}) x3": [725, 74] * 3,  # (XX, followed by CZ) x3
 }
 
 
@@ -39,7 +46,7 @@ class TwoQubitRbDebugger:
         """
         self.rb = rb
 
-    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, unsafe: bool = False):
+    def run_phased_xz_commands(self, qmm: QuantumMachinesManager, num_averages: int, simulate: bool = False):
         """
         Run a program testing selected commands containing only combinations of PhasedXZ
         gates and other fundamental gates, which lead to a variety of transformations on
@@ -58,8 +65,13 @@ class TwoQubitRbDebugger:
 
         prog = self._phased_xz_commands_program(len(sequences), num_averages, unsafe)
 
-        qm = qmm.open_qm(self.rb._config)
-        job = qm.execute(prog)
+        with open("script.py", "w+") as f:
+            f.write(generate_qua_script(prog, self.rb._config))
+
+        # qm = qmm.open_qm(self.rb._config)
+        #
+        # job = qm.execute(prog)
+        job = None
 
         self._insert_all_input_stream(job, sequences)
 
@@ -73,14 +85,12 @@ class TwoQubitRbDebugger:
     def _insert_all_input_stream(self, job, sequences):
         for sequence in tqdm(sequences, desc="Running test-sequences", unit="sequence"):
             self.sequence_tracker.make_sequence(sequence)
-            job.insert_input_stream("__gates_len_is__", len(sequence))
+            # job.insert_input_stream("__gates_len_is__", len(sequence))
             for qe in self.rb._rb_baker.all_elements:
-                job.insert_input_stream(
-                    f"{self._input_stream_name_from_element(str(qe))}_is",
-                    self.rb._decode_sequence_for_element(qe, sequence),
-                )
+                print(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
+                # job.insert_input_stream(f"{qe}_is", self.rb._decode_sequence_for_element(qe, sequence))
 
-    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int, unsafe: bool) -> Program:
+    def _phased_xz_commands_program(self, num_sequences: int, num_averages: int) -> Program:
         with program() as prog:
             n_avg = declare(int)
             state = declare(int)
@@ -102,7 +112,7 @@ class TwoQubitRbDebugger:
                 assign(length, gates_len_is[0])
                 with for_(n_avg, 0, n_avg < num_averages, n_avg + 1):
                     self.rb._prep_func()
-                    self.rb._rb_baker.run(gates_is, length, unsafe=unsafe)
+                    self.rb._rb_baker.run(gates_is, length)
                     out1, out2 = self.rb._measure_func()
                     assign(state, (Cast.to_int(out2) << 1) + Cast.to_int(out1))
                     save(state, state_os)
@@ -113,7 +123,7 @@ class TwoQubitRbDebugger:
         return prog
 
     def _analyze_phased_xz_commands_program(self, state: np.ndarray, sequence_labels: List[str]):
-        fig, axs = plt.subplots(5, 3, figsize=(12, 10))
+        fig, axs = plt.subplots(6, 3, figsize=(12, 12))
         axs = axs.ravel()
 
         basis_states = [r"$|00\rangle$", r"$|01\rangle$", r"$|10\rangle$", r"$|11\rangle$"]
