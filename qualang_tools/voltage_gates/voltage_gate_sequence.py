@@ -58,7 +58,7 @@ class VoltageGateSequence:
                         self._config["controllers"][con]["fems"][fem]["analog_outputs"][ch]["output_mode"]
                         == "amplified"
                     ):
-                        return 0.5
+                        return 2.0
 
         return 0.25
 
@@ -197,11 +197,18 @@ class VoltageGateSequence:
                 if self.is_QUA(voltage_level) or self.is_QUA(self.current_level[i]):
                     # if dynamic duration --> play step and wait
                     if self.is_QUA(_duration):
-                        play(
-                            "step"
-                            * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
-                            gate,
-                        )
+                        if self.base_operation[gate]["bit_shift"] >= 0:
+                            play(
+                                "step"
+                                * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
+                                gate,
+                            )
+                        else: 
+                            play(
+                                "step"
+                                * amp((voltage_level - self.current_level[i]) >> -self.base_operation[gate]["bit_shift"]),
+                                gate,
+                            )
                         wait((_duration - 16) >> 2, gate)
                     # if constant duration --> new operation and play(*amp(..))
                     else:
@@ -212,13 +219,23 @@ class VoltageGateSequence:
                                 amplitude=self.base_operation[gate]["amplitude"],
                                 length=_duration,
                             )
-                            play(
-                                operation
-                                * amp(
-                                    (voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]
-                                ),
-                                gate,
-                            )
+                            if self.base_operation[gate]["bit_shift"] >= 0:
+                                play(
+                                    operation
+                                    * amp(
+                                        (voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]
+                                        ),
+                                    gate,
+                                )
+                            else:
+                                play(
+                                    operation
+                                    * amp(
+                                        (voltage_level - self.current_level[i]) >> -self.base_operation[gate]["bit_shift"]
+                                        ),
+                                    gate,
+                                )
+
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
                 elif isinstance(_duration, (QuaExpression, QuaVariable)):
@@ -349,10 +366,16 @@ class VoltageGateSequence:
                     # The calculation is done in two steps to avoid rounding errors
                     assign(amplitude, -Cast.mul_fixed_by_int(0.01 / duration, eval_average_power))
                     assign(amplitude, amplitude * 0.09765625)
-                    play(
-                        operation * amp((amplitude - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
-                        gate,
-                    )
+                    if self.base_operation[gate]["bit_shift"] >= 0:
+                        play(
+                            operation * amp((amplitude - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
+                            gate,
+                        )
+                    else:
+                        play(
+                            operation * amp((amplitude - self.current_level[i]) >> -self.base_operation[gate]["bit_shift"]),
+                            gate,
+                        )
 
             self.current_level[i] = amplitude
 
