@@ -2,9 +2,9 @@
 2025/09/30
 CBO
 Testing changes to VoltageGateSequence:
-- When using an LF-FEM with a port in 'amplified' mode, voltage jumps of <4V should not cause overflow of the `play` pulse.
+- When using an LF-FEM with a port in 'amplified' mode, voltage jumps of +/- 2V should not cause overflow of the `play` pulse.
 - There should not be any issues when levels are QUA.
-* Code must be tested on scope, since simulated waveforms do not match real outputs in case of overflow.
+* Code must be tested on scope, since simulated waveforms do not match real outputs in case of overflow (for QOP350 and prior).
 '''
 # %%
 # imports
@@ -29,21 +29,21 @@ level_start = [0, 0]
 duration_start = 10000
 ramp_start = 0
 # level 1
-level_1 = [2, 0]
+level_1 = [0.8, 0]
 duration_1 = 2000
 ramp_1 = 0
 # level 2
-level_2 = [2.2, 0]
+level_2 = [0.9, 0]
 duration_2 = 3000
 ramp_2 = 0
 # level 3
-level_3 = [2.3, 0]
+level_3 = [1, 0]
 duration_3 = 2000
 ramp_3 = 500
 # level 4
-level_4 = [-1.7, 0] # -4V jump from level 3 to level 4
+level_4 = [-1, 0]   # -2V jump from level 3 to level 4
 duration_4 = 3000
-ramp_4 = 16
+ramp_4 = 0          # ramp time must be zero to check large step
 # zero level
 level_zero = [0, 0]
 duration_zero = 1000
