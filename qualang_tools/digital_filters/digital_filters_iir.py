@@ -37,12 +37,12 @@ def sequential_exp_fit(
     Args:
         t (array): Time points in nanoseconds, representing the time resolution of the pulse.
         y (array): Amplitude values of the pulse in volts.
-        start_fractions (list): List of fractions (0 to 1) indicating where to start fitting each component. Choice is user defined.
+        start_fractions (list): Fractions (0-1) where each component fit starts (user defined ordering).
         fixed_taus (list, optional): Fixed tau values (in nanoseconds) for each exponential component.
                                    If provided, only amplitudes are fitted, taus are constrained.
                                    Must have same length as start_fractions.
         a_dc (float, optional): Fixed constant term. If provided, the constant term is not fitted.
-        verbose (int): Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information)
+        verbose (int): Verbosity (0: silent, 1: summary, 2: detailed step-by-step info).
 
     Returns:
         tuple: (components, a_dc, residual) where:
@@ -156,7 +156,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
     a_dc : float or None, optional
         Constant (DC) term. If not provided, the constant term is estimated from the tail of the data.
     verbose : int, optional
-        Whether to print detailed fitting information (0: no prints, 1: prints only initial and final parameters, 2: prints all the fitting information) (default is 1)
+            Verbosity (0: silent, 1: summary, 2: detailed) (default 1).
     Returns
     -------
     success : bool
@@ -168,7 +168,7 @@ def optimize_start_fractions(t, y, start_fractions, bounds_scale=0.5, fixed_taus
     best_dc : float
         The fitted or provided constant (DC) term.
     best_rms : float
-        The root mean square (RMS) of the residuals for the best fit.
+        The root-mean-square (RMS) of the residuals for the best fit.
     Examples
     --------
     >>> import numpy as np
