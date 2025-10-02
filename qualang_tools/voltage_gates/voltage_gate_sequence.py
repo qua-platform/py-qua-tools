@@ -1,6 +1,6 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_, elif_
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_
 from typing import Union, List, Dict
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
@@ -330,7 +330,7 @@ class VoltageGateSequence:
                         # Get the actual compensation pulse duration
                         assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
                         # Corrected amplitude to account for the actual duration with respect to the exact one
-                        with if_((eval_average_power) > (self._voltage_tolerance * 1024)):
+                        with if_(eval_average_power > (self._voltage_tolerance * 1024)):
                             assign(amplitude, -Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
                         with elif_(eval_average_power < -(self._voltage_tolerance * 1024)):
                             assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
