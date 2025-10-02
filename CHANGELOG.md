@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Added
+- digital_filters - Add a routine to fit multiple exponentials and extract the corresponding IIR filter components.
 
 ### Fixed
 - voltage_gates - Levels with voltage values of `0` will no longer cause issues in sequences that contain QUA variables.
@@ -14,7 +16,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - **Breaking change!** - callable_from_qua is not working for qm-qua <= 1.2.0
 - requirements - Change qm-qua requirement to >=1.2.2
-- digital_filters - Add a routine to fit multiple exponentials and extract the corresponding IIR filter components.
 
 ### Added
 - wirer - Web-based visualization for compact, stacked instrument configuration viewing.
