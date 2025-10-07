@@ -2,6 +2,10 @@ from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
 from qualang_tools.wirer.connectivity.types import QubitsType, QubitPairsType
 from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
+from qualang_tools.wirer.instruments.instrument_channel import (
+    InstrumentChannelLfFemOutput,
+    InstrumentChannelLfFemDigitalOutput
+)
 
 
 class Connectivity(ConnectivityBase):
@@ -30,7 +34,7 @@ class Connectivity(ConnectivityBase):
         self.add_spcm(qubits)
         self.add_qubit_drive(qubits)
 
-    def add_laser(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
+    def add_laser(self, qubits: QubitsType, constraints: ChannelSpec = None):
         """
         Adds a specification (placeholder) for a laser for the specified qubits.
 
@@ -42,18 +46,30 @@ class Connectivity(ConnectivityBase):
 
         Args:
             qubits (QubitsType): The qubits to associate with the laser.
-            triggered (bool, optional): Whether the laser is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
 
         Returns:
             A wiring specification (placeholder) for the laser.
         """
         elements = self._make_qubit_elements(qubits)
+
+        # check constraints to assign correct wiring frequency
+        if constraints and constraints.channel_templates:
+            channel_types = {type(ch) for ch in constraints.channel_templates}
+            if InstrumentChannelLfFemOutput in channel_types:
+                wiring_freq = WiringFrequency.DC
+            elif InstrumentChannelLfFemDigitalOutput in channel_types:
+                wiring_freq = WiringFrequency.DO
+            else:
+                raise ValueError("Invalid channel constraint.")
+        else:
+            wiring_freq = WiringFrequency.DC
+
         return self.add_wiring_spec(
-            WiringFrequency.DO,  # TODO: Do we want the laser to be digital only, or do you also want to drive an AOM for instance with an analog output?
+            wiring_freq,
             WiringIOType.OUTPUT,
             WiringLineType.LASER,
-            triggered,
+            True,
             constraints,
             elements,
             shared_line=True,
@@ -80,7 +96,7 @@ class Connectivity(ConnectivityBase):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
             WiringFrequency.DC,
-            WiringIOType.INPUT,  # TODO: do we want to incorporate the laser here (INPUT & OUTPUT)?
+            WiringIOType.INPUT,
             WiringLineType.SPCM,
             triggered,
             constraints,
