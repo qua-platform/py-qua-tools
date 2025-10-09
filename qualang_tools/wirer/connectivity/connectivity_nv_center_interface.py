@@ -1,5 +1,5 @@
 from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
-from qualang_tools.wirer.connectivity.types import QubitsType, QubitPairsType
+from qualang_tools.wirer.connectivity.types import QubitsType
 from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
 from qualang_tools.wirer.instruments.instrument_channel import (
@@ -72,7 +72,6 @@ class Connectivity(ConnectivityBase):
             True,
             constraints,
             elements,
-            shared_line=True,
         )
 
     def add_spcm(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
@@ -101,7 +100,6 @@ class Connectivity(ConnectivityBase):
             triggered,
             constraints,
             elements,
-            shared_line=True,
         )
 
     def add_qubit_drive(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
@@ -131,57 +129,4 @@ class Connectivity(ConnectivityBase):
             triggered,
             constraints,
             elements,
-            shared_line=True,
         )
-
-    def add_qubit_pair_cross_resonance_lines(
-        self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
-    ):
-        """
-        Adds specifications (placeholders) for cross-resonance drive lines for a pair of qubits.
-
-        This method configures cross-resonance line specifications (placeholders) for two qubits,
-        typically used to implement two-qubit gate operations. One can also specify constraints on which
-        channel configurations can be allocated for this line.
-
-        No channels are allocated at this stage.
-
-        Args:
-            qubit_pairs (QubitPairsType): The qubit pairs to configure the cross-resonance lines for.
-            triggered (bool, optional): Whether the line is triggered. Defaults to False.
-            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-
-        Returns:
-            A wiring specification (placeholder) for the cross-resonance drive lines.
-        """
-        # elements = self._make_qubit_pair_elements(qubit_pairs)
-        # return self.add_wiring_spec(
-        #     WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CROSS_RESONANCE, triggered, constraints, elements
-        # )
-        pass
-
-    def add_qubit_pair_zz_drive_lines(
-        self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
-    ):
-        """
-        Adds specifications (placeholders) for ZZ drive lines for a pair of qubits.
-
-        This method configures ZZ drive line specifications (placeholders) for two qubits, typically used
-        for two-qubit gate operations, in the RF frequency domain. One can also specify constraints on which
-        channel configurations can be allocated for this line.
-
-        No channels are allocated at this stage.
-
-        Args:
-            qubit_pairs (QubitPairsType): The qubit pairs to configure the ZZ drive lines for.
-            triggered (bool, optional): Whether the line is triggered. Defaults to False.
-            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-
-        Returns:
-            A wiring specification (placeholder) for the ZZ drive lines.
-        """
-        # elements = self._make_qubit_pair_elements(qubit_pairs)
-        # return self.add_wiring_spec(
-        #     WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.ZZ_DRIVE, triggered, constraints, elements
-        # )
-        pass
