@@ -4,7 +4,7 @@ from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, Wiring
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
 from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelLfFemOutput,
-    InstrumentChannelLfFemDigitalOutput
+    InstrumentChannelLfFemDigitalOutput,
 )
 
 
