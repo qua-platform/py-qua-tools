@@ -33,7 +33,7 @@ class VoltageGateSequence:
         self.average_power = [0 for _ in self._elements]
         self._expression = None
         self._expression2 = None
-        self._voltage_tolerance = 0.001 # limit for adding compensation. must be positive.
+        self._voltage_tolerance = 0.001  # limit for adding compensation. must be positive.
         self.base_operation = {}
         # Add to the config the step operation (length=16ns & amp=0.25V)
         for el in self._elements:
@@ -217,7 +217,7 @@ class VoltageGateSequence:
                                 operation
                                 * amp(
                                     (voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]
-                                    ),
+                                ),
                                 gate,
                             )
 
@@ -272,7 +272,7 @@ class VoltageGateSequence:
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
         """
         duration = kwargs.get("duration", None)
-        
+
         if duration is not None:
             warn(
                 "The duration argument is deprecated and will be ignored in future versions. From qualang-tools 0.20, the compensation pulse duration is derived automatically based on the maximum amplitude allowed.",
@@ -317,7 +317,8 @@ class VoltageGateSequence:
                             self.average_power[i] + Cast.mul_int_by_fixed(96 * 1024, self.current_level[i]),
                         )
                         assign(
-                            comp_duration, Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude)
+                            comp_duration,
+                            Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude),
                         )
                         # Ensure that it is larger than 16ns
                         with if_(comp_duration < 16):
@@ -364,7 +365,7 @@ class VoltageGateSequence:
         """
         for i, gate in enumerate(self._elements):
             ramp_to_zero(gate, duration)
-            self.current_level[i] = 0.
+            self.current_level[i] = 0.0
             self.average_power[i] = 0
         if self._expression is not None:
             assign(self._expression, 0)
