@@ -162,16 +162,16 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
 
 def allocate_do_channels(spec: WiringSpec, instruments: Instruments):
     """
-    Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
+    Try to allocate Digital Only (DO) channels to an LF-FEM or OPX+ to satisfy the spec.
     """
-    dc_specs = [
+    do_specs = [
         # LF-FEM, Single digital output
         ChannelSpecLfFemDigital(),
         # OPX+, Single digital output
         ChannelSpecOpxPlusDigital(),
     ]
 
-    allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
+    allocate_channels(spec, do_specs, instruments, same_con=True, same_slot=True)
 
 
 def allocate_channels(
