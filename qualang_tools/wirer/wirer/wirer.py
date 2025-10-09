@@ -167,6 +167,8 @@ def allocate_do_channels(spec: WiringSpec, instruments: Instruments):
     do_specs = [
         # LF-FEM, Single digital output
         ChannelSpecLfFemDigital(),
+        # MW-FEM, Single digital output
+        ChannelSpecMwFemDigital(),
         # OPX+, Single digital output
         ChannelSpecOpxPlusDigital(),
     ]
