@@ -58,7 +58,7 @@ class VoltageGateSequence:
                         self._config["controllers"][con]["fems"][fem]["analog_outputs"][ch]["output_mode"]
                         == "amplified"
                     ):
-                        return 0.5
+                        return 1.0
 
         return 0.25
 
@@ -169,6 +169,7 @@ class VoltageGateSequence:
                 raise TypeError(
                     "the provided level must be a list of same length as the number of elements involved in the virtual gate."
                 )
+            level[:] = [float(x) if isinstance(x, int) else x for x in level]
 
         if voltage_point_name is not None and duration is None:
             _duration = self._voltage_points[voltage_point_name]["duration"]
@@ -262,8 +263,7 @@ class VoltageGateSequence:
                     else:
                         if _duration > 0:
                             wait(_duration >> 2, gate)
-            if isinstance(voltage_level, int):
-                voltage_level = float(voltage_level)
+
             self.current_level[i] = voltage_level
 
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
@@ -380,5 +380,5 @@ class VoltageGateSequence:
         :param duration: How long should the voltages be maintained at this level in ns. Must be larger than 16ns and a multiple of 4ns.
         """
         self._voltage_points[name] = {}
-        self._voltage_points[name]["coordinates"] = coordinates
+        self._voltage_points[name]["coordinates"] = [float(x) for x in coordinates]
         self._voltage_points[name]["duration"] = duration

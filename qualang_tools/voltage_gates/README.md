@@ -8,6 +8,8 @@ The `VoltageGateSequence` class facilitates the creation and management of compl
 
 > **Warning**: The framework and compensation pulse derivation is working only for sequences shorter than 8ms.
 
+> **Warning**: Voltage steps are limited to +2V and -2V for elements used in amplified mode.
+
 ## Features
 
 - **Dynamic Voltage Control**: Defines voltage levels (points) in gate-space and durations for multiple elements.
