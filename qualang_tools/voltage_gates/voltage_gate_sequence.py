@@ -1,6 +1,6 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, else_, elif_
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_
 from typing import Union, List, Dict
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
@@ -33,7 +33,7 @@ class VoltageGateSequence:
         self.average_power = [0 for _ in self._elements]
         self._expression = None
         self._expression2 = None
-        self._voltage_tolerance = 0.001 # limit for adding compensation. must be positive.
+        self._voltage_tolerance = 0.001  # limit for adding compensation. must be positive.
         self.base_operation = {}
         # Add to the config the step operation (length=16ns & amp=0.25V)
         for el in self._elements:
@@ -272,7 +272,7 @@ class VoltageGateSequence:
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
         """
         duration = kwargs.get("duration", None)
-        
+
         if duration is not None:
             warn(
                 "The duration argument is deprecated and will be ignored in future versions. From qualang-tools 0.20, the compensation pulse duration is derived automatically based on the maximum amplitude allowed.",
@@ -317,7 +317,8 @@ class VoltageGateSequence:
                             self.average_power[i] + Cast.mul_int_by_fixed(96 * 1024, self.current_level[i]),
                         )
                         assign(
-                            comp_duration, Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude)
+                            comp_duration,
+                            Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude),
                         )
                         # Ensure that it is larger than 16ns
                         with if_(comp_duration < 16):
@@ -329,7 +330,7 @@ class VoltageGateSequence:
                         # Get the actual compensation pulse duration
                         assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
                         # Corrected amplitude to account for the actual duration with respect to the exact one
-                        with if_((eval_average_power) > (self._voltage_tolerance * 1024)):
+                        with if_(eval_average_power > (self._voltage_tolerance * 1024)):
                             assign(amplitude, -Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
                         with elif_(eval_average_power < -(self._voltage_tolerance * 1024)):
                             assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
@@ -364,7 +365,7 @@ class VoltageGateSequence:
         """
         for i, gate in enumerate(self._elements):
             ramp_to_zero(gate, duration)
-            self.current_level[i] = 0.
+            self.current_level[i] = 0.0
             self.average_power[i] = 0
         if self._expression is not None:
             assign(self._expression, 0)
