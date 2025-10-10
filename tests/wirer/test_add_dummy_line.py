@@ -1,6 +1,6 @@
 import pytest
 from qualang_tools.wirer import ConnectivitySuperconductingQubits, allocate_wiring, visualize
-from qualang_tools.wirer.connectivity.element import Reference
+from qualang_tools.wirer.connectivity.element import Element, Reference
 from qualang_tools.wirer.connectivity.wiring_spec import *
 from qualang_tools.wirer.wirer.channel_specs import *
 
