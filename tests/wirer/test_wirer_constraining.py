@@ -26,7 +26,7 @@ def test_opx_plus_resonator_constraining():
     q1_res_ch = opx_iq_octave_spec(out_port_i=9, out_port_q=10, rf_out=1)
 
     qubits = [1]
-    connectivity = Connectivity()
+    connectivity = ConnectivitySuperconductingQubits()
     connectivity.add_resonator_line(qubits=qubits, triggered=True, constraints=q1_res_ch)
     connectivity.add_qubit_flux_lines(qubits=qubits)
     connectivity.add_qubit_drive_lines(qubits=qubits[0], triggered=True)

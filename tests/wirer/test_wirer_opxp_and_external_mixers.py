@@ -16,7 +16,7 @@ visualize_flag = pytest.visualize_flag
 def test_1q_allocation(instruments_1opx_2external_mixer):
     qubits = [1]
 
-    connectivity = Connectivity()
+    connectivity = ConnectivitySuperconductingQubits()
     connectivity.add_resonator_line(qubits=qubits)
     connectivity.add_qubit_drive_lines(qubits=qubits)
     connectivity.add_qubit_flux_lines(qubits=qubits)

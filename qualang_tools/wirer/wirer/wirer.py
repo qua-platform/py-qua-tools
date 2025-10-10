@@ -25,12 +25,12 @@ from .wirer_assign_channels_to_spec import assign_channels_to_spec
 from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
 from ..connectivity.channel_spec import ChannelSpec
 from ..instruments import Instruments
-from ..connectivity import Connectivity
+from ..connectivity import AnyConnectivity
 from ..connectivity.wiring_spec import WiringSpec, WiringFrequency, WiringLineType
 
 
 def allocate_wiring(
-    connectivity: Connectivity,
+    connectivity: AnyConnectivity,
     instruments: Instruments,
     block_used_channels: bool = True,
     clear_wiring_specifications: bool = True,
