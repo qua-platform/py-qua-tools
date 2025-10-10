@@ -15,7 +15,7 @@ visualize_flag = pytest.visualize_flag
 
 
 def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
-    connectivity = Connectivity()
+    connectivity = ConnectivitySuperconductingQubits()
     for i in [0, 2]:
         qubits = [1 + i, 2 + i]
         qubit_pairs = [(1 + i, 2 + i)]
@@ -58,7 +58,7 @@ def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
 
 
 def test_alternating_blocking_of_used_channels(instruments_2lf_2mw):
-    connectivity = Connectivity()
+    connectivity = ConnectivitySuperconductingQubits()
 
     connectivity.add_qubit_drive_lines(qubits=1)
     allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
