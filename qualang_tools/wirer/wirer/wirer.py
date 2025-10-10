@@ -162,7 +162,7 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
 
 def allocate_do_channels(spec: WiringSpec, instruments: Instruments):
     """
-    Try to allocate Digital Only (DO) channels to an LF-FEM or OPX+ to satisfy the spec.
+    Try to allocate Digital Only (DO) channels to an LF- or MW-FEM or OPX+ to satisfy the spec.
     """
     do_specs = [
         # LF-FEM, Single digital output
