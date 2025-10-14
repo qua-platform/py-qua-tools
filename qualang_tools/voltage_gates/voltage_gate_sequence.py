@@ -185,6 +185,32 @@ class VoltageGateSequence:
         A ramp_duration can be used to ramp to the desired level instead of stepping to it.
 
         :param level: Desired voltage level of the different gates composing the virtual gate in Volt.
+        :param duration: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and either 0 or larger than 16ns.
+        :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
+        :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
+        """
+        if self._compensation:
+            # self._add_compensated_step_internal(
+            #     level, duration, voltage_point_name, ramp_duration
+            #     )
+            pass
+        else:
+            self._add_step_internal(
+                level, duration, voltage_point_name, ramp_duration
+                )
+
+    def _add_step_internal(
+        self,
+        level: list[Union[float, QuaExpression, QuaVariable]] = None,
+        duration: Union[int, QuaExpression, QuaVariable] = None,
+        voltage_point_name: str = None,
+        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+    ) -> None:
+        """Add a voltage level to the pulse sequence.
+        The voltage level is either identified by its voltage_point_name if added to the voltage_point dict beforehand, or by its level and duration.
+        A ramp_duration can be used to ramp to the desired level instead of stepping to it.
+
+        :param level: Desired voltage level of the different gates composing the virtual gate in Volt.
         :param duration: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and either larger than 16ns or 0.
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
