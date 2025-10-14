@@ -1,13 +1,15 @@
 import numpy as np
 
 from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
 
 
 class VoltageGateSequence:
-    def __init__(self, configuration: Dict, elements: List[str]):
+    def __init__(
+        self, configuration: Dict, elements: List[str], time_constants: Optional[Union[int, List[int]]] = None
+    ):
         """
         Initializes a VirtualGateSequence object for designing arbitrary pulse sequences using virtual gates.
 
@@ -20,11 +22,37 @@ class VoltageGateSequence:
         **Warning: The framework and compensation pulse derivation is working only for sequences shorter than 8ms.**
         :param configuration: A dictionary representing the OPX configuration (this will be modified)
         :param elements: A list of elements (strings) involved in the virtual gate operations.
+        :param time_constants: the value in ns (int) or list of values of the time contants for bias tees on the elements.
         """
         # List of the elements involved in the virtual gates
         self._elements = elements
         # The OPX configuration
         self._config = configuration
+        # Determine if bias tee compensation is needed
+        self._compensation = False
+        if time_constants:
+            self._compensation = True
+            self._comp_offset = [
+                0.0 for _ in self._elements
+            ]  # The difference between the voltage applied by the awg before the bias tee and the voltage seen by the device after the bias tee
+            # Check if time constants have proper type
+            if isinstance(time_constants, int):
+                # Accept single int or float, convert to float
+                self._time_constants = [time_constants] * len(elements)
+                warn(
+                    "\nYou have provided a single value for time_constants. All elements are assumed to share this time constant.",
+                    stacklevel=2,
+                )
+            elif isinstance(time_constants, list):
+                if len(time_constants) != len(elements):
+                    raise ValueError(
+                        "If a list is provided for time_constants, its length must match the number of elements."
+                    )
+                if not all(isinstance(tc, int) for tc in time_constants):
+                    raise TypeError("All entries in time_constants must be integers.")
+                self._time_constants = time_constants
+            else:
+                raise TypeError("time_constants must be None, an integer, or a list of integers.")
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
@@ -92,14 +120,14 @@ class VoltageGateSequence:
 
     @staticmethod
     def _check_duration(duration: int):
-        if duration is not None and not isinstance(duration, (QuaExpression, QuaVariable)):
+        if duration is not None and not __class__.is_QUA(duration):
             if duration == 0:
                 warn(
-                    "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
+                    "\nThe duration of one level is set to zero, which can cause gaps. Use with care or set it to at least 16ns.",
                     stacklevel=2,
                 )
             else:
-                assert duration >= 4, "The duration must be a larger than 16 ns."
+                assert duration >= 16, "The duration must be at least 16 ns."
                 assert duration % 4 == 0, "The duration must be a multiple integer of 4ns."
 
     def _update_averaged_power(self, level, duration, ramp_duration=None, current_level=None):
@@ -135,6 +163,15 @@ class VoltageGateSequence:
     @staticmethod
     def is_QUA(var):
         return isinstance(var, (QuaExpression, QuaVariable))
+
+    @staticmethod
+    def calculate_voltage_offset(voltage, duration, time_constant):
+        """Calculates the voltage adjustment of a compensation ramp to account for decay in a bias tee.
+        :param voltage (float): Voltage applied at the start of the step
+        :param duration (int): Duration of the step in nanoseconds
+        :param time_constant (int): Time constant of the bias tee in nanoseconds
+        """
+        return voltage * duration / time_constant
 
     def add_step(
         self,
