@@ -172,8 +172,8 @@ class VoltageGateSequence:
         :param time_constant (int): Time constant of the bias tee in nanoseconds
         """
         return voltage * duration / time_constant
-    
-    @staticmethod          
+
+    @staticmethod
     def _perform_ramp(gate, voltage, duration) -> None:
         if not __class__.is_QUA(duration):
             ramp_rate = voltage / duration
@@ -206,9 +206,7 @@ class VoltageGateSequence:
             #     )
             pass
         else:
-            self._add_step_internal(
-                level, duration, voltage_point_name, ramp_duration
-                )
+            self._add_step_internal(level, duration, voltage_point_name, ramp_duration)
 
     def _add_step_internal(
         self,
