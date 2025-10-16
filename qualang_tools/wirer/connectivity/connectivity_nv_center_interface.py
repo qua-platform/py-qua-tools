@@ -8,7 +8,7 @@ from qualang_tools.wirer.instruments.instrument_channel import (
 )
 
 
-class Connectivity(ConnectivityBase):
+class ConnectivityNVCenters(ConnectivityBase):
     """
     Represents the high-level wiring configuration for an NV center-based QPU setup.
 

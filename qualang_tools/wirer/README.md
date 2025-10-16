@@ -46,7 +46,7 @@ The wirer tool supports the following features:
 
 # Example
 ```python
-from qualang_tools.wirer import Instruments, ConnectivitySuperconductingQubits, allocate_wiring, visualize, lf_fem_spec
+from qualang_tools.wirer import Instruments, Connectivity, allocate_wiring, visualize, lf_fem_spec
 
 # Define instruments
 instruments = Instruments()
@@ -57,7 +57,7 @@ qubits = [1, 2, 3, 4, 5, 6]
 qubit_pairs = [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
 
 # Define quantum elements
-connectivity = ConnectivitySuperconductingQubits()
+connectivity = Connectivity()
 connectivity.add_resonator_line(qubits=qubits, triggered=True)
 connectivity.add_qubit_drive_lines(qubits=qubits, triggered=True)
 connectivity.add_qubit_flux_lines(qubits=qubits)
@@ -155,9 +155,9 @@ information about how channels should be allocated for these elements.
 
 To define your own `Connectivity` object, start with an empty container:
 ```python
-from qualang_tools.wirer import ConnectivitySuperconductingQubits
+from qualang_tools.wirer import Connectivity
 
-connectivity = ConnectivitySuperconductingQubits()
+connectivity = Connectivity()
 ```
 ### Basic Elements (Superconducting Qubits)
 Now you can add "wiring specifications" to the container. These indicate what channels you need for a particular type 
@@ -246,7 +246,7 @@ In order to double-up allocations to channels, you can keep them "free for alloc
 allocation. Here's an example of how you could allocate multiple qubits to the same channel, either if you don't
 have enough channels to measure every element, or if you'd like to multiplex the outputs:
 ```python
-connectivity = ConnectivitySuperconductingQubits()
+connectivity = Connectivity()
 
 connectivity.add_qubit_drive_lines(qubits=1)
 allocate_wiring(connectivity, instruments, block_used_channels=False)

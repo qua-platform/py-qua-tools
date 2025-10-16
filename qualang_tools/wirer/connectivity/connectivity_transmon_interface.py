@@ -4,7 +4,7 @@ from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 
 
-class Connectivity(ConnectivityBase):
+class ConnectivitySuperconductingQubits(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a transmon-based QPU setup.
 

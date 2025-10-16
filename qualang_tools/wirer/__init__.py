@@ -1,5 +1,5 @@
 from .instruments import Instruments
-from .connectivity import AnyConnectivity, ConnectivitySuperconductingQubits, ConnectivityNVCenters
+from .connectivity import Connectivity
 from .wirer.wirer import allocate_wiring
 from .visualizer.web_visualizer import visualize
 from .wirer.channel_specs_interface import (
@@ -15,9 +15,7 @@ from .wirer.channel_specs_interface import (
 
 __all__ = [
     "Instruments",
-    "AnyConnectivity",
-    "ConnectivitySuperconductingQubits",
-    "ConnectivityNVCenters",
+    "Connectivity",
     "allocate_wiring",
     "visualize",
     "mw_fem_spec",
