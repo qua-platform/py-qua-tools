@@ -13,7 +13,7 @@ visualize_flag = pytest.visualize_flag
 def test_1q_allocation_flux_charge(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
 
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     connectivity.add_qubit_charge_lines(qubits=qubits)
 
     allocate_wiring(connectivity, instruments_2lf_2mw)

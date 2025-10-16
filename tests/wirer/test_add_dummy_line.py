@@ -1,5 +1,5 @@
 import pytest
-from qualang_tools.wirer import ConnectivitySuperconductingQubits, allocate_wiring, visualize
+from qualang_tools.wirer import Connectivity, allocate_wiring, visualize
 from qualang_tools.wirer.connectivity.element import Element, Reference
 from qualang_tools.wirer.connectivity.wiring_spec import *
 from qualang_tools.wirer.wirer.channel_specs import *
@@ -9,7 +9,7 @@ def test_add_dummy_line(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
     qubit_pairs = [(1, 2), (2, 3), (3, 4), (4, 5)]
 
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=qubits, constraints=mw_fem_spec(slot=7))
     connectivity.add_qubit_drive_lines(qubits=qubits, constraints=mw_fem_spec(slot=7))
     connectivity.add_qubit_flux_lines(qubits=qubits)

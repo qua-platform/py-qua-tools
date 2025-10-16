@@ -11,7 +11,7 @@ visualize_flag = pytest.visualize_flag
 
 
 def test_triggered_wiring_spec_generates_digital_channels(instruments_2lf_2mw):
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     qubits = [1, 2]
     qubit_pairs = [(1, 2)]
 
@@ -34,7 +34,7 @@ def test_triggered_wiring_spec_generates_digital_channels(instruments_2lf_2mw):
 
 
 def test_triggered_wiring_spec_generates_digital_dc_channels(instruments_2lf_2mw):
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     qubits = [1, 2]
     qubit_pairs = [(1, 2)]
 
@@ -57,7 +57,7 @@ def test_triggered_wiring_spec_generates_digital_dc_channels(instruments_2lf_2mw
 
 
 def test_triggered_wiring_spec_generates_digital_only_channels(instruments_2lf_2mw):
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     qubits = [1, 2]
     qubit_pairs = [(1, 2)]
     def add_digital_only_element(self, qubits, triggered = False, constraints = None):

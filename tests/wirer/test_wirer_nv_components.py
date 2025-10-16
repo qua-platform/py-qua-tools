@@ -12,7 +12,7 @@ visualize_flag = pytest.visualize_flag
 def test_1q_allocation_laser(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
 
-    connectivity = ConnectivityNVCenters()
+    connectivity = Connectivity()
     connectivity.add_laser(qubits=qubits)
 
     allocate_wiring(connectivity, instruments_2lf_2mw)
@@ -34,7 +34,7 @@ def test_1q_allocation_laser(instruments_2lf_2mw):
 def test_1q_allocation_laser_do(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
 
-    connectivity = ConnectivityNVCenters()
+    connectivity = Connectivity()
     q1_laser_digital = lf_fem_dig_spec(con=1, slot=2, out_port=None)
     connectivity.add_laser(qubits=qubits, constraints=q1_laser_digital)
 
@@ -54,7 +54,7 @@ def test_1q_allocation_laser_do(instruments_2lf_2mw):
 def test_1q_allocation_laser(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5]
 
-    connectivity = ConnectivityNVCenters()
+    connectivity = Connectivity()
     q1_laser_analog = lf_fem_spec(con=1, out_slot=2, out_port=None)
     connectivity.add_laser(qubits=qubits, constraints=q1_laser_analog)
 

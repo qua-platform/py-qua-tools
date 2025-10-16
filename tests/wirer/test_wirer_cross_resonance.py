@@ -13,7 +13,7 @@ def test_2q_allocation_cross_resonance(instruments_2lf_2mw):
     qubits = [1, 2]
     qubit_pairs = [(1, 2), (2, 1)]
 
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
 
     connectivity.add_resonator_line(qubits=qubits)
     allocate_wiring(connectivity, instruments_2lf_2mw)
@@ -54,7 +54,7 @@ def test_2q_allocation_cross_resonance_opx_plus_octave(instruments_1opx_1octave)
     qubits = [1, 2]
     qubit_pairs = [(1, 2), (2, 1)]
 
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
 
     connectivity.add_resonator_line(qubits=qubits)
     allocate_wiring(connectivity, instruments_1opx_1octave)

@@ -16,7 +16,7 @@ def test_6q_allocation(instruments_2lf_2mw):
     qubits = [1, 2, 3, 4, 5, 6]
     qubit_pairs = [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
 
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=qubits)
     connectivity.add_qubit_drive_lines(qubits=qubits)
     connectivity.add_qubit_flux_lines(qubits=qubits)
@@ -53,7 +53,7 @@ def test_6q_allocation(instruments_2lf_2mw):
 
 
 def test_4rr_allocation(instruments_2lf_2mw):
-    connectivity = ConnectivitySuperconductingQubits()
+    connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=1)
     connectivity.add_qubit_drive_lines(qubits=list(range(7)))
     connectivity.add_resonator_line(qubits=2)
