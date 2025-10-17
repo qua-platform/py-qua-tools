@@ -166,6 +166,28 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.COUPLER, triggered, constraints, elements
         )
+    
+    def add_qubit_pair_parametric_drive_lines(self, qubit_pairs: QubitPairsType, constraints: ChannelSpec = None):
+        """
+        Adds specifications (placeholders) for parametric drive lines for a pair of qubits.
+
+        This method configures drive line specifications (placeholders) for controlling interactions 
+        between qubit pairs. One can also specify constraints on which channel configurations can
+        be allocated for this line.
+
+        No channels are allocated at this stage.
+
+        Args:
+            qubit_pairs (QubitPairsType): The qubit pairs to configure the drive line for.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the qubit pair line.
+        """
+        elements = self._make_qubit_pair_elements(qubit_pairs)
+        return self.add_wiring_spec(
+            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.PARAMETRIC_DRIVE, False, constraints, elements
+        )
 
     def add_qubit_pair_cross_resonance_lines(
         self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None

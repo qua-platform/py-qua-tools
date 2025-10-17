@@ -38,8 +38,12 @@ class WiringLineType(Enum):
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
     ZZ_DRIVE = "zz"
+<<<<<<< Updated upstream
     LASER = "la"
     SPCM = "spcm"
+=======
+    PARAMETRIC_DRIVE = "parametric"
+>>>>>>> Stashed changes
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -49,8 +53,12 @@ CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
+<<<<<<< Updated upstream
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
+=======
+PARAMETRIC_DRIVE = WiringLineType.PARAMETRIC_DRIVE
+>>>>>>> Stashed changes
 
 
 class WiringSpec:
