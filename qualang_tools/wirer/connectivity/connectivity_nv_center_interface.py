@@ -34,7 +34,7 @@ class ConnectivityNVCenters(ConnectivityBase):
         self.add_spcm(qubits)
         self.add_qubit_drive(qubits)
 
-    def add_laser(self, qubits: QubitsType, constraints: ChannelSpec = None):
+    def add_laser(self, qubits: QubitsType, triggered: bool = True, constraints: ChannelSpec = None):
         """
         Adds a specification (placeholder) for a laser for the specified qubits.
 
@@ -46,6 +46,7 @@ class ConnectivityNVCenters(ConnectivityBase):
 
         Args:
             qubits (QubitsType): The qubits to associate with the laser.
+            triggered (bool, optional): Whether the laser is triggered. Defaults to True.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
 
         Returns:
@@ -69,7 +70,7 @@ class ConnectivityNVCenters(ConnectivityBase):
             wiring_freq,
             WiringIOType.OUTPUT,
             WiringLineType.LASER,
-            True,
+            triggered,
             constraints,
             elements,
         )
