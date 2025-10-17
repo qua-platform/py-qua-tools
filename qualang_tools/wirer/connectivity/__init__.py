@@ -1,3 +1,4 @@
-from .connectivity_transmon_interface import Connectivity
+from .connectivity import Connectivity
+
 
 __all__ = ["Connectivity"]
