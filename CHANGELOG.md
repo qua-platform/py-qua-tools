@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-## [0.20.1] - 2025-10-10
+## [0.20.1] - 2025-10-17
 ### Added
 - wirer - Possibility to add a digital marker to a DC channel and create digital only output channels.
 - wirer - Add connectivity functions for NV-center-based QUAMs.
