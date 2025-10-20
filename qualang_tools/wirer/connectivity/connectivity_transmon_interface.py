@@ -4,7 +4,7 @@ from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 
 
-class Connectivity(ConnectivityBase):
+class ConnectivitySuperconductingQubits(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a transmon-based QPU setup.
 
@@ -120,7 +120,7 @@ class Connectivity(ConnectivityBase):
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DETUNED_DRIVE, triggered, constraints, elements
         )
 
-    def add_qubit_charge_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
+    def add_qubit_charge_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
         """
         Adds specifications (placeholders) for charge lines for the specified qubits.
 
@@ -131,6 +131,7 @@ class Connectivity(ConnectivityBase):
 
         Args:
             qubits (QubitsType): The qubits to configure the charge lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
 
         Returns:
@@ -138,10 +139,10 @@ class Connectivity(ConnectivityBase):
         """
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
-            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.CHARGE, False, constraints, elements
+            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.CHARGE, triggered, constraints, elements
         )
 
-    def add_qubit_flux_lines(self, qubits: QubitsType, constraints: ChannelSpec = None):
+    def add_qubit_flux_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
         """
         Adds specifications (placeholders) for flux bias lines for the specified qubits.
 
@@ -153,6 +154,7 @@ class Connectivity(ConnectivityBase):
 
         Args:
             qubits (QubitsType): The qubits to configure the flux bias lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
 
         Returns:
@@ -160,10 +162,12 @@ class Connectivity(ConnectivityBase):
         """
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
-            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX, False, constraints, elements
+            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX, triggered, constraints, elements
         )
 
-    def add_qubit_pair_flux_lines(self, qubit_pairs: QubitPairsType, constraints: ChannelSpec = None):
+    def add_qubit_pair_flux_lines(
+        self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
+    ):
         """
         Adds specifications (placeholders) for flux lines for a pair of qubits.
 
@@ -175,6 +179,7 @@ class Connectivity(ConnectivityBase):
 
         Args:
             qubit_pairs (QubitPairsType): The qubit pairs to configure the flux lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
 
         Returns:
@@ -182,7 +187,7 @@ class Connectivity(ConnectivityBase):
         """
         elements = self._make_qubit_pair_elements(qubit_pairs)
         return self.add_wiring_spec(
-            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.COUPLER, False, constraints, elements
+            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.COUPLER, triggered, constraints, elements
         )
 
     def add_qubit_pair_cross_resonance_lines(

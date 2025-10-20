@@ -516,3 +516,5 @@ opx_iq_ext_mixer_spec = ChannelSpecOpxPlusBasebandAndExternalMixer
 octave_spec = ChannelSpecOctave
 ext_mixer_spec = ChannelSpecExternalMixer
 opx_dig_spec = ChannelSpecOpxPlusDigital
+lf_fem_dig_spec = ChannelSpecLfFemDigital
+mw_fem_dig_spec = ChannelSpecMwFemDigital
