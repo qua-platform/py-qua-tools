@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Added
 - wirer - Add connectivity functions for zz drive and detuned xy drive QUAMs.
+- bakery - Enable to pass amp as list of 4 floats to allow IQ rotation
 - wirer - Possibility to add a digital marker to a DC channel and create digital only output channels.
 - wirer - Add connectivity functions for NV-center-based QUAMs.
 - digital_filters - Add a routine to fit multiple exponentials and extract the corresponding IIR filter components.
