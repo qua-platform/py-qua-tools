@@ -38,12 +38,9 @@ class WiringLineType(Enum):
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
     ZZ_DRIVE = "zz"
-<<<<<<< HEAD
     DETUNED_DRIVE = "xy_detuned"
-=======
     LASER = "la"
     SPCM = "spcm"
->>>>>>> main
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -53,12 +50,9 @@ CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
-<<<<<<< HEAD
 DETUNED_DRIVE = WiringLineType.DETUNED_DRIVE
-=======
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
->>>>>>> main
 
 
 class WiringSpec:
