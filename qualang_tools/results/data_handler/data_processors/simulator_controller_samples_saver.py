@@ -1,6 +1,6 @@
 import logging
 
-from qm.results.simulator_samples import SimulatorControllerSamples
+from qm import SimulatorControllerSamples
 
 from .helpers import copy_nested_dict, iterate_nested_dict, update_nested_dict
 from .data_processor import DataProcessor
