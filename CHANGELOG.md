@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
+
+### Fixed 
+- data_handler - Fix deprecated import of `SimulatorControllerSamples`.
 
 ## [0.20.1] - 2025-10-17
 ### Added
