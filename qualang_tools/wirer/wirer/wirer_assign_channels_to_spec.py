@@ -18,8 +18,9 @@ def assign_channels_to_spec(
     channel_templates: List[ChannelTemplate],
     same_con: bool = False,
     same_slot: bool = False,
+    observe_pulser_allocation: bool = False,
 ) -> bool:
-    candidate_channels = _assign_channels_to_spec(spec, instruments, channel_templates, same_con, same_slot)
+    candidate_channels = _assign_channels_to_spec(spec, instruments, channel_templates, same_con, same_slot, observe_pulser_allocation=observe_pulser_allocation)
 
     # if candidate channels satisfy all the required channel types
     if len(candidate_channels) == len(channel_templates):
@@ -32,15 +33,16 @@ def assign_channels_to_spec(
                 if spec.line_type not in element.channels:
                     element.channels[spec.line_type] = []
                 element.channels[spec.line_type].append(channel)
-                # Keep track of the pulsers.
-                if type(channel) is InstrumentChannelMwFemOutput:
-                    instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                    instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
-                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
-                elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
-                    instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
-                    instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                # Keep track of the pulsers only if observe_pulser_allocation is True
+                if observe_pulser_allocation:
+                    if type(channel) is InstrumentChannelMwFemOutput:
+                        instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
+                        instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
+                        instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                        instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
+                    elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
+                        instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
+                        instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
 
     return len(candidate_channels) == len(channel_templates)
 
@@ -53,6 +55,7 @@ def _assign_channels_to_spec(
     same_slot: bool,
     allocated_channels=None,
     available_pulsers=None,
+    observe_pulser_allocation: bool = False,
 ):
     """
     Recursive function to find any valid combination of channel allocations
@@ -77,13 +80,15 @@ def _assign_channels_to_spec(
     )
 
     # filter out all channels, that have no more pulsers available on the device
-    channels_with_pulsers = (InstrumentChannelLfFemOutput, InstrumentChannelMwFemOutput, InstrumentChannelOpxPlusOutput)
-    available_channels = [
-        channel
-        for channel in available_channels
-        if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot))
-        or not isinstance(channel, channels_with_pulsers)
-    ]
+    # Only apply pulser constraints if observe_pulser_allocation is True
+    if observe_pulser_allocation:
+        channels_with_pulsers = (InstrumentChannelLfFemOutput, InstrumentChannelMwFemOutput, InstrumentChannelOpxPlusOutput)
+        available_channels = [
+            channel
+            for channel in available_channels
+            if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot))
+            or not isinstance(channel, channels_with_pulsers)
+        ]
 
     candidate_channels = []
     for channel in available_channels:
@@ -95,12 +100,12 @@ def _assign_channels_to_spec(
 
         # base case: all channels allocated properly
         if len(channel_templates) == 1:
-            if type(channel) is InstrumentChannelMwFemOutput:
-                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
-            elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
-                pass
-                available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+            if observe_pulser_allocation:
+                if type(channel) is InstrumentChannelMwFemOutput:
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
+                elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
+                    available_pulsers.remove(instruments.available_pulsers[channel.con, channel.slot])
             break
 
         # recursive case: allocate remaining channels
@@ -118,6 +123,7 @@ def _assign_channels_to_spec(
                     same_slot,
                     allocated_channels=candidate_channels,
                     available_pulsers=available_pulsers,
+                    observe_pulser_allocation=observe_pulser_allocation,
                 )
 
             candidate_channels.extend(subsequent_channels)
