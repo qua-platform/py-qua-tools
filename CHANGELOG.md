@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed 
 - data_handler - Fix deprecated import of `SimulatorControllerSamples`.
+- callable_from_qua - Support for qm-qua >= 1.2.3.
+
 
 ## [0.20.1] - 2025-10-17
 ### Added
@@ -34,7 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - voltage_gates - Improve compensation pulse generation and allow playing ramps in amplified mode.
 - control_panel - Fix call to `qmm.version` that had changed in qm.qua >= 1.2.1.
-- callable_from_qua - Support for qm-qua 1.2.3 1.2.3.
 
 ### Removed
 - control_panel - Remove `qmm.close` call, after it was deprecated in qm.qua >= 1.2.1.
