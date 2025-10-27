@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Changed
+- **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
+
+### Fixed 
+- data_handler - Fix deprecated import of `SimulatorControllerSamples`.
+
+## [0.20.1] - 2025-10-17
+### Added
+- wirer - Possibility to add a digital marker to a DC channel and create digital only output channels.
+- wirer - Add connectivity functions for NV-center-based QUAMs.
+- digital_filters - Add a routine to fit multiple exponentials and extract the corresponding IIR filter components.
+
+### Fixed
+- voltage_gates - Levels with voltage values of `0` will no longer cause issues in sequences that contain QUA variables.
+- voltage_gates - Sequences with an average voltage of `0` are now handled properly and no compensation pulse is generated.
+- voltage_gates - Ramp durations of `0` are now treated as `None` to avoid errors.
+- voltage_gates - Voltage steps of up to +2V and -2V are now working for elements in 'amplified' mode.
+- voltage_gates - Levels with integer voltage values will no longer cause issues in sequences that contain QUA variables.
 
 ## [0.20.0] - 2025-08-04
 ### Changed
@@ -472,7 +490,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.1...HEAD
+[0.20.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...v0.20.0
 [0.19.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
 [0.19.4]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.3...v0.19.4
