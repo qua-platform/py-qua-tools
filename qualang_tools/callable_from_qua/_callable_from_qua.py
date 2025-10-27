@@ -45,6 +45,7 @@ def _get_program_scope():
             raise RuntimeError("Cannot get program scope. Please run this function inside a QUA program.")
     else:
         from qm.qua._scope_management.scopes_manager import scopes_manager
+
         # In QUA >= 1.2.3 NoScopeFoundException lives in qm.exceptions
         from qm.exceptions import NoScopeFoundException
 
