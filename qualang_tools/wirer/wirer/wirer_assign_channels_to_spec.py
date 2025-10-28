@@ -20,7 +20,9 @@ def assign_channels_to_spec(
     same_slot: bool = False,
     observe_pulser_allocation: bool = False,
 ) -> bool:
-    candidate_channels = _assign_channels_to_spec(spec, instruments, channel_templates, same_con, same_slot, observe_pulser_allocation=observe_pulser_allocation)
+    candidate_channels = _assign_channels_to_spec(
+        spec, instruments, channel_templates, same_con, same_slot, observe_pulser_allocation=observe_pulser_allocation
+    )
 
     # if candidate channels satisfy all the required channel types
     if len(candidate_channels) == len(channel_templates):
@@ -40,7 +42,9 @@ def assign_channels_to_spec(
                         instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                         instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
                         instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
-                    elif type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput:
+                    elif (
+                        type(channel) is InstrumentChannelLfFemOutput or type(channel) is InstrumentChannelOpxPlusOutput
+                    ):
                         instruments.available_pulsers.remove_by_slot(channel.con, channel.slot)
                         instruments.used_pulsers.add(Pulser(channel.con, channel.slot))
 
@@ -82,11 +86,18 @@ def _assign_channels_to_spec(
     # filter out all channels, that have no more pulsers available on the device
     # Only apply pulser constraints if observe_pulser_allocation is True
     if observe_pulser_allocation:
-        channels_with_pulsers = (InstrumentChannelLfFemOutput, InstrumentChannelMwFemOutput, InstrumentChannelOpxPlusOutput)
+        channels_with_pulsers = (
+            InstrumentChannelLfFemOutput,
+            InstrumentChannelMwFemOutput,
+            InstrumentChannelOpxPlusOutput,
+        )
         available_channels = [
             channel
             for channel in available_channels
-            if (isinstance(channel, channels_with_pulsers) and available_pulsers.filter_by_slot(channel.con, channel.slot))
+            if (
+                isinstance(channel, channels_with_pulsers)
+                and available_pulsers.filter_by_slot(channel.con, channel.slot)
+            )
             or not isinstance(channel, channels_with_pulsers)
         ]
 

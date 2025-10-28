@@ -133,7 +133,9 @@ def allocate_dc_channels(spec: WiringSpec, instruments: Instruments, observe_pul
         ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital(),
     ]
 
-    allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation)
+    allocate_channels(
+        spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
 
 
 def allocate_rf_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
@@ -161,7 +163,9 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments, observe_pul
         & ChannelSpecExternalMixerDigital(),
     ]
 
-    allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation)
+    allocate_channels(
+        spec, rf_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
 
 
 def allocate_do_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
@@ -177,11 +181,18 @@ def allocate_do_channels(spec: WiringSpec, instruments: Instruments, observe_pul
         ChannelSpecOpxPlusDigital(),
     ]
 
-    allocate_channels(spec, do_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation)
+    allocate_channels(
+        spec, do_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
 
 
 def allocate_channels(
-    wiring_spec: WiringSpec, channel_specs: List[ChannelSpec], instruments: Instruments, same_con: bool, same_slot: bool, observe_pulser_allocation: bool = False
+    wiring_spec: WiringSpec,
+    channel_specs: List[ChannelSpec],
+    instruments: Instruments,
+    same_con: bool,
+    same_slot: bool,
+    observe_pulser_allocation: bool = False,
 ):
     mask_failures = 0
     for channel_spec in channel_specs:
@@ -192,7 +203,12 @@ def allocate_channels(
                 mask_failures += 1
                 continue
         if assign_channels_to_spec(
-            wiring_spec, instruments, channel_spec.channel_templates, same_con=same_con, same_slot=same_slot, observe_pulser_allocation=observe_pulser_allocation
+            wiring_spec,
+            instruments,
+            channel_spec.channel_templates,
+            same_con=same_con,
+            same_slot=same_slot,
+            observe_pulser_allocation=observe_pulser_allocation,
         ):
             return
 
