@@ -42,7 +42,8 @@ class InstrumentPulsers:
         try:
             self.stack.remove(pulser)
         except ValueError:
-            raise ValueError(f"Pulser {pulser} does not exist in the stack. All the pulsers were used up.")
+            from ..wirer.wirer_exceptions import NotEnoughPulsersException
+            raise NotEnoughPulsersException(f"Pulser {pulser} does not exist in the stack. All the pulsers were used up.")
 
     def remove_by_slot(self, controller: int, slot: int):
         """
@@ -52,7 +53,8 @@ class InstrumentPulsers:
             if pulser.controller == controller and pulser.slot == slot:
                 self.stack.remove(pulser)
                 return
-        raise ValueError(f"No pulser found with controller {controller} and slot {slot}.")
+        from ..wirer.wirer_exceptions import NotEnoughPulsersException
+        raise NotEnoughPulsersException(f"Not enough pulsers available for controller {controller} and slot {slot}.")
 
     def filter_by_controller(self, controller: int):
         """
@@ -107,4 +109,5 @@ class InstrumentPulsers:
             for pulser in self.stack:
                 pulser.allocated = False
         else:
-            raise ValueError("Must specify either controller, both controller and slot or None.")
+            from ..wirer.wirer_exceptions import NotEnoughPulsersException
+            raise NotEnoughPulsersException("Must specify either controller, both controller and slot or None.")

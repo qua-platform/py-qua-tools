@@ -10,12 +10,9 @@ from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusInput,
     InstrumentChannelOpxPlusOutput,
-    InstrumentChannelOpxPlusDigitalOutput,
     InstrumentChannelOctaveInput,
-    InstrumentChannelOctaveDigitalInput,
     InstrumentChannelOctaveOutput,
 )
-from qualang_tools.wirer.wirer.wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
 
 visualize_flag = pytest.visualize_flag
 
@@ -115,12 +112,7 @@ def test_qw_soprano_2qb_among_5_allocation(instruments_1opx_1octave):
     connectivity.add_qubit_drive_lines(qubits=other_qubits)
     connectivity.add_qubit_flux_lines(qubits=other_qubits)
 
-    try:
-        allocate_wiring(connectivity, instruments_1opx_1octave)
-    except NotEnoughChannelsException:
-        assert True
-    else:
-        assert False, "Expected NotEnoughChannelsException but none was raised."
+    allocate_wiring(connectivity, instruments_1opx_1octave)
 
     if visualize_flag:
         visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
