@@ -124,19 +124,25 @@ def patch_qua_program_addons():
         else:
             qm.qua._dsl._ProgramScope = _ProgramScope
     else:
-        import qm.qua._scope_management._core_scopes
+        # QUA >= 1.2.3: program() constructs _ProgramScope from qm.qua._dsl.scope_functions
+        # To avoid class identity mismatches, patch the factory used by program() only.
+        from qm.qua._dsl import scope_functions as _scope_functions
 
-        if qm.qua._scope_management._core_scopes._ProgramScope is _ProgramScope:
-            print("qm.qua._dsl._ProgramScope already patched, not patching")
+        if _scope_functions._ProgramScope is _ProgramScope:
+            print("qm.qua._dsl.scope_functions._ProgramScope already patched, not patching")
         else:
-            qm.qua._scope_management._core_scopes._ProgramScope = _ProgramScope
+            _scope_functions._ProgramScope = _ProgramScope
 
-    if qm.QuantumMachine.execute is QM_execute_patched:
+    # Patch QuantumMachine.execute without referencing the module name to avoid local scope confusion
+    if QuantumMachine.execute is QM_execute_patched:
         print("qm.QuantumMachine.QuantumMachine.execute already patched, not patching")
     else:
-        qm.QuantumMachine.execute = QM_execute_patched
+        QuantumMachine.execute = QM_execute_patched
 
-    if qm.api.v2.qm_api_old.QmApiWithDeprecations.execute is QM_execute_patched_old_api:
+    # Patch old API execute by importing the class explicitly
+    from qm.api.v2.qm_api_old import QmApiWithDeprecations as _QmApiWithDeprecations
+
+    if _QmApiWithDeprecations.execute is QM_execute_patched_old_api:
         print("qm.QuantumMachine.QuantumMachine.execute already patched, not patching")
     else:
-        qm.api.v2.qm_api_old.QmApiWithDeprecations.execute = QM_execute_patched_old_api
+        _QmApiWithDeprecations.execute = QM_execute_patched_old_api

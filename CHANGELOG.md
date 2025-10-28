@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed 
 - data_handler - Fix deprecated import of `SimulatorControllerSamples`.
+- callable_from_qua - Support for qm-qua >= 1.2.3.
+
 
 ## [0.20.1] - 2025-10-17
 ### Added
