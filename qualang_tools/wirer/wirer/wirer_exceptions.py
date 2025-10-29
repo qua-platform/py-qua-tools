@@ -27,3 +27,10 @@ class NotEnoughChannelsException(Exception):
             f"{','.join([str(e.id) for e in wiring_spec.elements])}"
         )
         super(NotEnoughChannelsException, self).__init__(message)
+
+
+class NotEnoughPulsersException(Exception):
+    def __init__(self, message=None):
+        if message is None:
+            message = "Not enough pulsers available to allocate requested wiring."
+        super().__init__(message)

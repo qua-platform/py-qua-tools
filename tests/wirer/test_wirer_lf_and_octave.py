@@ -10,9 +10,7 @@ from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType
 from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusInput,
     InstrumentChannelOpxPlusOutput,
-    InstrumentChannelOpxPlusDigitalOutput,
     InstrumentChannelOctaveInput,
-    InstrumentChannelOctaveDigitalInput,
     InstrumentChannelOctaveOutput,
 )
 
