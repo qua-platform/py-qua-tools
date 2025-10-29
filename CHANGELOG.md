@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
 
+### Added
+- wirer - Add the possibility to restrict channels once the maximum number of pulsers per fem is reached.
+
 ### Fixed 
 - data_handler - Fix deprecated import of `SimulatorControllerSamples`.
 - callable_from_qua - Support for qm-qua >= 1.2.3.
