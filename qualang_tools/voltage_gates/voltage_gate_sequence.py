@@ -200,13 +200,49 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
-        if self._compensation:
-            # self._add_compensated_step_internal(
-            #     level, duration, voltage_point_name, ramp_duration
-            #     )
-            pass
+        # Check input value for duration
+        if duration is None:
+            if voltage_point_name is None:
+                raise RuntimeError("Either the voltage_point_name or the duration must be provided.")
+            else:
+                _duration = self._voltage_points[voltage_point_name]["duration"]
         else:
-            self._add_step_internal(level, duration, voltage_point_name, ramp_duration)
+            _duration = duration
+        self._check_duration(_duration)
+
+        # Check input value for level
+        if level is None:
+            if voltage_point_name is None:
+                raise RuntimeError("Either the voltage_point_name or the desired voltage level must be provided.")
+            else:
+                level = self._voltage_points[voltage_point_name]["coordinates"]
+        if (type(level) is not list) or (len(level) != len(self._elements)):
+            raise TypeError(
+                "The provided level must be a list of same length as the number of elements involved in the virtual gate."
+            )
+        level[:] = [float(x) if isinstance(x, int) else x for x in level]
+
+        # Check input value for voltage_point_name
+        if voltage_point_name is None:
+            voltage_point_name = "unregistered_value"
+
+        # Check input value for ramp duration
+        if isinstance(ramp_duration, (int, float)):
+            if ramp_duration == 0:
+                ramp_duration = None
+        self._check_duration(ramp_duration)
+        if ramp_duration is not None:
+            if self.is_QUA(ramp_duration):
+                warn(
+                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur, otherwise use a python variable.",
+                    stacklevel=2,
+                )
+
+        # Add the step to the sequence
+        if self._compensation:
+            self._add_compensated_step_internal(level, _duration, ramp_duration)
+        else:
+            self._add_step_internal(level, _duration, voltage_point_name, ramp_duration)
 
     def _add_step_internal(
         self,
@@ -224,66 +260,31 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
-        self._check_duration(duration)
-        if isinstance(ramp_duration, (int, float)):
-            if ramp_duration == 0:
-                ramp_duration = None
-        self._check_duration(ramp_duration)
-        if ramp_duration is not None:
-            if self.is_QUA(ramp_duration):
-                warn(
-                    "\nYou are using a QUA variable for the ramp duration, make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur, otherwise use a python variable.",
-                    stacklevel=2,
-                )
 
-        if level is not None:
-            if type(level) is not list or len(level) != len(self._elements):
-                raise TypeError(
-                    "the provided level must be a list of same length as the number of elements involved in the virtual gate."
-                )
-            level[:] = [float(x) if isinstance(x, int) else x for x in level]
-
-        if voltage_point_name is not None and duration is None:
-            _duration = self._voltage_points[voltage_point_name]["duration"]
-        elif duration is not None:
-            _duration = duration
-        else:
-            raise RuntimeError(
-                "Either the voltage_point_name or the duration and desired voltage level must be provided."
-            )
-
+        # Play the step
         for i, gate in enumerate(self._elements):
-            if voltage_point_name is not None and level is None:
-                voltage_level = self._voltage_points[voltage_point_name]["coordinates"][i]
-            elif level is not None:
-                voltage_point_name = "unregistered_value"
-                voltage_level = level[i]
-            else:
-                raise RuntimeError(
-                    "Either the voltage_point_name or the duration and desired voltage level must be provided."
-                )
-            # Play a step
+            voltage_level = level[i]
             if ramp_duration is None:
-                self.average_power[i] += self._update_averaged_power(voltage_level, _duration)
+                self.average_power[i] += self._update_averaged_power(voltage_level, duration)
 
                 # Dynamic amplitude change...
                 if self.is_QUA(voltage_level) or self.is_QUA(self.current_level[i]):
                     # if dynamic duration --> play step and wait
-                    if self.is_QUA(_duration):
+                    if self.is_QUA(duration):
                         play(
                             "step"
                             * amp((voltage_level - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
                             gate,
                         )
-                        wait((_duration - 16) >> 2, gate)
+                        wait((duration - 16) >> 2, gate)
                     # if constant duration --> new operation and play(*amp(..))
                     else:
-                        if _duration > 0:
+                        if duration > 0:
                             operation = self._add_op_to_config(
                                 gate,
                                 "step",
                                 amplitude=self.base_operation[gate]["amplitude"],
-                                length=_duration,
+                                length=duration,
                             )
                             play(
                                 operation
@@ -294,14 +295,14 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif self.is_QUA(_duration):
+                elif self.is_QUA(duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
                         amplitude=voltage_level - self.current_level[i],
                         length=16,
                     )
-                    play(operation, gate, duration=_duration >> 2)
+                    play(operation, gate, duration=duration >> 2)
 
                 # Fixed amplitude and duration --> new operation and play()
                 else:
@@ -309,7 +310,7 @@ class VoltageGateSequence:
                         gate,
                         voltage_point_name,
                         amplitude=voltage_level - self.current_level[i],
-                        length=_duration,
+                        length=duration,
                     )
                     play(operation, gate)
 
@@ -317,26 +318,85 @@ class VoltageGateSequence:
             else:
                 self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
                 self.average_power[i] += self._update_averaged_power(
-                    voltage_level, _duration, ramp_duration, self.current_level[i]
+                    voltage_level, duration, ramp_duration, self.current_level[i]
                 )
 
                 if not self.is_QUA(ramp_duration):
                     ramp_rate = 1 / ramp_duration
                     play(ramp((voltage_level - self.current_level[i]) * ramp_rate), gate, duration=ramp_duration >> 2)
-                    if self.is_QUA(_duration) or _duration > 0:
-                        wait(_duration >> 2, gate)
+                    if self.is_QUA(duration) or duration > 0:
+                        wait(duration >> 2, gate)
 
                 else:
                     ramp_rate = declare(fixed)
                     assign(ramp_rate, (voltage_level - self.current_level[i]) * Math.div(1, ramp_duration))
                     play(ramp(ramp_rate), gate, duration=ramp_duration >> 2)
-                    if self.is_QUA(_duration):
-                        wait((_duration >> 2) - 9, gate)
+                    if self.is_QUA(duration):
+                        wait((duration >> 2) - 9, gate)
                     else:
-                        if _duration > 0:
-                            wait(_duration >> 2, gate)
+                        if duration > 0:
+                            wait(duration >> 2, gate)
 
             self.current_level[i] = voltage_level
+
+    def _add_compensated_step_internal(
+        self,
+        level: list[Union[float, QuaExpression, QuaVariable]] = None,
+        duration: Union[int, QuaExpression, QuaVariable] = None,
+        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+    ) -> None:
+        """Add a compensated voltage level to the pulse sequence.
+        The voltage level is either identified by its voltage_point_name if added to the voltage_point dict beforehand, or by its level and duration.
+        A ramp_duration can be used to ramp to the desired level instead of stepping to it. The compensation replaces the level with a ramp to accounts for the bias tee decay.
+
+        :param level: Desired voltage level of the different gates composing the virtual gate in Volt.
+        :param duration: How long the voltage level should be maintained in ns. Must be a multiple of 4ns and either larger than 16ns or 0.
+        :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
+        """
+
+        # Play the compensated step
+        for i, gate in enumerate(self._elements):
+            voltage_level = level[i]
+            self._check_amplified_mode(gate)  # Check if the amplified mode is used until the bug is fixed
+            step_t = 0  # used if there is no ramp the desired voltage level
+            if ramp_duration is not None and ramp_duration != 0:
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._comp_offset[i],
+                    duration=0,
+                    ramp_duration=ramp_duration,
+                    current_level=self.current_level[i] + self._comp_offset[i],
+                )
+                # Play the ramp to the step start voltage
+                # This ramp is not adjusted to account for the bias tee decay
+                self._perform_ramp(gate, voltage_level - self.current_level[i], ramp_duration)
+            else:
+                # if there is no ramp to reach the desired level
+                # play a very short ramp
+                step_t = 16
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._comp_offset[i],
+                    duration=0,
+                    ramp_duration=step_t,
+                    current_level=self.current_level[i] + self._comp_offset[i],
+                )
+                self._perform_ramp(gate, voltage_level - self.current_level[i], step_t)
+            self.current_level[i] = voltage_level
+
+            if duration is not None:
+                voltage_offset = self.calculate_voltage_offset(
+                    voltage=self.current_level[i] + self._comp_offset[i],
+                    duration=duration - step_t,
+                    time_constant=self._time_constants[i],
+                )
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._comp_offset[i] + voltage_offset,
+                    duration=0,
+                    ramp_duration=duration - step_t,
+                    current_level=voltage_level + self._comp_offset[i],
+                )
+                # Play the step which is now a ramp to compensate for the bias tee decay
+                self._perform_ramp(gate, voltage_offset, duration - step_t)
+                self._comp_offset[i] += voltage_offset
 
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
         """Add a compensation pulse of the specified amplitude whose duration is derived automatically from the previous operations and the maximum amplitude allowed.
