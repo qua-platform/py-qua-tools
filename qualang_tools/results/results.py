@@ -83,15 +83,11 @@ class fetching_tool:
         :return: all result of current result stream as a list of python variables
         """
         if self.mode == "wait_for_all":
-            self.res_handles.wait_for_all_values()
-            for data in self.data_list:
-                if hasattr(self.res_handles, data):
-                    self.results.append(self._format(self.res_handles.get(data).fetch_all()))
-
+            results = self.res_handles.fetch_results(wait_until_done=True, stream_names=self.data_list)
+            self.results = [results.get(data) for data in self.data_list]
         elif self.mode == "live":
-            self.results = []
-            for i in range(len(self.data_handles)):
-                self.results.append(self._format(self.data_handles[i].fetch_all()))
+            results = self.res_handles.fetch_results(wait_until_done=False, stream_names=self.data_list)
+            self.results = [results.get(data) for data in self.data_list]
         return self.results
 
 
