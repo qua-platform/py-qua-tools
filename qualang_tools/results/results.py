@@ -28,13 +28,11 @@ class fetching_tool:
         self.data_list = data_list
         self.mode = mode
         self.results = []
-        self.data_handles = []
         self.res_handles = job.result_handles
         if mode == "live":
             for data in self.data_list:
                 if hasattr(self.res_handles, data):
-                    self.data_handles.append(self.res_handles.get(data))
-                    self.data_handles[-1].wait_for_values(1)
+                    self.res_handles.get(data).wait_for_values(1)
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
             # Live plotting parameters
