@@ -1,6 +1,6 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_, else_
 from typing import Union, List, Dict
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
@@ -190,7 +190,7 @@ class VoltageGateSequence:
                 raise RuntimeError(
                     "Either the voltage_point_name or the duration and desired voltage level must be provided."
                 )
-            
+
             # Play a step
             if ramp_duration is None:
                 self.average_power[i] += self._update_averaged_power(voltage_level, _duration)
@@ -267,17 +267,42 @@ class VoltageGateSequence:
 
             self.current_level[i] = voltage_level
 
-    def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
+    def add_compensation_pulse(
+        self, max_amplitude: Union[float, List[float], List[List[float]]] = 0.49, **kwargs
+    ) -> None:
         """Add a compensation pulse of the specified amplitude whose duration is derived automatically from the previous operations and the maximum amplitude allowed.
         Note that the derivation of the compensation pulse parameters in real-time may add a gap up to 300ns before playing the pulse, but the voltage will be maintained.
-        To mitigate this, the voltages are ramped to zero before the compensation pulse is calculated. 
-        This behavior can be overridden by setting the start_at_zero flag to False. 
+        To mitigate this, the voltages are ramped to zero before the compensation pulse is calculated.
+        This behavior can be overridden by setting the start_at_zero flag to False.
         An end_at_zero flag is also provided to ramp down the voltage to zero after the compensation pulse and avoid potential gaps when using ramp_to_zero method.
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
         """
         duration = kwargs.get("duration", None)
         start_at_zero = kwargs.get("start_at_zero", True)
         end_at_zero = kwargs.get("end_at_zero", True)
+
+        if isinstance(max_amplitude, (int, float)):
+            max_amplitude = [[-float(max_amplitude), float(max_amplitude)] for _ in self._elements]
+        elif all(isinstance(x, (int, float)) for x in max_amplitude):
+            if len(max_amplitude) != len(self._elements):
+                raise TypeError(
+                    "The provided max_amplitude must be a list of same length as the number of elements involved in the virtual gate."
+                )
+            max_amplitude = [[-float(x), float(x)] for x in max_amplitude]
+        elif all(isinstance(x, list) for x in max_amplitude):
+            comp_range = []
+            for i, pair in enumerate(max_amplitude):
+                if len(pair) != 2:
+                    raise ValueError("When providing asymetric max_amplitude, inner lists must have length 2.")
+                a, b = float(pair[0]), float(pair[1])
+                if not (a < 0 < b):
+                    raise ValueError(
+                        "When providing asymetric max_amplitude, inner lists must be [min_value<0, max_value>0]."
+                    )
+                comp_range.append([a, b])
+            max_amplitude = comp_range
+        else:
+            raise TypeError("max_amplitude must be a float, list of floats, or list of list of floats")
 
         if start_at_zero:
             level = [0.0 for _ in self._elements]
@@ -292,14 +317,20 @@ class VoltageGateSequence:
             self._check_duration(duration)
 
         for i, gate in enumerate(self._elements):
+            comp_range = max_amplitude[i]
             if not self.is_QUA(self.average_power[i]):
+                if self.average_power[i] < 0:
+                    max_comp_value = comp_range[1]  # Positive compensation pulse
+                else:
+                    max_comp_value = -comp_range[0]  # Negative compensation pulse
+
                 if duration is None:
                     # Exact duration of the compensation pulse
-                    comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
+                    comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_comp_value), 16)
                     # Duration as an integer multiple of 4ns
                     duration_4ns = max((int(np.ceil(comp_duration)) // 4 + 1) * 4, 48)
                     # Corrected amplitude to account for the duration casting to integer
-                    amplitude = -np.sign(self.average_power[i]) * max_amplitude * comp_duration / duration_4ns
+                    amplitude = -np.sign(self.average_power[i]) * max_comp_value * comp_duration / duration_4ns
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
                     ramp_rate = (amplitude - self.current_level[i]) / 16
                     play(ramp(ramp_rate), gate, duration=4)
@@ -312,6 +343,11 @@ class VoltageGateSequence:
                     )
                     play(operation, gate)
             else:
+                with if_(self.average_power[i] < 0):
+                    max_comp_value = comp_range[1]  # Positive compensation pulse
+                with else_():
+                    max_comp_value = -comp_range[0]  # Negative compensation pulse
+
                 if duration is None:
                     with if_(Math.abs(self.average_power[i]) > (self._voltage_tolerance * 1024)):
                         eval_average_power = declare(int)
@@ -328,7 +364,7 @@ class VoltageGateSequence:
                         )
                         assign(
                             comp_duration,
-                            Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_amplitude),
+                            Cast.mul_int_by_fixed(Math.abs(eval_average_power), 0.0009765625 / max_comp_value),
                         )
                         # Ensure that it is larger than 16ns
                         with if_(comp_duration < 16):
@@ -341,9 +377,11 @@ class VoltageGateSequence:
                         assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
                         # Corrected amplitude to account for the actual duration with respect to the exact one
                         with if_(eval_average_power > (self._voltage_tolerance * 1024)):
-                            assign(amplitude, -Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
+                            assign(
+                                amplitude, -Cast.mul_fixed_by_int(max_comp_value >> duration_4ns_pow2, comp_duration)
+                            )
                         with elif_(eval_average_power < -(self._voltage_tolerance * 1024)):
-                            assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
+                            assign(amplitude, Cast.mul_fixed_by_int(max_comp_value >> duration_4ns_pow2, comp_duration))
                         # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
                         ramp_rate = declare(fixed)
                         assign(ramp_rate, (amplitude - self.current_level[i]) >> 4)
