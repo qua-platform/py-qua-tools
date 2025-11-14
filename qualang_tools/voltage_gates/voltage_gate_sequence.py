@@ -282,16 +282,16 @@ class VoltageGateSequence:
         end_at_zero = kwargs.get("end_at_zero", True)
 
         if isinstance(max_amplitude, (int, float)):
-            max_amplitude = [[-float(max_amplitude), float(max_amplitude)] for _ in self._elements]
+            _max_amplitude = [[float(max_amplitude), float(max_amplitude)] for _ in self._elements]
         elif all(isinstance(x, (int, float)) for x in max_amplitude):
             if len(max_amplitude) != len(self._elements):
                 raise TypeError(
                     "The provided max_amplitude must be a list of same length as the number of elements involved in the virtual gate."
                 )
-            max_amplitude = [[-float(x), float(x)] for x in max_amplitude]
+            _max_amplitude = [[float(x), float(x)] for x in max_amplitude]
         elif all(isinstance(x, list) for x in max_amplitude):
-            comp_range = []
-            for i, pair in enumerate(max_amplitude):
+            compensation_range = []
+            for pair in max_amplitude:
                 if len(pair) != 2:
                     raise ValueError("When providing asymetric max_amplitude, inner lists must have length 2.")
                 a, b = float(pair[0]), float(pair[1])
@@ -299,8 +299,8 @@ class VoltageGateSequence:
                     raise ValueError(
                         "When providing asymetric max_amplitude, inner lists must be [min_value<0, max_value>0]."
                     )
-                comp_range.append([a, b])
-            max_amplitude = comp_range
+                compensation_range.append([-1*a, b])
+            _max_amplitude = compensation_range
         else:
             raise TypeError("max_amplitude must be a float, list of floats, or list of list of floats")
 
@@ -317,12 +317,12 @@ class VoltageGateSequence:
             self._check_duration(duration)
 
         for i, gate in enumerate(self._elements):
-            comp_range = max_amplitude[i]
+            comp_range = _max_amplitude[i]
             if not self.is_QUA(self.average_power[i]):
                 if self.average_power[i] < 0:
-                    max_comp_value = comp_range[1]  # Positive compensation pulse
+                    max_comp_value = comp_range[1]  # Positive compensation value
                 else:
-                    max_comp_value = -comp_range[0]  # Negative compensation pulse
+                    max_comp_value = comp_range[0]  # Negative compensation value
 
                 if duration is None:
                     # Exact duration of the compensation pulse
@@ -342,11 +342,13 @@ class VoltageGateSequence:
                         gate, "compensation", amplitude=amplitude - self.current_level[i], length=duration
                     )
                     play(operation, gate)
+
             else:
+                max_comp_value = declare(fixed)
                 with if_(self.average_power[i] < 0):
-                    max_comp_value = comp_range[1]  # Positive compensation pulse
+                    assign(max_comp_value, comp_range[1]) # Positive compensation value
                 with else_():
-                    max_comp_value = -comp_range[0]  # Negative compensation pulse
+                    assign(max_comp_value, comp_range[0]) # Negative compensation value
 
                 if duration is None:
                     with if_(Math.abs(self.average_power[i]) > (self._voltage_tolerance * 1024)):
