@@ -92,14 +92,14 @@ class VoltageGateSequence:
 
     @staticmethod
     def _check_duration(duration: int):
-        if duration is not None and not isinstance(duration, (QuaExpression, QuaVariable)):
+        if duration is not None and not __class__.is_QUA(duration):
             if duration == 0:
                 warn(
                     "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
                     stacklevel=2,
                 )
             else:
-                assert duration >= 4, "The duration must be a larger than 16 ns."
+                assert duration >= 16, "The duration must be a larger than 16 ns."
                 assert duration % 4 == 0, "The duration must be a multiple integer of 4ns."
 
     def _update_averaged_power(self, level, duration, ramp_duration=None, current_level=None):
@@ -223,7 +223,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif isinstance(_duration, (QuaExpression, QuaVariable)):
+                elif self.is_QUA(_duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
