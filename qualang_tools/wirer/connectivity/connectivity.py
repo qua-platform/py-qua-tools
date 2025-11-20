@@ -1,8 +1,9 @@
 from .connectivity_transmon_interface import ConnectivitySuperconductingQubits
 from .connectivity_nv_center_interface import ConnectivityNVCenters
+from .connectivity_quantum_dot_interface import ConnectivityQuantumDotQubits
 
 
-class Connectivity(ConnectivitySuperconductingQubits, ConnectivityNVCenters):
+class Connectivity(ConnectivitySuperconductingQubits, ConnectivityNVCenters, ConnectivityQuantumDotQubits):
     """
     Represents the high-level wiring configuration for the supported QPU setup: superconducting qubits and NV centers.
 

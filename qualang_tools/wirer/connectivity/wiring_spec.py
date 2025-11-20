@@ -18,7 +18,6 @@ DC = WiringFrequency.DC
 RF = WiringFrequency.RF
 DO = WiringFrequency.DO
 
-
 class WiringIOType(Enum):
     INPUT = "input"
     OUTPUT = "output"
@@ -28,7 +27,6 @@ class WiringIOType(Enum):
 INPUT = WiringIOType.INPUT
 OUTPUT = WiringIOType.OUTPUT
 INPUT_AND_OUTPUT = WiringIOType.INPUT_AND_OUTPUT
-
 
 class WiringLineType(Enum):
     RESONATOR = "rr"
@@ -40,7 +38,11 @@ class WiringLineType(Enum):
     ZZ_DRIVE = "zz"
     LASER = "la"
     SPCM = "spcm"
-
+    PLUNGER_GATE = "p"
+    BARRIER_GATE = "b"
+    GLOBAL_GATE = "g"
+    SENSOR_GATE = "s"
+    RF_RESONATOR = "rf"
 
 RESONATOR = WiringLineType.RESONATOR
 DRIVE = WiringLineType.DRIVE
@@ -51,7 +53,11 @@ CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
-
+PLUNGER_GATE = WiringLineType.PLUNGER_GATE
+BARRIER_GATE = WiringLineType.BARRIER_GATE
+GLOBAL_GATE = WiringLineType.GLOBAL_GATE
+SENSOR_GATE = WiringLineType.SENSOR_GATE
+RF_RESONANCE = WiringLineType.RF_RESONATOR
 
 class WiringSpec:
     """

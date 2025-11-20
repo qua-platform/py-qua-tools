@@ -1,8 +1,9 @@
 from typing import Dict, List, Union
 
+from tests.wirer.conftest import instruments_qw_soprano
 from .channel_spec import ChannelSpec
-from .element import Element, ElementId, QubitReference, QubitPairReference
-from .types import QubitsType, QubitPairsType
+from .element import Element, ElementId, QubitReference, QubitPairReference, ElementReference
+from .types import QubitsType, QubitPairsType, ElementsType
 from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
 
@@ -137,6 +138,19 @@ class ConnectivityBase:
         elements = []
         for qubit_pair in qubit_pairs:
             id = QubitPairReference(*qubit_pair)
+            if id not in self.elements:
+                self.elements[id] = Element(id)
+            elements.append(self.elements[id])
+
+        return elements
+
+    def _add_named_elements(self, name:str, element_ids: ElementsType):
+        if not isinstance(element_ids, list):
+            element_ids = [element_ids]
+
+        elements = []
+        for element_id in element_ids:
+            id = ElementReference(name, element_id)
             if id not in self.elements:
                 self.elements[id] = Element(id)
             elements.append(self.elements[id])
