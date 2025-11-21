@@ -294,9 +294,11 @@ class VoltageGateSequence:
             if not self.is_QUA(self.average_power[i]):
                 if duration is None:
                     # Exact duration of the compensation pulse
-                    comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
+                    # comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
+                    comp_duration = np.abs(0.0009765625 * self.average_power[i] / max_amplitude)
                     # Duration as an integer multiple of 4ns
-                    duration_4ns = max((int(np.ceil(comp_duration)) // 4 + 1) * 4, 48)
+                    # duration_4ns = max((int(np.ceil(comp_duration)) // 4 + 1) * 4, 32)
+                    duration_4ns = max(np.ceil(comp_duration/4)*4, 32)
                     # Corrected amplitude to account for the duration casting to integer
                     amplitude = -np.sign(self.average_power[i]) * max_amplitude * comp_duration / duration_4ns
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
