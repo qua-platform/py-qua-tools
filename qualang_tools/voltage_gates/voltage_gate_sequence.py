@@ -280,7 +280,7 @@ class VoltageGateSequence:
         level_0V = [0.0 for _ in self._elements]
 
         if start_at_zero is True:
-            self.add_step(level=level_0V, duration=16, ramp_duration=0)
+            self.add_step(level=level_0V, duration=16, ramp_duration=16)
 
         if duration is not None:
             warn(
@@ -367,7 +367,7 @@ class VoltageGateSequence:
             self.current_level[i] = amplitude
 
         if end_at_zero is True:
-            self.add_step(level=level_0V, duration=16, ramp_duration=0)
+            self.add_step(level=level_0V, duration=16, ramp_duration=16)
 
     def ramp_to_zero(self, duration: int = None):
         """Ramp all the gate voltages down to zero Volt and reset the averaged voltage derived for defining the compensation pulse.
