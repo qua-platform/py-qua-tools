@@ -92,14 +92,14 @@ class VoltageGateSequence:
 
     @staticmethod
     def _check_duration(duration: int):
-        if duration is not None and not isinstance(duration, (QuaExpression, QuaVariable)):
+        if duration is not None and not __class__.is_QUA(duration):
             if duration == 0:
                 warn(
                     "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
                     stacklevel=2,
                 )
             else:
-                assert duration >= 4, "The duration must be a larger than 16 ns."
+                assert duration >= 16, "The duration must be a larger than 16 ns."
                 assert duration % 4 == 0, "The duration must be a multiple integer of 4ns."
 
     def _update_averaged_power(self, level, duration, ramp_duration=None, current_level=None):
@@ -222,7 +222,7 @@ class VoltageGateSequence:
                             )
 
                 # Fixed amplitude but dynamic duration --> new operation and play(duration=..)
-                elif isinstance(_duration, (QuaExpression, QuaVariable)):
+                elif self.is_QUA(_duration):
                     operation = self._add_op_to_config(
                         gate,
                         voltage_point_name,
@@ -269,9 +269,18 @@ class VoltageGateSequence:
     def add_compensation_pulse(self, max_amplitude: float = 0.49, **kwargs) -> None:
         """Add a compensation pulse of the specified amplitude whose duration is derived automatically from the previous operations and the maximum amplitude allowed.
         Note that the derivation of the compensation pulse parameters in real-time may add a gap up to 300ns before playing the pulse, but the voltage will be maintained.
+        To mitigate this, the voltages are ramped to zero before the compensation pulse is calculated.
+        This behavior can be overridden by setting the start_at_zero flag to False.
+        An end_at_zero flag is also provided to ramp down the voltage to zero after the compensation pulse and avoid potential gaps when using ramp_to_zero method.
         :param max_amplitude: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
         """
         duration = kwargs.get("duration", None)
+        start_at_zero = kwargs.get("start_at_zero", True)
+        end_at_zero = kwargs.get("end_at_zero", True)
+        level_0V = [0.0 for _ in self._elements]
+
+        if start_at_zero is True:
+            self.add_step(level=level_0V, duration=16, ramp_duration=0)
 
         if duration is not None:
             warn(
@@ -356,6 +365,9 @@ class VoltageGateSequence:
                     )
 
             self.current_level[i] = amplitude
+
+        if end_at_zero is True:
+            self.add_step(level=level_0V, duration=16, ramp_duration=0)
 
     def ramp_to_zero(self, duration: int = None):
         """Ramp all the gate voltages down to zero Volt and reset the averaged voltage derived for defining the compensation pulse.
