@@ -33,10 +33,10 @@ manual_output_control = ManualOutputControl.ports(analog_ports=[1, 2, (3,4), 5],
 manual_output_control.set_frequency((3,4), 50e6)
 manual_output_control.set_amplitude((3,4), 0.25)
 manual_output_control.set_frequency(5, 25e6)
-manual_output_control.set_amplitude(6, 0.25)
+manual_output_control.set_amplitude(5, 0.25)
 manual_output_control.digital_on(2)
 ```
-In OPX1000, ports are defined by (controller, fem, port) tuples, where: controller is a string, e.g. "con1", fem is the FEM index (integer), port is the physical output on that FEM (integer).
+In OPX1000, ports are defined by (controller, fem, port) tuples, where: controller is a string, e.g. "con1", fem is the FEM index (integer), port is the physical output on that FEM (integer).\
 You must specify (or accept defaults for): fem_types: which FEMs are "LF" vs "MW", mw_output_params: optional per-port settings for MW FEM outputs.
 ```python
 from qualang_tools.control_panel import ManualOutputControl
@@ -100,7 +100,7 @@ manual_output_control.digital_off(("con1", 2, 2))
         all the analog ports and one continuously runs all the digital ports. This enables controlling the amplitude and
         frequency of the analog ports and turning on and off the digital ports.
         All digital outputs start turned off, and all analog outputs start with zero amplitude and zero frequency.
-    * isopx1k: False->OPX+/OPX1 mode, True->OPX1000 mode
+    * isopx1k: False&rarr;OPX+/OPX1 mode, True&rarr;OPX1000 mode
     * analog_ports: The list of analog ports to control. A tuple creates an IQ pair.
      For OPX+ or OPX1, [1, 2, (3, 4)] creates two independent channels at ports 1 & 2, and one IQ pair at ports 3 & 4.
      For multiple controllers, increase the port by 10. For example, controller 3 port 2 should be 32.
@@ -113,9 +113,9 @@ manual_output_control.digital_off(("con1", 2, 2))
     * cluster_name = The name of the cluster. Defaults to `None`. Requires redirection between devices.
     * close_previous: Close currently running Quantum Machines. Note that if False, and a Quantum Machine
                              which uses the same ports is already open, then this function would fail.
-    * fem_types: Required when using OPX1000 if you have MW FEMs; otherwise FEMs default to type "LF". Python dict mapping (controller, fem_id) -> "LF" or "MW". e.g. fem_types={("con1", 1): "LF" ,("con1", 2): "MW",("con1", 3): "MW",}.
+    * fem_types: Required when using OPX1000 if you have MW FEMs; otherwise FEMs default to type "LF". Python dict mapping (controller, fem_id) &rarr; "LF" or "MW". e.g. fem_types={("con1", 1): "LF" ,("con1", 2): "MW",("con1", 3): "MW",}.
     If an existing FEM is created with one type and fem_types requests a different type, an exception is raised.
-    * mw_output_params: Optional dict mapping (controller, fem, port)->dict of MW output settings. If not provided for a given MW output, defaults are used: sampling_rate=1e9, band=2, full_scale_power_dbm=-11,upconverter_frequency=5e9. e.g. mw_output_params={("con1", 2, 1): {"band": 2,
+    * mw_output_params: Optional dict mapping (controller, fem, port)&rarr;dict of MW output settings. If not provided for a given MW output, defaults are used: sampling_rate=1e9, band=2, full_scale_power_dbm=-11,upconverter_frequency=5e9. e.g. mw_output_params={("con1", 2, 1): {"band": 2,
     "full_scale_power_dbm": -11, "sampling_rate": 1e9, "upconverter_frequency": 5e9,}}
 * turn_on_element(element, amplitude, frequency) - Turns on the digital and analog outputs of a given element
     * element: An element to be turned on.
