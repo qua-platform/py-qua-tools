@@ -17,22 +17,22 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     The API is designed to model a variety of qubit configurations, such as fixed-frequency and
     flux-tunable transmons, along with pairwise coupling mechanisms like cross-resonance and ZZ drive.
     """
-    def add_voltage_gate_lines(self, voltage_gates:ElementsType, triggered: bool = False, constraints: ChannelSpec = None, name: str='vg') -> None:
+    def add_voltage_gate_lines(self, voltage_gates:ElementsType, triggered: bool = False, constraints: ChannelSpec = None, name: str='vg', wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE) -> None:
         elements = self._add_named_elements(name, voltage_gates)
         self.add_wiring_spec(
-            WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.GLOBAL_GATE, triggered, constraints, elements
+            WiringFrequency.DC, WiringIOType.OUTPUT, wiring_line_type, triggered, constraints, elements
         )
 
     def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None, shared_resonator_line: bool=True) -> None:
-        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s')
+        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s', wiring_line_type=WiringLineType.SENSOR_GATE)
         self.add_sensor_dot_resonator_line(sensor_dots, triggered=triggered, constraints=constraints, shared_line=shared_resonator_line)
 
     def add_qubits(self, qubits: QubitsType):
         self.add_qubit_voltage_gate_lines(qubits)
-        self.add_qubit_drive_lines(qubits)
+        self.add_quantum_dot_qubit_drive_lines(qubits)
 
     def add_qubit_pairs(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
-        self.add_qubit_voltage_gate_lines(qubit_pairs, triggered=triggered, constraints=constraints)
+        self.add_qubit_pair_voltage_gate_lines(qubit_pairs, triggered=triggered, constraints=constraints)
 
     def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None, shared_line: bool = True):
         """
@@ -56,7 +56,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.RF,
             WiringIOType.INPUT_AND_OUTPUT,
-            WiringLineType.RESONATOR,
+            WiringLineType.RF_RESONATOR,
             triggered,
             constraints,
             elements,
@@ -110,9 +110,9 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.PLUNGER_GATE, triggered, constraints, elements
         )
 
-    def add_qubit_pair_voltage_gate_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
+    def add_qubit_pair_voltage_gate_lines(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
 
-        elements = self._make_qubit_elements(qubits)
+        elements = self._make_qubit_pair_elements(qubit_pairs)
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.BARRIER_GATE, triggered, constraints, elements
         )
