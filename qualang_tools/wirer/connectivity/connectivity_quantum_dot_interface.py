@@ -34,7 +34,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     def add_qubit_pairs(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
         self.add_qubit_voltage_gate_lines(qubit_pairs, triggered=triggered, constraints=constraints)
 
-    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None, shared_line: bool = True) -> None:
+    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None, shared_line: bool = True):
         """
         Adds a specification (placeholder) for a resonator line for the specified qubits.
 

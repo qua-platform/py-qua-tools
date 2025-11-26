@@ -70,14 +70,9 @@ def allocate_wiring(
         NotEnoughChannelsException: If there are not enough available channels to satisfy the wiring specification.
     """
 
+
     line_type_fill_order = [
-        WiringLineType.RESONATOR,
-        WiringLineType.DRIVE,
-        WiringLineType.FLUX,
-        WiringLineType.CHARGE,
-        WiringLineType.COUPLER,
-        WiringLineType.CROSS_RESONANCE,
-        WiringLineType.ZZ_DRIVE,
+        t for t in WiringLineType
     ]
 
     specs = connectivity.specs
