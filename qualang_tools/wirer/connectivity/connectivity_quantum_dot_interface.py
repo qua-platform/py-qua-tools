@@ -5,6 +5,7 @@ from qualang_tools.wirer.connectivity.types import QubitsType, QubitPairsType, E
 from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
 
+
 class ConnectivityQuantumDotQubits(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a quantum-dot-based QPU setup.
@@ -17,15 +18,21 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     The API is designed to model a variety of qubit configurations, such as fixed-frequency and
     flux-tunable transmons, along with pairwise coupling mechanisms like cross-resonance and ZZ drive.
     """
-    def add_voltage_gate_lines(self, voltage_gates:ElementsType, triggered: bool = False, constraints: ChannelSpec = None, name: str='vg', wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE) -> None:
+
+    def add_voltage_gate_lines(self, voltage_gates: ElementsType, triggered: bool = False,
+                               constraints: ChannelSpec = None, name: str = 'vg',
+                               wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE) -> None:
         elements = self._add_named_elements(name, voltage_gates)
         self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, wiring_line_type, triggered, constraints, elements
         )
 
-    def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None, shared_resonator_line: bool=True) -> None:
-        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s', wiring_line_type=WiringLineType.SENSOR_GATE)
-        self.add_sensor_dot_resonator_line(sensor_dots, triggered=triggered, constraints=constraints, shared_line=shared_resonator_line)
+    def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None,
+                        shared_resonator_line: bool = True) -> None:
+        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
+                                    wiring_line_type=WiringLineType.SENSOR_GATE)
+        self.add_sensor_dot_resonator_line(sensor_dots, triggered=triggered, constraints=constraints,
+                                           shared_line=shared_resonator_line)
 
     def add_qubits(self, qubits: QubitsType):
         self.add_qubit_voltage_gate_lines(qubits)
@@ -34,27 +41,11 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     def add_qubit_pairs(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
         self.add_qubit_pair_voltage_gate_lines(qubit_pairs, triggered=triggered, constraints=constraints)
 
-    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None, shared_line: bool = True):
-        """
-        Adds a specification (placeholder) for a resonator line for the specified qubits.
-
-        This method configures a resonator line specification (placeholder) that can handle both input and output,
-        typically for reading out the state of qubits. It also allows optional triggering and constraints on
-        which channel configurations can be allocated for this line.
-
-        No channels are allocated at this stage.
-
-        Args:
-            sensor_dots: The sensor dots to associate with the resonator line.
-            triggered (bool, optional): Whether the line is triggered. Defaults to False.
-            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-
-        Returns:
-            A wiring specification (placeholder) for the resonator line.
-        """
+    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None,
+                                      shared_line: bool = True, wiring_frequency=WiringFrequency.RF):
         elements = self._add_named_elements('s', sensor_dots)
         return self.add_wiring_spec(
-            WiringFrequency.RF,
+            wiring_frequency,
             WiringIOType.INPUT_AND_OUTPUT,
             WiringLineType.RF_RESONATOR,
             triggered,
@@ -63,55 +54,22 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             shared_line=shared_line,
         )
 
-    def add_quantum_dot_qubit_drive_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
-        """
-        Adds specifications (placeholders) for drive lines for the specified qubits.
-
-        This method configures the qubit drive line specifications (placeholders), which are typically used to apply
-        control signals to qubits. It allows optional triggering and constraints on which channel configurations
-        can be allocated for this line.
-
-        No channels are allocated at this stage.
-
-
-        Args:
-            qubits (QubitsType): The qubits to configure the drive lines for.
-            triggered (bool, optional): Whether the line is triggered. Defaults to False.
-            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-
-        Returns:
-            A wiring specification (placeholder) for the qubit drive lines.
-        """
+    def add_quantum_dot_qubit_drive_lines(self, qubits: QubitsType, triggered: bool = False,
+                                          constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
-            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
+            wiring_frequency, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
         )
 
-    def add_qubit_voltage_gate_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
-        """
-        Adds specifications (placeholders) for gate voltage bias lines for the specified qubits.
-
-        This method configures gate voltage bias line specifications (placeholders), typically used for DC control, to tune
-        the qubits' frequency. One can also specify constraints on which channel configurations can be allocated
-        for this line.
-
-        No channels are allocated at this stage.
-
-        Args:
-            qubits (QubitsType): The qubits to configure the flux bias lines for.
-            triggered (bool, optional): Whether the line is triggered. Defaults to False.
-            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-
-        Returns:
-            A wiring specification (placeholder) for the qubit flux bias lines.
-        """
+    def add_qubit_voltage_gate_lines(self, qubits: QubitsType, triggered: bool = False,
+                                     constraints: ChannelSpec = None):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.PLUNGER_GATE, triggered, constraints, elements
         )
 
-    def add_qubit_pair_voltage_gate_lines(self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
-
+    def add_qubit_pair_voltage_gate_lines(self, qubit_pairs: QubitPairsType, triggered: bool = False,
+                                          constraints: ChannelSpec = None):
         elements = self._make_qubit_pair_elements(qubit_pairs)
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.BARRIER_GATE, triggered, constraints, elements
