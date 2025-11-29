@@ -28,11 +28,14 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         )
 
     def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None,
-                        shared_resonator_line: bool = True) -> None:
+                        shared_resonator_line: bool = False) -> None:
         self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
                                     wiring_line_type=WiringLineType.SENSOR_GATE)
-        self.add_sensor_dot_resonator_line(sensor_dots, triggered=triggered, constraints=constraints,
-                                           shared_line=shared_resonator_line)
+        self.add_sensor_dot_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints,)
+
+    def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None):
+        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
+                                    wiring_line_type=WiringLineType.SENSOR_GATE)
 
     def add_qubits(self, qubits: QubitsType):
         self.add_qubit_voltage_gate_lines(qubits)
@@ -42,7 +45,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         self.add_qubit_pair_voltage_gate_lines(qubit_pairs, triggered=triggered, constraints=constraints)
 
     def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None,
-                                      shared_line: bool = True, wiring_frequency=WiringFrequency.RF):
+                                      shared_line: bool = False, wiring_frequency=WiringFrequency.RF):
         elements = self._add_named_elements('s', sensor_dots)
         return self.add_wiring_spec(
             wiring_frequency,
