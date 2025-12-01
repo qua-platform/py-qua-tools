@@ -32,7 +32,7 @@ class ManualOutputControl:
         cluster_name=None,
         close_previous=True,
         elements_to_control=None,
-        isopx1=False
+        isopx1=False,
     ):
         """
         Gets a QUA configuration file and creates different Quantum Machines. One QM continuously runs all the
@@ -52,7 +52,7 @@ class ManualOutputControl:
         self.qmm = QuantumMachinesManager(host=host, port=port, cluster_name=cluster_name)
         if close_previous:
             self.qmm.close_all_qms()
-            #self.qmm.close_all_quantum_machines()
+            # self.qmm.close_all_quantum_machines()
         self.analog_config = None
         self.digital_configs = None
         self.analog_elements = []
@@ -105,7 +105,7 @@ class ManualOutputControl:
             ("con1", fem, port)                      -> single analog output
             (("con1", fem, I_port), ("con1", fem, Q_port)) -> IQ pair on same con/fem
         - digital_ports: list of 3-tuples:
-            ("con1", fem, port) -> digital output       
+            ("con1", fem, port) -> digital output
 
         FEM type & MW-FEM:
         ------------------
@@ -115,7 +115,7 @@ class ManualOutputControl:
           Example params:
               {"band": 2, "full_scale_power_dbm": -11, "sampling_rate": 1e9, "upconverter_frequency": 5e9,}
           If not given, defaults are:
-              sampling_rate = 1e9, band = 2, full_scale_power_dbm = -11, upconverter_frequency =  5e9,            
+              sampling_rate = 1e9, band = 2, full_scale_power_dbm = -11, upconverter_frequency =  5e9,
 
         :param str host: The host or IP of the QOP. Defaults to `None`: local settings are used.
         :param str port: The port used to access the QOP. Defaults to `None`, local settings are used.
@@ -157,12 +157,15 @@ class ManualOutputControl:
                     if fem_type != existing_type:
                         raise Exception(f"Inconsistent FEM type for ({con}, {fem}): existing '{existing_type}', ")
                 return ctr["fems"][fem], fem_type
+
             # Analog ports
             if analog_ports is not None:
                 for ap in analog_ports:
                     # IQ pair: ((con, fem, pI), (con, fem, pQ))
-                    if isinstance(ap, tuple) and len(ap) == 2 and all(
-                        isinstance(x, tuple) and len(x) == 3 and isinstance(x[0], str) for x in ap
+                    if (
+                        isinstance(ap, tuple)
+                        and len(ap) == 2
+                        and all(isinstance(x, tuple) and len(x) == 3 and isinstance(x[0], str) for x in ap)
                     ):
                         (con1, fem1, pI), (con2, fem2, pQ) = ap
                         if con1 != con2 or fem1 != fem2:
@@ -224,14 +227,12 @@ class ManualOutputControl:
                         raise Exception(
                             f"Unsupported analog port format for OPX1000: {ap}. "
                             f"Use (con, fem, port) or ((con,fem,I),(con,fem,Q))."
-                        )           
+                        )
             # Digital ports
             if digital_ports is not None:
                 for dp in digital_ports:
                     if not (isinstance(dp, tuple) and len(dp) == 3 and isinstance(dp[0], str)):
-                        raise Exception(
-                            f"Unsupported digital port format for OPX1000: {dp}. Use (con, fem, port)."
-                        )
+                        raise Exception(f"Unsupported digital port format for OPX1000: {dp}. Use (con, fem, port).")
                     con, fem, p = dp
                     fem_dict, _ = get_fem_dict(con, fem)
                     if p not in fem_dict["digital_outputs"]:
@@ -256,14 +257,16 @@ class ManualOutputControl:
                         }
 
         else:
-            
+
             if analog_ports is not None:
                 for port_int in analog_ports:
                     if isinstance(port_int, tuple):
                         if len(port_int) == 2:
                             con_number = (port_int[0] - 1) // 10 + 1
                             if con_number is not (port_int[1] - 1) // 10 + 1:
-                                raise Exception(f"Ports {port_int[0]} and {port_int[1]} are not from the same controller")
+                                raise Exception(
+                                    f"Ports {port_int[0]} and {port_int[1]} are not from the same controller"
+                                )
                         else:
                             raise Exception(f"Port {port_int} should be either an integer or a tuple of two integers")
                     else:
@@ -594,7 +597,7 @@ class ManualOutputControl:
         if self.isopx1k:
             self.digital_configs = {}
             self.digital_jobs = {}
-            self.digital_qms = {}            
+            self.digital_qms = {}
         else:
             self.digital_configs = np.empty((highest_con, 10), dtype=dict)
             self.digital_jobs = np.empty((highest_con, 10), dtype=QmJob)
@@ -631,16 +634,16 @@ class ManualOutputControl:
             "const_wf": {"type": "constant", "sample": self.ANALOG_WAVEFORM_AMPLITUDE},
         }
         self.analog_config["pulses"] = {
-            "single_on" : {
+            "single_on": {
                 "operation": "control",
                 "length": 16,
                 "waveforms": {"single": "const_wf"},
             },
-            "IQ_Ion" : {
+            "IQ_Ion": {
                 "operation": "control",
                 "length": 16,
                 "waveforms": {"I": "const_wf", "Q": "zero_wf"},
-            }
+            },
         }
         if config.get("mixers") is not None:
             self.analog_config["mixers"] = config["mixers"]
@@ -675,9 +678,7 @@ class ManualOutputControl:
                 for din in el_cfg["digitalInputs"]:
                     port_tuple = el_cfg["digitalInputs"][din]["port"]
                     if len(port_tuple) != 3:
-                        raise Exception(
-                            "On OPX1000, digitalInputs ports must be (controller, fem, port) tuples"
-                        )
+                        raise Exception("On OPX1000, digitalInputs ports must be (controller, fem, port) tuples")
                     con, fem, port = port_tuple
                     key = (con, fem, port)
                     self.digital_index[element].append(key)
@@ -706,8 +707,8 @@ class ManualOutputControl:
                                 }
                             },
                         }
-                        self.digital_configs[key] = dc                
-        else:    
+                        self.digital_configs[key] = dc
+        else:
             for element in elements:
                 el_cfg = config["elements"][element]
                 if el_cfg.get("digitalInputs") is None:
@@ -736,7 +737,7 @@ class ManualOutputControl:
                                     "delay": 0,
                                     "buffer": 0,
                                 },
-                            }
+                            },
                         }
         # Analog
         for element in elements:
@@ -748,7 +749,7 @@ class ManualOutputControl:
                     pulser_count[(con, fem)] = pulser_count.get((con, fem), 0) + 2
                 else:
                     pulser_count[con] += 2
-                    
+
                 self.analog_config["elements"][element] = el_cfg.copy()
                 if self.analog_config["elements"][element].get("digitalInputs") is not None:
                     self.analog_config["elements"][element].pop("digitalInputs")
@@ -803,7 +804,7 @@ class ManualOutputControl:
                 "frequency": self.analog_config["elements"][element].get("intermediate_frequency"),
             }
         if not self.isopx1k:
-            #opx_plus = True if self.qmm.version_dict()["server"][0] == "2" else False
+            # opx_plus = True if self.qmm.version_dict()["server"][0] == "2" else False
             opx_plus = False if self.isopx1 else True
         if self.isopx1k:
             for (con, fem), count in pulser_count.items():
@@ -814,13 +815,9 @@ class ManualOutputControl:
         else:
             for con, count in pulser_count.items():
                 if opx_plus and count > 18:
-                    raise Exception(
-                        f"Given configuration requires {count} threads in {con}, but only 18 are available"
-                    )
+                    raise Exception(f"Given configuration requires {count} threads in {con}, but only 18 are available")
                 elif not opx_plus and count > 10:
-                    raise Exception(
-                        f"Given configuration requires {count} threads in {con}, but only 10 are available"
-                    )
+                    raise Exception(f"Given configuration requires {count} threads in {con}, but only 10 are available")
 
     def _start_analog(self):
         """
@@ -845,7 +842,7 @@ class ManualOutputControl:
         """
         if len(self.digital_elements) == 0:
             return
-        
+
         if self.isopx1k:
             # Dict keyed by (con, fem, port)
             all_keys = set()
@@ -853,7 +850,7 @@ class ManualOutputControl:
                 all_keys.update(key_list)
             for key in all_keys:
                 if key not in self.digital_qms or self.digital_qms[key] is None:
-                    self.digital_qms[key] = self.qmm.open_qm(self.digital_configs[key], False)            
+                    self.digital_qms[key] = self.qmm.open_qm(self.digital_configs[key], False)
         else:
             for con_port_list in self.digital_index.values():
                 for con, port in con_port_list:
