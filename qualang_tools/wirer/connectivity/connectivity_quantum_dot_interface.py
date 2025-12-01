@@ -29,9 +29,9 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
 
     def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None,
                         shared_resonator_line: bool = False) -> None:
-        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
-                                    wiring_line_type=WiringLineType.SENSOR_GATE)
-        self.add_sensor_dot_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints,)
+
+        self.add_sensor_dot_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints)
+        self.add_sensor_dot_resonator_line(sensor_dots, triggered = triggered, constraints=constraints, shared_line = shared_resonator_line)
 
     def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None):
         self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
