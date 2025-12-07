@@ -8,6 +8,7 @@ Content:
 import numpy as np
 import time
 from qm.jobs.running_qm_job import RunningQmJob
+from qm.api.models.capabilities import QopCaps
 from warnings import warn
 
 
@@ -25,14 +26,23 @@ class fetching_tool:
             raise Exception("The provided data list is empty.")
         if mode not in ["live", "wait_for_all"]:
             raise Exception(f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']")
+        
         self.data_list = data_list
         self.mode = mode
+        self.job = job
+        self.multiple_streams_fetching_cap = self._query_multiple_streams_fetching_capability()
+
         self.results = []
+        self.data_handles = []
         self.res_handles = job.result_handles
         if mode == "live":
             for data in self.data_list:
                 if hasattr(self.res_handles, data):
-                    self.res_handles.get(data).wait_for_values(1)
+                    if self.multiple_streams_fetching_cap:
+                        self.res_handles.get(data).wait_for_values(1)
+                    else:
+                        self.data_handles.append(self.res_handles.get(data))
+                        self.data_handles[-1].wait_for_values(1)
                 else:
                     raise Warning(f"{data} is not saved in the stream processing.")
             # Live plotting parameters
@@ -80,13 +90,50 @@ class fetching_tool:
 
         :return: all result of current result stream as a list of python variables
         """
-        if self.mode == "wait_for_all":
-            results = self.res_handles.fetch_results(wait_until_done=True, stream_names=self.data_list)
-            self.results = [results.get(data) for data in self.data_list]
-        elif self.mode == "live":
-            results = self.res_handles.fetch_results(wait_until_done=False, stream_names=self.data_list)
-            self.results = [results.get(data) for data in self.data_list]
+        if self.multiple_streams_fetching_cap:
+            if self.mode == "wait_for_all":
+                results = self.res_handles.fetch_results(wait_until_done=True, stream_names=self.data_list)
+                self.results = [results.get(data) for data in self.data_list]
+            elif self.mode == "live":
+                results = self.res_handles.fetch_results(wait_until_done=False, stream_names=self.data_list)
+                self.results = [results.get(data) for data in self.data_list]
+        else:
+            if self.mode == "wait_for_all":
+                self.res_handles.wait_for_all_values()
+                for data in self.data_list:
+                    if hasattr(self.res_handles, data):
+                        self.results.append(self._format(self.res_handles.get(data).fetch_all()))
+            elif self.mode == "live":
+                self.results = []
+                for i in range(len(self.data_handles)):
+                    self.results.append(self._format(self.data_handles[i].fetch_all()))
         return self.results
+
+    def _query_multiple_streams_fetching_capability(self):
+        try:
+            caps = getattr(self.job, "_caps", None)
+            if caps is None:
+                print(
+                    "Warning: Job is missing '_caps', use fetch_all instead of fetching result at the same time."
+                )
+                return False
+
+            supports_fn = getattr(caps, "supports", None)
+            if supports_fn is None:
+                print(
+                    "Warning: Job capabilities object does not implement 'supports', "
+                    "use fetch_all instead of fetching result at the same time."
+                )
+                return False
+
+            return bool(supports_fn(QopCaps.multiple_streams_fetching))
+        except Exception:
+            print(
+                "Warning: Failed to query job capabilities for multiple_streams_fetching; "
+                "use fetch_all instead of fetching result at the same time."
+            )
+            return False
+
 
 
 def progress_counter(iteration, total, progress_bar=True, percent=True, start_time=None):
@@ -138,3 +185,4 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30, stric
         else:
             warn(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
     return True
+
