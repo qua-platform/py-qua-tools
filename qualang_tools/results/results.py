@@ -26,7 +26,7 @@ class fetching_tool:
             raise Exception("The provided data list is empty.")
         if mode not in ["live", "wait_for_all"]:
             raise Exception(f"Mode '{mode}' is not supported. Supported modes are ['live', 'wait_for_all']")
-        
+
         self.data_list = data_list
         self.mode = mode
         self.job = job
@@ -113,9 +113,7 @@ class fetching_tool:
         try:
             caps = getattr(self.job, "_caps", None)
             if caps is None:
-                print(
-                    "Warning: Job is missing '_caps', use fetch_all instead of fetching result at the same time."
-                )
+                print("Warning: Job is missing '_caps', use fetch_all instead of fetching result at the same time.")
                 return False
 
             supports_fn = getattr(caps, "supports", None)
@@ -133,7 +131,6 @@ class fetching_tool:
                 "use fetch_all instead of fetching result at the same time."
             )
             return False
-
 
 
 def progress_counter(iteration, total, progress_bar=True, percent=True, start_time=None):
@@ -185,4 +182,3 @@ def wait_until_job_is_paused(running_job: RunningQmJob, timeout: int = 30, stric
         else:
             warn(f"Timeout ({timeout}s) was reached, consider extending it if it was not intended.")
     return True
-
