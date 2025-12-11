@@ -58,10 +58,10 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         )
 
     def add_quantum_dot_qubit_drive_lines(self, qubits: QubitsType, triggered: bool = False,
-                                          constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF):
+                                          constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF, shared_line=False):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
-            wiring_frequency, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
+            wiring_frequency, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements, shared_line=shared_line,
         )
 
     def add_qubit_voltage_gate_lines(self, qubits: QubitsType, triggered: bool = False,
