@@ -34,6 +34,7 @@ def allocate_wiring(
     instruments: Instruments,
     block_used_channels: bool = True,
     clear_wiring_specifications: bool = True,
+    observe_pulser_allocation: bool = False,
 ):
     """
     Allocates available instrument channels to quantum elements based on their wiring specifications.
@@ -60,6 +61,9 @@ def allocate_wiring(
             Defaults to `True`.
         clear_wiring_specifications (bool, optional): If `True`, clears the list of wiring specifications in `connectivity`
             after allocation. Defaults to `True`.
+        observe_pulser_allocation (bool, optional): If `True`, enforces pulser allocation constraints (16 pulsers per FEM,
+            18 per OPX+). If `False`, ignores pulser limits and only respects physical channel limits.
+            Defaults to `False`.
 
     Raises:
         ConstraintsTooStrictException: If the constraints for a wiring specification are too strict, preventing allocation.
@@ -86,12 +90,12 @@ def allocate_wiring(
             if spec.line_type not in line_type_fill_order:
                 specs_with_untyped_lines.append(spec)
             if spec.line_type == line_type:
-                _allocate_wiring(spec, instruments)
+                _allocate_wiring(spec, instruments, observe_pulser_allocation)
 
     # remove duplicates
     specs_with_untyped_lines = list(dict.fromkeys(specs_with_untyped_lines))
     for spec in specs_with_untyped_lines:
-        _allocate_wiring(spec, instruments)
+        _allocate_wiring(spec, instruments, observe_pulser_allocation)
 
     if clear_wiring_specifications:
         connectivity.specs = []
@@ -104,27 +108,37 @@ def allocate_wiring(
                     instruments.used_channels.remove(used_channel)
 
 
-def _allocate_wiring(spec: WiringSpec, instruments: Instruments):
+def _allocate_wiring(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
     if spec.frequency == WiringFrequency.DC:
-        allocate_dc_channels(spec, instruments)
+        allocate_dc_channels(spec, instruments, observe_pulser_allocation)
 
     elif spec.frequency == WiringFrequency.RF:
-        allocate_rf_channels(spec, instruments)
+        allocate_rf_channels(spec, instruments, observe_pulser_allocation)
+
+    elif spec.frequency == WiringFrequency.DO:
+        allocate_do_channels(spec, instruments, observe_pulser_allocation)
 
     else:
         raise NotImplementedError()
 
 
-def allocate_dc_channels(spec: WiringSpec, instruments: Instruments):
+def allocate_dc_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
     """
     Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
     """
-    dc_specs = [ChannelSpecLfFemSingle(), ChannelSpecOpxPlusSingle()]
+    dc_specs = [
+        # LF-FEM, Single analog output
+        ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital(),
+        # OPX+, Single analog output
+        ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital(),
+    ]
 
-    allocate_channels(spec, dc_specs, instruments, same_con=True, same_slot=True)
+    allocate_channels(
+        spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
 
 
-def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
+def allocate_rf_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
     """
     Try to allocate RF channels to a MW-FEM. If that doesn't work, look for a
     combination of LF-FEM I/Q and Octave channels, or OPX+ I/Q and Octave
@@ -149,11 +163,36 @@ def allocate_rf_channels(spec: WiringSpec, instruments: Instruments):
         & ChannelSpecExternalMixerDigital(),
     ]
 
-    allocate_channels(spec, rf_specs, instruments, same_con=True, same_slot=True)
+    allocate_channels(
+        spec, rf_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
+
+
+def allocate_do_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
+    """
+    Try to allocate Digital Only (DO) channels to an LF- or MW-FEM or OPX+ to satisfy the spec.
+    """
+    do_specs = [
+        # LF-FEM, Single digital output
+        ChannelSpecLfFemDigital(),
+        # MW-FEM, Single digital output
+        ChannelSpecMwFemDigital(),
+        # OPX+, Single digital output
+        ChannelSpecOpxPlusDigital(),
+    ]
+
+    allocate_channels(
+        spec, do_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
+    )
 
 
 def allocate_channels(
-    wiring_spec: WiringSpec, channel_specs: List[ChannelSpec], instruments: Instruments, same_con: bool, same_slot: bool
+    wiring_spec: WiringSpec,
+    channel_specs: List[ChannelSpec],
+    instruments: Instruments,
+    same_con: bool,
+    same_slot: bool,
+    observe_pulser_allocation: bool = False,
 ):
     mask_failures = 0
     for channel_spec in channel_specs:
@@ -164,7 +203,12 @@ def allocate_channels(
                 mask_failures += 1
                 continue
         if assign_channels_to_spec(
-            wiring_spec, instruments, channel_spec.channel_templates, same_con=same_con, same_slot=same_slot
+            wiring_spec,
+            instruments,
+            channel_spec.channel_templates,
+            same_con=same_con,
+            same_slot=same_slot,
+            observe_pulser_allocation=observe_pulser_allocation,
         ):
             return
 
