@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - connectivity - `WiringIOType.INPUT_AND_OUTPUT` of the SPCM component for the NV center.
 
+### Change
+- fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
+
 ## [0.21.0] - 2025-10-29
 ### Changed
 - **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
