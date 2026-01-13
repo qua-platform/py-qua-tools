@@ -1,6 +1,5 @@
 from typing import Dict, List, Union
 
-from tests.wirer.conftest import instruments_qw_soprano
 from .channel_spec import ChannelSpec
 from .element import Element, ElementId, QubitReference, QubitPairReference, ElementReference
 from .types import QubitsType, QubitPairsType, ElementsType
