@@ -68,7 +68,13 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
                 (only for resonators above 2GHz).
         """
         self.add_sensor_dot_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints)
-        self.add_sensor_dot_resonator_line(sensor_dots, triggered=triggered, constraints=constraints, shared_line=shared_resonator_line, wiring_frequency=resonator_wiring_frequency)
+        self.add_sensor_dot_resonator_line(
+            sensor_dots,
+            triggered=triggered,
+            constraints=constraints,
+            shared_line=shared_resonator_line,
+            wiring_frequency=resonator_wiring_frequency,
+        )
 
     def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None):
         """
@@ -158,8 +164,10 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             shared_line=shared_line,
         )
 
-    def add_quantum_dot_drive_lines(self, quantum_dots: QubitsType, triggered: bool = False,
-                                          constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF, shared_line=False):
+    def add_quantum_dot_drive_lines(
+        self, quantum_dots: QubitsType, triggered: bool = False,
+        constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF, shared_line=False
+    ):
         """
         Adds specifications (placeholders) for RF drive lines for quantum dots.
 
@@ -184,11 +192,18 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         """
         elements = self._make_qubit_elements(quantum_dots)
         return self.add_wiring_spec(
-            wiring_frequency, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements, shared_line=shared_line,
+            wiring_frequency,
+            WiringIOType.OUTPUT,
+            WiringLineType.DRIVE,
+            triggered,
+            constraints,
+            elements,
+            shared_line=shared_line,
         )
 
-    def add_quantum_dot_voltage_gate_lines(self, quantum_dots: QubitsType, triggered: bool = False,
-                                     constraints: ChannelSpec = None):
+    def add_quantum_dot_voltage_gate_lines(
+        self, quantum_dots: QubitsType, triggered: bool = False, constraints: ChannelSpec = None
+    ):
         """
         Adds specifications (placeholders) for plunger gate lines on quantum dots.
 
@@ -215,8 +230,9 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.PLUNGER_GATE, triggered, constraints, elements
         )
 
-    def add_barrier_voltage_gate_lines(self, quantum_dot_pairs: QubitPairsType, triggered: bool = False,
-                                          constraints: ChannelSpec = None):
+    def add_barrier_voltage_gate_lines(
+        self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
+    ):
         """
         Adds specifications (placeholders) for barrier gate lines on quantum dot pairs.
 
