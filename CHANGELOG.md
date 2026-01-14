@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - connectivity - `WiringIOType.INPUT_AND_OUTPUT` of the SPCM component for the NV center.
+- qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.2.3
 
 ### Change
 - fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
@@ -34,7 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - voltage_gates - Ramp durations of `0` are now treated as `None` to avoid errors.
 - voltage_gates - Voltage steps of up to +2V and -2V are now working for elements in 'amplified' mode.
 - voltage_gates - Levels with integer voltage values will no longer cause issues in sequences that contain QUA variables.
-- qcodes OPX driver - Update to reflect changes in stream processing in later qua versions
 
 ## [0.20.0] - 2025-08-04
 ### Changed
