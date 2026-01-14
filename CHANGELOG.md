@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 ### Fixed
 - connectivity - `WiringIOType.INPUT_AND_OUTPUT` of the SPCM component for the NV center.
+- qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.2.3
 
 ### Change
 - fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
