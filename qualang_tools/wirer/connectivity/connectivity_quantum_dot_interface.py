@@ -13,12 +13,13 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     the configuration of line types (e.g., drive, plunger gates, barrier gates, sensor gates), their I/O roles,
     and associated frequency domains (RF or DC), as well as constraints for channel allocation.
 
-    The API is designed to model quantum dot configurations, including voltage gates for charge control,
-    RF drive lines for quantum dot manipulation, and resonator lines for readout via sensor dots.
+    The API supports a two-stage workflow:
+    - Stage 1: define dot-layer wiring (gates and resonators) without qubit drive lines.
+    - Stage 2: add qubit drive lines after building the qubit-layer QUAM.
     """
 
     def add_voltage_gate_lines(self, voltage_gates: ElementsType, triggered: bool = False,
-                               constraints: ChannelSpec = None, name: str = 'vg',
+                               constraints: ChannelSpec | None = None, name: str = 'vg',
                                wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE) -> None:
         """
         Adds specifications (placeholders) for generic voltage gate lines.
@@ -46,8 +47,8 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             WiringFrequency.DC, WiringIOType.OUTPUT, wiring_line_type, triggered, constraints, elements
         )
 
-    def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None,
-                        shared_resonator_line: bool = False, resonator_wiring_frequency=WiringFrequency.DC) -> None:
+    def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec | None = None,
+                        shared_resonator_line: bool = False, use_mw_fem: bool = False) -> None:
         """
         Adds specifications (placeholders) for sensor dots, including both voltage gate lines and resonator lines.
 
@@ -63,9 +64,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             constraints (ChannelSpec, optional): Constraints on the channels, if any. Defaults to None.
             shared_resonator_line (bool, optional): Whether multiple sensor dots share the same resonator line.
                 Defaults to False.
-            resonator_wiring_frequency (WiringFrequency, optional): The frequency domain for the resonator line.
-                Defaults to DC (for LF-FEM, typical for tank circuits below 800MHz). Use RF for MW-FEM
-                (only for resonators above 2GHz).
+            use_mw_fem (bool, optional): Whether to use MW-FEM for the resonator line. Defaults to False.
         """
         self.add_sensor_dot_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints)
         self.add_sensor_dot_resonator_line(
@@ -73,10 +72,10 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             triggered=triggered,
             constraints=constraints,
             shared_line=shared_resonator_line,
-            wiring_frequency=resonator_wiring_frequency,
+            use_mw_fem=use_mw_fem,
         )
 
-    def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec = None):
+    def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec | None = None):
         """
         Adds specifications (placeholders) for voltage gate lines on sensor dots.
 
@@ -94,22 +93,35 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
                                     wiring_line_type=WiringLineType.SENSOR_GATE)
 
-    def add_quantum_dots(self, quantum_dots: QubitsType):
+    def add_quantum_dots(self, quantum_dots: QubitsType, add_drive_lines: bool = False, triggered: bool = False, constraints: ChannelSpec | None = None, use_mw_fem=False, shared_drive_line=False):
         """
-        Adds specifications (placeholders) for quantum dots, including voltage gate lines and drive lines.
+        Adds specifications (placeholders) for quantum dots
 
-        This method is a convenience function that adds both the plunger gate lines and RF drive lines for
-        quantum dots. It calls `add_quantum_dot_voltage_gate_lines` and `add_quantum_dot_drive_lines` internally.
+        This convenience method only adds plunger gate lines.
 
         No channels are allocated at this stage.
 
         Args:
             quantum_dots (QubitsType): The quantum dots to configure. Can be a single quantum dot ID or a list of quantum dot IDs.
+            add_drive_lines (bool, optional): Whether to add drive lines. Defaults to False.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+            use_mw_fem (bool, optional): Whether to use MW-FEM for the drive line. Defaults to False.
+            shared_drive_line (bool, optional): Whether multiple quantum dots share the same drive line.
+                Defaults to False.
         """
         self.add_quantum_dot_voltage_gate_lines(quantum_dots)
-        self.add_quantum_dot_drive_lines(quantum_dots)
+        if add_drive_lines:
 
-    def add_quantum_dot_pairs(self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None):
+            self.add_quantum_dot_drive_lines(
+                quantum_dots,
+                triggered=triggered,
+                constraints=constraints,
+                use_mw_fem=use_mw_fem,
+                shared_line=shared_drive_line,
+            )
+
+    def add_quantum_dot_pairs(self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec | None = None):
         """
         Adds specifications (placeholders) for quantum dot pairs, including barrier gate lines.
 
@@ -127,15 +139,15 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         """
         self.add_barrier_voltage_gate_lines(quantum_dot_pairs, triggered=triggered, constraints=constraints)
 
-    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec = None,
-                                      shared_line: bool = False, wiring_frequency=WiringFrequency.DC):
+    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec | None = None,
+                                      shared_line: bool = False, use_mw_fem=False):
         """
         Adds a specification (placeholder) for a resonator line for sensor dots.
 
         This method configures a resonator line specification (placeholder) for sensor dots, typically used
         for readout via tank circuits. The default frequency is DC (LF-FEM) since most tank circuits operate
         below 800MHz and connect to LF-FEM. Only resonators above 2GHz can connect to MW-FEM due to bandwidth
-        limitations. If you need to connect to MW-FEM, explicitly set `wiring_frequency=WiringFrequency.RF`.
+        limitations. If you need to connect to MW-FEM, set `use_mw_fem=True`.
 
         No channels are allocated at this stage.
 
@@ -146,14 +158,18 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
             shared_line (bool, optional): Whether multiple sensor dots share the same resonator line.
                 Defaults to False.
-            wiring_frequency (WiringFrequency, optional): The frequency domain for the resonator line.
-                Defaults to DC (for LF-FEM, typical for tank circuits below 800MHz). Use RF for MW-FEM
-                (only for resonators above 2GHz).
+            use_mw_fem (bool, optional): Whether to use MW-FEM for the resonator line. Defaults to False.
 
         Returns:
             List[WiringSpec]: A list of wiring specifications (placeholders) for the resonator lines.
         """
         elements = self._add_named_elements('s', sensor_dots)
+
+        if use_mw_fem:
+            wiring_frequency = WiringFrequency.RF
+        else:
+            wiring_frequency = WiringFrequency.DC
+
         return self.add_wiring_spec(
             wiring_frequency,
             WiringIOType.INPUT_AND_OUTPUT,
@@ -166,7 +182,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
 
     def add_quantum_dot_drive_lines(
         self, quantum_dots: QubitsType, triggered: bool = False,
-        constraints: ChannelSpec = None, wiring_frequency=WiringFrequency.RF, shared_line=False
+        constraints: ChannelSpec | None = None, use_mw_fem=False, shared_line=False
     ):
         """
         Adds specifications (placeholders) for RF drive lines for quantum dots.
@@ -182,8 +198,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
                 or a list of quantum dot IDs.
             triggered (bool, optional): Whether the line is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
-            wiring_frequency (WiringFrequency, optional): The frequency domain for the drive line.
-                Defaults to RF.
+            use_mw_fem (bool, optional): Whether to use MW-FEM for the drive line. Defaults to False.
             shared_line (bool, optional): Whether multiple quantum dots share the same drive line.
                 Defaults to False.
 
@@ -191,6 +206,10 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             List[WiringSpec]: A list of wiring specifications (placeholders) for the quantum dot drive lines.
         """
         elements = self._make_qubit_elements(quantum_dots)
+        if use_mw_fem:
+            wiring_frequency = WiringFrequency.RF
+        else:
+            wiring_frequency = WiringFrequency.DC
         return self.add_wiring_spec(
             wiring_frequency,
             WiringIOType.OUTPUT,
@@ -202,7 +221,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         )
 
     def add_quantum_dot_voltage_gate_lines(
-        self, quantum_dots: QubitsType, triggered: bool = False, constraints: ChannelSpec = None
+        self, quantum_dots: QubitsType, triggered: bool = False, constraints: ChannelSpec | None = None
     ):
         """
         Adds specifications (placeholders) for plunger gate lines on quantum dots.
@@ -231,7 +250,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         )
 
     def add_barrier_voltage_gate_lines(
-        self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
+        self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec | None = None
     ):
         """
         Adds specifications (placeholders) for barrier gate lines on quantum dot pairs.

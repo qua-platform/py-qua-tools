@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union, List
+from typing import Union, List, Optional
 
 from typing import TYPE_CHECKING
 
@@ -69,9 +69,9 @@ class WiringSpec:
         self,
         frequency: WiringFrequency,
         io_type: WiringIOType,
-        line_type: WiringLineType,
+        line_type: Union[WiringLineType, str],
         triggered: bool,
-        constraints: "ChannelSpec",
+        constraints: "Optional[ChannelSpec]",
         elements: Union["Element", List["Element"]],
     ):
         self.frequency = frequency
