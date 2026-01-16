@@ -1,8 +1,8 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 
 from .channel_spec import ChannelSpec
-from .element import Element, ElementId, QubitReference, QubitPairReference
-from .types import QubitsType, QubitPairsType
+from .element import Element, ElementId, QubitReference, QubitPairReference, ElementReference
+from .types import QubitsType, QubitPairsType, ElementsType
 from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
 
@@ -48,7 +48,7 @@ class ConnectivityBase:
         io_type: WiringIOType,
         line_type: Union[WiringLineType, str],
         triggered: bool,
-        constraints: ChannelSpec,
+        constraints: Optional[ChannelSpec],
         elements: List[Element],
         shared_line: bool = False,
     ):
@@ -66,8 +66,8 @@ class ConnectivityBase:
             io_type (WiringIOType): The input/output configuration for the element (e.g., input, output, or both).
             line_type (Union[WiringLineType, str]): The type of line for the wiring (e.g., resonator, drive, flux).
             triggered (bool): Whether the wiring is triggered (e.g., by an external event).
-            constraints (ChannelSpec): Any channel constraints that should be applied (e.g., frequency domain,
-                                       slot availability, etc.).
+            constraints (Optional[ChannelSpec]): Any channel constraints that should be applied (e.g., frequency domain,
+                                       slot availability, etc.). Defaults to None.
             elements (List[Element]): The quantum elements to which the wiring specifications apply.
             shared_line (bool, optional): Whether the wiring specification should apply to a shared line
                                           (defaults to False).
@@ -137,6 +137,19 @@ class ConnectivityBase:
         elements = []
         for qubit_pair in qubit_pairs:
             id = QubitPairReference(*qubit_pair)
+            if id not in self.elements:
+                self.elements[id] = Element(id)
+            elements.append(self.elements[id])
+
+        return elements
+
+    def _add_named_elements(self, name:str, element_ids: ElementsType):
+        if not isinstance(element_ids, list):
+            element_ids = [element_ids]
+
+        elements = []
+        for element_id in element_ids:
+            id = ElementReference(name, element_id)
             if id not in self.elements:
                 self.elements[id] = Element(id)
             elements.append(self.elements[id])
