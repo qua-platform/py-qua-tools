@@ -1,4 +1,4 @@
-# VideoMode script enabling the update of parameters in a QUA program through user input while the program is running.
+# LiveMode script enabling the update of parameters in a QUA program through user input while the program is running.
 # Authors: Arthur Strauss, Théo Laudat
 # Date: 19/12/2023
 
@@ -204,7 +204,7 @@ class ParameterTable:
         else:
             raise ValueError(
                 f"No QUA variable found for parameter {item}. Please use "
-                f"VideoMode.declare_variables() within QUA program first."
+                f"LiveMode.declare_variables() within QUA program first."
             )
 
     @property
@@ -215,7 +215,7 @@ class ParameterTable:
         except KeyError:
             raise KeyError(
                 "No QUA variables found for parameters. Please use "
-                "VideoMode.declare_variables() within QUA program first."
+                "LiveMode.declare_variables() within QUA program first."
             )
 
     def __repr__(self):
@@ -225,7 +225,7 @@ class ParameterTable:
         return text
 
 
-class VideoMode:
+class LiveMode:
     """
     This class aims to provide an easy way to update parameters in a QUA program through user input while the
     program is running. It is particularly useful for calibrating parameters dynamically and without deterministic
@@ -241,7 +241,7 @@ class VideoMode:
         This class aims to provide an easy way to update parameters in a QUA program through user input while the
         program is running. It is particularly useful for calibrating parameters in real time. The user can specify
         the parameters to be updated and their initial values in the parameter dictionary called ```param_dict```.
-        The video mode will then automatically create the corresponding QUA variables and update them through user
+        The live mode will then automatically create the corresponding QUA variables and update them through user
         input.
 
         Parameters dictionary should be of the form:
@@ -253,9 +253,9 @@ class VideoMode:
         - ```declare_variables```: This method will create the QUA variables corresponding to the parameters to be updated.
         - ```load_parameters```: This method will load the updated values for the parameters through IO variables  1 and 2.
 
-        The user can then start the video mode outside the QUA program by calling the ```execute``` method of this class.
+        The user can then start the live mode outside the QUA program by calling the ```execute``` method of this class.
         This will start a new parallel thread in charge of updating the
-        parameters in the parameter table through user input. The user can stop the video mode by entering 'stop' in
+        parameters in the parameter table through user input. The user can stop the live mode by entering 'stop' in
         the terminal. The user can also resume a paused program by entering 'done' again in the terminal.
 
         Args:
@@ -271,7 +271,7 @@ class VideoMode:
         self.implemented_commands = (
             "List of implemented commands: \n "
             "get: return the current value of the parameters. \n "
-            "stop: quit VideoMode. \n "
+            "stop: quit LiveMode. \n "
             "done: resume program (if pause_program==True). \n "
             "help: display the list of available commands. \n "
             "'param_name'='param_value': set the parameter to the specified value (ex: V1=0.152).\n "
@@ -283,7 +283,7 @@ class VideoMode:
 
     def signal_handler(self, signum, frame):
         """Signal handler for SIGTERM and SIGINT signals."""
-        print(f"Received signal {signum}, stopping VideoMode...")
+        print(f"Received signal {signum}, stopping LiveMode...")
         self.qm.set_io1_value(self._default_io1)
         self.qm.set_io2_value(self._default_io2)
         self.job.halt()
@@ -414,12 +414,12 @@ class VideoMode:
                 else:
                     print(f"Invalid input. {param_name} is not a valid parameter name.")
 
-        print("VideoMode stopped.")
+        print("LiveMode stopped.")
 
     def execute(self, prog: Optional[Program] = None, *execute_args) -> QmJob:
-        """Start the video mode.
+        """Start the live mode.
         Args:
-            prog: QUA program to be executed. If None, the video mode will be started without executing a QUA program
+            prog: QUA program to be executed. If None, the live mode will be started without executing a QUA program
             (program assumed to be running)
             execute_args: Arguments to be passed to the execute method of the QuantumMachine for executing the program.
         Returns:
