@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Change
 - fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
 
+### Changed
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns before calculating the compensation pulse. This behavior can be overridden by setting `start_at_zero=False` when calling `seq.add_compensation_pulse()`.
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns after applying the compensation pulse. This behavior can be overridden by setting `end_at_zero=False` when calling `seq.add_compensation_pulse()`.
+
 ## [0.21.0] - 2025-10-29
 ### Changed
 - **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
