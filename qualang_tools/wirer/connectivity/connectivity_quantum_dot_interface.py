@@ -18,9 +18,14 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
     - Stage 2: add qubit drive lines after building the qubit-layer QUAM.
     """
 
-    def add_voltage_gate_lines(self, voltage_gates: ElementsType, triggered: bool = False,
-                               constraints: ChannelSpec | None = None, name: str = 'vg',
-                               wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE) -> None:
+    def add_voltage_gate_lines(
+        self,
+        voltage_gates: ElementsType,
+        triggered: bool = False,
+        constraints: ChannelSpec | None = None,
+        name: str = "vg",
+        wiring_line_type: WiringLineType = WiringLineType.GLOBAL_GATE,
+    ) -> None:
         """
         Adds specifications (placeholders) for generic voltage gate lines.
 
@@ -47,8 +52,14 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             WiringFrequency.DC, WiringIOType.OUTPUT, wiring_line_type, triggered, constraints, elements
         )
 
-    def add_sensor_dots(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec | None = None,
-                        shared_resonator_line: bool = False, use_mw_fem: bool = False) -> None:
+    def add_sensor_dots(
+        self,
+        sensor_dots: ElementsType,
+        triggered: bool = False,
+        constraints: ChannelSpec | None = None,
+        shared_resonator_line: bool = False,
+        use_mw_fem: bool = False,
+    ) -> None:
         """
         Adds specifications (placeholders) for sensor dots, including both voltage gate lines and resonator lines.
 
@@ -75,7 +86,9 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             use_mw_fem=use_mw_fem,
         )
 
-    def add_sensor_dot_voltage_gate_lines(self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec | None = None):
+    def add_sensor_dot_voltage_gate_lines(
+        self, sensor_dots: ElementsType, triggered: bool = False, constraints: ChannelSpec | None = None
+    ):
         """
         Adds specifications (placeholders) for voltage gate lines on sensor dots.
 
@@ -90,10 +103,23 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             triggered (bool, optional): Whether the line is triggered. Defaults to False.
             constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
         """
-        self.add_voltage_gate_lines(sensor_dots, triggered=triggered, constraints=constraints, name='s',
-                                    wiring_line_type=WiringLineType.SENSOR_GATE)
+        self.add_voltage_gate_lines(
+            sensor_dots,
+            triggered=triggered,
+            constraints=constraints,
+            name="s",
+            wiring_line_type=WiringLineType.SENSOR_GATE,
+        )
 
-    def add_quantum_dots(self, quantum_dots: QubitsType, add_drive_lines: bool = False, triggered: bool = False, constraints: ChannelSpec | None = None, use_mw_fem=False, shared_drive_line=False):
+    def add_quantum_dots(
+        self,
+        quantum_dots: QubitsType,
+        add_drive_lines: bool = False,
+        triggered: bool = False,
+        constraints: ChannelSpec | None = None,
+        use_mw_fem=False,
+        shared_drive_line=False,
+    ):
         """
         Adds specifications (placeholders) for quantum dots
 
@@ -121,7 +147,9 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
                 shared_line=shared_drive_line,
             )
 
-    def add_quantum_dot_pairs(self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec | None = None):
+    def add_quantum_dot_pairs(
+        self, quantum_dot_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec | None = None
+    ):
         """
         Adds specifications (placeholders) for quantum dot pairs, including barrier gate lines.
 
@@ -139,8 +167,14 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         """
         self.add_barrier_voltage_gate_lines(quantum_dot_pairs, triggered=triggered, constraints=constraints)
 
-    def add_sensor_dot_resonator_line(self, sensor_dots, triggered: bool = False, constraints: ChannelSpec | None = None,
-                                      shared_line: bool = False, use_mw_fem=False):
+    def add_sensor_dot_resonator_line(
+        self,
+        sensor_dots,
+        triggered: bool = False,
+        constraints: ChannelSpec | None = None,
+        shared_line: bool = False,
+        use_mw_fem=False,
+    ):
         """
         Adds a specification (placeholder) for a resonator line for sensor dots.
 
@@ -163,7 +197,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         Returns:
             List[WiringSpec]: A list of wiring specifications (placeholders) for the resonator lines.
         """
-        elements = self._add_named_elements('s', sensor_dots)
+        elements = self._add_named_elements("s", sensor_dots)
 
         if use_mw_fem:
             wiring_frequency = WiringFrequency.RF
@@ -181,8 +215,12 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         )
 
     def add_quantum_dot_drive_lines(
-        self, quantum_dots: QubitsType, triggered: bool = False,
-        constraints: ChannelSpec | None = None, use_mw_fem=False, shared_line=False
+        self,
+        quantum_dots: QubitsType,
+        triggered: bool = False,
+        constraints: ChannelSpec | None = None,
+        use_mw_fem=False,
+        shared_line=False,
     ):
         """
         Adds specifications (placeholders) for RF drive lines for quantum dots.

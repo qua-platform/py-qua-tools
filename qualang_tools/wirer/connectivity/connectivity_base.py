@@ -143,7 +143,7 @@ class ConnectivityBase:
 
         return elements
 
-    def _add_named_elements(self, name:str, element_ids: ElementsType):
+    def _add_named_elements(self, name: str, element_ids: ElementsType):
         if not isinstance(element_ids, list):
             element_ids = [element_ids]
 

@@ -58,6 +58,7 @@ def test_opx_plus_resonator_constraining():
             ][i],
         )
 
+
 def test_constrained_resonator_prioritized_over_unconstrained_barriers():
     instruments = Instruments()
     instruments.add_lf_fem(controller=1, slots=[2, 3])
@@ -72,9 +73,7 @@ def test_constrained_resonator_prioritized_over_unconstrained_barriers():
 
     connectivity = Connectivity()
     connectivity.add_sensor_dot_resonator_line(sensor_dots[0], shared_line=False, constraints=s1_res_constraints)
-    connectivity.add_sensor_dot_resonator_line(
-        sensor_dots[1:], shared_line=True, constraints=s2to3_res_constraints
-    )
+    connectivity.add_sensor_dot_resonator_line(sensor_dots[1:], shared_line=True, constraints=s2to3_res_constraints)
     connectivity.add_sensor_dot_voltage_gate_lines(sensor_dots, constraints=gate_constraints)
     connectivity.add_quantum_dot_voltage_gate_lines(quantum_dots, constraints=gate_constraints)
     connectivity.add_quantum_dot_pairs(quantum_dot_pairs)

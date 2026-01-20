@@ -12,6 +12,7 @@ class Reference:
     def __str__(self):
         return self.name
 
+
 @dataclass(frozen=True)
 class ElementReference:
     name: str
@@ -19,6 +20,7 @@ class ElementReference:
 
     def __str__(self):
         return f"{self.name}{self.index}"
+
 
 @dataclass(frozen=True)
 class QubitReference:

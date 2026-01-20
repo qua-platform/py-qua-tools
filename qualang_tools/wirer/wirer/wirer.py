@@ -70,7 +70,6 @@ def allocate_wiring(
         NotEnoughChannelsException: If there are not enough available channels to satisfy the wiring specification.
     """
 
-
     line_type_fill_order = [t for t in WiringLineType]
 
     specs = connectivity.specs
