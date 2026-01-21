@@ -3,6 +3,7 @@ import pytest
 from qualang_tools.wirer import *
 from qualang_tools.wirer.connectivity.element import QubitReference
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType, WiringFrequency, WiringIOType
+from qualang_tools.wirer.wirer.wirer_exceptions import ConstraintsTooStrictException
 from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusOutput,
     InstrumentChannelOctaveOutput,
