@@ -175,6 +175,11 @@ connectivity.add_resonator_line(qubits=qubits)
 # Define a RF drive-lines for controlling multiple qubits
 connectivity.add_qubit_drive_lines(qubits=qubits)
 
+# Define cavity lines for transmons (one per qubit, one per call)
+connectivity.add_cavity_lines(qubit=1)
+connectivity.add_cavity_lines(qubit=2)
+connectivity.add_cavity_lines(qubit=5)
+
 # Define DC lines for controlling flux
 connectivity.add_qubit_flux_lines(qubits=qubits)
 
