@@ -89,6 +89,7 @@ def get_color_for_line_type(line_type) -> str:
         WiringLineType.CHARGE: "lavender",
         WiringLineType.RESONATOR: "peachpuff",
         WiringLineType.DRIVE: "lemonchiffon",
+        WiringLineType.CAVITY: "lightblue",
         WiringLineType.COUPLER: "thistle",
     }
     return color_map.get(line_type, "beige")
