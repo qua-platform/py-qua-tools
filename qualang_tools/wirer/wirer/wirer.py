@@ -73,6 +73,7 @@ def allocate_wiring(
     line_type_fill_order = [
         WiringLineType.RESONATOR,
         WiringLineType.DRIVE,
+        WiringLineType.CAVITY,
         WiringLineType.FLUX,
         WiringLineType.CHARGE,
         WiringLineType.COUPLER,
