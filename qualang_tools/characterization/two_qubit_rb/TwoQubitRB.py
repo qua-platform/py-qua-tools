@@ -159,11 +159,11 @@ class TwoQubitRb:
             sequence_depth = declare(int)
             repeat = declare(int)
             n_avg = declare(int)
-            state = declare(int)
             length = declare(int)
             progress = declare(int)
             progress_os = declare_stream()
-            state_os = declare_stream()
+            state_control_os = declare_stream()
+            state_target_os = declare_stream()
             gates_len_is = declare_input_stream(int, name="__gates_len_is__", size=1)
             gates_is = {
                 qe: declare_input_stream(int, name=f"{self._input_stream_name(qe)}_is", size=self._buffer_length)
@@ -183,11 +183,12 @@ class TwoQubitRb:
                         self._prep_func()
                         self._rb_baker.run(gates_is, length, unsafe=unsafe)
                         out1, out2 = self._measure_func()
-                        assign(state, (Cast.to_int(out2) << 1) + Cast.to_int(out1))
-                        save(state, state_os)
+                        save(out1, state_control_os)
+                        save(out2, state_target_os)
 
             with stream_processing():
-                state_os.buffer(num_repeats, len(sequence_depths), num_averages).save("state")
+                state_control_os.buffer(num_repeats, len(sequence_depths), num_averages).save("state_control")
+                state_target_os.buffer(num_repeats, len(sequence_depths), num_averages).save("state_target")
                 progress_os.save("progress")
 
         return prog
@@ -264,7 +265,8 @@ class TwoQubitRb:
             circuit_depths=circuit_depths,
             num_repeats=num_circuits_per_depth,
             num_averages=num_shots_per_circuit,
-            state=job.result_handles.get("state").fetch_all(),
+            state_control=job.result_handles.get("state_control").fetch_all(),
+            state_target=job.result_handles.get("state_target").fetch_all(),
         )
 
     def print_command_mapping(self):

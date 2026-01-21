@@ -134,17 +134,7 @@ qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_na
 res = rb.run(qmm, circuit_depths=[1, 2, 3, 4, 5], num_circuits_per_depth=50, num_shots_per_circuit=1000)
 ```
 
-The qubit states are measured after the inversion of the random circuit, which ideally is ∣00⟩. Due to gate errors, we will also measure the states ∣01⟩, ∣10⟩ & ∣11⟩. The result object *res* contains the parameters *circuit_depths*, *num_repeats*, *num_averages* and the result *state*, which is a matrix with values 0,1,2 or 3 corresponding to the possible measurement outcomes. The matrix has the dimension of the given parameters, so for the example code above it will be 5 x 50 x 1000 measured states. To plot the data, there are two functions available:
-1) **Histograms**: Counts of the measured states 0, 1, 2 & 3 (corresponding to ∣00⟩, ∣01⟩, ∣10⟩ & ∣11⟩) for each circuit depth (Number of plots = Number of different circuit dephts).
-
-```python
-res.plot_hist()
-```
-2) **Fidelity**: The average |00> state fidelity for increasing circuit depth.
-
-```python
-res.plot_fidelity()
-```
+The qubit states are measured after the inversion of the random circuit, which ideally is ∣00⟩. Due to gate errors, we will also measure the states ∣01⟩, ∣10⟩ & ∣11⟩. The result object *res* contains the parameters *circuit_depths*, *num_repeats*, *num_averages* and the result *state*, which is a matrix with values 0,1,2 or 3 corresponding to the possible measurement outcomes. The matrix has the dimension of the given parameters, so for the example code above it will be 5 x 50 x 1000 measured states. 
 
 ### Under the Hood: Clifford Sequence Generation
 #### How are all the 11,520 2Q Cliffords loaded onto the OPX?
