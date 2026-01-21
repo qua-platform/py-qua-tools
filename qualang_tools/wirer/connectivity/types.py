@@ -1,4 +1,4 @@
-from typing import Union, List, Tuple,
+from typing import Union, List, Tuple
 
 ElementType = Union[int, str]
 QubitType = Union[int, str]
