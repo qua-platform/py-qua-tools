@@ -1,5 +1,5 @@
 from .channel_spec import ChannelSpec
-from .types import QubitsType, QubitPairsType
+from .types import QubitsType, QubitPairsType, QubitType
 from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 
@@ -95,6 +95,37 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
+        )
+
+    def add_cavity_lines(self, qubit: QubitType, triggered: bool = False, constraints: ChannelSpec = None):
+        """
+        Adds a specification (placeholder) for a cavity line for a single qubit.
+
+        This method configures a cavity line specification (placeholder) for a single transmon, which represents
+        a cavity/harmonic mode attached to the transmon. It allows optional triggering and constraints on which
+        channel configurations can be allocated for this line.
+
+        Unlike `add_qubit_drive_lines()`, this method only accepts a single qubit per call, enforcing the
+        architectural constraint that each cavity line is associated with exactly one transmon.
+
+        No channels are allocated at this stage.
+
+        Args:
+            qubit (QubitType): The qubit to configure the cavity line for. Must be a single integer, not a list.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the cavity line.
+
+        Raises:
+            ValueError: If a list is passed instead of a single qubit.
+        """
+        if isinstance(qubit, list):
+            raise ValueError("add_cavity_lines() only accepts a single qubit, not a list. Each cavity line is associated with exactly one transmon.")
+        elements = self._make_qubit_elements(qubit)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CAVITY, triggered, constraints, elements
         )
 
     def add_qubit_charge_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
