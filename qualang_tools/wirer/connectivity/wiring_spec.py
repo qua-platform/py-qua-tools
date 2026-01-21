@@ -33,6 +33,7 @@ INPUT_AND_OUTPUT = WiringIOType.INPUT_AND_OUTPUT
 class WiringLineType(Enum):
     RESONATOR = "rr"
     DRIVE = "xy"
+    CAVITY = "cavity"
     FLUX = "z"
     CHARGE = "q"
     COUPLER = "c"
@@ -44,6 +45,7 @@ class WiringLineType(Enum):
 
 RESONATOR = WiringLineType.RESONATOR
 DRIVE = WiringLineType.DRIVE
+CAVITY = WiringLineType.CAVITY
 FLUX = WiringLineType.FLUX
 CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
