@@ -46,13 +46,13 @@ def allocate_wiring(
     handles different frequency requirements, either DC or RF, and manages the reuse of available channels depending on
     the `block_used_channels` flag.
 
-    The allocation process involves the following steps:
-    1. The function iterates over the wiring specifications (`specs`) based on their `line_type`, attempting to allocate
-       channels for each `WiringSpec`.
-    2. For each specification, the relevant allocation function (`_allocate_wiring`) is called to allocate DC or RF channels.
-    3. If `clear_wiring_specifications` is `True`, the specifications are cleared after the allocation.
-    4. If `block_used_channels` is `False`, any channels that were previously used but are no longer allocated are returned
-       to the available channels list.
+    Flow overview:
+    1. Split the wiring specs by `line_type`, then separate each group into constrained and unconstrained specs.
+    2. Allocate all constrained specs first (across all line types), then any constrained specs with untyped line types.
+       This prevents unconstrained allocations from consuming scarce channels required by fixed constraints.
+    3. Allocate remaining unconstrained specs in line-type order, followed by unconstrained untyped specs.
+    4. If `clear_wiring_specifications` is `True`, the specifications are cleared after the allocation.
+    5. If `block_used_channels` is `False`, channels newly used during allocation are returned to the available pool.
 
     Args:
         connectivity (Connectivity): An instance of the `Connectivity` class containing the wiring specifications to be allocated.
@@ -70,31 +70,43 @@ def allocate_wiring(
         NotEnoughChannelsException: If there are not enough available channels to satisfy the wiring specification.
     """
 
-    line_type_fill_order = [
-        WiringLineType.RESONATOR,
-        WiringLineType.DRIVE,
-        WiringLineType.FLUX,
-        WiringLineType.CHARGE,
-        WiringLineType.COUPLER,
-        WiringLineType.CROSS_RESONANCE,
-        WiringLineType.ZZ_DRIVE,
-    ]
+    line_type_fill_order = [t for t in WiringLineType]
 
     specs = connectivity.specs
 
     used_channel_cache = copy.deepcopy(instruments.used_channels)
 
-    specs_with_untyped_lines = []
-    for line_type in line_type_fill_order:
-        for spec in specs:
-            if spec.line_type not in line_type_fill_order:
-                specs_with_untyped_lines.append(spec)
-            if spec.line_type == line_type:
-                _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    # Always allocate constrained specs first across all line types to avoid
+    # unconstrained wiring consuming scarce, fixed resources.
+    typed_specs_by_line_type = {
+        line_type: [spec for spec in specs if spec.line_type == line_type] for line_type in line_type_fill_order
+    }
+    constrained_specs_by_line_type = {
+        line_type: [spec for spec in typed_specs_by_line_type[line_type] if spec.constraints]
+        for line_type in line_type_fill_order
+    }
+    unconstrained_specs_by_line_type = {
+        line_type: [spec for spec in typed_specs_by_line_type[line_type] if not spec.constraints]
+        for line_type in line_type_fill_order
+    }
+
+    specs_with_untyped_lines = [spec for spec in specs if spec.line_type not in line_type_fill_order]
 
     # remove duplicates
     specs_with_untyped_lines = list(dict.fromkeys(specs_with_untyped_lines))
-    for spec in specs_with_untyped_lines:
+    constrained_untyped_specs = [spec for spec in specs_with_untyped_lines if spec.constraints]
+    unconstrained_untyped_specs = [spec for spec in specs_with_untyped_lines if not spec.constraints]
+
+    for line_type in line_type_fill_order:
+        for spec in constrained_specs_by_line_type[line_type]:
+            _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    for spec in constrained_untyped_specs:
+        _allocate_wiring(spec, instruments, observe_pulser_allocation)
+
+    for line_type in line_type_fill_order:
+        for spec in unconstrained_specs_by_line_type[line_type]:
+            _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    for spec in unconstrained_untyped_specs:
         _allocate_wiring(spec, instruments, observe_pulser_allocation)
 
     if clear_wiring_specifications:
