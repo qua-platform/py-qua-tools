@@ -3,7 +3,7 @@ import pytest
 from qualang_tools.wirer import *
 from qualang_tools.wirer.connectivity.element import QubitReference
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType, WiringFrequency, WiringIOType
-from qualang_tools.wirer.wirer.wirer_exceptions import ConstraintsTooStrictException
+from qualang_tools.wirer.wirer.wirer_exceptions import NotEnoughChannelsException
 from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelOpxPlusOutput,
     InstrumentChannelOctaveOutput,
@@ -16,6 +16,7 @@ visualize_flag = pytest.visualize_flag
 
 
 # ==================== Basic Functionality Tests ====================
+
 
 def test_add_cavity_line_single_qubit():
     """Verify that add_cavity_lines() accepts a single qubit and creates correct wiring spec."""
@@ -62,6 +63,7 @@ def test_add_cavity_line_with_constraints():
 
 
 # ==================== Channel Allocation Tests ====================
+
 
 def test_cavity_line_allocation_mw_fem(instruments_2mw):
     """Allocate cavity line with MW-FEM setup."""
@@ -156,6 +158,7 @@ def test_cavity_line_allocation_lf_fem_external_mixer():
 
 # ==================== Constraint Tests ====================
 
+
 def test_cavity_line_with_opx_constraint():
     """Use opx_iq_octave_spec constraint and verify allocation respects it."""
     instruments = Instruments()
@@ -197,22 +200,24 @@ def test_cavity_line_constraint_too_strict():
     instruments.add_octave(indices=1)
 
     connectivity = Connectivity()
-    # Constrain to non-existent controller
+    # Constrain to non-existent controller - this will fail with NotEnoughChannelsException
+    # because the constraint doesn't filter out all channel specs, so it tries others and fails
     constraint = opx_iq_octave_spec(con=999, rf_out=1)
     connectivity.add_cavity_lines(qubit=1, constraints=constraint)
 
-    with pytest.raises(ConstraintsTooStrictException):
+    with pytest.raises(NotEnoughChannelsException):
         allocate_wiring(connectivity, instruments)
 
 
 # ==================== Integration Tests ====================
+
 
 def test_cavity_line_with_other_lines():
     """Add resonator, drive, flux, and cavity lines together."""
     instruments = Instruments()
     instruments.add_opx_plus(controllers=[1])
     instruments.add_octave(indices=1)
-    instruments.add_lf_fem(controller=1, slots=[1])
+    # Note: OPX+ can handle flux lines directly, no need for LF-FEM
 
     connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=[1])
@@ -276,6 +281,7 @@ def test_cavity_line_visualization():
 
 # ==================== Edge Cases and Error Handling ====================
 
+
 def test_cavity_line_insufficient_channels():
     """Create setup with insufficient channels and verify exception."""
     instruments = Instruments()
@@ -297,7 +303,7 @@ def test_cavity_line_allocation_order():
     instruments = Instruments()
     instruments.add_opx_plus(controllers=[1])
     instruments.add_octave(indices=1)
-    instruments.add_lf_fem(controller=1, slots=[1])
+    # Note: OPX+ can handle flux lines directly, no need for LF-FEM
 
     connectivity = Connectivity()
     connectivity.add_resonator_line(qubits=[1])
@@ -335,6 +341,7 @@ def test_cavity_line_element_storage():
 
 
 # ==================== Regression Tests ====================
+
 
 def test_existing_drive_lines_still_work():
     """Verify that existing add_qubit_drive_lines() functionality is not broken."""

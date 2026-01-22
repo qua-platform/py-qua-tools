@@ -122,7 +122,9 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
             ValueError: If a list is passed instead of a single qubit.
         """
         if isinstance(qubit, list):
-            raise ValueError("add_cavity_lines() only accepts a single qubit, not a list. Each cavity line is associated with exactly one transmon.")
+            raise ValueError(
+                "add_cavity_lines() only accepts a single qubit, not a list. Each cavity line is associated with exactly one transmon."
+            )
         elements = self._make_qubit_elements(qubit)
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CAVITY, triggered, constraints, elements
