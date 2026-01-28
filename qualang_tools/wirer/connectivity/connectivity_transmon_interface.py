@@ -1,5 +1,5 @@
 from .channel_spec import ChannelSpec
-from .types import QubitsType, QubitPairsType, QubitType
+from .types import QubitsType, QubitPairsType, QubitType, TWPAsType
 from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 
@@ -248,4 +248,28 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         elements = self._make_qubit_pair_elements(qubit_pairs)
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.ZZ_DRIVE, triggered, constraints, elements
+        )
+
+    def add_twpa_lines(self, twpas: TWPAsType, triggered: bool = False, constraints: ChannelSpec = None):
+        """
+        Adds specifications (placeholders) for TWPA pump lines.
+
+        This method configures pump line specifications (placeholders) for TWPAs (Traveling Wave Parametric
+        Amplifiers), which are used for readout signal amplification. TWPAs are standalone elements not
+        associated with specific qubits but amplify signals from multiple qubits. The pump line is an RF
+        output used for parametric amplification.
+
+        No channels are allocated at this stage.
+
+        Args:
+            twpas (TWPAsType): The TWPA indices to configure the pump lines for.
+            triggered (bool, optional): Whether the line is triggered. Defaults to False.
+            constraints (ChannelSpec, optional): Constraints on the channel, if any. Defaults to None.
+
+        Returns:
+            A wiring specification (placeholder) for the TWPA pump lines.
+        """
+        elements = self._make_twpa_elements(twpas)
+        return self.add_wiring_spec(
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.TWPA, triggered, constraints, elements
         )

@@ -41,6 +41,7 @@ class WiringLineType(Enum):
     ZZ_DRIVE = "zz"
     LASER = "la"
     SPCM = "spcm"
+    TWPA = "pump"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -53,6 +54,7 @@ CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
+TWPA = WiringLineType.TWPA
 
 
 class WiringSpec:

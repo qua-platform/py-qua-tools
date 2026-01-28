@@ -1,8 +1,8 @@
 from typing import Dict, List, Union
 
 from .channel_spec import ChannelSpec
-from .element import Element, ElementId, QubitReference, QubitPairReference, CavityReference
-from .types import QubitsType, QubitPairsType
+from .element import Element, ElementId, QubitReference, QubitPairReference, CavityReference, TWPAReference
+from .types import QubitsType, QubitPairsType, TWPAsType
 from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
 
@@ -163,6 +163,32 @@ class ConnectivityBase:
         elements = []
         for qubit in qubits:
             id = CavityReference(qubit)
+            if id not in self.elements:
+                self.elements[id] = Element(id)
+            elements.append(self.elements[id])
+
+        return elements
+
+    def _make_twpa_elements(self, twpas: TWPAsType):
+        """
+        Creates `Element` objects for a list of TWPAs.
+
+        This method constructs `Element` objects for each TWPA reference in the provided `twpas` list
+        and adds them to the internal `self.elements` dictionary. If the element for a TWPA already exists,
+        it will not be recreated.
+
+        Args:
+            twpas (TWPAsType): A list or a single TWPA index to generate TWPA element objects for.
+
+        Returns:
+            List[Element]: A list of `Element` objects created or retrieved for the specified TWPAs.
+        """
+        if not isinstance(twpas, list):
+            twpas = [twpas]
+
+        elements = []
+        for twpa in twpas:
+            id = TWPAReference(twpa)
             if id not in self.elements:
                 self.elements[id] = Element(id)
             elements.append(self.elements[id])
