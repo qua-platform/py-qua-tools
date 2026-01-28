@@ -30,11 +30,19 @@ class QubitPairReference:
         return f"q{self.control_index}-{self.target_index}"
 
 
-ElementId = Union[Reference, QubitReference, QubitPairReference]
+@dataclass(frozen=True)
+class CavityReference:
+    index: int
+
+    def __str__(self):
+        return f"c{self.index}"
+
+
+ElementId = Union[Reference, QubitReference, QubitPairReference, CavityReference]
 
 
 class Element:
-    def __init__(self, id: Union[str, QubitReference, QubitPairReference]):
+    def __init__(self, id: Union[str, QubitReference, QubitPairReference, CavityReference]):
         if isinstance(id, str):
             id = Reference(id)
         self.id = id

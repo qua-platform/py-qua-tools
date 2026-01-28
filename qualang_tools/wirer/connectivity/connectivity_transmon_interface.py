@@ -125,7 +125,7 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
             raise ValueError(
                 "add_cavity_lines() only accepts a single qubit, not a list. Each cavity line is associated with exactly one transmon."
             )
-        elements = self._make_qubit_elements(qubit)
+        elements = self._make_cavity_elements(qubit)
         return self.add_wiring_spec(
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CAVITY, triggered, constraints, elements
         )

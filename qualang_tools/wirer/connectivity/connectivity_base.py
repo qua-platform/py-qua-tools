@@ -1,7 +1,7 @@
 from typing import Dict, List, Union
 
 from .channel_spec import ChannelSpec
-from .element import Element, ElementId, QubitReference, QubitPairReference
+from .element import Element, ElementId, QubitReference, QubitPairReference, CavityReference
 from .types import QubitsType, QubitPairsType
 from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
@@ -137,6 +137,32 @@ class ConnectivityBase:
         elements = []
         for qubit_pair in qubit_pairs:
             id = QubitPairReference(*qubit_pair)
+            if id not in self.elements:
+                self.elements[id] = Element(id)
+            elements.append(self.elements[id])
+
+        return elements
+
+    def _make_cavity_elements(self, qubits: QubitsType):
+        """
+        Creates `Element` objects for a list of cavities.
+
+        This method constructs `Element` objects for each cavity reference in the provided `qubits` list
+        and adds them to the internal `self.elements` dictionary. If the element for a cavity already exists,
+        it will not be recreated.
+
+        Args:
+            qubits (QubitsType): A list or a single qubit index to generate cavity element objects for.
+
+        Returns:
+            List[Element]: A list of `Element` objects created or retrieved for the specified cavities.
+        """
+        if not isinstance(qubits, list):
+            qubits = [qubits]
+
+        elements = []
+        for qubit in qubits:
+            id = CavityReference(qubit)
             if id not in self.elements:
                 self.elements[id] = Element(id)
             elements.append(self.elements[id])

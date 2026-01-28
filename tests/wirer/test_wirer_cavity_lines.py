@@ -1,7 +1,7 @@
 import pytest
 
 from qualang_tools.wirer import *
-from qualang_tools.wirer.connectivity.element import QubitReference
+from qualang_tools.wirer.connectivity.element import QubitReference, CavityReference
 from qualang_tools.wirer.connectivity.wiring_spec import WiringLineType, WiringFrequency, WiringIOType
 from qualang_tools.wirer.wirer.wirer_exceptions import NotEnoughChannelsException
 from qualang_tools.wirer.instruments.instrument_channel import (
@@ -30,7 +30,7 @@ def test_add_cavity_line_single_qubit():
     assert spec.io_type == WiringIOType.OUTPUT
     assert spec.triggered is False
     assert len(spec.elements) == 1
-    assert spec.elements[0].id == QubitReference(1)
+    assert spec.elements[0].id == CavityReference(1)
 
 
 def test_add_cavity_line_rejects_list():
@@ -76,10 +76,10 @@ def test_cavity_line_allocation_mw_fem(instruments_2mw):
         visualize(connectivity.elements, instruments_2mw.available_channels)
 
     # Verify channels are allocated
-    qubit_ref = QubitReference(1)
-    assert qubit_ref in connectivity.elements
-    assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    assert cavity_ref in connectivity.elements
+    assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
 
 
@@ -93,8 +93,8 @@ def test_cavity_line_allocation_opx_octave(instruments_1opx_1octave):
     if visualize_flag:
         visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
     # Should have OPX+ I/Q outputs and Octave RF output
     assert any(isinstance(ch, InstrumentChannelOpxPlusOutput) for ch in channels)
@@ -111,8 +111,8 @@ def test_cavity_line_allocation_lf_fem_octave(instruments_1octave):
     if visualize_flag:
         visualize(connectivity.elements, instruments_1octave.available_channels)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
     # Should have LF-FEM baseband I/Q and Octave RF
     assert any(isinstance(ch, InstrumentChannelLfFemOutput) for ch in channels)
@@ -129,8 +129,8 @@ def test_cavity_line_allocation_external_mixer(instruments_1opx_2external_mixer)
     if visualize_flag:
         visualize(connectivity.elements, instruments_1opx_2external_mixer.available_channels)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
     # Should have OPX+ I/Q and External Mixer
     assert any(isinstance(ch, InstrumentChannelOpxPlusOutput) for ch in channels)
@@ -148,8 +148,8 @@ def test_cavity_line_allocation_lf_fem_external_mixer():
 
     allocate_wiring(connectivity, instruments)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
     # Should have LF-FEM baseband I/Q and External Mixer
     assert any(isinstance(ch, InstrumentChannelLfFemOutput) for ch in channels)
@@ -171,8 +171,8 @@ def test_cavity_line_with_opx_constraint():
 
     allocate_wiring(connectivity, instruments)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
 
 
@@ -187,8 +187,8 @@ def test_cavity_line_with_mw_fem_constraint():
 
     allocate_wiring(connectivity, instruments)
 
-    qubit_ref = QubitReference(1)
-    channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_ref = CavityReference(1)
+    channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(channels) > 0
     assert any(isinstance(ch, InstrumentChannelMwFemOutput) for ch in channels)
 
@@ -231,11 +231,13 @@ def test_cavity_line_with_other_lines():
         visualize(connectivity.elements, instruments.available_channels)
 
     qubit_ref = QubitReference(1)
-    # Verify all line types are allocated
+    cavity_ref = CavityReference(1)
+    # Verify qubit line types are allocated under qubit element
     assert WiringLineType.RESONATOR in connectivity.elements[qubit_ref].channels
     assert WiringLineType.DRIVE in connectivity.elements[qubit_ref].channels
-    assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
     assert WiringLineType.FLUX in connectivity.elements[qubit_ref].channels
+    # Verify cavity line type is allocated under cavity element
+    assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
 
 
 def test_multiple_cavity_lines_different_qubits():
@@ -251,12 +253,12 @@ def test_multiple_cavity_lines_different_qubits():
 
     allocate_wiring(connectivity, instruments)
 
-    # Verify each qubit gets its own cavity line allocation
+    # Verify each cavity gets its own cavity line allocation
     for qubit in [1, 2, 3]:
-        qubit_ref = QubitReference(qubit)
-        assert qubit_ref in connectivity.elements
-        assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
-        channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+        cavity_ref = CavityReference(qubit)
+        assert cavity_ref in connectivity.elements
+        assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
+        channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
         assert len(channels) > 0
 
 
@@ -275,8 +277,8 @@ def test_cavity_line_visualization():
         visualize(connectivity.elements, instruments.available_channels)
 
     # Test passes if allocation succeeds and visualization can be called
-    qubit_ref = QubitReference(1)
-    assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
+    cavity_ref = CavityReference(1)
+    assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
 
 
 # ==================== Edge Cases and Error Handling ====================
@@ -315,9 +317,10 @@ def test_cavity_line_allocation_order():
 
     # Verify all are allocated (order is handled internally)
     qubit_ref = QubitReference(1)
+    cavity_ref = CavityReference(1)
     assert WiringLineType.DRIVE in connectivity.elements[qubit_ref].channels
-    assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
     assert WiringLineType.FLUX in connectivity.elements[qubit_ref].channels
+    assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
 
 
 def test_cavity_line_element_storage():
@@ -331,9 +334,9 @@ def test_cavity_line_element_storage():
 
     allocate_wiring(connectivity, instruments)
 
-    qubit_ref = QubitReference(1)
-    assert qubit_ref in connectivity.elements
-    element = connectivity.elements[qubit_ref]
+    cavity_ref = CavityReference(1)
+    assert cavity_ref in connectivity.elements
+    element = connectivity.elements[cavity_ref]
     assert WiringLineType.CAVITY in element.channels
     channels = element.channels[WiringLineType.CAVITY]
     assert isinstance(channels, list)
@@ -373,11 +376,12 @@ def test_cavity_line_does_not_interfere_with_drive_lines():
     allocate_wiring(connectivity, instruments)
 
     qubit_ref = QubitReference(1)
-    # Both should be allocated separately
+    cavity_ref = CavityReference(1)
+    # Both should be allocated separately under different elements
     assert WiringLineType.DRIVE in connectivity.elements[qubit_ref].channels
-    assert WiringLineType.CAVITY in connectivity.elements[qubit_ref].channels
+    assert WiringLineType.CAVITY in connectivity.elements[cavity_ref].channels
     # They should have different channel allocations
     drive_channels = connectivity.elements[qubit_ref].channels[WiringLineType.DRIVE]
-    cavity_channels = connectivity.elements[qubit_ref].channels[WiringLineType.CAVITY]
+    cavity_channels = connectivity.elements[cavity_ref].channels[WiringLineType.CAVITY]
     assert len(drive_channels) > 0
     assert len(cavity_channels) > 0
