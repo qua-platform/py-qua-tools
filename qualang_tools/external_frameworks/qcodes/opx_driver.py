@@ -398,7 +398,7 @@ class OPX(Instrument):
         :param prog: QUA program.
         """
         count = 0
-        for i in prog.result_analysis._result_analysis.model:
+        for i in prog.qua_program.result_analysis.model:
             self._extend_result(i, count, False)
             count += 1
 

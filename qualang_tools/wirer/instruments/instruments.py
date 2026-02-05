@@ -9,6 +9,7 @@ from .instrument_channel import (
     InstrumentChannelExternalMixerDigitalInput,
 )
 from .instrument_channels import *
+from .instrument_pulsers import *
 from .constants import *
 
 
@@ -23,6 +24,8 @@ class Instruments:
     def __init__(self):
         self.used_channels = InstrumentChannels()
         self.available_channels = InstrumentChannels()
+        self.used_pulsers = InstrumentPulsers()
+        self.available_pulsers = InstrumentPulsers()
 
     def add_external_mixer(self, indices: Union[List[int], int]):
         """
@@ -102,6 +105,10 @@ class Instruments:
                 channel = InstrumentChannelLfFemDigitalOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
 
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
+
     def add_mw_fem(self, controller: int, slots: Union[List[int], int]):
         """
         Adds microwave front-end module (MW-FEM) input, output, and digital output channels
@@ -134,6 +141,10 @@ class Instruments:
             for port in range(1, NUM_MW_FEM_OUTPUT_PORTS + 1):
                 channel = InstrumentChannelMwFemDigitalOutput(con=controller, slot=slot, port=port)
                 self.available_channels.add(channel)
+
+            for idx in range(NUM_THREADS_PER_FEM):
+                pulser = Pulser(controller=controller, slot=slot)
+                self.available_pulsers.add(pulser)
 
     def add_opx_plus(self, controllers: Union[List[int], int]):
         """
@@ -173,3 +184,8 @@ class Instruments:
             for port in range(2, NUM_OPX_PLUS_DIGITAL_OUTPUT_PORTS + 1, 2):
                 channel = InstrumentChannelOpxPlusDigitalOutput(con=controller, port=port)
                 self.available_channels.add(channel)
+
+            # Finally add the pulsers for this controller.
+            for idx in range(NUM_THREADS_PER_OPX_PLUS):
+                pulser = Pulser(controller=controller, slot=None)
+                self.available_pulsers.add(pulser)

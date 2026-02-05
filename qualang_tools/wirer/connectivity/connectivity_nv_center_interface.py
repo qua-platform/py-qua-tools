@@ -96,7 +96,7 @@ class ConnectivityNVCenters(ConnectivityBase):
         elements = self._make_qubit_elements(qubits)
         return self.add_wiring_spec(
             WiringFrequency.DC,
-            WiringIOType.INPUT,
+            WiringIOType.INPUT_AND_OUTPUT,
             WiringLineType.SPCM,
             triggered,
             constraints,

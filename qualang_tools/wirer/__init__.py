@@ -12,12 +12,15 @@ from .wirer.channel_specs_interface import (
     opx_iq_octave_spec,
     octave_spec,
 )
+from .wirer.wirer_exceptions import NotEnoughPulsersException, NotEnoughChannelsException
 
 __all__ = [
     "Instruments",
     "Connectivity",
     "allocate_wiring",
     "visualize",
+    "NotEnoughPulsersException",
+    "NotEnoughChannelsException",
     "mw_fem_spec",
     "lf_fem_spec",
     "lf_fem_iq_spec",

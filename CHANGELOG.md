@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - wirer - Add connectivity functions for zz drive and detuned xy drive QUAMs.
 - bakery - Enable to pass amp as list of 4 floats to allow IQ rotation
 
+## [0.21.1] - 2026-01-16
+### Fixed
+- connectivity - `WiringIOType.INPUT_AND_OUTPUT` of the SPCM component for the NV center.
+- qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.2.3
+
+### Change
+- fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
+
+## [0.21.0] - 2025-10-29
+### Changed
+- **Breaking change!** requirements - Change qm-qua requirement to >=1.2.3
+
+### Added
+- wirer - Add the possibility to restrict channels once the maximum number of pulsers per fem is reached.
+
+### Fixed 
+- data_handler - Fix deprecated import of `SimulatorControllerSamples`.
+- callable_from_qua - Support for qm-qua >= 1.2.3.
+
+
 ## [0.20.1] - 2025-10-17
 ### Added
 - wirer - Possibility to add a digital marker to a DC channel and create digital only output channels.
@@ -486,7 +506,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...HEAD
+[0.21.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.0...v0.21.1
+[0.21.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.1...v0.21.0
 [0.20.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.5...v0.20.0
 [0.19.5]: https://github.com/qua-platform/py-qua-tools/compare/v0.19.4...v0.19.5
