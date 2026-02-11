@@ -1,13 +1,13 @@
 import numpy as np
 
-from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_
-from typing import Union, List, Dict
+from qm.qua import declare, assign, play, fixed, Cast, amp, wait, ramp, ramp_to_zero, Math, if_, elif_, else_
+from typing import Union, List, Dict, Optional
 from warnings import warn
 from qm.qua._expressions import QuaExpression, QuaVariable
 
 
 class VoltageGateSequence:
-    def __init__(self, configuration: Dict, elements: List[str]):
+    def __init__(self, configuration: Dict, elements: List[str], time_constants: Optional[Union[int, List[int]]] = None):
         """
         Initializes a VirtualGateSequence object for designing arbitrary pulse sequences using virtual gates.
 
@@ -25,6 +25,36 @@ class VoltageGateSequence:
         self._elements = elements
         # The OPX configuration
         self._config = configuration
+        # Determine if bias tee correction is needed
+        self._bias_tee_correction = False
+        if time_constants is not None:
+            self._bias_tee_correction = True
+            self._bias_tee_offset = [0.0 for _ in self._elements] # The difference between the voltage applied by the awg before the bias tee and the voltage seen by the device after the bias tee
+            # Check if time constants have proper type
+            if isinstance(time_constants, int):
+                # Accept single int or float, convert to float
+                self._time_constants = [time_constants] * len(elements)
+                warn(
+                    "\nYou have provided a single value for time_constants. All elements are assumed to share this time constant.",
+                    stacklevel=2,
+                )
+            elif isinstance(time_constants, list):
+                if len(time_constants) != len(elements):
+                    raise ValueError(
+                        "If a list is provided for time_constants, its length must match the number of elements."
+                    )
+                if not all(isinstance(tc, int) for tc in time_constants):
+                    raise TypeError(
+                        "All entries in time_constants must be integers."
+                    )
+                self._time_constants = time_constants
+            else:
+                raise TypeError(
+                    "time_constants must be None, an integer, or a list of integers."
+                )
+        self._bias_tee_offset_is_qua = False
+        self._current_level_is_qua = False
+
         # Initialize the current voltage level for sticky elements
         self.current_level = [0.0 for _ in self._elements]
         # Relevant voltage points in the charge stability diagram
@@ -152,6 +182,11 @@ class VoltageGateSequence:
         :param voltage_point_name: Name of the voltage level if added to the list of relevant points in the charge stability map.
         :param ramp_duration: Duration in ns of the ramp if the voltage should be ramped to the desired level instead of stepped. Must be a multiple of 4ns and larger than 16ns.
         """
+        if self._bias_tee_correction: 
+            self._add_corrected_step(
+                level, duration, voltage_point_name, ramp_duration
+            )
+            return
         self._check_duration(duration)
         if isinstance(ramp_duration, (int, float)):
             if ramp_duration == 0:
@@ -283,6 +318,7 @@ class VoltageGateSequence:
 
         for i, gate in enumerate(self._elements):
             if not self.is_QUA(self.average_power[i]):
+                v_offset = self._bias_tee_offset[i] if self._bias_tee_correction else 0
                 if duration is None:
                     # Exact duration of the compensation pulse
                     comp_duration = max(np.abs(0.0009765625 * self.average_power[i] / max_amplitude), 16)
@@ -291,25 +327,32 @@ class VoltageGateSequence:
                     # Corrected amplitude to account for the duration casting to integer
                     amplitude = -np.sign(self.average_power[i]) * max_amplitude * comp_duration / duration_4ns
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
-                    ramp_rate = (amplitude - self.current_level[i]) / 16
+                    ramp_rate = (amplitude - self.current_level[i] - v_offset) / 16
                     play(ramp(ramp_rate), gate, duration=4)
                     wait((duration_4ns - 16) // 4, gate)
 
                 else:
                     amplitude = -0.0009765625 * self.average_power[i] / duration
                     operation = self._add_op_to_config(
-                        gate, "compensation", amplitude=amplitude - self.current_level[i], length=duration
+                        gate, "compensation", amplitude=amplitude - self.current_level[i] - v_offset, length=duration
                     )
                     play(operation, gate)
             else:
+                v_offset = declare(fixed)
+                if self._bias_tee_correction:
+                    assign(v_offset, self._bias_tee_offset[i])
+                else:
+                    assign(v_offset, 0)
                 if duration is None:
+                    amplitude = declare(fixed)
+                    assign(amplitude, self.current_level[i])
                     with if_(Math.abs(self.average_power[i]) > (self._voltage_tolerance * 1024)):
                         eval_average_power = declare(int)
                         comp_duration = declare(int)
                         duration_4ns = declare(int)
                         duration_4ns_pow2 = declare(int)
                         duration_4ns_pow2_cur = declare(int)
-                        amplitude = declare(fixed)
+                        #amplitude = declare(fixed)
                         # Exact duration of the compensation pulse
                         # take into account a gap of 110ns for the derivation of the compensation pulse
                         assign(
@@ -336,7 +379,7 @@ class VoltageGateSequence:
                             assign(amplitude, Cast.mul_fixed_by_int(max_amplitude >> duration_4ns_pow2, comp_duration))
                         # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
                         ramp_rate = declare(fixed)
-                        assign(ramp_rate, (amplitude - self.current_level[i]) >> 4)
+                        assign(ramp_rate, (amplitude - self.current_level[i] - v_offset) >> 4)
                         play(ramp(ramp_rate), gate, duration=4)
                         wait((duration_4ns_pow2_cur - 16) >> 2, gate)
                 else:
@@ -351,11 +394,13 @@ class VoltageGateSequence:
                     assign(amplitude, -Cast.mul_fixed_by_int(0.01 / duration, eval_average_power))
                     assign(amplitude, amplitude * 0.09765625)
                     play(
-                        operation * amp((amplitude - self.current_level[i]) << self.base_operation[gate]["bit_shift"]),
+                        operation * amp((amplitude - self.current_level[i] - v_offset) << self.base_operation[gate]["bit_shift"]),
                         gate,
                     )
 
             self.current_level[i] = amplitude
+            if self._bias_tee_correction and (not self.is_QUA(self.average_power[i])):
+                self._bias_tee_offset[i] = 0.0
 
     def ramp_to_zero(self, duration: int = None):
         """Ramp all the gate voltages down to zero Volt and reset the averaged voltage derived for defining the compensation pulse.
@@ -365,12 +410,22 @@ class VoltageGateSequence:
         """
         for i, gate in enumerate(self._elements):
             ramp_to_zero(gate, duration)
-            self.current_level[i] = 0.0
+            if self._current_level_is_qua:
+                assign(self.current_level[i], 0.0)
+            else:
+                self.current_level[i] = 0.0
             self.average_power[i] = 0
         if self._expression is not None:
             assign(self._expression, 0)
         if self._expression2 is not None:
             assign(self._expression2, 0)
+        if self._bias_tee_offset_is_qua:
+            for i in range(len(self._elements)):
+                assign(self._bias_tee_offset[i], 0.0)
+        elif self._bias_tee_correction:
+            for i in range(len(self._elements)):
+                self._bias_tee_offset[i] = 0.0
+
 
     def add_points(self, name: str, coordinates: list, duration: int) -> None:
         """Register a relevant voltage point.
@@ -382,3 +437,166 @@ class VoltageGateSequence:
         self._voltage_points[name] = {}
         self._voltage_points[name]["coordinates"] = [float(x) for x in coordinates]
         self._voltage_points[name]["duration"] = duration
+
+        
+    def _promote_bias_tee_offset_to_qua(self):
+        """
+        Replace the Python float list self._bias_tee_offset with declared QUA fixed
+        variables, copying in whatever Python float values were accumulated so far.
+        Called exactly once, the first time a QUA variable appears in a bias-tee step.
+        """
+        qua_offsets = []
+        for i in range(len(self._elements)):
+            v = declare(fixed, value=float(self._bias_tee_offset[i]))
+            qua_offsets.append(v)
+        self._bias_tee_offset = qua_offsets
+        self._bias_tee_offset_is_qua = True
+    def _promote_current_level_to_qua(self):
+        """
+        Replace the Python float list self.current_level with declared QUA fixed
+        variables, copying in whatever Python float values were accumulated so far.
+        Called exactly once, the first time a QUA variable appears in a step.
+        """
+        qua_levels = []
+        for i in range(len(self._elements)):
+            v = declare(fixed, value=float(self.current_level[i]))
+            qua_levels.append(v)
+        self.current_level = qua_levels
+        self._current_level_is_qua = True
+
+    @staticmethod
+    def _perform_ramp(gate, voltage, duration) -> None:
+        if not __class__.is_QUA(duration) and not __class__.is_QUA(voltage):
+            # Both are plain Python numbers → compute ramp_rate as a Python float
+            ramp_rate = voltage / duration
+            play(ramp(ramp_rate), gate, duration=duration >> 2)
+        elif not __class__.is_QUA(duration):
+            # voltage is QUA, duration is Python int → declare ramp_rate, divide voltage by constant
+            ramp_rate = declare(fixed)
+            assign(ramp_rate, voltage / duration)  # QUA_fixed / python_int → QUA fixed-point division
+            play(ramp(ramp_rate), gate, duration=duration >> 2)
+        else:
+            # duration is QUA (voltage may or may not be) → use Math.div for runtime 1/duration
+            ramp_rate = declare(fixed)
+            assign(ramp_rate, voltage * Math.div(1, duration))
+            play(ramp(ramp_rate), gate, duration=duration >> 2)
+        return None
+    
+    @staticmethod
+    def calculate_voltage_offset(voltage, duration, time_constant):
+        if VoltageGateSequence.is_QUA(voltage) or VoltageGateSequence.is_QUA(duration):
+            # Split large divisor to avoid fixed-point underflow:
+            # v * d / tc = v * (d / tc) but d/tc is tiny, so instead
+            # v * d / tc = (v / (tc >> k)) * (d >> (log2(tc) - k)) etc.
+            # Or pre-compute 1/tc as a float and use Cast.mul_int_by_fixed
+            inv_tc = 1.0 / time_constant
+            return voltage * Cast.mul_int_by_fixed(duration, inv_tc)
+        return voltage * duration / time_constant
+    
+    def _add_corrected_step(
+        self,
+        level: list[Union[float, QuaExpression, QuaVariable]] = None,
+        duration: Union[int, QuaExpression, QuaVariable] = None,
+        voltage_point_name: str = None,
+        ramp_duration: Union[int, QuaExpression, QuaVariable] = None,
+    ) -> None:
+        # Check input value for duration
+        if voltage_point_name is None:
+            if duration is None:
+                raise RuntimeError("Either the voltage_point_name or the duration must be provided.")
+            _duration = duration
+        else:
+            if duration is not None:
+                _duration = duration
+            else:
+                _duration = self._voltage_points[voltage_point_name]["duration"]
+
+        self._check_duration(_duration)
+
+        # Check input value for level
+        if (level is None) == (voltage_point_name is None):
+            raise ValueError("You must provide either 'level' or 'voltage_point_name', but not both.")
+        if level is not None:
+            if (type(level) is not list) or (len(level) != len(self._elements)):
+                raise TypeError(
+                    "The provided level must be a list of same length as the number of elements involved in the virtual gate."
+                )
+            level[:] = [float(x) if isinstance(x, int) else x for x in level]
+        else:
+            level = self._voltage_points[voltage_point_name]["coordinates"]
+
+        # Check input value for ramp duration
+        if isinstance(ramp_duration, (int, float)) and ramp_duration == 0:
+            ramp_duration = None
+        if ramp_duration is not None:
+            self._check_duration(ramp_duration)
+            if self.is_QUA(ramp_duration):
+                warn(
+                    "\nYou are using a QUA variable for the ramp duration. Make sure to stay at the final voltage level for more than 52ns or errors/gaps may occur. Otherwise use a python variable.",
+                    stacklevel=2,
+                )
+
+        # Check that ramp duration and step duration are not both zero or none
+        if (_duration, ramp_duration) in {(None, None), (0, 0), (None, 0), (0, None)}:
+            raise ValueError("Duration and ramp duration cannot both be zero or None.")
+        
+        has_qua_input = (
+            self.is_QUA(_duration)
+            or self.is_QUA(ramp_duration)
+            or any(self.is_QUA(l) for l in level)
+        )
+        if has_qua_input:
+            if self._bias_tee_correction and not self._bias_tee_offset_is_qua:
+                self._promote_bias_tee_offset_to_qua()
+            if not self._current_level_is_qua:
+                self._promote_current_level_to_qua()
+
+        # Play the compensated step
+        for i, gate in enumerate(self._elements):
+            voltage_level = level[i]
+            self._check_amplified_mode(gate)  # keep check until bug is fixed
+
+            step_t = 0  # used if there is no ramp to the desired voltage level
+            if ramp_duration is not None:
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._bias_tee_offset[i],
+                    duration=0,
+                    ramp_duration=ramp_duration,
+                    current_level=self.current_level[i] + self._bias_tee_offset[i],
+                )
+                # ramp to the target device voltage (ramp itself not bias-tee corrected)
+                self._perform_ramp(gate, voltage_level - self.current_level[i], ramp_duration)
+            else:
+                # no ramp requested: do a tiny ramp to avoid gaps
+                step_t = 16
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._bias_tee_offset[i],
+                    duration=0,
+                    ramp_duration=step_t,
+                    current_level=self.current_level[i] + self._bias_tee_offset[i],
+                )
+                self._perform_ramp(gate, voltage_level - self.current_level[i], step_t)
+
+            if self._current_level_is_qua:
+                assign(self.current_level[i], voltage_level)
+            else:
+                self.current_level[i] = voltage_level
+
+            if _duration is not None:
+                voltage_offset = self.calculate_voltage_offset(
+                    voltage=self.current_level[i] + self._bias_tee_offset[i],
+                    duration=_duration - step_t,
+                    time_constant=self._time_constants[i],
+                )
+                self.average_power[i] += self._update_averaged_power(
+                    level=voltage_level + self._bias_tee_offset[i] + voltage_offset,
+                    duration=0,
+                    ramp_duration=_duration - step_t,
+                    current_level=voltage_level + self._bias_tee_offset[i],
+                )
+                # apply bias-tee correction during hold as a ramp
+                self._perform_ramp(gate, voltage_offset, _duration - step_t)
+                if self._bias_tee_offset_is_qua:
+                    assign(self._bias_tee_offset[i], self._bias_tee_offset[i] + voltage_offset)
+                else:
+                    self._bias_tee_offset[i] += voltage_offset
