@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Change
-- Changed minimal numpy version to `numpy>=2, <3` and cirq to `cirq>=1.50`
+- Changed minimal numpy version to `numpy>=2, <3` and optional cirq to `cirq==1.50`
 
 ## [0.21.1] - 2026-01-16
 ### Fixed
