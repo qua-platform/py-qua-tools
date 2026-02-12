@@ -39,9 +39,9 @@ def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) ->
             qm = qmm.open_qm(config, close_other_machines=False)
 
         except Exception as e:
-            if (
-                qmm.capabilities.supports(QopCaps.qop3) and msg_opx1000 in e.physical_validation_formatted_errors[0]
-            ) or (~qmm.capabilities.supports(QopCaps.qop3) and msg in e.physical_validation_formatted_errors[0]):
+            if (qmm.capabilities.supports(QopCaps.qop3) and msg_opx1000 in str(e)) or (
+                ~qmm.capabilities.supports(QopCaps.qop3) and msg in str(e)
+            ):
                 if not printed:
                     qm_log.error(f"QOP is busy. Waiting for it to free up for {timeout}s...")
                     set_logging_level("CRITICAL")
