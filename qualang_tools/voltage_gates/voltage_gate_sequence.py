@@ -369,7 +369,7 @@ class VoltageGateSequence:
                         # Duration as an integer multiple of 4ns
                         assign(duration_4ns, (comp_duration >> 2) << 2)
                         # Take the closest power of 2 for reducing gaps + 1 to avoid sending too much power
-                        assign(duration_4ns_pow2, 29 + Math.msb(duration_4ns))
+                        assign(duration_4ns_pow2, 1 + Math.msb(duration_4ns))
                         # Get the actual compensation pulse duration
                         assign(duration_4ns_pow2_cur, 1 << duration_4ns_pow2)
                         # Corrected amplitude to account for the actual duration with respect to the exact one
@@ -471,10 +471,10 @@ class VoltageGateSequence:
             ramp_rate = voltage / duration
             play(ramp(ramp_rate), gate, duration=duration >> 2)
         elif not __class__.is_QUA(duration):
-            # voltage is QUA, duration is Python int → declare ramp_rate, divide voltage by constant
-            ramp_rate = declare(fixed)
-            assign(ramp_rate, voltage / duration)  # QUA_fixed / python_int → QUA fixed-point division
-            play(ramp(ramp_rate), gate, duration=duration >> 2)
+                # voltage is QUA, duration is Python int → multiply by inverse
+                ramp_rate = declare(fixed)
+                assign(ramp_rate, voltage * (1.0 / duration))
+                play(ramp(ramp_rate), gate, duration=duration >> 2)
         else:
             # duration is QUA (voltage may or may not be) → use Math.div for runtime 1/duration
             ramp_rate = declare(fixed)
@@ -485,12 +485,8 @@ class VoltageGateSequence:
     @staticmethod
     def calculate_voltage_offset(voltage, duration, time_constant):
         if VoltageGateSequence.is_QUA(voltage) or VoltageGateSequence.is_QUA(duration):
-            # Split large divisor to avoid fixed-point underflow:
-            # v * d / tc = v * (d / tc) but d/tc is tiny, so instead
-            # v * d / tc = (v / (tc >> k)) * (d >> (log2(tc) - k)) etc.
-            # Or pre-compute 1/tc as a float and use Cast.mul_int_by_fixed
-            inv_tc = 1.0 / time_constant
-            return voltage * Cast.mul_int_by_fixed(duration, inv_tc)
+            # duration/time_constant as a fixed ratio, multiplied by fixed voltage
+            return voltage * Math.div(duration, time_constant)
         return voltage * duration / time_constant
     
     def _add_corrected_step(
@@ -514,8 +510,8 @@ class VoltageGateSequence:
         self._check_duration(_duration)
 
         # Check input value for level
-        if (level is None) == (voltage_point_name is None):
-            raise ValueError("You must provide either 'level' or 'voltage_point_name', but not both.")
+        if level is None and voltage_point_name is None:
+            raise ValueError("You must provide either 'level' or 'voltage_point_name'.")
         if level is not None:
             if (type(level) is not list) or (len(level) != len(self._elements)):
                 raise TypeError(
@@ -537,9 +533,13 @@ class VoltageGateSequence:
                 )
 
         # Check that ramp duration and step duration are not both zero or none
-        if (_duration, ramp_duration) in {(None, None), (0, 0), (None, 0), (0, None)}:
-            raise ValueError("Duration and ramp duration cannot both be zero or None.")
+        # if _duration in (None, 0) and ramp_duration in (None, 0):
+        #     raise ValueError("Duration and ramp duration cannot both be zero or None.")
         
+        # Replace line 540 with:
+        if not self.is_QUA(_duration) and not self.is_QUA(ramp_duration):
+            if _duration in (None, 0) and ramp_duration in (None, 0):
+                raise ValueError("Duration and ramp duration cannot both be zero or None.")
         has_qua_input = (
             self.is_QUA(_duration)
             or self.is_QUA(ramp_duration)
