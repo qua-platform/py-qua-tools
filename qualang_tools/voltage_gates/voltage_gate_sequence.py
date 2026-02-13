@@ -329,7 +329,13 @@ class VoltageGateSequence:
                     # Apply the compensation pulse as a ramp to circumvent the max amplitude limit.
                     ramp_rate = (amplitude - self.current_level[i] - v_offset) / 16
                     play(ramp(ramp_rate), gate, duration=4)
-                    wait((duration_4ns - 16) // 4, gate)
+                    hold_duration = duration_4ns - 16
+                    if self._bias_tee_correction and hold_duration > 0:
+                        voltage_offset = amplitude * hold_duration / self._time_constants[i]
+                        self._perform_ramp(gate, voltage_offset, hold_duration)
+                        self._bias_tee_offset[i] = voltage_offset
+                    else:
+                        wait((duration_4ns - 16) // 4, gate)
 
                 else:
                     amplitude = -0.0009765625 * self.average_power[i] / duration
@@ -381,7 +387,15 @@ class VoltageGateSequence:
                         ramp_rate = declare(fixed)
                         assign(ramp_rate, (amplitude - self.current_level[i] - v_offset) >> 4)
                         play(ramp(ramp_rate), gate, duration=4)
-                        wait((duration_4ns_pow2_cur - 16) >> 2, gate)
+                        if self._bias_tee_correction:
+                            hold_dur = declare(int)
+                            assign(hold_dur, duration_4ns_pow2_cur - 16)
+                            comp_voltage_offset = declare(fixed)
+                            assign(comp_voltage_offset, amplitude * Math.div(hold_dur, self._time_constants[i]))
+                            self._perform_ramp(gate, comp_voltage_offset, hold_dur)
+                            assign(self._bias_tee_offset[i], comp_voltage_offset)
+                        else:
+                            wait((duration_4ns_pow2_cur - 16) >> 2, gate)
                 else:
                     operation = self._add_op_to_config(
                         gate, "compensation", amplitude=self.base_operation[gate]["amplitude"], length=duration
@@ -565,7 +579,7 @@ class VoltageGateSequence:
                     current_level=self.current_level[i] + self._bias_tee_offset[i],
                 )
                 # ramp to the target device voltage (ramp itself not bias-tee corrected)
-                self._perform_ramp(gate, voltage_level - self.current_level[i], ramp_duration)
+                self._perform_ramp(gate, voltage_level - self.current_level[i] - self._bias_tee_offset[i], ramp_duration)
             else:
                 # no ramp requested: do a tiny ramp to avoid gaps
                 step_t = 16
@@ -575,12 +589,16 @@ class VoltageGateSequence:
                     ramp_duration=step_t,
                     current_level=self.current_level[i] + self._bias_tee_offset[i],
                 )
-                self._perform_ramp(gate, voltage_level - self.current_level[i], step_t)
+                self._perform_ramp(gate, voltage_level - self.current_level[i] - self._bias_tee_offset[i], step_t)
 
             if self._current_level_is_qua:
                 assign(self.current_level[i], voltage_level)
             else:
                 self.current_level[i] = voltage_level
+            if self._bias_tee_offset_is_qua:
+                assign(self._bias_tee_offset[i], 0.0)
+            else:
+                self._bias_tee_offset[i] = 0.0
 
             if _duration is not None:
                 voltage_offset = self.calculate_voltage_offset(
