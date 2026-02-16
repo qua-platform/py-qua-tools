@@ -71,8 +71,7 @@ def two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True):
     fidelity = 100 * (gg + ee) / 2
 
     if b_print:
-        print(
-            f"""
+        print(f"""
         Fidelity Matrix:
         -----------------
         | {gg:.3f} | {ge:.3f} |
@@ -82,8 +81,7 @@ def two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True):
         IQ plane rotated by: {180 / np.pi * angle:.1f}{chr(176)}
         Threshold: {threshold:.3e}
         Fidelity: {fidelity:.1f}%
-        """
-        )
+        """)
 
     if b_plot:
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)

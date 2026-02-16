@@ -132,22 +132,19 @@ def enter_empty_config(click):
 
 def init_edits_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_edits.py"), "w") as fp:
-        fp.write(
-            """
+        fp.write("""
 from qualang_tools.config import *
 from qualang_tools.config.server.config_editor import config_editor
 from config_initial import configuration
 
 setup = ConfigBuilder()
 
-"""
-        )
+""")
 
 
 def init_empty_initial_config_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_initial.py"), "w") as fp:
-        fp.write(
-            """
+        fp.write("""
 configuration = {
     "version": 1,
     "controllers": {},
@@ -159,16 +156,13 @@ configuration = {
     "oscillators": {},
     "mixers": {},
 }
-"""
-        )
+""")
 
 
 def init_final_config_file():
     with open(os.path.join(UPLOAD_DIRECTORY, "config_final.py"), "w") as fp:
-        fp.write(
-            """
+        fp.write("""
 from config_edits import configuration, setup
 
 configuration = setup.build(configuration)
-"""
-        )
+""")

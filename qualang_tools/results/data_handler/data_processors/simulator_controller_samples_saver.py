@@ -5,7 +5,6 @@ from qm import SimulatorControllerSamples
 from .helpers import copy_nested_dict, iterate_nested_dict, update_nested_dict
 from .data_processor import DataProcessor
 
-
 logger = logging.getLogger(__name__)
 
 

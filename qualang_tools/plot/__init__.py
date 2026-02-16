@@ -1,7 +1,6 @@
 from qualang_tools.plot.plot import *
 from qualang_tools.plot.fitting import *
 
-
 __all__ = [
     "interrupt_on_close",
     "Fit",

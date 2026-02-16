@@ -70,11 +70,12 @@ class VerticalMarkerConfig:
         show_hover_info: Enable hover tooltips on markers
         hover_marker_size: Size of invisible hover markers in pixels (default 15)
     """
+
     show_analog_markers: bool = True
     show_digital_markers: bool = False
     show_adc_markers: bool = True
-    start_line_color: str = "rgba(34, 139, 34, 0.6)"   # Forest green
-    end_line_color: str = "rgba(178, 34, 34, 0.6)"     # Firebrick red
+    start_line_color: str = "rgba(34, 139, 34, 0.6)"  # Forest green
+    end_line_color: str = "rgba(178, 34, 34, 0.6)"  # Firebrick red
     line_width: float = 1.0
     line_dash: str = "dot"
     min_duration_ns: float = 0.0
@@ -122,6 +123,7 @@ class TimingMarker:
         fem: FEM module number
         output_ports: List of physical output port numbers
     """
+
     timestamp_ns: float
     marker_type: MarkerType  # "start" or "end"
     operation_type: OperationType  # "analog", "digital", "adc"
@@ -134,19 +136,11 @@ class TimingMarker:
     @property
     def hover_text(self) -> str:
         """Generate hover tooltip text for this marker."""
-        type_label = _OPERATION_TYPE_LABELS.get(
-            self.operation_type, self.operation_type
-        )
-        return (
-            f"{self.marker_type.capitalize()} [{type_label}]: "
-            f"{self.pulse_name} ({self.element})"
-        )
+        type_label = _OPERATION_TYPE_LABELS.get(self.operation_type, self.operation_type)
+        return f"{self.marker_type.capitalize()} [{type_label}]: " f"{self.pulse_name} ({self.element})"
 
 
-def _merge_nearby_markers(
-    markers: List[TimingMarker],
-    threshold_ns: float
-) -> List[TimingMarker]:
+def _merge_nearby_markers(markers: List[TimingMarker], threshold_ns: float) -> List[TimingMarker]:
     """Merge markers that are within threshold_ns of each other.
 
     Markers are only merged if they have the same marker_type (start/end)
@@ -207,7 +201,7 @@ def _merge_nearby_markers(
                 pulse_name=cluster[0].pulse_name,
                 controller=cluster[0].controller,
                 fem=cluster[0].fem,
-                output_ports=cluster[0].output_ports
+                output_ports=cluster[0].output_ports,
             )
             merged.append(merged_marker)
 
@@ -269,10 +263,7 @@ def _clean_pulse_name(name: str | None) -> str:
 
 def _parse_plotly_figure_from_html(html: str) -> go.Figure:
     """Parse a Plotly Figure from the SDK-generated HTML."""
-    plotly_call_match = re.search(
-        r'Plotly\.newPlot\s*\(\s*["\'][^"\']+["\']\s*,\s*',
-        html
-    )
+    plotly_call_match = re.search(r'Plotly\.newPlot\s*\(\s*["\'][^"\']+["\']\s*,\s*', html)
     if not plotly_call_match:
         raise RuntimeError("Could not find Plotly.newPlot call in HTML.")
 
@@ -280,7 +271,7 @@ def _parse_plotly_figure_from_html(html: str) -> go.Figure:
     decoder = json.JSONDecoder()
     try:
         data, data_end_idx = decoder.raw_decode(html, data_start)
-        separator_match = re.search(r'\s*,\s*', html[data_end_idx:])
+        separator_match = re.search(r"\s*,\s*", html[data_end_idx:])
         if not separator_match:
             raise RuntimeError("Could not locate layout separator after data.")
         layout_start = data_end_idx + separator_match.end()
@@ -291,29 +282,18 @@ def _parse_plotly_figure_from_html(html: str) -> go.Figure:
     return go.Figure(data=data, layout=layout)
 
 
-def _load_sdk_figure(
-    report: Any,
-    samples: Any,
-    controllers: List[str] | None
-) -> go.Figure:
+def _load_sdk_figure(report: Any, samples: Any, controllers: List[str] | None) -> go.Figure:
     """Generate and parse the SDK HTML into a Plotly Figure."""
     try:
         tmpdir = tempfile.mkdtemp(prefix="enhanced_wfr_")
         save_path_for_sdk = str(Path(tmpdir) / "report")
-        report.create_plot(
-            samples=samples,
-            controllers=controllers,
-            plot=False,
-            save_path=save_path_for_sdk
-        )
+        report.create_plot(samples=samples, controllers=controllers, plot=False, save_path=save_path_for_sdk)
 
         html_files = list(Path(tmpdir).glob("*.html"))
         if not html_files:
             raise RuntimeError("SDK did not generate an HTML file.")
         if len(html_files) > 1:
-            warnings.warn(
-                f"SDK generated multiple HTML files; using {html_files[0].name}."
-            )
+            warnings.warn(f"SDK generated multiple HTML files; using {html_files[0].name}.")
 
         html_content = html_files[0].read_text(encoding="utf-8")
         return _parse_plotly_figure_from_html(html_content)
@@ -332,7 +312,7 @@ def _extract_source_markers(
     ports_field: str,
     time_start: str,
     time_end: str | None = None,
-    time_length: str | None = None
+    time_length: str | None = None,
 ) -> List[TimingMarker]:
     if (time_end is None) == (time_length is None):
         raise ValueError("Exactly one of time_end or time_length must be provided.")
@@ -359,35 +339,36 @@ def _extract_source_markers(
         fem = wf.get("fem", 0)
         ports = wf.get(ports_field, [])
 
-        markers.append(TimingMarker(
-            timestamp_ns=start_time,
-            marker_type="start",
-            operation_type=op_type,
-            element=element,
-            pulse_name=pulse_name,
-            controller=controller,
-            fem=fem,
-            output_ports=ports
-        ))
-        markers.append(TimingMarker(
-            timestamp_ns=end_time,
-            marker_type="end",
-            operation_type=op_type,
-            element=element,
-            pulse_name=pulse_name,
-            controller=controller,
-            fem=fem,
-            output_ports=ports
-        ))
+        markers.append(
+            TimingMarker(
+                timestamp_ns=start_time,
+                marker_type="start",
+                operation_type=op_type,
+                element=element,
+                pulse_name=pulse_name,
+                controller=controller,
+                fem=fem,
+                output_ports=ports,
+            )
+        )
+        markers.append(
+            TimingMarker(
+                timestamp_ns=end_time,
+                marker_type="end",
+                operation_type=op_type,
+                element=element,
+                pulse_name=pulse_name,
+                controller=controller,
+                fem=fem,
+                output_ports=ports,
+            )
+        )
 
     return markers
 
 
 # === CORE FUNCTIONS ===
-def extract_timing_markers(
-    waveform_dict: Dict[str, Any],
-    config: VerticalMarkerConfig
-) -> List[TimingMarker]:
+def extract_timing_markers(waveform_dict: Dict[str, Any], config: VerticalMarkerConfig) -> List[TimingMarker]:
     """Extract timing markers from waveform report dictionary.
 
     Args:
@@ -414,49 +395,52 @@ def extract_timing_markers(
     markers: List[TimingMarker] = []
 
     if config.show_analog_markers:
-        markers.extend(_extract_source_markers(
-            waveform_dict.get("analog_waveforms", []),
-            config,
-            op_type="analog",
-            elem_field="element",
-            name_field="pulse_name",
-            ports_field="output_ports",
-            time_start="timestamp",
-            time_length="length"
-        ))
+        markers.extend(
+            _extract_source_markers(
+                waveform_dict.get("analog_waveforms", []),
+                config,
+                op_type="analog",
+                elem_field="element",
+                name_field="pulse_name",
+                ports_field="output_ports",
+                time_start="timestamp",
+                time_length="length",
+            )
+        )
 
     if config.show_digital_markers:
-        markers.extend(_extract_source_markers(
-            waveform_dict.get("digital_waveforms", []),
-            config,
-            op_type="digital",
-            elem_field="element",
-            name_field="pulse_name",
-            ports_field="output_ports",
-            time_start="timestamp",
-            time_length="length"
-        ))
+        markers.extend(
+            _extract_source_markers(
+                waveform_dict.get("digital_waveforms", []),
+                config,
+                op_type="digital",
+                elem_field="element",
+                name_field="pulse_name",
+                ports_field="output_ports",
+                time_start="timestamp",
+                time_length="length",
+            )
+        )
 
     if config.show_adc_markers:
-        markers.extend(_extract_source_markers(
-            waveform_dict.get("adc_acquisitions", []),
-            config,
-            op_type="adc",
-            elem_field="quantum_element",
-            name_field="process",
-            ports_field="adc_ports",
-            time_start="start_time",
-            time_end="end_time"
-        ))
+        markers.extend(
+            _extract_source_markers(
+                waveform_dict.get("adc_acquisitions", []),
+                config,
+                op_type="adc",
+                elem_field="quantum_element",
+                name_field="process",
+                ports_field="adc_ports",
+                time_start="start_time",
+                time_end="end_time",
+            )
+        )
 
     markers.sort(key=lambda m: m.timestamp_ns)
     return markers
 
 
-def _make_marker_shapes(
-    markers: List[TimingMarker],
-    config: VerticalMarkerConfig
-) -> List[Dict[str, Any]]:
+def _make_marker_shapes(markers: List[TimingMarker], config: VerticalMarkerConfig) -> List[Dict[str, Any]]:
     """Generate Plotly shape dictionaries for vertical lines."""
     return [
         {
@@ -500,19 +484,14 @@ def _add_hover_traces(
 
     points_per_marker = max(1, int(config.hover_points_per_marker))
 
-    for yaxis_ref in sorted(
-        y_axes, key=lambda s: int(s[1:]) if len(s) > 1 else 0
-    ):
+    for yaxis_ref in sorted(y_axes, key=lambda s: int(s[1:]) if len(s) > 1 else 0):
         y_min, y_max = _get_y_axis_range(fig, yaxis_ref)
         xaxis_ref = y_to_x_axis.get(yaxis_ref, "x")
 
         if points_per_marker == 1:
             y_points = [(y_min + y_max) / 2]
         else:
-            y_points = [
-                y_min + i * (y_max - y_min) / (points_per_marker - 1)
-                for i in range(points_per_marker)
-            ]
+            y_points = [y_min + i * (y_max - y_min) / (points_per_marker - 1) for i in range(points_per_marker)]
 
         expanded_x = []
         expanded_y = []
@@ -547,7 +526,7 @@ def create_waveform_plot_with_markers(
     marker_config: VerticalMarkerConfig | None = None,
     controllers: list[str] | None = None,
     plot: bool = True,
-    save_dir: str | None = None
+    save_dir: str | None = None,
 ) -> go.Figure:
     """Create an enhanced waveform visualization with vertical timing markers.
 
@@ -579,8 +558,7 @@ def create_waveform_plot_with_markers(
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines"))
         fig.update_layout(
-            title="Waveform Report (marker overlay only - could not parse SDK output)",
-            xaxis_title="Time (ns)"
+            title="Waveform Report (marker overlay only - could not parse SDK output)", xaxis_title="Time (ns)"
         )
 
     shapes = _make_marker_shapes(markers, config)

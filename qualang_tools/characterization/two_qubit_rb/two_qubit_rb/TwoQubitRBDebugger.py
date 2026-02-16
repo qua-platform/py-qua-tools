@@ -10,7 +10,6 @@ from .util import run_in_thread
 from .TwoQubitRB import TwoQubitRb
 from .verification import SequenceTracker
 
-
 phased_xz_command_sequences = {
     r"I \otimes I": [720],  # Identity on both qubits
     r"I \otimes Z": [732],  # Z on qubit 1, Identity on qubit 2
