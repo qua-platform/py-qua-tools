@@ -67,12 +67,7 @@ def _wf_dict(analog=None, digital=None, adc=None):
 
 def _hover_traces(fig):
     """Filter a figure's traces to only invisible hover-tooltip scatter traces."""
-    return [
-        t for t in fig.data
-        if t.hoverinfo == "text"
-        and t.marker is not None
-        and t.marker.opacity == 0
-    ]
+    return [t for t in fig.data if t.hoverinfo == "text" and t.marker is not None and t.marker.opacity == 0]
 
 
 def _run_orchestrator(report, **overrides):
@@ -119,9 +114,7 @@ class DummyReport:
             "</script></body></html>"
         )
 
-        output_path = os.path.join(
-            save_dir, f"waveform_report_con1_{self.job_id}.html"
-        )
+        output_path = os.path.join(save_dir, f"waveform_report_con1_{self.job_id}.html")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html)
 
@@ -457,8 +450,8 @@ def test_parse_valid_html():
     html = (
         "<html><head></head><body>"
         "<script>"
-        "Plotly.newPlot('plot', [{\"x\": [0, 1], \"y\": [1, 2], \"type\": \"scatter\"}], "
-        "{\"title\": \"Plot\"});"
+        'Plotly.newPlot(\'plot\', [{"x": [0, 1], "y": [1, 2], "type": "scatter"}], '
+        '{"title": "Plot"});'
         "</script></body></html>"
     )
     fig = _parse_plotly_figure_from_html(html)
@@ -591,9 +584,7 @@ def test_fallback_on_sdk_failure():
         fig = _run_orchestrator(waveform_report)
 
     assert isinstance(fig, go.Figure)
-    assert fig.layout.title.text == (
-        "Waveform Report (marker overlay only - could not parse SDK output)"
-    )
+    assert fig.layout.title.text == ("Waveform Report (marker overlay only - could not parse SDK output)")
     assert any("Could not load SDK HTML:" in str(w.message) for w in caught)
 
 
