@@ -10,6 +10,7 @@ __all__ = [
     "macros",
     "multi_user",
     "units",
+    "waveform_report",
     "external_frameworks",
     "callable_from_qua",
     "wirer",
