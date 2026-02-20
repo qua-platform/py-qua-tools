@@ -3,7 +3,6 @@ from .channel_spec import ChannelSpec
 from .types import QubitsType, QubitPairsType
 from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
-from .element import Element, Reference
 
 
 class ConnectivitySuperconductingQubits(ConnectivityBase):
