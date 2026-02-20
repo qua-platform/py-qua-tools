@@ -5,6 +5,7 @@ from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
 from .element import Element, Reference
 
+
 class ConnectivitySuperconductingQubits(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a transmon-based QPU setup.
@@ -144,15 +145,15 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         )
 
     def add_twpa_lines(
-            self,
-            twpas: Union[List[str], str],
-            *,
-            pump_constraints: ChannelSpec = None,
-            isolation_constraints: ChannelSpec = None,
-            triggered: bool = False,
+        self,
+        twpas: Union[List[str], str],
+        *,
+        pump_constraints: ChannelSpec = None,
+        isolation_constraints: ChannelSpec = None,
+        triggered: bool = False,
     ):
         """
-        Add wiring specifications (placeholders) for TWPAI components.
+        Add wiring specifications (placeholders) for TWPA components.
 
         Every TWPA gets a pump channel: pump and pump_ are both created and share the same
         channel (given by pump_constraints). The non-underscore element (pump) is sticky;
@@ -180,58 +181,33 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
             (pump specs, isolation specs). Each spec has shared_line=True with two elements.
         """
 
-        def _twpa_channel_element_id(twpa_id: str, channel: str) -> str:
-            """Return element id for a TWPA channel, e.g. twpaA_pump."""
-            return f"{twpa_id}_{channel}"
-
         if isinstance(twpas, str):
             twpas = [twpas]
 
-        specs_pump = []
-        specs_isolation = []
         elements = self._make_twpa_elements(twpas)
-        # Create elements: every TWPA gets pump + pump_; optionally isolation + isolation_
-        for twpa_id in twpas:
-            for suffix in ("pump", "pump_"):
-                eid = _twpa_channel_element_id(twpa_id, suffix)
-                key = Reference(eid)
-                if key not in self.elements:
-                    self._add_element(Element(eid))
-            if isolation_constraints is not None:
-                for suffix in ("isolation", "isolation_"):
-                    eid = _twpa_channel_element_id(twpa_id, suffix)
-                    key = Reference(eid)
-                    if key not in self.elements:
-                        self._add_element(Element(eid))
 
-        for twpa_id in twpas:
-            el_pump = self.elements[Reference(_twpa_channel_element_id(twpa_id, "pump"))]
-            el_pump_ = self.elements[Reference(_twpa_channel_element_id(twpa_id, "pump_"))]
-            specs_pump.extend(
-                self.add_wiring_spec(
-                    WiringFrequency.RF,
-                    WiringIOType.OUTPUT,
-                    WiringLineType.TWPA_PUMP,
-                    triggered,
-                    pump_constraints,
-                    elements,
-                    shared_line=True,
-                )
+        specs_pump = self.add_wiring_spec(
+            WiringFrequency.RF,
+            WiringIOType.OUTPUT,
+            WiringLineType.TWPA_PUMP,
+            triggered,
+            pump_constraints,
+            elements,
+            shared_line=True,
+        )
+
+        if isolation_constraints is not None:
+            specs_isolation = self.add_wiring_spec(
+                WiringFrequency.RF,
+                WiringIOType.OUTPUT,
+                WiringLineType.TWPA_ISOLATION,
+                triggered,
+                isolation_constraints,
+                elements,
+                shared_line=True,
             )
-            if isolation_constraints is not None:
-                el_iso = self.elements[Reference(_twpa_channel_element_id(twpa_id, "isolation"))]
-                el_iso_ = self.elements[Reference(_twpa_channel_element_id(twpa_id, "isolation_"))]
-                specs_isolation.extend(
-                    self.add_wiring_spec(
-                        WiringFrequency.RF,
-                        WiringIOType.OUTPUT,
-                        WiringLineType.TWPA_ISOLATION,
-                        triggered,
-                        isolation_constraints,
-                        elements,
-                        shared_line=True,
-                    )
-                )
+        else:
+            specs_isolation = None
 
         return (specs_pump, specs_isolation)
 

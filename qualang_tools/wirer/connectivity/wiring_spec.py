@@ -67,6 +67,7 @@ SENSOR_GATE = WiringLineType.SENSOR_GATE
 RF_RESONATOR = WiringLineType.RF_RESONATOR
 
 
+
 class WiringSpec:
     """
     A technical specification for the wiring that will be required to
