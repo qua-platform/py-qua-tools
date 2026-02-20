@@ -12,6 +12,12 @@ class Reference:
     def __str__(self):
         return self.name
 
+@dataclass(frozen=True)
+class TwpaReference:
+    index: Union[int, str]
+
+    def __str__(self):
+        return f"twpa{self.index}"
 
 @dataclass(frozen=True)
 class ElementReference:
@@ -24,7 +30,7 @@ class ElementReference:
 
 @dataclass(frozen=True)
 class QubitReference:
-    index: int
+    index: Union[int, str]
 
     def __str__(self):
         return f"q{self.index}"
@@ -32,8 +38,8 @@ class QubitReference:
 
 @dataclass(frozen=True)
 class QubitPairReference:
-    control_index: int
-    target_index: int
+    control_index: Union[int, str]
+    target_index: Union[int, str]
 
     def __str__(self):
         return f"q{self.control_index}-{self.target_index}"
