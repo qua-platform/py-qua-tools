@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Change
+- Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
+  `cirq==1.6.0` if `python>=3.11` else `cirq==1.5.0` if `python>=3.10,<3.11`
+
 ## [0.21.1] - 2026-01-16
 ### Fixed
 - connectivity - `WiringIOType.INPUT_AND_OUTPUT` of the SPCM component for the NV center.
