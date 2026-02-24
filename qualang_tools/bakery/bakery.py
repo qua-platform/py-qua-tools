@@ -147,14 +147,14 @@ class Baking:
     def _get_port_sampling_rate(self, qe: str) -> float:
         """
         Retrieves the hardware sampling rate for the given quantum element's output port.
-        
+
         :param qe: quantum element name
         :return: sampling rate in samples/sec (defaults to 1e9 if not found)
         """
         try:
             element = self._config["elements"][qe]
             port = None
-            
+
             # Determine the port based on element type
             if "singleInput" in element:
                 port = element["singleInput"]["port"]
@@ -169,13 +169,13 @@ class Baking:
                 return 1e9
             else:
                 return 1e9
-            
+
             if port is None:
                 return 1e9
-            
+
             # Parse port and lookup sampling rate in controllers config
             controllers = self._config.get("controllers", {})
-            
+
             if len(port) == 3:
                 # OPX1000 (FEM-based): (controller, fem, port_number)
                 con, fem, port_num = port
@@ -192,10 +192,10 @@ class Baking:
                     analog_outputs = controllers[con].get("analog_outputs", {})
                     if port_num in analog_outputs:
                         return analog_outputs[port_num].get("sampling_rate", 1e9)
-            
+
             # Default to 1e9 if not found
             return 1e9
-            
+
         except (KeyError, TypeError, ValueError):
             # Graceful fallback for any lookup failures
             return 1e9
@@ -203,16 +203,16 @@ class Baking:
     def _needs_interpolation(self, qe: str) -> bool:
         """
         Determines whether interpolation is needed for the given quantum element.
-        
+
         Interpolation is needed when the baking sampling rate is higher than 1 GS/s
         AND the hardware port doesn't natively support that rate.
-        
+
         :param qe: quantum element name
         :return: True if interpolation is needed, False otherwise
         """
         if self.sampling_rate <= int(1e9):
             return False
-        
+
         port_rate = self._get_port_sampling_rate(qe)
         return self.sampling_rate != port_rate
 
@@ -411,11 +411,11 @@ class Baking:
 
             # Check if interpolation is needed based on element's port sampling rate
             needs_interp = (
-                self.sampling_rate > int(1e9) and 
-                pulse in self._config["pulses"] and 
-                (qe is None or self._needs_interpolation(qe))
+                self.sampling_rate > int(1e9)
+                and pulse in self._config["pulses"]
+                and (qe is None or self._needs_interpolation(qe))
             )
-            
+
             if needs_interp:
                 dt = 1e9 / self.sampling_rate
                 orig_max_t = pulses[pulse]["length"]

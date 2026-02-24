@@ -479,7 +479,7 @@ def test_delete_samples_within_baking(config):
 
 def test_native_2gs_support_opx1000():
     """Test that 2 GS/s native support on OPX1000 LF-FEM works without interpolation"""
-    
+
     def get_base_config():
         """Helper to create a fresh config for each test"""
         return {
@@ -523,12 +523,10 @@ def test_native_2gs_support_opx1000():
             "pulses": {},
             "waveforms": {},
             "mixers": {
-                "mixer1": [
-                    {"intermediate_frequency": 0, "lo_frequency": 0, "correction": [1.0, 0.0, 0.0, 1.0]}
-                ],
+                "mixer1": [{"intermediate_frequency": 0, "lo_frequency": 0, "correction": [1.0, 0.0, 0.0, 1.0]}],
             },
         }
-    
+
     # Test 1: 2 GS/s baking on 2 GS/s port - should NOT interpolate
     # Use 40 samples at 2 GS/s = 20 ns (meets 16 ns minimum and is divisible by 4)
     config1 = get_base_config()
@@ -536,10 +534,10 @@ def test_native_2gs_support_opx1000():
         samples_2gs = [0.1 * i for i in range(40)]
         b.add_op("test_op", "qe_2gs", samples_2gs)
         b.play("test_op", "qe_2gs")
-        
+
         # Length should remain 40 samples (no interpolation)
         assert b.get_current_length("qe_2gs") == 40
-    
+
     # After exit, check that no interpolation occurred
     # Length should be 40 (20 ns at 2 GS/s = 40 samples)
     assert config1["pulses"]["qe_2gs_baked_pulse_0"]["length"] == 40
@@ -547,7 +545,7 @@ def test_native_2gs_support_opx1000():
     assert config1["waveforms"]["qe_2gs_baked_wf_0"]["sampling_rate"] == 2e9
     # Check that the samples are preserved exactly (no interpolation)
     assert config1["waveforms"]["qe_2gs_baked_wf_0"]["samples"] == samples_2gs
-    
+
     # Test 2: 2 GS/s baking on 1 GS/s port - SHOULD interpolate down to 1 GS/s
     config2 = get_base_config()
     with baking(config2, sampling_rate=2e9) as b2:
@@ -555,17 +553,17 @@ def test_native_2gs_support_opx1000():
         samples_2gs_interp = [0.1 * i for i in range(40)]
         b2.add_op("test_op", "qe_1gs", samples_2gs_interp)
         b2.play("test_op", "qe_1gs")
-        
+
         # Length should be 40 samples at 2 GS/s
         assert b2.get_current_length("qe_1gs") == 40
-    
+
     # After exit, interpolation should have occurred: 40 samples at 2 GS/s = 20 ns = 20 samples at 1 GS/s
     assert config2["pulses"]["qe_1gs_baked_pulse_0"]["length"] == 20
     # Check that sampling_rate is NOT written (defaults to 1 GS/s)
     assert "sampling_rate" not in config2["waveforms"]["qe_1gs_baked_wf_0"]
     # Check that samples were interpolated (length changed from 40 to 20)
     assert len(config2["waveforms"]["qe_1gs_baked_wf_0"]["samples"]) == 20
-    
+
     # Test 3: mixInputs with 2 GS/s native support
     config3 = get_base_config()
     with baking(config3, sampling_rate=2e9) as b3:
@@ -573,9 +571,9 @@ def test_native_2gs_support_opx1000():
         samples_Q = [0.2 * i for i in range(40)]
         b3.add_op("test_mix_op", "qe_mix_2gs", [samples_I, samples_Q])
         b3.play("test_mix_op", "qe_mix_2gs")
-        
+
         assert b3.get_current_length("qe_mix_2gs") == 40
-    
+
     # Check that no interpolation occurred
     assert config3["pulses"]["qe_mix_2gs_baked_pulse_0"]["length"] == 40
     assert config3["waveforms"]["qe_mix_2gs_baked_wf_I_0"]["sampling_rate"] == 2e9
@@ -586,7 +584,7 @@ def test_native_2gs_support_opx1000():
 
 def test_opx_plus_2gs_fallback():
     """Test that OPX+ without 2 GS/s support still interpolates"""
-    
+
     config = {
         "version": 1,
         "controllers": {
@@ -608,16 +606,16 @@ def test_opx_plus_2gs_fallback():
         "pulses": {},
         "waveforms": {},
     }
-    
+
     # 2 GS/s baking on OPX+ (only supports 1 GS/s) - should interpolate
     # Use 40 samples at 2 GS/s = 20 ns
     with baking(config, sampling_rate=2e9) as b:
         samples_2gs = [0.1 * i for i in range(40)]
         b.add_op("test_op", "qe_opx_plus", samples_2gs)
         b.play("test_op", "qe_opx_plus")
-        
+
         assert b.get_current_length("qe_opx_plus") == 40
-    
+
     # Should interpolate down to 20 samples at 1 GS/s
     assert config["pulses"]["qe_opx_plus_baked_pulse_0"]["length"] == 20
     assert "sampling_rate" not in config["waveforms"]["qe_opx_plus_baked_wf_0"]
