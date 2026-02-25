@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+### Fixed
+- multi_user_tool - Fix bug for qm-qua >= 1.2.3.
 
 ### Change
 - Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
