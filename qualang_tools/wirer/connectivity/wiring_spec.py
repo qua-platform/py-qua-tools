@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union, List
+from typing import Union, List, Optional
 
 from typing import TYPE_CHECKING
 
@@ -40,6 +40,11 @@ class WiringLineType(Enum):
     ZZ_DRIVE = "zz"
     LASER = "la"
     SPCM = "spcm"
+    PLUNGER_GATE = "p"
+    BARRIER_GATE = "b"
+    GLOBAL_GATE = "g"
+    SENSOR_GATE = "s"
+    RF_RESONATOR = "rf"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -51,6 +56,11 @@ CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
+PLUNGER_GATE = WiringLineType.PLUNGER_GATE
+BARRIER_GATE = WiringLineType.BARRIER_GATE
+GLOBAL_GATE = WiringLineType.GLOBAL_GATE
+SENSOR_GATE = WiringLineType.SENSOR_GATE
+RF_RESONANCE = WiringLineType.RF_RESONATOR
 
 
 class WiringSpec:
@@ -63,9 +73,9 @@ class WiringSpec:
         self,
         frequency: WiringFrequency,
         io_type: WiringIOType,
-        line_type: WiringLineType,
+        line_type: Union[WiringLineType, str],
         triggered: bool,
-        constraints: "ChannelSpec",
+        constraints: "Optional[ChannelSpec]",
         elements: Union["Element", List["Element"]],
     ):
         self.frequency = frequency
