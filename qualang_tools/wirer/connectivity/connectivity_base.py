@@ -91,7 +91,6 @@ class ConnectivityBase:
 
         return specs
 
-
     def _make_qubit_elements(self, qubits: QubitsType):
         """
         Creates `Element` objects for a list of qubits.
