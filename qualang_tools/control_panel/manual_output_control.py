@@ -1,6 +1,7 @@
 """calling function libraries"""
 
 import copy
+import logging
 import math
 from time import sleep
 
@@ -11,12 +12,26 @@ from qm import QuantumMachinesManager
 from qm.qua import *
 
 
+logger = logging.getLogger(__name__)
+
+OPX_PORT_GROUP_SIZE = 10
+DEFAULT_INTERMEDIATE_FREQUENCY_HZ = 0.0
+
+
 def _round_to_fixed_point_accuracy(x, accuracy=2**-16):
     return round(x / accuracy) * accuracy
 
 
 def _floor_to_fixed_point_accuracy(x, accuracy=2**-16):
     return math.floor(x / accuracy) * accuracy
+
+
+def compute_con_number(port_index, group_size=OPX_PORT_GROUP_SIZE):
+    return (port_index - 1) // group_size + 1
+
+
+def compute_port_in_controller(port_index, group_size=OPX_PORT_GROUP_SIZE):
+    return (port_index - 1) % group_size + 1
 
 
 class ManualOutputControl:
@@ -52,7 +67,6 @@ class ManualOutputControl:
         self.qmm = QuantumMachinesManager(host=host, port=port, cluster_name=cluster_name)
         if close_previous:
             self.qmm.close_all_qms()
-            # self.qmm.close_all_quantum_machines()
         self.analog_config = None
         self.digital_configs = None
         self.analog_elements = []
@@ -69,7 +83,7 @@ class ManualOutputControl:
         self.analog_qm = self.qmm.open_qm(self.analog_config, False)
         self._start_digital_qms()
         self._start_analog()
-        print("If an element is turned on without an explicit amplitude, the amplitude defaults to 0.5 V.")
+        logger.warning("If an element is turned on without an explicit amplitude, the amplitude defaults to 0.5 V.")
 
     @classmethod
     def ports(
@@ -190,7 +204,7 @@ class ManualOutputControl:
                                     "I": (con, fem, pI),
                                     "Q": (con, fem, pQ),
                                 },
-                                "intermediate_frequency": 0.0,
+                                "intermediate_frequency": DEFAULT_INTERMEDIATE_FREQUENCY_HZ,
                             }
                     # Single analog: (con, fem, port)
                     elif isinstance(ap, tuple) and len(ap) == 3 and isinstance(ap[0], str):
@@ -214,13 +228,13 @@ class ManualOutputControl:
                             if fem_type == "MW":
                                 config["elements"][el_name] = {
                                     "MWInput": {"port": (con, fem, p)},
-                                    "intermediate_frequency": 0.0,
+                                    "intermediate_frequency": DEFAULT_INTERMEDIATE_FREQUENCY_HZ,
                                     "operations": {},
                                 }
                             else:
                                 config["elements"][el_name] = {
                                     "singleInput": {"port": (con, fem, p)},
-                                    "intermediate_frequency": 0.0,
+                                    "intermediate_frequency": DEFAULT_INTERMEDIATE_FREQUENCY_HZ,
                                     "operations": {},
                                 }
                     else:
@@ -262,15 +276,15 @@ class ManualOutputControl:
                 for port_int in analog_ports:
                     if isinstance(port_int, tuple):
                         if len(port_int) == 2:
-                            con_number = (port_int[0] - 1) // 10 + 1
-                            if con_number is not (port_int[1] - 1) // 10 + 1:
+                            con_number = compute_con_number(port_int[0])
+                            if con_number != compute_con_number(port_int[1]):
                                 raise Exception(
                                     f"Ports {port_int[0]} and {port_int[1]} are not from the same controller"
                                 )
                         else:
                             raise Exception(f"Port {port_int} should be either an integer or a tuple of two integers")
                     else:
-                        con_number = (port_int - 1) // 10 + 1
+                        con_number = compute_con_number(port_int)
                     con = f"con{con_number}"
                     if con not in config["controllers"]:
                         config["controllers"][con] = {
@@ -281,8 +295,8 @@ class ManualOutputControl:
 
                     if isinstance(port_int, tuple):
                         port_str = str(port_int)
-                        port1 = (port_int[0] - 1) % 10 + 1
-                        port2 = (port_int[1] - 1) % 10 + 1
+                        port1 = compute_port_in_controller(port_int[0])
+                        port2 = compute_port_in_controller(port_int[1])
                         if port1 not in config["controllers"][con]["analog_outputs"]:
                             config["controllers"][con]["analog_outputs"][port1] = {"offset": 0.0}
                         if port2 not in config["controllers"][con]["analog_outputs"]:
@@ -293,11 +307,11 @@ class ManualOutputControl:
                                     "I": (con, port1),
                                     "Q": (con, port2),
                                 },
-                                "intermediate_frequency": 0e6,
+                                "intermediate_frequency": DEFAULT_INTERMEDIATE_FREQUENCY_HZ,
                             }
                     else:
                         port_str = str(port_int)
-                        port_int = (port_int - 1) % 10 + 1
+                        port_int = compute_port_in_controller(port_int)
                         if port_int not in config["controllers"][con]["analog_outputs"]:
                             config["controllers"][con]["analog_outputs"][port_int] = {"offset": 0.0}
                         if port_str not in config["elements"]:
@@ -305,14 +319,14 @@ class ManualOutputControl:
                                 "singleInput": {
                                     "port": (con, port_int),
                                 },
-                                "intermediate_frequency": 0e6,
+                                "intermediate_frequency": DEFAULT_INTERMEDIATE_FREQUENCY_HZ,
                             }
 
             if digital_ports is not None:
                 for port_int in digital_ports:
-                    con_number = (port_int - 1) // 10 + 1
+                    con_number = compute_con_number(port_int)
                     port_str = str(port_int)
-                    port_int = (port_int - 1) % 10 + 1
+                    port_int = compute_port_in_controller(port_int)
                     con = f"con{con_number}"
                     if con not in config["controllers"]:
                         config["controllers"][con] = {
