@@ -5,6 +5,7 @@ from qualang_tools.wirer.connectivity.types import QubitsType, QubitPairsType, E
 from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
 
+
 class ConnectivityQuantumDotQubits(ConnectivityBase):
     """
     Represents the high-level wiring configuration for a quantum-dot-based QPU setup.
