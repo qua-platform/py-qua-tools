@@ -14,17 +14,9 @@ class Reference:
 
 
 @dataclass(frozen=True)
-class TwpaReference:
-    index: Union[int, str]
-
-    def __str__(self):
-        return f"twpa{self.index}"
-
-
-@dataclass(frozen=True)
 class ElementReference:
     name: str
-    index: int
+    index: Union[int, str]
 
     def __str__(self):
         return f"{self.name}{self.index}"
