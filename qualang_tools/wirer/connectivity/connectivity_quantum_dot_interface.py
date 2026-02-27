@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
 from qualang_tools.wirer.connectivity.types import QubitsType, QubitPairsType, ElementsType
 from qualang_tools.wirer.connectivity.wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from qualang_tools.wirer.connectivity.connectivity_base import ConnectivityBase
-
 
 class ConnectivityQuantumDotQubits(ConnectivityBase):
     """
