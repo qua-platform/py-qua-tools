@@ -183,7 +183,7 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         if isinstance(twpas, str):
             twpas = [twpas]
 
-        elements = self._make_twpa_elements(twpas)
+        elements = self._make_named_elements("twpa", twpas)
 
         specs_pump = self.add_wiring_spec(
             WiringFrequency.RF,

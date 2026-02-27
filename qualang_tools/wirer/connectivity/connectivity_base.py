@@ -1,7 +1,7 @@
 from typing import Dict, List, Union, Optional
 
 from .channel_spec import ChannelSpec
-from .element import Element, ElementId, TwpaReference, QubitReference, QubitPairReference, ElementReference
+from .element import Element, ElementId, QubitReference, QubitPairReference, ElementReference
 from .types import QubitsType, QubitPairsType, ElementsType
 from .wiring_spec import WiringSpec, WiringFrequency, WiringIOType, WiringLineType
 
@@ -91,31 +91,6 @@ class ConnectivityBase:
 
         return specs
 
-    def _make_twpa_elements(self, twpas: QubitsType):
-        """
-        Creates `Element` objects for a list of twpas.
-
-        This method constructs `Element` objects for each qubit reference in the provided `twpas` list
-        and adds them to the internal `self.elements` dictionary. If the element for a twpa already exists,
-        it will not be recreated.
-
-        Args:
-            twpas (TwpasType): A list or a single twpa reference to generate element objects for.
-
-        Returns:
-            List[Element]: A list of `Element` objects created or retrieved for the specified twpas.
-        """
-        if not isinstance(twpas, list):
-            twpas = [twpas]
-
-        elements = []
-        for twpa in twpas:
-            id = TwpaReference(twpa)
-            if id not in self.elements:
-                self.elements[id] = Element(id)
-            elements.append(self.elements[id])
-
-        return elements
 
     def _make_qubit_elements(self, qubits: QubitsType):
         """
@@ -169,7 +144,21 @@ class ConnectivityBase:
 
         return elements
 
-    def _add_named_elements(self, name: str, element_ids: ElementsType):
+    def _make_named_elements(self, name: str, element_ids: ElementsType):
+        """
+        Creates `Element` objects for a list of element_ids.
+
+        This method constructs `Element` objects for each qubit reference in the provided element_ids list
+        and adds them to the internal `self.elements` dictionary. If the element for a twpa already exists,
+        it will not be recreated.
+
+        Args:
+            name (str): A string representing the name of the element to add.
+            element_ids (ElementsType): A list or a single element reference to generate element objects for.
+
+        Returns:
+            List[Element]: A list of `Element` objects created or retrieved for the specified element.
+        """
         if not isinstance(element_ids, list):
             element_ids = [element_ids]
 
