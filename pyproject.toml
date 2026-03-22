@@ -17,7 +17,7 @@ homepage = "https://github.com/qua-platform/py-qua-tools"
 python = ">=3.9, <3.13"
 matplotlib = "^3.8.0"
 numpy = "<3"
-qm-qua = ">=1.2.3"
+qm-qua = {path = "../qm-qua-sdk/dist/qm_qua-1.2.3-py3-none-any.whl"}
 scipy = ">=1.11.0"
 scikit-learn = ">=1.5.0"
 grpclib = "0.4.5"
@@ -50,12 +50,13 @@ cirq = [
 ]
 tqdm = { version = "^4.67.1", optional = true  }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
 black = "^24.3"
 poethepoet = "^0.18.0"
 flake8 = "^5.0.4"
 setuptools = "^69.0.2"
+qm-saas = "^1.1.7"
 
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]
@@ -72,6 +73,7 @@ configbuilder = [
     "waitress",
 ]
 datahandler = ["xarray", "netcdf4"]
+loops = ["xarray"]
 two-qubit-rb = ["xarray", "cirq", "tqdm"]
 
 [tool.black]
