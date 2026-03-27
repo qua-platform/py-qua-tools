@@ -330,8 +330,14 @@ def get_equivalent_log_array(log_array):
     return np.array(a_log)
 
 
-def split_frequency_sweep(fmin: float, fmax: float, df: float, max_if_bandwidth: float=800e6, symmetric_span: bool = True,
-    if_min_hz: float = 1e6):
+def split_frequency_sweep(
+    fmin: float,
+    fmax: float,
+    df: float,
+    max_if_bandwidth: float = 800e6,
+    symmetric_span: bool = True,
+    if_min_hz: float = 1e6,
+):
     """
     Plan an RF frequency sweep as repeated **LO + IF** steps.
 
@@ -393,9 +399,7 @@ def split_frequency_sweep(fmin: float, fmax: float, df: float, max_if_bandwidth:
         if if_min_hz < 0:
             raise ValueError("if_min_hz must be non-negative")
         if max_if_bandwidth <= if_min_hz:
-            raise ValueError(
-                "max_if_bandwidth must be greater than if_min_hz when symmetric_span is False"
-            )
+            raise ValueError("max_if_bandwidth must be greater than if_min_hz when symmetric_span is False")
 
     n_rf_original = int(np.floor((fmax - fmin) / df + 1e-12)) + 1
     if n_rf_original <= 0:
@@ -416,7 +420,7 @@ def split_frequency_sweep(fmin: float, fmax: float, df: float, max_if_bandwidth:
 
     rf_freqs = fmin + np.arange(n_rf_total, dtype=np.float64) * df
     n_lo_steps = n_rf_total // n_if_points
-    rf_segments = [rf_freqs[j * n_if_points: (j + 1) * n_if_points] for j in range(n_lo_steps)]
+    rf_segments = [rf_freqs[j * n_if_points : (j + 1) * n_if_points] for j in range(n_lo_steps)]
 
     if symmetric_span:
         los = [float((float(seg[0]) + float(seg[-1])) / 2.0) for seg in rf_segments]
