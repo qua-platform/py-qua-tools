@@ -406,7 +406,7 @@ def split_frequency_sweep(
         return [], [], np.array([], dtype=np.float64), 0
     if n_rf_original == 1:
         f0 = np.array([fmin], dtype=np.float64)
-        return [float(fmin)], [0.0], f0, 1
+        return [float(fmin)], [0.0], f0
 
     if symmetric_span:
         max_if_span_hz = max_if_bandwidth
