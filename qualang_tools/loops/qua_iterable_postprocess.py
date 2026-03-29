@@ -1,10 +1,9 @@
 from typing import Sequence, Union
 from itertools import product
 import numpy as np
-import pandas as pd
 import xarray as xr
 
-from qm.api.v2.job_api.job_api import JobApiWithDeprecations
+from qm.api.v2.job_api.job_api import JobApi
 from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
 from qm.qua.extensions.qua_iterators.qua_native_iterators import NativeIterableBase
 from qm.qua.extensions.qua_iterators import QuaProduct
@@ -30,20 +29,48 @@ def _native_column_indices(itr: IterableBase) -> list:
 
 
 def fetch_xarray_data(
-    job: JobApiWithDeprecations, sweep: Union[QuaProduct, Sequence[IterableBase]]
+    job: JobApi,
+    sweep: Union[QuaProduct, Sequence[IterableBase]],
+    wait_until_done: bool = False,
 ) -> xr.Dataset:
+    """Fetch job results and organize them into an xarray Dataset aligned with sweep dimensions.
+
+    Retrieves all result streams from a completed QUA job and reshapes them according to
+    the sweep structure (product of iterables). Native iterables are reassembled from their
+    per-index streams into nd-arrays, and axes are transposed to match the original sweep
+    order. Each data variable in the returned Dataset is indexed only by the dimensions
+    that were not stream-averaged for that variable. Coordinate metadata (e.g. units) from
+    the iterables is attached to the corresponding Dataset coordinates.
+
+    Args:
+        job: A completed QUA job from which to fetch results.
+        sweep: The sweep definition used in the QUA program — either a ``QuaProduct``
+            or a sequence of ``IterableBase`` objects.
+        wait_until_done: If True, block until the job completes before fetching results.
+            Defaults to False.
+
+    Returns:
+        An ``xr.Dataset`` where each data variable corresponds to a result stream,
+        dimensioned by the non-averaged sweep iterables, with coordinates and metadata
+        derived from the sweep definition.
+
+    Raises:
+        ValueError: If a result stream name cannot be matched to the expected native
+            iterator suffixes, or if the non-native shape of a stream does not match
+            the expected shape from the sweep iterables.
+    """
     sweep_iterables = sweep.iterables if isinstance(sweep, QuaProduct) else sweep
     native_itr = [itr for itr in sweep_iterables if _is_native(itr)]
     native_columns = [_native_column_indices(itr) for itr in native_itr]
 
     stream_data = {}  # {stream_name: {native_combo: value}}
     stream_with_native_itr = {}
-    results = job.result_handles.fetch_results()
+    results = job.result_handles.fetch_results(wait_until_done=wait_until_done)
 
     for res_name, value in results.items():
         if isinstance(value, np.ndarray):
             if isinstance(value[0], np.void):
-                clean_value = value[0]["value"]
+                clean_value = value["value"]
             else:
                 clean_value = value
         else:
@@ -73,15 +100,18 @@ def fetch_xarray_data(
         stacked = np.array(arrays)
 
         # Reshape flat combo dimension into native grid: (*native_dims, *non_native_dims)
+        non_avg_itr = [itr for itr in sweep_iterables if not itr.is_stream_averaged(stream_name)]
         non_native_shape = arrays[0].shape
-        result = stacked.reshape(*native_shape, *non_native_shape)
+        expected_non_native_shape = tuple([itr.buffer_size for itr in non_avg_itr if not _is_native(itr)])
+
+        if len(expected_non_native_shape) > 0:
+            if tuple(non_native_shape) != tuple(expected_non_native_shape):
+                raise ValueError(f"Expected qua iterators shape {expected_non_native_shape} got {non_native_shape}")
+            result = stacked.reshape(*native_shape, *non_native_shape)
+        else:
+            result = stacked.reshape(*native_shape)
 
         # Transpose so each dim sits at its original sweep position (among non-averaged only)
-        non_avg_itr = [itr for itr in sweep_iterables if not itr.is_stream_averaged(stream_name)]
-
-        expected_non_native_shape = tuple([itr.buffer_size for itr in non_avg_itr if not _is_native(itr)])
-        if tuple(non_native_shape) != tuple(expected_non_native_shape):
-            raise ValueError(f"Expected qua iterators shape {expected_non_native_shape} got {non_native_shape}")
 
         # Current order after reshape: all native first, then non-native non-averaged
         current_order = native_itr + [itr for itr in non_avg_itr if not _is_native(itr)]
@@ -92,12 +122,12 @@ def fetch_xarray_data(
     # Build xarray Dataset — select only non-averaged dims per stream
     all_coords = {}
     for itr in sweep_iterables:
-        if isinstance(itr, QuaZip):
-            vals = list(itr.values())
-            sub_names = [sub.name for sub in itr.zip_iterable._iterables]
-            all_coords[itr.name] = pd.MultiIndex.from_tuples(vals, names=sub_names)
+        if isinstance(itr.values[0], tuple):
+            coord = np.empty(len(itr.values), dtype=object)
+            coord[:] = itr.values
+            all_coords[itr.name] = coord
         else:
-            all_coords[itr.name] = list(itr.values())
+            all_coords[itr.name] = list(itr.values)
 
     data_vars = {}
     used_dims = set()

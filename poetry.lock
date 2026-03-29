@@ -4259,7 +4259,7 @@ optional = false
 python-versions = ">=3.9,<3.14"
 groups = ["main"]
 files = [
-    {file = "qm_qua-1.2.3-py3-none-any.whl", hash = "sha256:7a6c57ab3b824426b2572035a7edad9481c5fca6f2f65d49a8a6fde187075f49"},
+    {file = "qm_qua-1.2.3-py3-none-any.whl", hash = "sha256:fb031fce915f44392b3c6a2f618b8b9c62c0b862b44d3c62b1f0111fb6053c9d"},
 ]
 
 [package.dependencies]
