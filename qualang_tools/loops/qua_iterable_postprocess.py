@@ -85,9 +85,7 @@ def fetch_xarray_data(
                     d[native_names] = clean_value
                     break
             else:
-                raise ValueError(
-                    f"No native iterator match found in '{res_name}'"
-                )
+                raise ValueError(f"No native iterator match found in '{res_name}'")
         else:
             stream_data[res_name] = clean_value
 
