@@ -16,86 +16,19 @@ config: FullQuaConfig = {
         "con1": {
             "type": "opx1000",
             "fems": {
-                1: {
-                    "type": "LF",
-                    "analog_outputs": {
-                        1: {"offset": 0.0, "sampling_rate": 2e9},
-                        2: {"offset": 0.0, "sampling_rate": 2e9},
-                        3: {"offset": 0.0, "sampling_rate": 2e9},
-                        4: {"offset": 0.0, "output_mode": "amplified", "upsampling_mode": "pulse"},
-                        5: {"offset": 0.0, "sampling_rate": 2e9},
-                        6: {"offset": 0.0},
-                        7: {"offset": 0.0},
-                        8: {"offset": 0.0},
-                    },
-                    "digital_outputs": {
-                        1: {},
-                        2: {},
-                        3: {},
-                    },
-                    "analog_inputs": {
-                        1: {"offset": +0.0},
-                        2: {"offset": +0.0},
-                    },
-                },
                 FEM_IDX: {
                     "type": "MW",
                     "analog_outputs": {
-                        1: {"sampling_rate": 1e9, "band": 2, "upconverters": {1: {"frequency": 5e9}}},
-                        2: {
-                            "sampling_rate": 1e9,
-                            "full_scale_power_dbm": 7,
-                            "band": 1,
-                            "upconverters": {2: {"frequency": 1e9}},
-                        },
-                        3: {
-                            "sampling_rate": 1e9,
-                            "full_scale_power_dbm": 1,
-                            "band": 1,
-                            "upconverters": {1: {"frequency": 2e9}, 2: {"frequency": 1e9}},
-                        },
-                        4: {"sampling_rate": 1e9, "band": 1, "upconverter_frequency": 1.234e9},
-                        7: {"sampling_rate": 1e9, "band": 2, "upconverter_frequency": 5e9},
                         8: {"sampling_rate": 1e9, "band": 2, "upconverter_frequency": 5e9},
-                    },
-                    "digital_outputs": {
-                        1: {"level": "LVTTL", "shareable": False, "inverted": False},
-                        2: {},
-                        3: {},
                     },
                     "analog_inputs": {
                         1: {"sampling_rate": 1e9, "band": 2, "downconverter_frequency": 5e9},
-                        2: {"sampling_rate": 1e9, "band": 2, "downconverter_frequency": 5e9},
                     },
                 },
             },
         },
     },
     "elements": {
-        "q1": {
-            "MWInput": {
-                "port": ("con1", FEM_IDX, 3),
-                "upconverter": 1,
-            },
-            "intermediate_frequency": 100e6,
-            "operations": {"pi": "const_pulse"},
-        },
-        "q2": {
-            "MWInput": {
-                "port": ("con1", FEM_IDX, 3),
-                "upconverter": 1,
-            },
-            "intermediate_frequency": 100e6,
-            "operations": {"pi": "const_pulse"},
-        },
-        "q3": {
-            "MWInput": {
-                "port": ("con1", FEM_IDX, 3),
-                "upconverter": 1,
-            },
-            "intermediate_frequency": 100e6,
-            "operations": {"pi": "const_pulse"},
-        },
         "resonator": {
             "MWInput": {
                 "port": ("con1", FEM_IDX, 8),
@@ -120,14 +53,6 @@ config: FullQuaConfig = {
             "integration_weights": {"cos": "cos", "sin": "sin"},
             "digital_marker": "ON",
         },
-        "const_pulse": {
-            "operation": "control",
-            "length": READOUT_LEN,
-            "waveforms": {
-                "I": "const_wf",
-                "Q": "zero_wf",
-            },
-        },
     },
     "waveforms": {
         "const_wf": {"type": "constant", "sample": 0.5},
@@ -145,16 +70,7 @@ config: FullQuaConfig = {
             "cosine": [(0.0, READOUT_LEN)],
             "sine": [(1.0, READOUT_LEN)],
         },
-    },
-    "mixers": {
-        "octave_oct1_1": [
-            {
-                "intermediate_frequency": 50e6,
-                "lo_frequency": 1e9,
-                "correction": (1, 0, 0, 1),
-            },
-        ],
-    },
+    }
 }
 
 def pytest_addoption(parser):

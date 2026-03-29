@@ -110,11 +110,9 @@ def fetch_xarray_data(
             result = stacked.reshape(*native_shape)
 
         # Transpose so each dim sits at its original sweep position (among non-averaged only)
-
         # Current order after reshape: all native first, then non-native non-averaged
         current_order = native_itr + [itr for itr in non_avg_itr if not _is_native(itr)]
         perm = [current_order.index(itr) for itr in non_avg_itr]
-
         stream_data[stream_name] = np.transpose(result, perm)
 
     # Build xarray Dataset — select only non-averaged dims per stream
