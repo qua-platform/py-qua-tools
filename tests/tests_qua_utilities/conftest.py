@@ -10,6 +10,8 @@ CLOUD_SIM_HOST = "qm-saas.quantum-machines.co"
 HOST_IP = "localhost"
 READOUT_LEN = 100
 FEM_IDX = 6
+ANALOG_OUTPUT_PORT = 8
+ANALOG_INPUT_PORT = 1
 config: FullQuaConfig = {
     "version": 1,
     "controllers": {
@@ -19,10 +21,10 @@ config: FullQuaConfig = {
                 FEM_IDX: {
                     "type": "MW",
                     "analog_outputs": {
-                        8: {"sampling_rate": 1e9, "band": 2, "upconverter_frequency": 5e9},
+                        ANALOG_OUTPUT_PORT: {"sampling_rate": 1e9, "band": 2, "upconverter_frequency": 5e9},
                     },
                     "analog_inputs": {
-                        1: {"sampling_rate": 1e9, "band": 2, "downconverter_frequency": 5e9},
+                        ANALOG_INPUT_PORT: {"sampling_rate": 1e9, "band": 2, "downconverter_frequency": 5e9},
                     },
                 },
             },
@@ -31,11 +33,11 @@ config: FullQuaConfig = {
     "elements": {
         "resonator": {
             "MWInput": {
-                "port": ("con1", FEM_IDX, 8),
+                "port": ("con1", FEM_IDX, ANALOG_OUTPUT_PORT),
             },
             "intermediate_frequency": 200e6,
             "MWOutput": {
-                "port": ("con1", FEM_IDX, 1),
+                "port": ("con1", FEM_IDX, ANALOG_INPUT_PORT),
             },
             "time_of_flight": 484,
             "smearing": 0,
