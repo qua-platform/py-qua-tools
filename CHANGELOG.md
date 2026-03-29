@@ -4,8 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+  ### Added                                                                                                                                                                
+- wirer - Add wiring infrastructure for quantum-dot-based QPUs via the new `ConnectivityQuantumDotQubits` interface, including support for:                              
+  - Plunger gate lines (`add_quantum_dot_voltage_gate_lines`)                                                                                                            
+  - Barrier gate lines (`add_barrier_voltage_gate_lines` / `add_quantum_dot_pairs`)                                                                                    
+  - Sensor dot voltage gate lines (`add_sensor_dot_voltage_gate_lines`)
+  - Sensor dot resonator lines (`add_sensor_dot_resonator_line`)
+  - RF drive lines for quantum dots (`add_quantum_dot_drive_lines`)
+  - Convenience methods `add_quantum_dots`, `add_sensor_dots`, and `add_voltage_gate_lines`
+- wirer - Add new `WiringLineType` entries: `PLUNGER_GATE`, `BARRIER_GATE`, `GLOBAL_GATE`, `SENSOR_GATE`, `RF_RESONATOR`
+- wirer - Elements, qubits, and qubit pairs can now be identified by `str` as well as `int`
+
 ### Fixed
 - multi_user_tool - Fix bug for qm-qua >= 1.2.3.
+- wirer - Constrained wiring specs are now correctly prioritised during channel allocation
 
 ### Change
 - Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
