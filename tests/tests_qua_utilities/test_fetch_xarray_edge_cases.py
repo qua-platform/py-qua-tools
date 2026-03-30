@@ -1,13 +1,10 @@
-import numpy as np
 import pytest
 
 from qm.qua import program, declare_with_stream, measure, dual_demod, assign, fixed
 from qm.qua.extensions.qua_iterators import QuaIterable, NativeIterable, QuaIterableRange, QuaProduct, NativeIterableRange
 
-from qualang_tools.loops.qua_iterable_postprocess import fetch_xarray_data
-from tests.tests_qua_utilities.conftest import config
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
-    simulation_config, frequencies, amp_start, amp_stop, amp_step, make_product,
+    frequencies, amp_start, amp_stop, amp_step, make_product, simulate_and_fetch, assert_dims_and_shape,
 )
 
 
@@ -19,11 +16,8 @@ def test_multi_save_raises(qmm):
             assign(multi_save, args.shot)
             assign(multi_save, args.shot + 1)
 
-    job = qmm.simulate(config, prog, simulation_config)
-    job.result_handles.wait_for_all_values()
-
     with pytest.raises(ValueError, match="Expected qua iterators shape"):
-        fetch_xarray_data(job, prod)
+        simulate_and_fetch(qmm, prog, prod)
 
 
 def test_demod_np_void(qmm):
@@ -37,12 +31,9 @@ def test_demod_np_void(qmm):
             I = declare_with_stream(fixed, "I_st")
             measure("readout", "resonator", None, dual_demod.full("cos", "sin", I))
 
-    job = qmm.simulate(config, prog, simulation_config)
-    job.result_handles.wait_for_all_values()
-    xarray_data = fetch_xarray_data(job, prod)
+    xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert xarray_data["I_st"].dims == ("shot", "qubit"), f"I_st dims: expected ('shot', 'qubit'), got {xarray_data['I_st'].dims}"
-    assert xarray_data["I_st"].shape == (10, 1), f"I_st shape: expected (10, 1), got {xarray_data['I_st'].shape}"
+    assert_dims_and_shape(xarray_data, "I_st", ("shot", "qubit"), (10, 1))
 
 
 def test_units_metadata(qmm):
@@ -57,9 +48,7 @@ def test_units_metadata(qmm):
             s = declare_with_stream(float, "val_st", average_axes=["shot"])
             assign(s, args.frequency)
 
-    job = qmm.simulate(config, prog, simulation_config)
-    job.result_handles.wait_for_all_values()
-    xarray_data = fetch_xarray_data(job, prod)
+    xarray_data = simulate_and_fetch(qmm, prog, prod)
 
     assert xarray_data.coords["frequency"].attrs["unit"] == "Hz", f"frequency unit: expected 'Hz', got {xarray_data.coords['frequency'].attrs.get('unit')}"
     assert xarray_data.coords["amp"].attrs["unit"] == "V", f"amp unit: expected 'V', got {xarray_data.coords['amp'].attrs.get('unit')}"

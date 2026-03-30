@@ -3,10 +3,9 @@ import numpy as np
 from qm.qua import program, declare_with_stream, assign
 from qm.qua.extensions.qua_iterators.qua_native_iterators import NativeIterableBase
 
-from qualang_tools.loops.qua_iterable_postprocess import fetch_xarray_data
-from tests.tests_qua_utilities.conftest import config
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
-    simulation_config, shots, frequencies, amp_values, qubits, make_product,
+    frequencies, amp_values, qubits, make_product, simulate_and_fetch,
+    assert_dims_and_shape, assert_allclose_sel,
 )
 
 
@@ -17,16 +16,13 @@ def test_full_average(qmm):
             full_avg = declare_with_stream(float, "full_avg_st", average_axes=[itr.name for itr in prod.iterables if not isinstance(itr, NativeIterableBase)])
             assign(full_avg, args.frequency * args.amp)
 
-    job = qmm.simulate(config, prog, simulation_config)
-    job.result_handles.wait_for_all_values()
-    xarray_data = fetch_xarray_data(job, prod)
+    xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert xarray_data["full_avg_st"].dims == ("qubit", "amp"), f"full_avg_st dims: expected ('qubit', 'amp'), got {xarray_data['full_avg_st'].dims}"
-    assert xarray_data["full_avg_st"].shape == (len(qubits), len(amp_values)), f"full_avg_st shape: expected {(len(qubits), len(amp_values))}, got {xarray_data['full_avg_st'].shape}"
+    assert_dims_and_shape(xarray_data, "full_avg_st", ("qubit", "amp"), (len(qubits), len(amp_values)))
 
     expected_per_amp = amp_values * np.mean(frequencies)
     for i, a in enumerate(amp_values):
-        assert np.allclose(xarray_data["full_avg_st"].sel(amp=a), expected_per_amp[i]), f"full_avg_st(amp={a}): expected {expected_per_amp[i]}, got {xarray_data['full_avg_st'].sel(amp=a).values}"
+        assert_allclose_sel(xarray_data, "full_avg_st", expected_per_amp[i], amp=a)
 
     # Averaged-out coords (shot, frequency) should not appear in the dataset coords
     assert "shot" not in xarray_data.coords, f"'shot' should not be in coords after full averaging, got {list(xarray_data.coords)}"
@@ -43,22 +39,18 @@ def test_multiple_streams_different_averages(qmm):
             assign(avg_shot, args.frequency * args.amp)
             assign(avg_both, args.frequency * args.amp)
 
-    job = qmm.simulate(config, prog, simulation_config)
-    job.result_handles.wait_for_all_values()
-    xarray_data = fetch_xarray_data(job, prod)
+    xarray_data = simulate_and_fetch(qmm, prog, prod)
 
     # avg_shot_st: shot averaged out → (qubit, frequency, amp)
-    assert xarray_data["avg_shot_st"].dims == ("qubit", "frequency", "amp"), f"avg_shot_st dims: expected ('qubit', 'frequency', 'amp'), got {xarray_data['avg_shot_st'].dims}"
-    assert xarray_data["avg_shot_st"].shape == (len(qubits), len(frequencies), len(amp_values)), f"avg_shot_st shape: expected {(len(qubits), len(frequencies), len(amp_values))}, got {xarray_data['avg_shot_st'].shape}"
+    assert_dims_and_shape(xarray_data, "avg_shot_st", ("qubit", "frequency", "amp"), (len(qubits), len(frequencies), len(amp_values)))
 
     for f in frequencies:
         for a in amp_values:
-            assert np.allclose(xarray_data["avg_shot_st"].sel(frequency=f, amp=a), a * f), f"avg_shot_st(frequency={f}, amp={a}): expected {a * f}, got {xarray_data['avg_shot_st'].sel(frequency=f, amp=a).values}"
+            assert_allclose_sel(xarray_data, "avg_shot_st", a * f, frequency=f, amp=a)
 
     # avg_both_st: shot and frequency averaged out → (qubit, amp)
-    assert xarray_data["avg_both_st"].dims == ("qubit", "amp"), f"avg_both_st dims: expected ('qubit', 'amp'), got {xarray_data['avg_both_st'].dims}"
-    assert xarray_data["avg_both_st"].shape == (len(qubits), len(amp_values)), f"avg_both_st shape: expected {(len(qubits), len(amp_values))}, got {xarray_data['avg_both_st'].shape}"
+    assert_dims_and_shape(xarray_data, "avg_both_st", ("qubit", "amp"), (len(qubits), len(amp_values)))
 
     expected_per_amp = amp_values * np.mean(frequencies)
     for i, a in enumerate(amp_values):
-        assert np.allclose(xarray_data["avg_both_st"].sel(amp=a), expected_per_amp[i]), f"avg_both_st(amp={a}): expected {expected_per_amp[i]}, got {xarray_data['avg_both_st'].sel(amp=a).values}"
+        assert_allclose_sel(xarray_data, "avg_both_st", expected_per_amp[i], amp=a)

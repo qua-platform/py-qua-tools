@@ -807,7 +807,7 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "platform_system == \"Windows\" and sys_platform == \"win32\" and (extra == \"interplot\" or extra == \"configbuilder\" or extra == \"two-qubit-rb\") or platform_system == \"Windows\" and (extra == \"configbuilder\" or extra == \"two-qubit-rb\") or extra == \"interplot\" and sys_platform == \"win32\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
+markers = {main = "sys_platform == \"win32\" and platform_system == \"Windows\" and (extra == \"interplot\" or extra == \"configbuilder\" or extra == \"two-qubit-rb\") or sys_platform == \"win32\" and extra == \"interplot\" or (extra == \"configbuilder\" or extra == \"two-qubit-rb\") and platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "contourpy"
@@ -4305,7 +4305,7 @@ optional = false
 python-versions = ">=3.9,<3.14"
 groups = ["main"]
 files = [
-    {file = "qm_qua-1.2.3-py3-none-any.whl", hash = "sha256:fb031fce915f44392b3c6a2f618b8b9c62c0b862b44d3c62b1f0111fb6053c9d"},
+    {file = "qm_qua-1.2.3-py3-none-any.whl", hash = "sha256:bac2e1eb68b143b51fbdaddaf433d52c149d2cea5e9685e306e500bb1f6ca884"},
 ]
 
 [package.dependencies]
