@@ -23,7 +23,7 @@ grpclib = "0.4.5"
 attrs = ">=22.2.0"
 
 # Scipy
-cirq = [
+scipy = [
     { version = ">=1.15.0", python = ">=3.13" },
     { version = ">=1.11.0", python = ">=3.9,<3.13" }
 ]
