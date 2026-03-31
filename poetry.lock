@@ -2969,7 +2969,7 @@ description = "Fundamental algorithms for scientific computing in Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version < \"3.13\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "scipy-1.13.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:20335853b85e9a49ff7572ab453794298bcf0354d8068c5f6775a0eabf350aca"},
     {file = "scipy-1.13.1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:d605e9c23906d1994f55ace80e0125c587f96c020037ea6aa98d01b4bd2e222f"},
@@ -3013,7 +3013,7 @@ description = "Fundamental algorithms for scientific computing in Python"
 optional = false
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version == \"3.13\""
+markers = "python_version >= \"3.11\""
 files = [
     {file = "scipy-1.17.1-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:1f95b894f13729334fb990162e911c9e5dc1ab390c58aa6cbecb389c5b5e28ec"},
     {file = "scipy-1.17.1-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:e18f12c6b0bc5a592ed23d3f7b891f68fd7f8241d69b7883769eb5d5dfb52696"},
@@ -3504,5 +3504,5 @@ two-qubit-rb = ["cirq", "cirq", "tqdm", "xarray"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.9, <3.14"
-content-hash = "2c4b61136f951ee5a6bb9faece744d1f02bfba7bd23662358679a03754efbfe1"
+python-versions = ">=3.9, <=3.13"
+content-hash = "26f1675ecf2685cc3fe32aa8e163a67c9d491525a233cea0ad1a0c08fff672cd"
