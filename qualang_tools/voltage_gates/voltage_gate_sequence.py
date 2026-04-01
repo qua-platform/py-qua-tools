@@ -90,9 +90,8 @@ class VoltageGateSequence:
         self._config["waveforms"][wf_name] = {"type": "constant", "sample": amplitude}
         return op_name
 
-    @staticmethod
-    def _check_duration(duration: int):
-        if duration is not None and not __class__.is_QUA(duration):
+    def _check_duration(self, duration: int):
+        if duration is not None and not self.is_QUA(duration):
             if duration == 0:
                 warn(
                     "\nThe duration of one level is set to zero which can cause gaps, use with care or set it it to at least 16ns.",
