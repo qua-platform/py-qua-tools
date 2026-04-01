@@ -14,14 +14,19 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.13"
+python = ">=3.9, <=3.13"
 matplotlib = "^3.8.0"
 numpy = "<3"
 qm-qua = ">=1.2.3"
-scipy = ">=1.11.0"
 scikit-learn = ">=1.5.0"
 grpclib = "0.4.5"
 attrs = ">=22.2.0"
+
+# Scipy
+scipy = [
+    { version = ">=1.15.0", python = ">=3.13" },
+    { version = ">=1.11.0", python = ">=3.9,<3.13" }
+]
 
 # interplot
 dill = { version = "^0.3.4", optional = true }
