@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - multi_user_tool - Fix bug for qm-qua >= 1.2.3.
 - wirer - Constrained wiring specs are now correctly prioritised during channel allocation
 
-### Change
+### Changed
 - Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
   `cirq==1.6.0` if `python>=3.11` else `cirq==1.5.0` if `python>=3.10,<3.11`
 - voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns before calculating the compensation pulse. This behavior can be overridden by setting `start_at_zero=False` when calling `seq.add_compensation_pulse()`.
