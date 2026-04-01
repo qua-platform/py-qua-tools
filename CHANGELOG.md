@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-  ### Added                                                                                                                                                                
+### Added                                                                                                                                                                
 - wirer - Add wiring infrastructure for quantum-dot-based QPUs via the new `ConnectivityQuantumDotQubits` interface, including support for:                              
   - Plunger gate lines (`add_quantum_dot_voltage_gate_lines`)                                                                                                            
   - Barrier gate lines (`add_barrier_voltage_gate_lines` / `add_quantum_dot_pairs`)                                                                                    
@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Convenience methods `add_quantum_dots`, `add_sensor_dots`, and `add_voltage_gate_lines`
 - wirer - Add new `WiringLineType` entries: `PLUNGER_GATE`, `BARRIER_GATE`, `GLOBAL_GATE`, `SENSOR_GATE`, `RF_RESONATOR`
 - wirer - Elements, qubits, and qubit pairs can now be identified by `str` as well as `int`
+- wirer - Add TWPAs to the framework.
 
 ### Fixed
 - multi_user_tool - Fix bug for qm-qua >= 1.2.3.
@@ -22,9 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Change
 - Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
   `cirq==1.6.0` if `python>=3.11` else `cirq==1.5.0` if `python>=3.10,<3.11`
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns before calculating the compensation pulse. This behavior can be overridden by setting `start_at_zero=False` when calling `seq.add_compensation_pulse()`.
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns after applying the compensation pulse. This behavior can be overridden by setting `end_at_zero=False` when calling `seq.add_compensation_pulse()`.
 
-## Added
-- wirer - Add TWPAs to the framework.
 
 ## [0.21.1] - 2026-01-16
 ### Fixed
@@ -33,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Change
 - fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
+
 
 ## [0.21.0] - 2025-10-29
 ### Changed
