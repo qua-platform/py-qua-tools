@@ -93,7 +93,7 @@ def drag_cosine_pulse_waveforms(amplitude, length, alpha, anharmonicity, detunin
     return I_wf, Q_wf
 
 
-def flattop_gaussian_waveform(amplitude, flat_length, rise_fall_length, return_part="all", sampling_rate=1e9):
+def flattop_gaussian_waveform(amplitude, flat_length, rise_fall_length, sigma=2.0, return_part="all", sampling_rate=1e9):
     """
     Returns a flat top Gaussian waveform. This is a square pulse with a rise and fall of a Gaussian with the given
     sigma. It is possible to only get the rising or falling parts, which allows scanning the flat part length from QUA.
@@ -113,7 +113,7 @@ def flattop_gaussian_waveform(amplitude, flat_length, rise_fall_length, return_p
     assert sampling_rate % 1e9 == 0, "The sampling rate must be an integer multiple of 1e9 samples per second."
 
     gauss_wave = amplitude * gaussian(
-        int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / 5 * sampling_rate / 1e9
+        int(np.round(2 * rise_fall_length * sampling_rate / 1e9)), rise_fall_length / sigma * sampling_rate / 1e9
     )
     rise_part = gauss_wave[: int(rise_fall_length * sampling_rate / 1e9)]
     rise_part = rise_part.tolist()
