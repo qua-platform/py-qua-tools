@@ -13,7 +13,6 @@ from .data_folder_tools import (
     get_latest_data_folder,
 )
 
-
 __all__ = ["save_data", "DataHandler"]
 
 NODE_FILENAME = "node.json"

@@ -11,7 +11,6 @@ from qm import QuantumMachine
 from packaging.version import Version
 import qm
 
-
 # TODO: Remove this if block when we drop support for qm < 1.2.2 (and move the import that is currently in the
 #  else block to the top)
 if Version(qm.__version__) < Version("1.2.2"):

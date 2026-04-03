@@ -1,7 +1,6 @@
 from abc import ABC
 from pathlib import Path
 
-
 __all__ = ["DataProcessor"]
 
 
