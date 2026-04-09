@@ -1,6 +1,6 @@
 import pytest
 
-from qualang_tools.wirer import Connectivity, lf_fem_spec, allocate_wiring, Instruments
+from qualang_tools.wirer import Connectivity, lf_fem_spec, allocate_wiring, Instruments, qdac2_spec
 from qualang_tools.wirer.visualizer.web_visualizer import visualize
 
 @pytest.mark.skip(reason="plotting")
@@ -78,3 +78,33 @@ def test_basic_superconducting_qubit_example(instruments_1opx_1octave):
     connectivity.add_qubit_pair_flux_lines(qubit_pairs=qubit_pairs)
     allocate_wiring(connectivity, instruments_1opx_1octave)
     visualize(connectivity.elements, instruments_1opx_1octave.available_channels)
+
+
+# @pytest.mark.skip(reason="plotting")
+def test_five_voltage_gates_qdac2_visualization():
+    """
+    Manual check: five DC gates on one QDAC2 (untriggered so only analog outputs are used).
+    """
+    instruments = Instruments()
+    instruments.add_qdac2(indices=1)
+    connectivity = Connectivity()
+    connectivity.add_voltage_gate_lines([1, 2, 3, 4, 5], triggered=False)
+    allocate_wiring(connectivity, instruments)
+    visualize(connectivity.elements, instruments.available_channels)
+
+# @pytest.mark.skip(reason="plotting")
+def test_five_voltage_gates_qdac2_opx_visualization():
+    """
+    Manual check: five DC gates on one QDAC2 (untriggered so only analog outputs are used).
+    """
+    instruments = Instruments()
+    instruments.add_qdac2(indices=1)
+    instruments.add_lf_fem(controller=1, slots=[1])
+    connectivity = Connectivity()
+    connectivity.add_voltage_gate_lines([1, 2, 3, 4, 5], triggered=False, constraints=lf_fem_spec(1) & qdac2_spec(1))
+    connectivity.add_voltage_gate_lines([6], triggered=True, constraints=lf_fem_spec(1) & qdac2_spec(index=1, trigger_in_port=2))
+    allocate_wiring(connectivity, instruments, block_used_channels=False)
+    connectivity.add_voltage_gate_lines([7], triggered=True, constraints=lf_fem_spec(1, out_port=7) & qdac2_spec(index=1, out_port=11,trigger_in_port=2))
+    allocate_wiring(connectivity, instruments)
+
+    visualize(connectivity.elements, instruments.available_channels)
