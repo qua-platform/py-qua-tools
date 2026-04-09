@@ -88,7 +88,7 @@ def test_five_voltage_gates_qdac2_visualization():
     instruments = Instruments()
     instruments.add_qdac2(indices=1)
     connectivity = Connectivity()
-    connectivity.add_voltage_gate_lines([1, 2, 3, 4, 5], triggered=True)
+    connectivity.add_voltage_gate_lines([1, 2, 3, 4, 5], triggered=False)
     allocate_wiring(connectivity, instruments)
     visualize(connectivity.elements, instruments.available_channels)
 
