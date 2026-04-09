@@ -39,7 +39,7 @@ class InstrumentChannelAnalog:
     signal_type = "analog"
 
 
-InstrumentIdType = Literal["lf-fem", "mw-fem", "opx+", "octave", "external-mixer"]
+InstrumentIdType = Literal["lf-fem", "mw-fem", "opx+", "octave", "external-mixer", "qdac2"]
 
 
 @dataclass(eq=False)
@@ -65,6 +65,11 @@ class InstrumentChannelOctave:
 @dataclass(eq=False)
 class InstrumentChannelExternalMixer:
     instrument_id: InstrumentIdType = "external-mixer"
+
+
+@dataclass(eq=False)
+class InstrumentChannelQdac2:
+    instrument_id: InstrumentIdType = "qdac2"
 
 
 @dataclass(eq=False)
@@ -172,6 +177,20 @@ class InstrumentChannelExternalMixerDigitalInput(
     pass
 
 
+@dataclass(eq=False)
+class InstrumentChannelQdac2Output(
+    InstrumentChannelAnalog, InstrumentChannelQdac2, InstrumentChannelOutput, InstrumentChannel
+):
+    pass
+
+
+@dataclass(eq=False)
+class InstrumentChannelQdac2DigitalInput(
+    InstrumentChannelDigital, InstrumentChannelQdac2, InstrumentChannelInput, InstrumentChannel
+):
+    pass
+
+
 AnyInstrumentChannel = Union[
     InstrumentChannelLfFemInput,
     InstrumentChannelLfFemOutput,
@@ -183,4 +202,6 @@ AnyInstrumentChannel = Union[
     InstrumentChannelOctaveOutput,
     InstrumentChannelExternalMixerInput,
     InstrumentChannelExternalMixerOutput,
+    InstrumentChannelQdac2Output,
+    InstrumentChannelQdac2DigitalInput,
 ]
