@@ -108,13 +108,3 @@ def test_asymmetric_if_offsets_template():
     )
     expected = [if_min + k * df for k in range(len(if_offsets))]
     assert np.allclose(if_offsets, expected)
-
-
-def test_alias_matches_split_frequency_sweep():
-    from qualang_tools.loops import split_frequency_sweep
-
-    args = (1e9, 1.05e9, 1e6)
-    kwargs = {"max_if_bandwidth": 4e6, "symmetric_span": True}
-    a = split_frequency_sweep(*args, **kwargs)
-    b = split_frequency_sweep(*args, **kwargs)
-    assert a[0] == b[0] and a[1] == b[1] and np.allclose(a[2], b[2])
