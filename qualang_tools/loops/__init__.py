@@ -4,6 +4,7 @@ from qualang_tools.loops.loops import (
     qua_linspace,
     qua_logspace,
     get_equivalent_log_array,
+    split_frequency_sweep,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "qua_linspace",
     "qua_logspace",
     "get_equivalent_log_array",
+    "split_frequency_sweep",
 ]

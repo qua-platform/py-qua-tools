@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-
+## Added
+- loops - `split_frequency_sweep`: function used to split a wide frequency sweep into chunks of a given IF bandwidth and LO steps.
 
 ## [0.22.0] - 2026-04-01
 ### Added                                                                                                                                                                
