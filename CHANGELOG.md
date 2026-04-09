@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
-
+### Added
+- wirer - Support for **QDAC-II (QDAC2)** in registration, DC channel allocation, and visualization:
+  - Instrument id `qdac2`; `Instruments.add_qdac2(indices)` exposes 24 DC outputs and 4 digital trigger inputs per unit on `available_channels`.
+  - Channel types `InstrumentChannelQdac2Output` and `InstrumentChannelQdac2DigitalInput`; constants `NUM_QDAC2_OUTPUT_PORTS` and `NUM_QDAC2_DIGITAL_INPUT_PORTS`.
+  - `qdac2_spec` (`ChannelSpecQdac2`) for DC voltage gates with optional external trigger input on the same QDAC2 unit; exported from `qualang_tools.wirer`.
+  - `allocate_dc_channels` allocates QDAC2-only lines and, when wiring constraints combine LF-FEM with QDAC2 or OPX+ with QDAC2, tries additional dual-instrument masks so each element gets the corresponding pair of channels.
+  - Visualizer: QDAC2 figure (3×8 DC grid and four trigger inputs) with port positions and annotations.
 
 ## [0.22.0] - 2026-04-01
 ### Added                                                                                                                                                                
