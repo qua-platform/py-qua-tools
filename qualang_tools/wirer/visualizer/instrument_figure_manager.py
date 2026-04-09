@@ -32,6 +32,10 @@ class InstrumentFigureManager:
                 fig = self._make_octave_figure()
                 self.figures[key] = fig.axes[0]
                 fig.suptitle(f"oct{con} - {instrument_id} Wiring", fontweight="bold", fontsize=14)
+            elif instrument_id == "QDAC2":
+                fig = self._make_qdac2_figure()
+                self.figures[key] = fig.axes[0]
+                fig.suptitle(f"qdac{con} - {instrument_id} Wiring", fontweight="bold", fontsize=14)
             else:
                 fig = self._make_external_mixer_figure()
                 self.figures[key] = fig.axes[0]
@@ -86,6 +90,28 @@ class InstrumentFigureManager:
     @classmethod
     def _make_octave_figure(cls) -> Figure:
         return cls._make_opx_plus_figure()
+
+    @staticmethod
+    def _make_qdac2_figure() -> Figure:
+        fig, ax = plt.subplots(
+            1,
+            1,
+            figsize=(
+                INSTRUMENT_FIGURE_DIMENSIONS["QDAC2"]["width"] * 2,
+                INSTRUMENT_FIGURE_DIMENSIONS["QDAC2"]["height"] * 2,
+            ),
+        )
+        ax.set_xlim([0.12 * 3, 0.98 * 3])
+        ax.set_ylim([0.02, 0.92])
+        ax.set_facecolor("darkgrey")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_aspect("equal")
+        ax.text(1.47, 0.87, "DC outputs 1-24", ha="center", va="center", fontsize=10, color="gainsboro")
+        ax.text(1.47, 0.055, "External triggers 1-4", ha="center", va="center", fontsize=9, color="gainsboro")
+        return fig
 
     @classmethod
     def _make_external_mixer_figure(cls) -> Figure:

@@ -5,6 +5,7 @@ instrument_id_mapping = {
     "opx+": "OPX+",
     "octave": "Octave",
     "external-mixer": "Mixers",
+    "qdac2": "QDAC2",
 }
 
 # Define the chassis dimensions
@@ -13,6 +14,7 @@ INSTRUMENT_FIGURE_DIMENSIONS = {
     "OPX+": {"width": 8, "height": 1},
     "Octave": {"width": 3, "height": 1},
     "Mixers": {"width": 1, "height": 1},
+    "QDAC2": {"width": 12, "height": 3},
 }
 
 OPX_PLUS_ASPECT = INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["height"] / INSTRUMENT_FIGURE_DIMENSIONS["OPX+"]["width"]
@@ -23,6 +25,14 @@ PORT_SIZE = 0.055
 
 fem_analog_output_positions = [(0.05 + 0.25 * OPX_1000_ASPECT, 1.06 - i * PORT_SPACING_FACTOR) for i in range(8)]
 fem_digital_output_positions = [(0.05 + 0.75 * OPX_1000_ASPECT, 0.86 - i * PORT_SPACING_FACTOR / 2.4) for i in range(8)]
+
+# QDAC-II style: three front-panel rows of eight DC outputs (channels 1–24, top to bottom),
+# plus a row of four external trigger inputs along the lower edge.
+_QDAC2_X_SCALE = 3.0
+qdac2_analog_output_positions = [
+    ((0.07 + col * (0.86 / 7)) * _QDAC2_X_SCALE, 0.8 - row * 0.24) for row in range(3) for col in range(8)
+]
+qdac2_digital_input_positions = [((0.18 + i * 0.24) * _QDAC2_X_SCALE, 0.11) for i in range(4)]
 
 PORT_POSITIONS = {
     "lf-fem": {
@@ -67,5 +77,9 @@ PORT_POSITIONS = {
         "digital": {
             "input": [(0.25, 0.85)],
         },
+    },
+    "qdac2": {
+        "analog": {"output": qdac2_analog_output_positions},
+        "digital": {"input": qdac2_digital_input_positions},
     },
 }
