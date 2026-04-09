@@ -160,13 +160,9 @@ def allocate_dc_channels(spec: WiringSpec, instruments: Instruments, observe_pul
         wants_opx = "opx+" in instr_ids
         wants_qdac = "qdac2" in instr_ids
         if wants_lf and wants_qdac:
-            dc_specs.append(
-                ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital() & ChannelSpecQdac2()
-            )
+            dc_specs.append(ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital() & ChannelSpecQdac2())
         elif wants_opx and wants_qdac:
-            dc_specs.append(
-                ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital() & ChannelSpecQdac2()
-            )
+            dc_specs.append(ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital() & ChannelSpecQdac2())
 
     allocate_channels(
         spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
