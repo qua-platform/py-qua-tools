@@ -16,6 +16,7 @@ from qm.qua import Variable
 def _fixed_literal_step_ok(step):
     return abs(float(step)) <= 8
 
+
 def _raise_fixed_literal_step(step):
     raise ValueError(
         "For QUA fixed variables, the increment or logarithmic ratio used in the loop update must satisfy |step| <= 8; "
@@ -26,7 +27,8 @@ def _raise_fixed_literal_step(step):
 
 def _raise_fixed_points():
     raise ValueError(
-        "For QUA fixed variables, every value visited in the loop must lie in [-8, 8). " + "Use for_each_() for arbitrary scans: "
+        "For QUA fixed variables, every value visited in the loop must lie in [-8, 8). "
+        + "Use for_each_() for arbitrary scans: "
         "https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
     )
 

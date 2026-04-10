@@ -51,7 +51,7 @@ cirq = [
 ]
 tqdm = { version = "^4.67.1", optional = true  }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
 black = "^24.3"
 poethepoet = "^0.18.0"
