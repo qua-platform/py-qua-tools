@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - wirer - Add TWPAs to the framework.
 
 ### Fixed
+- loops - `from_array`, `qua_arange`, `qua_linspace`, and `qua_logspace` now validate QUA `fixed` loop parameters: correct `[-8, 8)` checks on endpoints (either out of range now raises), every scan value where applicable, representable step/ratio literals (`|step| <= 8`), and a Python simulation of `from_array` fixed loops so visited values stay in range.
 - multi_user_tool - Fix bug for qm-qua >= 1.2.3.
 - wirer - Constrained wiring specs are now correctly prioritised during channel allocation
 
