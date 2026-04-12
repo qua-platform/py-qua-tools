@@ -28,9 +28,9 @@ with baking(config, padding_method = "symmetric_r") as b:
 ```
 
 When executed, the content manager edits the input configuration file and adds:
-- an operation for each quantum element involved within the baking context manager
-- an associated pulse
-- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing waveform(s) issued from concatenation of operations indicated in the context manager.
+- one or more operations per quantum element involved within the baking context manager (by default a single merged waveform per element; **several independent waveforms per element** are supported via **waveform slots**, see [Multiple waveform slots](#multiple-waveform-slots-per-quantum-element))
+- an associated pulse (or one per slot when multiple slots hold samples for the same element)
+- an associated waveform (set of 2 waveforms for a mixedInputs quantum element) containing waveform(s) issued from concatenation of operations indicated in the context manager for that slot.
 
 **IMPORTANT NOTE**: As the baking context manager does edit the configuration file, it is important to open the Quantum Machine instance **after** having baked all the desired waveforms.
 # **How can I add operations inside the baking context manager?**
@@ -51,7 +51,7 @@ The procedure for using baked operations is as follows:
 
 3. Use a baking ``play()`` statement, specifying the operation name (which should correspond to the name introduced in the ```add_op``` method), and the quantum element to play the operation on. Note that it is also possible to play pre-existing pulses in the configuration.
 
-All those commands concatenated altogether eventually build one single “big” waveform per quantum element involved in the baking that contains all the instructions specified in the baking environment. The exiting procedure of the baking ensures that the appropriate padding is done to ensure that the OPX will be able to play this arbitrary waveform.
+All those commands concatenated altogether eventually build one single “big” waveform **per active waveform slot** on each quantum element involved in the baking, containing all the instructions you appended while that slot was selected. The exiting procedure of the baking ensures that the appropriate padding is done so the OPX can play each arbitrary waveform.
 
 Here is a basic code example that simply plays two pulses of short lengths: 
 
@@ -75,6 +75,54 @@ with baking(config, padding_method = "symmetric_r") as b:
   b.play("single_Input_Op", "qe1")
   b.play("mix_Input_Op", "qe2")
 ```
+
+## Multiple waveform slots per quantum element
+
+By default, all `play`, `wait`, `ramp`, `play_at`, `frame_rotation`, `set_detuning`, and `align` activity for a given quantum element appends to **waveform slot 0**. That preserves the usual behavior: one merged waveform per element and a single baked operation name such as `baked_Op_0` in the config (for baking index `0`).
+
+To build **another independent timeline** on the same element in the **same** baking context, switch the active slot with **`set_waveform(qe, index)`**, where `index` is a non-negative integer. Each slot has its own sample buffers, time axis, phase, and digital-marker accumulation. Typical pattern:
+
+```python
+with baking(config, padding_method="right") as b:
+    b.add_op("shape_A", "qe1", [0.2] * 32)
+    b.play("shape_A", "qe1")          # writes to slot 0 (default)
+
+    b.set_waveform("qe1", 1)
+    b.add_op("shape_B", "qe1", [0.15] * 48)
+    b.play("shape_B", "qe1")          # writes to slot 1
+```
+
+**Naming in the config**
+
+- If an element ends up with samples in **only one** slot, names are unchanged: operation `baked_Op_{N}`, pulse `{qe}_baked_pulse_{N}`, waveforms `{qe}_baked_wf_{N}` (or `..._I_{N}` / `..._Q_{N}` for mixInputs), as before (`N` is the baking index from `get_baking_index()`).
+- If an element has samples in **more than one** slot, each finalized slot gets a **distinct** operation and resources, with a **`_{slot}`** suffix for consistency, e.g. `baked_Op_{N}_0`, `baked_Op_{N}_1`, and matching pulse / waveform / digital waveform keys.
+
+**Playing the right slot in QUA**
+
+Inside the QUA program, pass **`waveform_index`** to `run`:
+
+- `None` (default): play slot `0`, or the **only** slot that was baked for that element if there is exactly one such slot.
+- an `int` `k`: play slot `k` for every element in the baking (each element must have baked that slot).
+- a `dict` mapping element name to slot index, e.g. `{"qe1": 0, "qe2": 1}`, when different elements should play different slots.
+
+```python
+with program() as prog:
+    b.run()                                      # default slot resolution
+    b.run(waveform_index=1)                      # play slot 1 on all involved elements
+    b.run(waveform_index={"qe1": 0, "qe2": 1})  # per-element slots
+```
+
+`run` still supports `amp_array`, `trunc_array`, and `align_elements` as before; only the operation name passed to `play` depends on the chosen slot. After playing, any accumulated **frame rotation** for that slot is applied with `frame_rotation_2pi` as in the single-waveform case.
+
+**Lookups from Python**
+
+- `b.get_op_name(qe, slot=None)` and `b.get_op_length(qe, slot=None)` accept an optional slot (defaulting like `run` when `slot` is `None`).
+- `b.operations["qe1"]` is still the op name for the default resolution; `b.operations["qe1", 1]` is equivalent to `get_op_name("qe1", 1)` when a second slot index is given.
+- `b.operations.length("qe1", slot=None)` mirrors `get_op_length`.
+- **`delete_baked_op`** removes **all** baked operations for that baking index on the given element(s), including every `baked_Op_{N}_*` variant when multiple slots were used.
+- **`get_waveforms_dict()`** (override dictionary) contains one entry per finalized waveform; keys include the same `_{slot}` suffix when multiple slots were used for that element.
+
+**`delete_samples`** always edits the **currently active** waveform slot for each affected quantum element (use `set_waveform` first if you need to trim a non-default slot).
 
 It is also possible to delete samples within the baking context manager using the ```delete_samples``` specifying a timestamp from which to start the deletion and an optional stop timestamp, as well as the quantum element for which samples shall be deleted (if no quantum element is provided, samples are deleted for all waveforms involved in the baking context manager):
 
@@ -103,6 +151,8 @@ The baking object has a method called run, which aligns all the elements involve
 It is possible to disable this alignment, in order to reduce possible gaps.
 Therefore, all that is left is to **call the run method associated to the baking object within the actual QUA program**.
 
+Optional argument **`waveform_index`** selects which baked waveform **slot** to play per quantum element when you used **`set_waveform`** to define more than one independent waveform on the same element. See [Multiple waveform slots](#multiple-waveform-slots-per-quantum-element).
+
 ```python
 with baking(config, "left"):
   #Create your baked waveform, see snippet above
@@ -120,6 +170,8 @@ with program() as QUA_prog:
     amp = declare(fixed, value = 0.4)
     b.run(amp_array = [(qe1, amp), (qe2, 0.5)], truncate_array = [(qe1, truncate), (qe3, 74)]) 
 ```
+With multiple waveform slots, combine these with `waveform_index` as needed, for example `b.run(waveform_index=1, amp_array=[(qe1, amp)])`.
+
 Note that you do not have to provide tuples for every quantum element. The parameters you can pass can either Python or QUA variables. Beware though, you should make sure that the elements
 indicated in the parameter arrays are actually used within the baking context manager.
 # **Additional features of the baking environment**

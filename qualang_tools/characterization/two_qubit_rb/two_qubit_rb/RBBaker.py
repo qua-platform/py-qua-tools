@@ -111,7 +111,7 @@ class RBBaker:
 
     @staticmethod
     def _unique_baker_identifier_for_qe(b: Baking, qe: str):
-        identifier = {"samples": b._samples_dict[qe], "info": b._qe_dict[qe]}
+        identifier = {"samples": b._samples_dict[qe][0], "info": b._qe_dict[qe][0]}
         return json.dumps(identifier)
 
     def _bake_all_ops(self, config: dict):

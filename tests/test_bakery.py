@@ -1,6 +1,7 @@
 import os
 from copy import deepcopy
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -439,8 +440,8 @@ def test_delete_samples_within_baking(config):
         b.play("Op2", "qe3")
         b.delete_samples(-100)
         assert b.get_current_length() == 600
-        assert b._qe_dict["qe2"]["time"] == 600
-        assert b._qe_dict["qe3"]["time"] == 600
+        assert b._qe_dict["qe2"][0]["time"] == 600
+        assert b._qe_dict["qe3"][0]["time"] == 600
     assert b.get_op_length() == 600
 
     with baking(cfg) as b2:
@@ -450,8 +451,8 @@ def test_delete_samples_within_baking(config):
         b2.play("Op2", "qe3")
         b2.delete_samples(100)
         assert b2.get_current_length() == 100
-        assert b2._qe_dict["qe2"]["time"] == 100
-        assert b2._qe_dict["qe3"]["time"] == 100
+        assert b2._qe_dict["qe2"][0]["time"] == 100
+        assert b2._qe_dict["qe3"][0]["time"] == 100
     assert b2.get_op_length() == 100
 
     with baking(cfg) as b3:
@@ -461,8 +462,8 @@ def test_delete_samples_within_baking(config):
         b3.play("Op2", "qe3")
         b3.delete_samples(100, 400)
         assert b3.get_current_length() == 400
-        assert b3._qe_dict["qe2"]["time"] == 400
-        assert b3._qe_dict["qe3"]["time"] == 400
+        assert b3._qe_dict["qe2"][0]["time"] == 400
+        assert b3._qe_dict["qe3"][0]["time"] == 400
     assert b3.get_op_length() == 400
 
     with baking(cfg) as b4:
@@ -472,6 +473,53 @@ def test_delete_samples_within_baking(config):
         b4.play("Op2", "qe3")
         b4.delete_samples(-100, 400)
         assert b4.get_current_length() == 600
-        assert b4._qe_dict["qe2"]["time"] == 600
-        assert b4._qe_dict["qe3"]["time"] == 600
+        assert b4._qe_dict["qe2"][0]["time"] == 600
+        assert b4._qe_dict["qe3"][0]["time"] == 600
     assert b4.get_op_length() == 600
+
+
+def test_multi_waveform_slots_single_element(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b:
+        b.add_op("w0", "qe1", [0.15] * 16)
+        b.play("w0", "qe1")
+        b.set_waveform("qe1", 1)
+        b.add_op("w1", "qe1", [0.25] * 20)
+        b.play("w1", "qe1")
+    ctr = b.get_baking_index()
+    assert b._qe_uses_slot_suffix["qe1"]
+    assert b._baked_slots_per_qe["qe1"] == [0, 1]
+    assert b.get_op_name("qe1", 0) == f"baked_Op_{ctr}_0"
+    assert b.get_op_name("qe1", 1) == f"baked_Op_{ctr}_1"
+    assert b.operations["qe1", 0] == f"baked_Op_{ctr}_0"
+    assert b.operations["qe1", 1] == f"baked_Op_{ctr}_1"
+    assert f"baked_Op_{ctr}_0" in cfg["elements"]["qe1"]["operations"]
+    assert f"baked_Op_{ctr}_1" in cfg["elements"]["qe1"]["operations"]
+    assert b.get_op_length("qe1", 0) == len(cfg["waveforms"][f"qe1_baked_wf_{ctr}_0"]["samples"])
+    assert b.get_op_length("qe1", 1) == len(cfg["waveforms"][f"qe1_baked_wf_{ctr}_1"]["samples"])
+    assert b.get_op_length("qe1", 0) != b.get_op_length("qe1", 1)
+
+
+def test_single_slot_keeps_legacy_op_name(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b:
+        b.add_op("w", "qe1", [0.11] * 16)
+        b.play("w", "qe1")
+    ctr = b.get_baking_index()
+    assert not b._qe_uses_slot_suffix.get("qe1", False)
+    assert b.get_op_name("qe1") == f"baked_Op_{ctr}"
+    assert f"baked_Op_{ctr}" in cfg["elements"]["qe1"]["operations"]
+
+
+def test_delete_baked_op_removes_multi_slot_ops(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b:
+        b.add_op("w0", "qe1", [0.13] * 16)
+        b.play("w0", "qe1")
+        b.set_waveform("qe1", 1)
+        b.add_op("w1", "qe1", [0.23] * 20)
+        b.play("w1", "qe1")
+    ctr = b.get_baking_index()
+    b.delete_baked_op("qe1")
+    ops = cfg["elements"]["qe1"]["operations"]
+    assert not any(k.startswith(f"baked_Op_{ctr}") for k in ops)
