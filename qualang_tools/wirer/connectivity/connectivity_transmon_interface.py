@@ -1,3 +1,4 @@
+from typing import Union, List
 from .channel_spec import ChannelSpec
 from .types import QubitsType, QubitPairsType
 from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
@@ -141,6 +142,73 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         return self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, WiringLineType.FLUX, triggered, constraints, elements
         )
+
+    def add_twpa_lines(
+        self,
+        twpas: Union[List[str], str],
+        *,
+        pump_constraints: ChannelSpec = None,
+        isolation_constraints: ChannelSpec = None,
+        triggered: bool = False,
+    ):
+        """
+        Add wiring specifications (placeholders) for TWPA components.
+
+        Every TWPA gets a pump channel: pump and pump_ are both created and share the same
+        channel (given by pump_constraints). The non-underscore element (pump) is sticky;
+        the underscore element (pump_) is not. If isolation_constraints is provided,
+        isolation and isolation_ are both created and share that channel (isolation sticky,
+        isolation_ not).
+
+        No channels are allocated until allocate_wiring(connectivity, instruments) is called.
+
+        Parameters
+        ----------
+        twpas : list of str or str
+            TWPA identifiers (e.g. ["twpaA"] or "twpaA").
+        pump_constraints : ChannelSpec
+            Channel constraints for the pump channel (used for both pump and pump_).
+        isolation_constraints : ChannelSpec, optional
+            If provided, channel constraints for the isolation channel (used for both
+            isolation and isolation_). Omit for TWPAs without isolation.
+        triggered : bool, optional
+            Whether these lines are triggered. Default False.
+
+        Returns
+        -------
+        tuple of (list of WiringSpec, list of WiringSpec)
+            (pump specs, isolation specs). Each spec has shared_line=True with two elements.
+        """
+
+        if isinstance(twpas, str):
+            twpas = [twpas]
+
+        elements = self._make_named_elements("twpa", twpas)
+
+        specs_pump = self.add_wiring_spec(
+            WiringFrequency.RF,
+            WiringIOType.OUTPUT,
+            WiringLineType.TWPA_PUMP,
+            triggered,
+            pump_constraints,
+            elements,
+            shared_line=True,
+        )
+
+        if isolation_constraints is not None:
+            specs_isolation = self.add_wiring_spec(
+                WiringFrequency.RF,
+                WiringIOType.OUTPUT,
+                WiringLineType.TWPA_ISOLATION,
+                triggered,
+                isolation_constraints,
+                elements,
+                shared_line=True,
+            )
+        else:
+            specs_isolation = None
+
+        return (specs_pump, specs_isolation)
 
     def add_qubit_pair_flux_lines(
         self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None

@@ -40,6 +40,8 @@ class WiringLineType(Enum):
     ZZ_DRIVE = "zz"
     LASER = "la"
     SPCM = "spcm"
+    TWPA_PUMP = "p"
+    TWPA_ISOLATION = "i"
     PLUNGER_GATE = "p"
     BARRIER_GATE = "b"
     GLOBAL_GATE = "g"
@@ -56,6 +58,8 @@ CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
 ZZ_DRIVE = WiringLineType.ZZ_DRIVE
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
+TWPA_PUMP = WiringLineType.TWPA_PUMP
+TWPA_ISOLATION = WiringLineType.TWPA_ISOLATION
 PLUNGER_GATE = WiringLineType.PLUNGER_GATE
 BARRIER_GATE = WiringLineType.BARRIER_GATE
 GLOBAL_GATE = WiringLineType.GLOBAL_GATE

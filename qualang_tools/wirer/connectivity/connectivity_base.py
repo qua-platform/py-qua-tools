@@ -143,7 +143,21 @@ class ConnectivityBase:
 
         return elements
 
-    def _add_named_elements(self, name: str, element_ids: ElementsType):
+    def _make_named_elements(self, name: str, element_ids: ElementsType):
+        """
+        Creates `Element` objects for a list of element_ids.
+
+        This method constructs `Element` objects for each qubit reference in the provided element_ids list
+        and adds them to the internal `self.elements` dictionary. If the element for a twpa already exists,
+        it will not be recreated.
+
+        Args:
+            name (str): A string representing the name of the element to add.
+            element_ids (ElementsType): A list or a single element reference to generate element objects for.
+
+        Returns:
+            List[Element]: A list of `Element` objects created or retrieved for the specified element.
+        """
         if not isinstance(element_ids, list):
             element_ids = [element_ids]
 

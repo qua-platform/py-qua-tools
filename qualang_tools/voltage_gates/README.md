@@ -111,20 +111,22 @@ Add a compensation pulse whose duration is derived automatically based on the se
 This ensures that the average voltage seen by the gates remains zero over time.
 
 ```python
-def add_compensation_pulse(self, max_amplitude: float=0.35) -> None:
+def add_compensation_pulse(self, max_amplitude: float=0.49) -> None:
 ```
 
-- **max_amplitude**: Maximum amplitude allowed for the compensation pulse in V. Default is 0.35V.
+- **max_amplitude**: Maximum amplitude allowed for the compensation pulse in V. Default is 0.49V.
+
+Because the calculation of the compensation pulse requires an undetermined amount of time (which can vary depending on the number of QUA variables used in the sequence as well as the QOP version of the OPX), all the elements of the sequence are ramped to 0V with a ramp duration of 16ns before the compensation pulse is calculated. All the voltages are also ramped to 0V after the compensation pulse has been applied. This ensures that the voltage compensation is unaffected by gaps and is as accurate as possible. This behavior can be overridden by setting the flags `start_at_zero=False` and `end_at_zero=False`.
 
 **Example Usage**:
 
 ```python
-# Add a compensation pulse with a duration of 1000 ns
-seq.add_compensation_pulse(max_amplitude=0.49)
+# Add a compensation pulse with a maximum amplitude of 0.35V
+seq.add_compensation_pulse(max_amplitude=0.35)
 ```
 
 In the example above:
-- A compensation pulse with a maximum amplitude of 0.49V is added to the sequence to balance the average voltage. 
+- A compensation pulse with a maximum amplitude of 0.35V is added to the sequence to balance the average voltage. 
 Its duration is derived automatically based on the sequence and the maximum amplitude allowed. 
 
 ### `ramp_to_zero`

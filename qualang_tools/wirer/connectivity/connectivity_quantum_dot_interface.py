@@ -49,7 +49,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
             wiring_line_type (WiringLineType, optional): The type of wiring line (e.g., GLOBAL_GATE, SENSOR_GATE).
                 Defaults to GLOBAL_GATE.
         """
-        elements = self._add_named_elements(name, voltage_gates)
+        elements = self._make_named_elements(name, voltage_gates)
         self.add_wiring_spec(
             WiringFrequency.DC, WiringIOType.OUTPUT, wiring_line_type, triggered, constraints, elements
         )
@@ -199,7 +199,7 @@ class ConnectivityQuantumDotQubits(ConnectivityBase):
         Returns:
             List[WiringSpec]: A list of wiring specifications (placeholders) for the resonator lines.
         """
-        elements = self._add_named_elements("s", sensor_dots)
+        elements = self._make_named_elements("s", sensor_dots)
 
         if use_mw_fem:
             wiring_frequency = WiringFrequency.RF
