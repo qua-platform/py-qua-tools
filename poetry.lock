@@ -4299,13 +4299,14 @@ files = [
 
 [[package]]
 name = "qm-qua"
-version = "1.2.3"
+version = "1.3.0a1"
 description = "QUA language SDK to control a Quantum Computer"
 optional = false
-python-versions = ">=3.9,<3.14"
+python-versions = "<3.14,>=3.9"
 groups = ["main"]
 files = [
-    {file = "qm_qua-1.2.3-py3-none-any.whl", hash = "sha256:bac2e1eb68b143b51fbdaddaf433d52c149d2cea5e9685e306e500bb1f6ca884"},
+    {file = "qm_qua-1.3.0a1-py3-none-any.whl", hash = "sha256:1fe6baf8d83f4eefc6f97cb2b5d82e6fd7f892f5ffdb9960ec07a75de00c0cd3"},
+    {file = "qm_qua-1.3.0a1.tar.gz", hash = "sha256:33f77f8724ec983e3cb1335526f8378a04ed3b80de0763b065206cf6648b7cda"},
 ]
 
 [package.dependencies]
@@ -4323,10 +4324,6 @@ typing-extensions = ">=4.5,<5.0"
 
 [package.extras]
 simulation = ["certifi"]
-
-[package.source]
-type = "file"
-url = "../qm-qua-sdk/dist/qm_qua-1.2.3-py3-none-any.whl"
 
 [[package]]
 name = "qm-saas"
@@ -5179,4 +5176,4 @@ two-qubit-rb = ["cirq", "cirq", "tqdm", "xarray"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9, <3.13"
-content-hash = "1d1cc9794fa580234e465583efeef3cfb5399c53d680b0e7695793290fb17460"
+content-hash = "350ef70847e54dd88532716e260beea39bf288b43c37e7cc0455f2065f5d265d"
