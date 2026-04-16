@@ -162,6 +162,12 @@ for i in range(len(freqs_external)):  # Loop over the LO frequencies
     ...
 ```
 
+## Sweep Program Processing
+
+Tools for fetching QUA program results as structured [`xarray.Dataset`](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) objects, with axes automatically labelled according to the sweep dimensions.
+
+See [sweep_program_processing/README.md](sweep_program_processing/README.md) for full documentation.
+
 ## Data handler
 
 The `DataHandler` is used to easily save data once a measurement has been performed.
