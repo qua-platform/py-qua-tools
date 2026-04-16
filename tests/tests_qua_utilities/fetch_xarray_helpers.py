@@ -7,7 +7,7 @@ from qm.qua.extensions.qua_iterators import QuaIterable, NativeIterable, QuaIter
 from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
 from qm import SimulationConfig, LoopbackInterface
 
-from qualang_tools.loops.qua_iterable_postprocess import fetch_xarray_data
+from qualang_tools.results import fetch_xarray_data
 from tests.tests_qua_utilities.conftest import config
 
 

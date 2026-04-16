@@ -6,7 +6,6 @@ from qm_saas import QmSaas
 from qm.quantum_machines_manager import QuantumMachinesManager
 from qm import FullQuaConfig
 
-CLOUD_SIM_HOST = "qm-saas.quantum-machines.co"
 HOST_IP = "localhost"
 READOUT_LEN = 100
 FEM_IDX = 6
@@ -84,15 +83,21 @@ def pytest_addoption(parser):
         help="Cloud simulator QOP version to use for the tests - e.g., v3_5_0, v3_6_0, default: local for local simulator"
     )
     parser.addoption(
+        "--cloudsim-host",
+        action="store",
+        default=None,
+        help="Cloud simulator host"
+    )
+    parser.addoption(
         "--cloudsim-pwd",
         action="store",
-        default="jG4yUA9YTqcYHBVsVenf",
+        default=None,
         help="Cloud simulator password"
     )
     parser.addoption(
         "--cloudsim-email",
         action="store",
-        default="qm_devops@quantum-machines.co",
+        default=None,
         help="Cloud simulator user email"
     )
 
@@ -102,24 +107,35 @@ def qop_cloud_sim_version(request: pytest.FixtureRequest) -> Optional[str]:
     return request.config.getoption("--qop-version")
 
 @pytest.fixture(scope="session")
-def cloud_sim_pwd(request: pytest.FixtureRequest) -> Optional[str] :
-    """Fixture that returns the version passed with --qop-version (string or None)."""
-    return request.config.getoption("--cloudsim-pwd")
+def cloud_sim_host(request: pytest.FixtureRequest) -> str:
+    host = request.config.getoption("--cloudsim-host")
+    if host is None:
+        raise ValueError("--cloudsim-host is required. Pass it directly or via the CI_CLOUD_SIMULATOR_HOST secret.")
+    return host
 
 @pytest.fixture(scope="session")
-def cloud_sim_email(request: pytest.FixtureRequest) -> Optional[str] :
-    """Fixture that returns the version passed with --qop-version (string or None)."""
-    return request.config.getoption("--cloudsim-email")
+def cloud_sim_pwd(request: pytest.FixtureRequest) -> str:
+    pwd = request.config.getoption("--cloudsim-pwd")
+    if pwd is None:
+        raise ValueError("--cloudsim-pwd is required. Pass it directly or via the CI_CLOUD_SIMULATOR_PASSWORD secret.")
+    return pwd
+
+@pytest.fixture(scope="session")
+def cloud_sim_email(request: pytest.FixtureRequest) -> str:
+    email = request.config.getoption("--cloudsim-email")
+    if email is None:
+        raise ValueError("--cloudsim-email is required. Pass it directly or via the CI_CLOUD_SIMULATOR_USER_EMAIL secret.")
+    return email
 
 def get_local_qmm() -> QuantumMachinesManager:
     return QuantumMachinesManager(host=HOST_IP, port=9510)
 
 @pytest.fixture(scope="session")
 def qmm(
-    qop_cloud_sim_version: str, cloud_sim_pwd: str, cloud_sim_email: str
+    qop_cloud_sim_version: str, cloud_sim_pwd: str, cloud_sim_email: str, cloud_sim_host: str
 ) -> Generator[QuantumMachinesManager, None, None]:
     if qop_cloud_sim_version != "local":
-        client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=CLOUD_SIM_HOST)
+        client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
         with client.simulator(qop_cloud_sim_version) as sim_instance:
             qmm = QuantumMachinesManager(
                 host=sim_instance.host,
