@@ -9,7 +9,7 @@ from qm.qua.extensions.qua_iterators import QuaProduct
 from qm.qua._dsl.stream_processing.direct_stream_processing import STREAM_NAME_SEPARATOR
 
 
-def _native_column_indices(itr: IterableBase) -> list[int]:
+def _itr_column_indices(itr: IterableBase) -> list[int]:
     """Get the stream-suffix indices for a native iterable.
 
     Stream names use the index of the native iteration, not the value.
@@ -44,7 +44,7 @@ def _find_stream_name_from_full_stream_name(result_name, native_columns):
 
 
 def _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr):
-    native_columns = [_native_column_indices(itr) for itr in native_itr]
+    native_columns = [_itr_column_indices(itr) for itr in native_itr]
     stream_data = {}
     stream_with_native_itr = {}
     for res_name, value in results.items():
