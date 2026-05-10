@@ -75,19 +75,19 @@ def test_no_qua_iterables(qmm):
 
 
 def test_pass_as_list(qmm):
-    """Pass sweep as a list of iterables instead of QuaProduct."""
-    sweep_list = [
+    """Pass iterables as a list instead of QuaProduct."""
+    iterables = [
         QuaIterableRange("shot", 10),
         NativeIterable("qubit", qubits),
         QuaIterable("frequency", frequencies),
     ]
-    prod = QuaProduct(sweep_list)
+    prod = QuaProduct(iterables)
     with program() as prog:
         for args in prod:
             s = declare_with_stream(int, "shot_st")
             assign(s, args.shot)
 
-    xarray_data = simulate_and_fetch(qmm, prog, sweep_list)
+    xarray_data = simulate_and_fetch(qmm, prog, iterables)
 
     assert_dims_and_shape(xarray_data, "shot_st", ("shot", "qubit", "frequency"), (10, len(qubits), len(frequencies)))
 

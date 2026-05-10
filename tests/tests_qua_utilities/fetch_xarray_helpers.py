@@ -32,11 +32,11 @@ def make_product():
 
 
 def simulate_and_fetch(
-    qmm, prog, sweep: Union[QuaProduct, Sequence[IterableBase]],
+    qmm, prog, iterables: Union[QuaProduct, Sequence[IterableBase]],
 ) -> xr.Dataset:
     job = qmm.simulate(config, prog, simulation_config)
     job.result_handles.wait_for_all_values()
-    return fetch_xarray_data(job, sweep)
+    return fetch_xarray_data(job, iterables)
 
 
 def assert_dims_and_shape(

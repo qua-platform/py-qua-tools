@@ -43,7 +43,7 @@ def _find_stream_name_from_full_stream_name(result_name, native_columns):
     raise ValueError(f"No native iterator match found in '{result_name}'")
 
 
-def _extract_stream_data_from_sweep_with_native_iterables(results, sweep_iterables, native_itr):
+def _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr):
     native_columns = [_native_column_indices(itr) for itr in native_itr]
     stream_data = {}
     stream_with_native_itr = {}
@@ -62,7 +62,7 @@ def _extract_stream_data_from_sweep_with_native_iterables(results, sweep_iterabl
         stacked = np.array(arrays)
 
         # Reshape flat combo dimension into native grid: (*native_dims, *non_native_dims)
-        non_avg_itr = [itr for itr in sweep_iterables if not itr.is_stream_averaged(stream_name)]
+        non_avg_itr = [itr for itr in qua_iterables if not itr.is_stream_averaged(stream_name)]
         non_native_shape = arrays[0].shape
         expected_non_native_shape = tuple([itr.buffer_size for itr in non_avg_itr if itr.is_qua_iterable])
 
@@ -73,7 +73,7 @@ def _extract_stream_data_from_sweep_with_native_iterables(results, sweep_iterabl
         else:
             result = stacked.reshape(*native_shape)
 
-        # Transpose so each dim sits at its original sweep position (among non-averaged only)
+        # Transpose so each dim sits at its original iteration position (among non-averaged only)
         # Current order after reshape: all native first, then non-native non-averaged
         current_order = native_itr + [itr for itr in non_avg_itr if itr.is_qua_iterable]
         perm = [current_order.index(itr) for itr in non_avg_itr]
@@ -84,41 +84,41 @@ def _extract_stream_data_from_sweep_with_native_iterables(results, sweep_iterabl
 
 def fetch_xarray_data(
     job: JobApi,
-    sweep: Union[QuaProduct, Sequence[IterableBase]],
+    iterables: Union[QuaProduct, Sequence[IterableBase]],
     wait_until_done: bool = False,
 ) -> xr.Dataset:
-    """Fetch job results and organize them into an xarray Dataset aligned with sweep dimensions.
+    """Fetch job results and organize them into an xarray Dataset aligned with the QUA iterables.
 
     Retrieves all result streams from a completed QUA job and reshapes them according to
-    the sweep structure (product of iterables). Native iterables are reassembled from their
-    per-index streams into nd-arrays, and axes are transposed to match the original sweep
-    order. Each data variable in the returned Dataset is indexed only by the dimensions
-    that were not stream-averaged for that variable. Coordinate metadata (e.g. units) from
-    the iterables is attached to the corresponding Dataset coordinates.
+    the QUA iterables structure (product of iterables). Native iterables are reassembled
+    from their per-index streams into nd-arrays, and axes are transposed to match the
+    original iteration order. Each data variable in the returned Dataset is indexed only
+    by the dimensions that were not stream-averaged for that variable. Coordinate metadata
+    (e.g. units) from the iterables is attached to the corresponding Dataset coordinates.
 
     Args:
         job: A completed QUA job from which to fetch results.
-        sweep: The sweep definition used in the QUA program — either a ``QuaProduct``
+        iterables: The QUA iterables used in the program — either a ``QuaProduct``
             or a sequence of ``IterableBase`` objects.
         wait_until_done: If True, block until the job completes before fetching results.
             Defaults to False.
 
     Returns:
         An ``xr.Dataset`` where each data variable corresponds to a result stream,
-        dimensioned by the non-averaged sweep iterables, with coordinates and metadata
-        derived from the sweep definition.
+        dimensioned by the non-averaged QUA iterables, with coordinates and metadata
+        derived from the iterables.
 
     Raises:
         ValueError: If a result stream name cannot be matched to the expected native
             iterator suffixes, or if the non-native shape of a stream does not match
-            the expected shape from the sweep iterables.
+            the expected shape from the QUA iterables.
     """
-    sweep_iterables = sweep.iterables if isinstance(sweep, QuaProduct) else sweep
-    native_itr = [itr for itr in sweep_iterables if not itr.is_qua_iterable]
+    qua_iterables = iterables.iterables if isinstance(iterables, QuaProduct) else iterables
+    native_itr = [itr for itr in qua_iterables if not itr.is_qua_iterable]
 
     results = job.result_handles.fetch_results(wait_until_done=wait_until_done)
     if native_itr:
-        stream_data = _extract_stream_data_from_sweep_with_native_iterables(results, sweep_iterables, native_itr)
+        stream_data = _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr)
     else:
         stream_data = {}
         for res_name, value in results.items():
@@ -126,7 +126,7 @@ def fetch_xarray_data(
 
     # Build xarray Dataset — select only non-averaged dims per stream
     all_coords = {}
-    for itr in sweep_iterables:
+    for itr in qua_iterables:
         if isinstance(itr.values[0], tuple):
             coord = np.empty(len(itr.values), dtype=object)
             coord[:] = itr.values
@@ -137,13 +137,13 @@ def fetch_xarray_data(
     data_vars = {}
     used_dims = set()
     for name, arr in stream_data.items():
-        stream_dims = [itr.name for itr in sweep_iterables if not itr.is_stream_averaged(name)]
+        stream_dims = [itr.name for itr in qua_iterables if not itr.is_stream_averaged(name)]
         data_vars[name] = (stream_dims, arr)
         used_dims.update(stream_dims)
 
     coords = {k: v for k, v in all_coords.items() if k in used_dims}
     ds = xr.Dataset(data_vars, coords=coords)
-    for itr in sweep_iterables:
+    for itr in qua_iterables:
         unit = itr.metadata.get("unit", None)
         if unit is not None and itr.name in ds.coords:
             ds.coords[itr.name].attrs["unit"] = unit

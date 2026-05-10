@@ -3,7 +3,7 @@ from qualang_tools.results.results import progress_counter
 from qualang_tools.results.results import wait_until_job_is_paused
 
 from qualang_tools.results.data_handler import DataHandler, data_processors
-from qualang_tools.results.sweep_program_processing.qua_iterable_postprocess import fetch_xarray_data
+from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import fetch_xarray_data
 
 __all__ = [
     "fetching_tool",
