@@ -107,34 +107,28 @@ def qop_cloud_sim_version(request: pytest.FixtureRequest) -> Optional[str]:
     return request.config.getoption("--qop-version")
 
 @pytest.fixture(scope="session")
-def cloud_sim_host(request: pytest.FixtureRequest) -> str:
-    host = request.config.getoption("--cloudsim-host")
-    if host is None:
-        raise ValueError("--cloudsim-host is required. Pass it directly or via the CI_CLOUD_SIMULATOR_HOST secret.")
-    return host
+def cloud_sim_host(request: pytest.FixtureRequest) -> Optional[str]:
+    return request.config.getoption("--cloudsim-host")
 
 @pytest.fixture(scope="session")
-def cloud_sim_pwd(request: pytest.FixtureRequest) -> str:
-    pwd = request.config.getoption("--cloudsim-pwd")
-    if pwd is None:
-        raise ValueError("--cloudsim-pwd is required. Pass it directly or via the CI_CLOUD_SIMULATOR_PASSWORD secret.")
-    return pwd
+def cloud_sim_pwd(request: pytest.FixtureRequest) -> Optional[str]:
+    return request.config.getoption("--cloudsim-pwd")
 
 @pytest.fixture(scope="session")
-def cloud_sim_email(request: pytest.FixtureRequest) -> str:
-    email = request.config.getoption("--cloudsim-email")
-    if email is None:
-        raise ValueError("--cloudsim-email is required. Pass it directly or via the CI_CLOUD_SIMULATOR_USER_EMAIL secret.")
-    return email
+def cloud_sim_email(request: pytest.FixtureRequest) -> Optional[str]:
+    return request.config.getoption("--cloudsim-email")
 
 def get_local_qmm() -> QuantumMachinesManager:
     return QuantumMachinesManager(host=HOST_IP, port=9510)
 
 @pytest.fixture(scope="session")
 def qmm(
-    qop_cloud_sim_version: str, cloud_sim_pwd: str, cloud_sim_email: str, cloud_sim_host: str
-) -> Generator[QuantumMachinesManager, None, None]:
+    qop_cloud_sim_version: str, cloud_sim_pwd: Optional[str], cloud_sim_email: Optional[str], cloud_sim_host: Optional[str]
+) -> Generator[Optional[QuantumMachinesManager], None, None]:
     if qop_cloud_sim_version != "local":
+        if not all([cloud_sim_host, cloud_sim_pwd, cloud_sim_email]):
+            yield None
+            return
         client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
         with client.simulator(qop_cloud_sim_version) as sim_instance:
             qmm = QuantumMachinesManager(

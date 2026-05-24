@@ -71,6 +71,7 @@ def _extract_stream_data_with_native_iterables(results, qua_iterables, native_it
                 raise ValueError(f"Expected qua iterators shape {expected_non_native_shape} got {non_native_shape}")
             result = stacked.reshape(*native_shape, *non_native_shape)
         else:
+            # Drop the trailing unit dimension added by np.array(arrays) when each element is a scalar
             result = stacked.reshape(*native_shape)
 
         # Transpose so each dim sits at its original iteration position (among non-averaged only)
@@ -89,7 +90,7 @@ def fetch_xarray_data(
 ) -> xr.Dataset:
     """Fetch job results and organize them into an xarray Dataset aligned with the QUA iterables.
 
-    Retrieves all result streams from a completed QUA job and reshapes them according to
+    Retrieves all result streams from a QUA job and reshapes them according to
     the QUA iterables structure (product of iterables). Native iterables are reassembled
     from their per-index streams into nd-arrays, and axes are transposed to match the
     original iteration order. Each data variable in the returned Dataset is indexed only
@@ -97,7 +98,7 @@ def fetch_xarray_data(
     (e.g. units) from the iterables is attached to the corresponding Dataset coordinates.
 
     Args:
-        job: A completed QUA job from which to fetch results.
+        job: A QUA job from which to fetch results.
         iterables: The QUA iterables used in the program — either a ``QuaProduct``
             or a sequence of ``IterableBase`` objects.
         wait_until_done: If True, block until the job completes before fetching results.

@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 from qm.qua import program, declare_with_stream, assign, fixed
@@ -9,6 +10,8 @@ from tests.tests_qua_utilities.fetch_xarray_helpers import (
 
 
 def test_qua_zip_native(qmm):
+    if qmm is None:
+        pytest.skip("requires simulator available")
     native_zip_values = ["q1", "q2", "q3"]
     prod = QuaProduct([
         QuaIterableRange("shot", 10),
@@ -32,6 +35,8 @@ def test_qua_zip_native(qmm):
 
 
 def test_qua_zip_qua(qmm):
+    if qmm is None:
+        pytest.skip("requires simulator available")
     tau_values = np.linspace(1, 7, 5)
     prod = QuaProduct([
         QuaZip([

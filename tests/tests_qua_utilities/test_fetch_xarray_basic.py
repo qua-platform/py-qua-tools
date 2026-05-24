@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 from qm.qua import program, declare_with_stream, assign, fixed
@@ -10,6 +11,8 @@ from tests.tests_qua_utilities.fetch_xarray_helpers import (
 
 
 def test_single_save(qmm):
+    if qmm is None:
+        pytest.skip("requires simulator available")
     prod = make_product()
     with program() as prog:
         for args in prod:
@@ -33,6 +36,8 @@ def test_single_save(qmm):
 
 def test_no_native_iterables(qmm):
     """Only qua iterables — exercises the no-native-columns branch."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     n_shots = 10
     prod = QuaProduct([
         QuaIterableRange("shot", n_shots),
@@ -53,6 +58,8 @@ def test_no_native_iterables(qmm):
 
 def test_no_qua_iterables(qmm):
     """Only native iterables — non_native_shape is empty."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     prod = QuaProduct([
         NativeIterable("qubit", qubits),
         NativeIterableRange("amp", amp_start, amp_stop, amp_step),
@@ -76,6 +83,8 @@ def test_no_qua_iterables(qmm):
 
 def test_pass_as_list(qmm):
     """Pass iterables as a list instead of QuaProduct."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     iterables = [
         QuaIterableRange("shot", 10),
         NativeIterable("qubit", qubits),
@@ -97,6 +106,8 @@ def test_pass_as_list(qmm):
 
 def test_interleaved_dim_ordering(qmm):
     """Interleaved native/qua iterables to verify transpose permutation correctness."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     n_shots = 10
     prod = QuaProduct([
         QuaIterableRange("shot", n_shots),
@@ -125,6 +136,8 @@ def test_interleaved_dim_ordering(qmm):
 
 def test_coordinate_values(qmm):
     """Verify that xarray coordinate values match the original iterable values."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     prod = make_product()
     with program() as prog:
         for args in prod:

@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 from qm.qua import program, declare_with_stream, assign
@@ -10,6 +11,8 @@ from tests.tests_qua_utilities.fetch_xarray_helpers import (
 
 
 def test_full_average(qmm):
+    if qmm is None:
+        pytest.skip("requires simulator available")
     prod = make_product()
     with program() as prog:
         for args in prod:
@@ -31,6 +34,8 @@ def test_full_average(qmm):
 
 def test_multiple_streams_different_averages(qmm):
     """Two streams: one averages shot only, the other averages both shot and frequency."""
+    if qmm is None:
+        pytest.skip("requires simulator available")
     prod = make_product()
     with program() as prog:
         for args in prod:
