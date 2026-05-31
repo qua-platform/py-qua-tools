@@ -79,8 +79,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--qop-version",
         action="store",
-        default="v3_6_0",
-        help="Cloud simulator QOP version to use for the tests - e.g., v3_5_0, v3_6_0, default: local for local simulator"
+        default="latest",
+        help="Cloud simulator QOP version to use for the tests - e.g., v3_5_0, v3_6_0, latest, default: local for local simulator"
     )
     parser.addoption(
         "--cloudsim-host",
@@ -130,7 +130,8 @@ def qmm(
             yield None
             return
         client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
-        with client.simulator(qop_cloud_sim_version) as sim_instance:
+        version = None if qop_cloud_sim_version == "latest" else qop_cloud_sim_version
+        with client.simulator(version) as sim_instance:
             qmm = QuantumMachinesManager(
                 host=sim_instance.host,
                 port=sim_instance.port,
