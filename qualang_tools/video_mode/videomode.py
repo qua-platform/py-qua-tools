@@ -284,8 +284,7 @@ class VideoMode:
     def signal_handler(self, signum, frame):
         """Signal handler for SIGTERM and SIGINT signals."""
         print(f"Received signal {signum}, stopping VideoMode...")
-        self.qm.set_io1_value(self._default_io1)
-        self.qm.set_io2_value(self._default_io2)
+        self.job.set_io_values(io1=self._default_io1, io2=self._default_io2)
         self.job.halt()
         self.stop_event.set()
         # For shutting down the entire program
@@ -322,7 +321,7 @@ class VideoMode:
                 param_name = messages[0]
                 param_value = messages[1]
                 if param_name in self.parameter_table.table.keys():
-                    self.qm.set_io1_value(self.parameter_table.table[param_name].index)
+                    self.job.set_io1_value(self.parameter_table.table[param_name].index)
 
                     if isinstance(self.parameter_table.table[param_name].value, list):
                         param_value = param_value.split()
@@ -368,7 +367,7 @@ class VideoMode:
                         for value in param_value:
                             while not (self.job.is_paused()):
                                 time.sleep(0.001)
-                            self.qm.set_io2_value(value)
+                            self.job.set_io2_value(value)
                             self.parameter_table.table[param_name].value = value
                             self.job.resume()
 
@@ -408,7 +407,7 @@ class VideoMode:
                         else:
                             print(f"Invalid input. {param_value} is not a valid parameter value.")
 
-                        self.qm.set_io2_value(param_value)
+                        self.job.set_io2_value(param_value)
                         self.parameter_table.table[param_name].value = param_value
 
                 else:
@@ -429,8 +428,7 @@ class VideoMode:
         if self.job is None:
             self.job = self.qm.execute(prog, *execute_args)
             # Reinitialize the IO values
-            self.qm.set_io1_value(666)
-            self.qm.set_io2_value(0.0)
+            self.job.set_io_values(io1=666, io2=0.0)
             time.sleep(1)
             self.job.resume()
         print("start")
