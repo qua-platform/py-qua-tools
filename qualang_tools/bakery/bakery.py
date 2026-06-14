@@ -3,12 +3,14 @@ Author: Arthur Strauss - Quantum Machines
 Created: 23/02/2021
 """
 
+import copy
+import hashlib
+import json
 from typing import List, Union, Tuple, Dict, Optional, Set
 from warnings import warn
 
 import numpy as np
 from qm import qua
-import copy
 from scipy.interpolate import interp1d
 
 
@@ -68,7 +70,8 @@ class Baking:
             self._qe_dict,
             self._digital_samples_dict,
         ) = self._init_dict()
-        self._ctr = self._find_baking_index(baking_index)  # unique name counter
+        self._content_addressed = baking_index is None
+        self._ctr = self._find_baking_index(baking_index)  # unique name counter / content id
         self._qe_set = set()
         self.override = override
         if override and sampling_rate < 1e9:
@@ -106,18 +109,20 @@ class Baking:
     def config(self) -> Dict:
         return self._config
 
-    def _find_baking_index(self, baking_index: int = None) -> int:
+    def _find_baking_index(self, baking_index: int = None) -> Union[int, str]:
         if baking_index is None:
-            max_index = [-1]
-            for qe in self._config["elements"].keys():
-                index = [-1]
-                for op in self._config["elements"][qe]["operations"]:
-                    if op.find("baked") != -1:
-                        index.append(int(op.split("_")[-1]))
-                max_index.append(max(index))
-            return max(max_index) + 1
-        else:
-            return baking_index
+            # Placeholder until __exit__ assigns a content-derived id.
+            return 0
+        return baking_index
+
+    def _compute_content_id(self) -> str:
+        payload = {
+            "padding": self._padding_method,
+            "sampling_rate": self.sampling_rate,
+            "samples": self._samples_dict,
+            "digital": self._digital_samples_dict,
+        }
+        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()[:10]
 
     def _init_dict(self):
         sample_dict = {}
@@ -198,6 +203,8 @@ class Baking:
         """
         if exc_type:
             return
+        if self._content_addressed:
+            self._ctr = self._compute_content_id()
         self._out = True
         elements = self._local_config["elements"]
         for qe in elements:
@@ -391,9 +398,9 @@ class Baking:
         except KeyError:
             raise KeyError(f"No waveforms found for pulse {pulse}")
 
-    def get_baking_index(self) -> int:
+    def get_baking_index(self) -> Union[int, str]:
         """
-        :return: Index of the baking object (based on its order of creation)
+        :return: Index or content id of the baking object
         """
         return self._ctr
 
