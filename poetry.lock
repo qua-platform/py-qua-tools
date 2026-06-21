@@ -2265,7 +2265,6 @@ description = "Powerful data structures for data analysis, time series, and stat
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "(python_version >= \"3.10\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\" or extra == \"two-qubit-rb\") and (extra == \"two-qubit-rb\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\")"
 files = [
     {file = "pandas-2.2.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1948ddde24197a0f7add2bdc4ca83bf2b1ef84a1bc8ccffd95eda17fd836ecb5"},
     {file = "pandas-2.2.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:381175499d3802cde0eabbaf6324cce0c4f5d52ca6f8c377c29ad442f50f6348"},
@@ -2804,7 +2803,6 @@ description = "World timezone definitions, modern and historical"
 optional = false
 python-versions = "*"
 groups = ["main"]
-markers = "(python_version >= \"3.10\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\" or extra == \"two-qubit-rb\") and (extra == \"two-qubit-rb\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\")"
 files = [
     {file = "pytz-2025.1-py2.py3-none-any.whl", hash = "sha256:89dd22dca55b46eac6eda23b2d72721bf1bdfef212645d81513ef5d03038de57"},
     {file = "pytz-2025.1.tar.gz", hash = "sha256:c2db42be2a2518b28e65f9207c4d05e6ff547d1efa4086469ef855e4ab70178e"},
@@ -3434,7 +3432,6 @@ description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
 groups = ["main"]
-markers = "(python_version >= \"3.10\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\" or extra == \"two-qubit-rb\") and (extra == \"two-qubit-rb\" or extra == \"configbuilder\" or extra == \"datahandler\" or extra == \"loops\")"
 files = [
     {file = "tzdata-2025.1-py2.py3-none-any.whl", hash = "sha256:7e127113816800496f027041c570f50bcd464a020098a3b6b199517772303639"},
     {file = "tzdata-2025.1.tar.gz", hash = "sha256:24894909e88cdb28bd1636c6887801df64cb485bd593f2fd83ef29075a81d694"},
@@ -3511,10 +3508,9 @@ watchdog = ["watchdog (>=2.3)"]
 name = "xarray"
 version = "2023.12.0"
 description = "N-D labeled arrays and datasets in Python"
-optional = true
+optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"datahandler\" or extra == \"loops\" or extra == \"two-qubit-rb\""
 files = [
     {file = "xarray-2023.12.0-py3-none-any.whl", hash = "sha256:3c22b6824681762b6c3fcad86dfd18960a617bccbc7f456ce21b43a20e455fb9"},
     {file = "xarray-2023.12.0.tar.gz", hash = "sha256:4565dbc890de47e278346c44d6b33bb07d3427383e077a7ca8ab6606196fd433"},
@@ -3555,12 +3551,11 @@ type = ["pytest-mypy"]
 
 [extras]
 configbuilder = ["dash", "dash-bootstrap-components", "dash-core-components", "dash-cytoscape", "dash-dangerously-set-inner-html", "dash-html-components", "dash-table", "docutils", "pandas", "waitress"]
-datahandler = ["netCDF4", "xarray"]
+datahandler = ["netCDF4"]
 interplot = ["dill", "ipython", "pypiwin32"]
-loops = ["xarray"]
-two-qubit-rb = ["cirq", "cirq", "tqdm", "xarray"]
+two-qubit-rb = ["cirq", "cirq", "tqdm"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9, <=3.13"
-content-hash = "22ed326daa2f6d756b99bb9aeacebef3052934fb5a44478687595ff77384d518"
+content-hash = "7aaa2f6b0834f192880a1ebeb17e45ce91612dbb3e4a941bed3a0595406103ba"

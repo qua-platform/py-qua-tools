@@ -1,12 +1,28 @@
-from typing import Optional, Sequence, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Sequence, Union
 from itertools import product
 import numpy as np
 import xarray as xr
 
-from qm.api.v2.job_api.job_api import JobApi
-from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
-from qm.qua.extensions.qua_iterators import QuaProduct
-from qm.qua._dsl.stream_processing.direct_stream_processing import STREAM_NAME_SEPARATOR
+if TYPE_CHECKING:
+    from qm.api.v2.job_api.job_api import JobApi
+    from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
+    from qm.qua.extensions.qua_iterators import QuaProduct
+
+
+def _import_qua_iterables_api():
+    """Import the qm-qua symbols required for QUA-iterable post-processing.
+
+    These were introduced in qm-qua 1.3.1, so the imports are deferred to call
+    time to keep qualang_tools importable on older qm-qua versions.
+    """
+    try:
+        from qm.qua.extensions.qua_iterators import QuaProduct
+        from qm.qua import STREAM_NAME_SEPARATOR
+    except ImportError as e:
+        raise ImportError("fetch_xarray_data requires qm-qua>=1.3.1. Please upgrade qm-qua to use this feature.") from e
+    return QuaProduct, STREAM_NAME_SEPARATOR
 
 
 def _itr_column_indices(itr: IterableBase) -> list[int]:
@@ -32,9 +48,9 @@ def _clean_result_value(
     return np.array(value)
 
 
-def _find_stream_name_from_full_stream_name(result_name, native_columns):
+def _find_stream_name_from_full_stream_name(result_name, native_columns, stream_name_separator):
     for native_names in product(*native_columns):
-        suffix = STREAM_NAME_SEPARATOR + STREAM_NAME_SEPARATOR.join(str(n) for n in native_names)
+        suffix = stream_name_separator + stream_name_separator.join(str(n) for n in native_names)
         if result_name.endswith(suffix):
             stream_name = result_name[: -len(suffix)]
 
@@ -43,13 +59,15 @@ def _find_stream_name_from_full_stream_name(result_name, native_columns):
     raise ValueError(f"No native iterator match found in '{result_name}'")
 
 
-def _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr):
+def _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr, stream_name_separator):
     native_columns = [_itr_column_indices(itr) for itr in native_itr]
     stream_data = {}
     stream_with_native_itr = {}
     for res_name, value in results.items():
         clean_value = _clean_result_value(value)
-        stream_name, native_names = _find_stream_name_from_full_stream_name(res_name, native_columns)
+        stream_name, native_names = _find_stream_name_from_full_stream_name(
+            res_name, native_columns, stream_name_separator
+        )
         d = stream_with_native_itr.setdefault(stream_name, {})
         d[native_names] = clean_value
 
@@ -114,12 +132,16 @@ def fetch_xarray_data(
             iterator suffixes, or if the non-native shape of a stream does not match
             the expected shape from the QUA iterables.
     """
+    QuaProduct, stream_name_separator = _import_qua_iterables_api()
+
     qua_iterables = iterables.iterables if isinstance(iterables, QuaProduct) else iterables
     native_itr = [itr for itr in qua_iterables if not itr.is_qua_iterable]
 
     results = job.result_handles.fetch_results(wait_until_done=wait_until_done)
     if native_itr:
-        stream_data = _extract_stream_data_with_native_iterables(results, qua_iterables, native_itr)
+        stream_data = _extract_stream_data_with_native_iterables(
+            results, qua_iterables, native_itr, stream_name_separator
+        )
     else:
         stream_data = {}
         for res_name, value in results.items():
