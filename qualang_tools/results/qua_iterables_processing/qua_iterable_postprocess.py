@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional, Sequence, Union
 from itertools import product
 import numpy as np
 import xarray as xr
+from packaging.version import Version
 
 if TYPE_CHECKING:
     from qm.api.v2.job_api.job_api import JobApi
@@ -23,8 +24,6 @@ def _installed_qm_qua_version() -> str:
 
 def qua_iterables_supported() -> bool:
     """Whether the installed qm-qua is recent enough for QUA-iterable post-processing."""
-    from packaging.version import Version
-
     return Version(_installed_qm_qua_version()) >= Version(MIN_QM_QUA_VERSION)
 
 
