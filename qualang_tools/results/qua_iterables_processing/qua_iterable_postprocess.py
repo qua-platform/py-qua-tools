@@ -5,6 +5,7 @@ from itertools import product
 import numpy as np
 import xarray as xr
 from packaging.version import Version
+from importlib.metadata import version
 
 if TYPE_CHECKING:
     from qm.api.v2.job_api.job_api import JobApi
@@ -15,16 +16,14 @@ if TYPE_CHECKING:
 MIN_QM_QUA_VERSION = Version("1.3.1")
 
 
-def _installed_qm_qua_version() -> str:
+def _installed_qm_qua_version() -> Version:
     """Return the installed qm-qua distribution version."""
-    from importlib.metadata import version
-
-    return version("qm-qua")
+    return Version(version("qm-qua"))
 
 
 def qua_iterables_supported() -> bool:
     """Whether the installed qm-qua is recent enough for QUA-iterable post-processing."""
-    return Version(_installed_qm_qua_version()) >= MIN_QM_QUA_VERSION
+    return _installed_qm_qua_version() >= MIN_QM_QUA_VERSION
 
 
 def _import_qua_iterables_api():
