@@ -14,16 +14,7 @@ from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
 from qm import SimulationConfig, LoopbackInterface
 
 from qualang_tools.results import fetch_xarray_data
-from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import (
-    MIN_QM_QUA_VERSION,
-    qua_iterables_supported,
-)
 from tests.tests_qua_utilities.conftest import config
-
-# fetch_xarray_data requires a recent qm-qua; the feature tests are skipped on
-# older qm-qua, where the API cannot run.
-QUA_ITERABLES_AVAILABLE = qua_iterables_supported()
-QUA_ITERABLES_SKIP_REASON = f"requires qm-qua>={MIN_QM_QUA_VERSION}"
 
 
 simulation_config = SimulationConfig(50000, simulation_interface=LoopbackInterface([("con1", 2, 8, "con1", 2, 1)]))

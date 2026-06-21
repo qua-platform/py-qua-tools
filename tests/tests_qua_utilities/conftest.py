@@ -6,6 +6,19 @@ from qm_saas import QmSaas
 from qm.quantum_machines_manager import QuantumMachinesManager
 from qm import FullQuaConfig
 
+from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import qua_iterables_supported
+
+# fetch_xarray_data and its tests rely on qm-qua APIs added in MIN_QM_QUA_VERSION.
+# On older qm-qua these modules cannot even be imported, so skip collecting them.
+collect_ignore = []
+if not qua_iterables_supported():
+    collect_ignore += [
+        "test_fetch_xarray_basic.py",
+        "test_fetch_xarray_averaging.py",
+        "test_fetch_xarray_edge_cases.py",
+        "test_fetch_xarray_zip.py",
+    ]
+
 HOST_IP = "localhost"
 READOUT_LEN = 100
 FEM_IDX = 6

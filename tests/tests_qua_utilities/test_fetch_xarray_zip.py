@@ -16,11 +16,7 @@ from tests.tests_qua_utilities.fetch_xarray_helpers import (
     qubits,
     simulate_and_fetch,
     assert_dims_and_shape,
-    QUA_ITERABLES_AVAILABLE,
-    QUA_ITERABLES_SKIP_REASON,
 )
-
-pytestmark = pytest.mark.skipif(not QUA_ITERABLES_AVAILABLE, reason=QUA_ITERABLES_SKIP_REASON)
 
 
 def test_qua_zip_native(qmm):
