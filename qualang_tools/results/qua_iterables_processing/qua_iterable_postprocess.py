@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from qm.qua.extensions.qua_iterators import QuaProduct
 
 # QUA-iterable post-processing relies on qm-qua APIs introduced in this version.
-MIN_QM_QUA_VERSION = "1.3.1"
+MIN_QM_QUA_VERSION = Version("1.3.1")
 
 
 def _installed_qm_qua_version() -> str:
@@ -24,7 +24,7 @@ def _installed_qm_qua_version() -> str:
 
 def qua_iterables_supported() -> bool:
     """Whether the installed qm-qua is recent enough for QUA-iterable post-processing."""
-    return Version(_installed_qm_qua_version()) >= Version(MIN_QM_QUA_VERSION)
+    return Version(_installed_qm_qua_version()) >= MIN_QM_QUA_VERSION
 
 
 def _import_qua_iterables_api():
