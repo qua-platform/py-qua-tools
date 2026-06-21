@@ -4,10 +4,10 @@ import numpy as np
 from qm.qua import program, declare_with_stream, assign, fixed
 from qm.qua.extensions.qua_iterators import (
     QuaIterable,
-    NativeIterable,
+    PythonIterable,
     QuaIterableRange,
     QuaProduct,
-    NativeIterableRange,
+    PythonIterableRange,
     QuaZip,
 )
 
@@ -28,8 +28,8 @@ def test_qua_zip_native(qmm):
             QuaIterableRange("shot", 10),
             QuaZip(
                 [
-                    NativeIterable("qubit", native_zip_values),
-                    NativeIterableRange("amp", 0.1, 0.4, 0.1),
+                    PythonIterable("qubit", native_zip_values),
+                    PythonIterableRange("amp", 0.1, 0.4, 0.1),
                 ],
                 name="qb_amp",
             ),
@@ -66,7 +66,7 @@ def test_qua_zip_qua(qmm):
                 ],
                 name="freq_tau",
             ),
-            NativeIterable("qubit", qubits),
+            PythonIterable("qubit", qubits),
         ]
     )
     with program() as prog:

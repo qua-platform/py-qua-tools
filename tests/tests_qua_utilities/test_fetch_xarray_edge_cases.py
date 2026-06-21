@@ -3,10 +3,10 @@ import pytest
 from qm.qua import program, declare_with_stream, measure, dual_demod, assign, fixed
 from qm.qua.extensions.qua_iterators import (
     QuaIterable,
-    NativeIterable,
+    PythonIterable,
     QuaIterableRange,
     QuaProduct,
-    NativeIterableRange,
+    PythonIterableRange,
 )
 
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
@@ -41,7 +41,7 @@ def test_demod_np_void(qmm):
     prod = QuaProduct(
         [
             QuaIterableRange("shot", 10),
-            NativeIterable("qubit", ["q1"]),
+            PythonIterable("qubit", ["q1"]),
         ]
     )
     with program() as prog:
@@ -60,9 +60,9 @@ def test_units_metadata(qmm):
     prod = QuaProduct(
         [
             QuaIterableRange("shot", 10, metadata={"unit": "count"}),
-            NativeIterable("qubit", ["q1"], metadata={"unit": "qubit_id"}),
+            PythonIterable("qubit", ["q1"], metadata={"unit": "qubit_id"}),
             QuaIterable("frequency", frequencies, metadata={"unit": "Hz"}),
-            NativeIterableRange("amp", amp_start, amp_stop, amp_step, metadata={"unit": "V"}),
+            PythonIterableRange("amp", amp_start, amp_stop, amp_step, metadata={"unit": "V"}),
         ]
     )
     with program() as prog:

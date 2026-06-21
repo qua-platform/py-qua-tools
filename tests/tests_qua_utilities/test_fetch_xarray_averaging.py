@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from qm.qua import program, declare_with_stream, assign
-from qm.qua.extensions.qua_iterators.qua_native_iterators import NativeIterableBase
+from qm.qua.extensions.qua_iterators.qua_native_iterators import PythonIterableBase
 
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
     frequencies,
@@ -24,7 +24,7 @@ def test_full_average(qmm):
             full_avg = declare_with_stream(
                 float,
                 "full_avg_st",
-                average_axes=[itr.name for itr in prod.iterables if not isinstance(itr, NativeIterableBase)],
+                average_axes=[itr.name for itr in prod.iterables if not isinstance(itr, PythonIterableBase)],
             )
             assign(full_avg, args.frequency * args.amp)
 

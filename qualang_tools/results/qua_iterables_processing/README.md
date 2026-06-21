@@ -14,7 +14,7 @@ The simplest way to use `fetch_xarray_data` is to pass your iterables as a plain
 import numpy as np
 from qm.qua import program, declare_with_stream, assign, fixed
 from qm.qua.extensions.qua_iterators import (
-    QuaProduct, QuaIterableRange, NativeIterable, QuaIterable,
+    QuaProduct, QuaIterableRange, PythonIterable, QuaIterable,
 )
 from qualang_tools.results import fetch_xarray_data
 
@@ -24,7 +24,7 @@ n_shots = 100
 
 iterables = [
     QuaIterableRange("shot", n_shots),       # QUA iterable: averaged over on-FPGA if desired
-    NativeIterable("qubit", qubits),         # native iterable: loops in Python
+    PythonIterable("qubit", qubits),         # Python iterable: loops in Python
     QuaIterable("frequency", frequencies),   # QUA iterable
 ]
 
@@ -49,7 +49,7 @@ When a stream is declared with `average_axes`, the averaged dimensions are dropp
 ```python
 iterables = [
     QuaIterableRange("shot", 100),
-    NativeIterable("qubit", ["q1", "q2"]),
+    PythonIterable("qubit", ["q1", "q2"]),
     QuaIterable("frequency", np.linspace(100e6, 200e6, 11)),
 ]
 
@@ -73,7 +73,7 @@ Pass a `metadata` dict with a `"unit"` key to any iterable to have that unit att
 iterables = [
     QuaIterableRange("shot", 100),
     QuaIterable("frequency", np.linspace(100e6, 200e6, 11), metadata={"unit": "Hz"}),
-    NativeIterable("qubit", ["q1", "q2"], metadata={"unit": "qubit_id"}),
+    PythonIterable("qubit", ["q1", "q2"], metadata={"unit": "qubit_id"}),
 ]
 
 ds = fetch_xarray_data(job, iterables)
@@ -98,8 +98,8 @@ from qm.qua.extensions.qua_iterators import QuaZip
 iterables = [
     QuaIterableRange("shot", 10),
     QuaZip([
-        NativeIterable("qubit", ["q1", "q2", "q3"]),
-        NativeIterable("flux", [0.1, 0.2, 0.3]),
+        PythonIterable("qubit", ["q1", "q2", "q3"]),
+        PythonIterable("flux", [0.1, 0.2, 0.3]),
     ], name="qb_flux"),
     QuaIterable("frequency", frequencies),
 ]
@@ -115,7 +115,7 @@ If you already hold a `QuaProduct` object (e.g. because you constructed it befor
 ```python
 qua_product = QuaProduct([
     QuaIterableRange("shot", n_shots),
-    NativeIterable("qubit", qubits),
+    PythonIterable("qubit", qubits),
     QuaIterable("frequency", frequencies),
 ])
 

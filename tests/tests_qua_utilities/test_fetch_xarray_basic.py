@@ -4,10 +4,10 @@ import numpy as np
 from qm.qua import program, declare_with_stream, assign, fixed
 from qm.qua.extensions.qua_iterators import (
     QuaIterable,
-    NativeIterable,
+    PythonIterable,
     QuaIterableRange,
     QuaProduct,
-    NativeIterableRange,
+    PythonIterableRange,
 )
 
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
@@ -90,8 +90,8 @@ def test_no_qua_iterables(qmm):
         pytest.skip("requires simulator available")
     prod = QuaProduct(
         [
-            NativeIterable("qubit", qubits),
-            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+            PythonIterable("qubit", qubits),
+            PythonIterableRange("amp", amp_start, amp_stop, amp_step),
         ]
     )
     with program() as prog:
@@ -117,7 +117,7 @@ def test_pass_as_list(qmm):
         pytest.skip("requires simulator available")
     iterables = [
         QuaIterableRange("shot", 10),
-        NativeIterable("qubit", qubits),
+        PythonIterable("qubit", qubits),
         QuaIterable("frequency", frequencies),
     ]
     prod = QuaProduct(iterables)
@@ -144,9 +144,9 @@ def test_interleaved_dim_ordering(qmm):
     prod = QuaProduct(
         [
             QuaIterableRange("shot", n_shots),
-            NativeIterable("qubit", qubits),
+            PythonIterable("qubit", qubits),
             QuaIterable("frequency", frequencies),
-            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+            PythonIterableRange("amp", amp_start, amp_stop, amp_step),
         ]
     )
     with program() as prog:

@@ -5,10 +5,10 @@ import xarray as xr
 
 from qm.qua.extensions.qua_iterators import (
     QuaIterable,
-    NativeIterable,
+    PythonIterable,
     QuaIterableRange,
     QuaProduct,
-    NativeIterableRange,
+    PythonIterableRange,
 )
 from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
 from qm import SimulationConfig, LoopbackInterface
@@ -32,9 +32,9 @@ def make_product():
     return QuaProduct(
         [
             QuaIterableRange("shot", shots),
-            NativeIterable("qubit", qubits),
+            PythonIterable("qubit", qubits),
             QuaIterable("frequency", frequencies),
-            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+            PythonIterableRange("amp", amp_start, amp_stop, amp_step),
         ]
     )
 
