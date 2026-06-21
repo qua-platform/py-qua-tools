@@ -2,9 +2,9 @@
 
 `fetch_xarray_data` fetches results from a completed QUA job and returns them as an [`xarray.Dataset`](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html), with each result stream automatically shaped and labelled according to the QUA iterables.
 
-It accepts the iterables as either a plain list of `IterableBase` objects or a `QuaProduct` (both are created with qm-qua >= 1.3.0 iterables). The function handles reassembling per-index streams produced by native iterables, and transposes axes so that dimension ordering in the returned Dataset always matches the original iteration order.
+It accepts the iterables as either a plain list of `IterableBase` objects or a `QuaProduct` (both are created with qm-qua >= 1.3.1 iterables). The function handles reassembling per-index streams produced by native iterables, and transposes axes so that dimension ordering in the returned Dataset always matches the original iteration order.
 
-**Requirements:** `xarray >= 2024.1`, `qm-qua >= 1.3.0`
+**Requirements:** `xarray >= 2024.1`, `qm-qua >= 1.3.1`. On older qm-qua, `fetch_xarray_data` raises a clear `ImportError`; the rest of `qualang_tools` remains importable.
 
 ### Basic usage
 
