@@ -10,18 +10,38 @@ if TYPE_CHECKING:
     from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
     from qm.qua.extensions.qua_iterators import QuaProduct
 
+# QUA-iterable post-processing relies on qm-qua APIs introduced in this version.
+MIN_QM_QUA_VERSION = "1.3.1"
+
+
+def _installed_qm_qua_version() -> str:
+    """Return the installed qm-qua distribution version."""
+    from importlib.metadata import version
+
+    return version("qm-qua")
+
+
+def qua_iterables_supported() -> bool:
+    """Whether the installed qm-qua is recent enough for QUA-iterable post-processing."""
+    from packaging.version import Version
+
+    return Version(_installed_qm_qua_version()) >= Version(MIN_QM_QUA_VERSION)
+
 
 def _import_qua_iterables_api():
     """Import the qm-qua symbols required for QUA-iterable post-processing.
 
-    These were introduced in qm-qua 1.3.1, so the imports are deferred to call
-    time to keep qualang_tools importable on older qm-qua versions.
+    The imports are deferred to call time, and gated on the qm-qua version, so
+    qualang_tools stays importable on older, unsupported qm-qua versions.
     """
-    try:
-        from qm.qua.extensions.qua_iterators import QuaProduct
-        from qm.qua import STREAM_NAME_SEPARATOR
-    except ImportError as e:
-        raise ImportError("fetch_xarray_data requires qm-qua>=1.3.1. Please upgrade qm-qua to use this feature.") from e
+    if not qua_iterables_supported():
+        raise ImportError(
+            f"fetch_xarray_data requires qm-qua>={MIN_QM_QUA_VERSION} "
+            f"(found {_installed_qm_qua_version()}). Please upgrade qm-qua to use this feature."
+        )
+    from qm.qua.extensions.qua_iterators import QuaProduct
+    from qm.qua import STREAM_NAME_SEPARATOR
+
     return QuaProduct, STREAM_NAME_SEPARATOR
 
 

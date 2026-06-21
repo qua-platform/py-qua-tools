@@ -1,11 +1,27 @@
 import pytest
 
 from qm.qua import program, declare_with_stream, measure, dual_demod, assign, fixed
-from qm.qua.extensions.qua_iterators import QuaIterable, NativeIterable, QuaIterableRange, QuaProduct, NativeIterableRange
+from qm.qua.extensions.qua_iterators import (
+    QuaIterable,
+    NativeIterable,
+    QuaIterableRange,
+    QuaProduct,
+    NativeIterableRange,
+)
 
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
-    frequencies, amp_start, amp_stop, amp_step, make_product, simulate_and_fetch, assert_dims_and_shape,
+    frequencies,
+    amp_start,
+    amp_stop,
+    amp_step,
+    make_product,
+    simulate_and_fetch,
+    assert_dims_and_shape,
+    QUA_ITERABLES_AVAILABLE,
+    QUA_ITERABLES_SKIP_REASON,
 )
+
+pytestmark = pytest.mark.skipif(not QUA_ITERABLES_AVAILABLE, reason=QUA_ITERABLES_SKIP_REASON)
 
 
 def test_multi_save_raises(qmm):
@@ -26,10 +42,12 @@ def test_demod_np_void(qmm):
     """Test np.void value handling from dual_demod measurement results."""
     if qmm is None:
         pytest.skip("requires simulator available")
-    prod = QuaProduct([
-        QuaIterableRange("shot", 10),
-        NativeIterable("qubit", ["q1"]),
-    ])
+    prod = QuaProduct(
+        [
+            QuaIterableRange("shot", 10),
+            NativeIterable("qubit", ["q1"]),
+        ]
+    )
     with program() as prog:
         for args in prod:
             I = declare_with_stream(fixed, "I_st")
@@ -43,12 +61,14 @@ def test_demod_np_void(qmm):
 def test_units_metadata(qmm):
     if qmm is None:
         pytest.skip("requires simulator available")
-    prod = QuaProduct([
-        QuaIterableRange("shot", 10, metadata={"unit": "count"}),
-        NativeIterable("qubit", ["q1"], metadata={"unit": "qubit_id"}),
-        QuaIterable("frequency", frequencies, metadata={"unit": "Hz"}),
-        NativeIterableRange("amp", amp_start, amp_stop, amp_step, metadata={"unit": "V"})
-    ])
+    prod = QuaProduct(
+        [
+            QuaIterableRange("shot", 10, metadata={"unit": "count"}),
+            NativeIterable("qubit", ["q1"], metadata={"unit": "qubit_id"}),
+            QuaIterable("frequency", frequencies, metadata={"unit": "Hz"}),
+            NativeIterableRange("amp", amp_start, amp_stop, amp_step, metadata={"unit": "V"}),
+        ]
+    )
     with program() as prog:
         for args in prod:
             s = declare_with_stream(float, "val_st", average_axes=["shot"])
@@ -56,9 +76,17 @@ def test_units_metadata(qmm):
 
     xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert xarray_data.coords["frequency"].attrs["unit"] == "Hz", f"frequency unit: expected 'Hz', got {xarray_data.coords['frequency'].attrs.get('unit')}"
-    assert xarray_data.coords["amp"].attrs["unit"] == "V", f"amp unit: expected 'V', got {xarray_data.coords['amp'].attrs.get('unit')}"
-    assert xarray_data.coords["qubit"].attrs["unit"] == "qubit_id", f"qubit unit: expected 'qubit_id', got {xarray_data.coords['qubit'].attrs.get('unit')}"
+    assert (
+        xarray_data.coords["frequency"].attrs["unit"] == "Hz"
+    ), f"frequency unit: expected 'Hz', got {xarray_data.coords['frequency'].attrs.get('unit')}"
+    assert (
+        xarray_data.coords["amp"].attrs["unit"] == "V"
+    ), f"amp unit: expected 'V', got {xarray_data.coords['amp'].attrs.get('unit')}"
+    assert (
+        xarray_data.coords["qubit"].attrs["unit"] == "qubit_id"
+    ), f"qubit unit: expected 'qubit_id', got {xarray_data.coords['qubit'].attrs.get('unit')}"
 
     # shot is averaged out — its unit should not be set on any coord
-    assert "shot" not in xarray_data.coords, f"'shot' should not be in coords after averaging, got {list(xarray_data.coords)}"
+    assert (
+        "shot" not in xarray_data.coords
+    ), f"'shot' should not be in coords after averaging, got {list(xarray_data.coords)}"

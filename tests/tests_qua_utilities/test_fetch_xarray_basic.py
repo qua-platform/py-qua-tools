@@ -2,12 +2,31 @@ import pytest
 import numpy as np
 
 from qm.qua import program, declare_with_stream, assign, fixed
-from qm.qua.extensions.qua_iterators import QuaIterable, NativeIterable, QuaIterableRange, QuaProduct, NativeIterableRange
+from qm.qua.extensions.qua_iterators import (
+    QuaIterable,
+    NativeIterable,
+    QuaIterableRange,
+    QuaProduct,
+    NativeIterableRange,
+)
 
 from tests.tests_qua_utilities.fetch_xarray_helpers import (
-    shots, frequencies, amp_start, amp_stop, amp_step, amp_values, qubits,
-    make_product, simulate_and_fetch, assert_dims_and_shape, assert_allclose_sel,
+    shots,
+    frequencies,
+    amp_start,
+    amp_stop,
+    amp_step,
+    amp_values,
+    qubits,
+    make_product,
+    simulate_and_fetch,
+    assert_dims_and_shape,
+    assert_allclose_sel,
+    QUA_ITERABLES_AVAILABLE,
+    QUA_ITERABLES_SKIP_REASON,
 )
+
+pytestmark = pytest.mark.skipif(not QUA_ITERABLES_AVAILABLE, reason=QUA_ITERABLES_SKIP_REASON)
 
 
 def test_single_save(qmm):
@@ -23,11 +42,20 @@ def test_single_save(qmm):
 
     xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert_dims_and_shape(xarray_data, "shot_st", ("shot", "qubit", "frequency", "amp"), (shots, len(qubits), len(frequencies), len(amp_values)))
-    assert_dims_and_shape(xarray_data, "shot_avg_st", ("qubit", "frequency", "amp"), (len(qubits), len(frequencies), len(amp_values)))
+    assert_dims_and_shape(
+        xarray_data,
+        "shot_st",
+        ("shot", "qubit", "frequency", "amp"),
+        (shots, len(qubits), len(frequencies), len(amp_values)),
+    )
+    assert_dims_and_shape(
+        xarray_data, "shot_avg_st", ("qubit", "frequency", "amp"), (len(qubits), len(frequencies), len(amp_values))
+    )
 
     for i in range(shots):
-        assert (xarray_data["shot_st"][i] == i).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
+        assert (
+            xarray_data["shot_st"][i] == i
+        ).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
 
     for f in frequencies:
         for a in amp_values:
@@ -39,10 +67,12 @@ def test_no_native_iterables(qmm):
     if qmm is None:
         pytest.skip("requires simulator available")
     n_shots = 10
-    prod = QuaProduct([
-        QuaIterableRange("shot", n_shots),
-        QuaIterable("frequency", frequencies),
-    ])
+    prod = QuaProduct(
+        [
+            QuaIterableRange("shot", n_shots),
+            QuaIterable("frequency", frequencies),
+        ]
+    )
     with program() as prog:
         for args in prod:
             s = declare_with_stream(int, "shot_st")
@@ -53,17 +83,21 @@ def test_no_native_iterables(qmm):
     assert_dims_and_shape(xarray_data, "shot_st", ("shot", "frequency"), (n_shots, len(frequencies)))
 
     for i in range(n_shots):
-        assert (xarray_data["shot_st"][i] == i).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
+        assert (
+            xarray_data["shot_st"][i] == i
+        ).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
 
 
 def test_no_qua_iterables(qmm):
     """Only native iterables — non_native_shape is empty."""
     if qmm is None:
         pytest.skip("requires simulator available")
-    prod = QuaProduct([
-        NativeIterable("qubit", qubits),
-        NativeIterableRange("amp", amp_start, amp_stop, amp_step),
-    ])
+    prod = QuaProduct(
+        [
+            NativeIterable("qubit", qubits),
+            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+        ]
+    )
     with program() as prog:
         for args in prod:
             s = declare_with_stream(fixed, "amp_st")
@@ -101,7 +135,9 @@ def test_pass_as_list(qmm):
     assert_dims_and_shape(xarray_data, "shot_st", ("shot", "qubit", "frequency"), (10, len(qubits), len(frequencies)))
 
     for i in range(10):
-        assert (xarray_data["shot_st"][i] == i).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
+        assert (
+            xarray_data["shot_st"][i] == i
+        ).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
 
 
 def test_interleaved_dim_ordering(qmm):
@@ -109,12 +145,14 @@ def test_interleaved_dim_ordering(qmm):
     if qmm is None:
         pytest.skip("requires simulator available")
     n_shots = 10
-    prod = QuaProduct([
-        QuaIterableRange("shot", n_shots),
-        NativeIterable("qubit", qubits),
-        QuaIterable("frequency", frequencies),
-        NativeIterableRange("amp", amp_start, amp_stop, amp_step),
-    ])
+    prod = QuaProduct(
+        [
+            QuaIterableRange("shot", n_shots),
+            NativeIterable("qubit", qubits),
+            QuaIterable("frequency", frequencies),
+            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+        ]
+    )
     with program() as prog:
         for args in prod:
             s_shot = declare_with_stream(int, "shot_st")
@@ -124,11 +162,23 @@ def test_interleaved_dim_ordering(qmm):
 
     xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert_dims_and_shape(xarray_data, "shot_st", ("shot", "qubit", "frequency", "amp"), (n_shots, len(qubits), len(frequencies), len(amp_values)))
-    assert_dims_and_shape(xarray_data, "freq_st", ("shot", "qubit", "frequency", "amp"), (n_shots, len(qubits), len(frequencies), len(amp_values)))
+    assert_dims_and_shape(
+        xarray_data,
+        "shot_st",
+        ("shot", "qubit", "frequency", "amp"),
+        (n_shots, len(qubits), len(frequencies), len(amp_values)),
+    )
+    assert_dims_and_shape(
+        xarray_data,
+        "freq_st",
+        ("shot", "qubit", "frequency", "amp"),
+        (n_shots, len(qubits), len(frequencies), len(amp_values)),
+    )
 
     for i in range(n_shots):
-        assert (xarray_data["shot_st"][i] == i).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
+        assert (
+            xarray_data["shot_st"][i] == i
+        ).all(), f"shot_st[{i}]: expected all values to be {i}, got {xarray_data['shot_st'][i].values}"
 
     for f in frequencies:
         assert_allclose_sel(xarray_data, "freq_st", f, frequency=f)
@@ -146,7 +196,15 @@ def test_coordinate_values(qmm):
 
     xarray_data = simulate_and_fetch(qmm, prog, prod)
 
-    assert np.array_equal(xarray_data.coords["shot"].values, np.arange(shots)), f"shot coords: expected {np.arange(shots)}, got {xarray_data.coords['shot'].values}"
-    assert np.array_equal(xarray_data.coords["qubit"].values, qubits), f"qubit coords: expected {qubits}, got {xarray_data.coords['qubit'].values}"
-    assert np.allclose(xarray_data.coords["frequency"].values, frequencies), f"frequency coords: expected {frequencies}, got {xarray_data.coords['frequency'].values}"
-    assert np.allclose(xarray_data.coords["amp"].values, amp_values), f"amp coords: expected {amp_values}, got {xarray_data.coords['amp'].values}"
+    assert np.array_equal(
+        xarray_data.coords["shot"].values, np.arange(shots)
+    ), f"shot coords: expected {np.arange(shots)}, got {xarray_data.coords['shot'].values}"
+    assert np.array_equal(
+        xarray_data.coords["qubit"].values, qubits
+    ), f"qubit coords: expected {qubits}, got {xarray_data.coords['qubit'].values}"
+    assert np.allclose(
+        xarray_data.coords["frequency"].values, frequencies
+    ), f"frequency coords: expected {frequencies}, got {xarray_data.coords['frequency'].values}"
+    assert np.allclose(
+        xarray_data.coords["amp"].values, amp_values
+    ), f"amp coords: expected {amp_values}, got {xarray_data.coords['amp'].values}"

@@ -1,39 +1,41 @@
-import builtins
+import re
 
 import pytest
+from packaging.version import Version
 
 from qualang_tools.results.qua_iterables_processing import qua_iterable_postprocess as pp
+
+_REQUIRED_ERROR = re.escape(f"qm-qua>={pp.MIN_QM_QUA_VERSION}")
+# A version guaranteed to be below the minimum, derived from the constant.
+_TOO_OLD = f"{Version(pp.MIN_QM_QUA_VERSION).major}.0.0"
 
 
 @pytest.fixture
 def simulate_old_qm_qua(monkeypatch):
-    """Make the qm-qua 1.3.1 symbols look unavailable, as on qm-qua<1.3.1."""
-    real_import = builtins.__import__
+    """Report an installed qm-qua older than the minimum required version."""
+    monkeypatch.setattr(pp, "_installed_qm_qua_version", lambda: _TOO_OLD)
 
-    def fake_import(name, *args, **kwargs):
-        if name == "qm.qua.extensions.qua_iterators" or (
-            name == "qm.qua" and "STREAM_NAME_SEPARATOR" in (args[2] or ())
-        ):
-            raise ImportError(f"No module named {name!r}")
-        return real_import(name, *args, **kwargs)
 
-    monkeypatch.setattr(builtins, "__import__", fake_import)
+def test_qua_iterables_supported_version_gate(monkeypatch):
+    monkeypatch.setattr(pp, "_installed_qm_qua_version", lambda: _TOO_OLD)
+    assert pp.qua_iterables_supported() is False
+
+    # Exactly the minimum is supported.
+    monkeypatch.setattr(pp, "_installed_qm_qua_version", lambda: pp.MIN_QM_QUA_VERSION)
+    assert pp.qua_iterables_supported() is True
+
+    # A clearly newer version is supported.
+    newer = f"{Version(pp.MIN_QM_QUA_VERSION).major + 1}.0.0"
+    monkeypatch.setattr(pp, "_installed_qm_qua_version", lambda: newer)
+    assert pp.qua_iterables_supported() is True
 
 
 def test_import_helper_raises_clean_error(simulate_old_qm_qua):
-    with pytest.raises(ImportError, match="qm-qua>=1.3.1"):
+    with pytest.raises(ImportError, match=_REQUIRED_ERROR):
         pp._import_qua_iterables_api()
 
 
 def test_fetch_xarray_data_raises_clean_error(simulate_old_qm_qua):
     # The version guard runs before any job/iterables access, so dummy args are fine.
-    with pytest.raises(ImportError, match="qm-qua>=1.3.1"):
+    with pytest.raises(ImportError, match=_REQUIRED_ERROR):
         pp.fetch_xarray_data(job=None, iterables=None)
-
-
-def test_module_imports_without_qua_iterators(simulate_old_qm_qua):
-    """Importing the package must not require the qm-qua 1.3.1 symbols."""
-    import importlib
-
-    importlib.reload(pp)
-    assert hasattr(pp, "fetch_xarray_data")

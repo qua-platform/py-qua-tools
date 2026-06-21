@@ -3,12 +3,27 @@ from typing import Sequence, Union
 import numpy as np
 import xarray as xr
 
-from qm.qua.extensions.qua_iterators import QuaIterable, NativeIterable, QuaIterableRange, QuaProduct, NativeIterableRange
+from qm.qua.extensions.qua_iterators import (
+    QuaIterable,
+    NativeIterable,
+    QuaIterableRange,
+    QuaProduct,
+    NativeIterableRange,
+)
 from qm.qua.extensions.qua_iterators.qua_iterators_base import IterableBase
 from qm import SimulationConfig, LoopbackInterface
 
 from qualang_tools.results import fetch_xarray_data
+from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import (
+    MIN_QM_QUA_VERSION,
+    qua_iterables_supported,
+)
 from tests.tests_qua_utilities.conftest import config
+
+# fetch_xarray_data requires a recent qm-qua; the feature tests are skipped on
+# older qm-qua, where the API cannot run.
+QUA_ITERABLES_AVAILABLE = qua_iterables_supported()
+QUA_ITERABLES_SKIP_REASON = f"requires qm-qua>={MIN_QM_QUA_VERSION}"
 
 
 simulation_config = SimulationConfig(50000, simulation_interface=LoopbackInterface([("con1", 2, 8, "con1", 2, 1)]))
@@ -23,16 +38,20 @@ qubits = ["q1", "q2", "q3"]
 
 
 def make_product():
-    return QuaProduct([
-        QuaIterableRange("shot", shots),
-        NativeIterable("qubit", qubits),
-        QuaIterable("frequency", frequencies),
-        NativeIterableRange("amp", amp_start, amp_stop, amp_step)
-    ])
+    return QuaProduct(
+        [
+            QuaIterableRange("shot", shots),
+            NativeIterable("qubit", qubits),
+            QuaIterable("frequency", frequencies),
+            NativeIterableRange("amp", amp_start, amp_stop, amp_step),
+        ]
+    )
 
 
 def simulate_and_fetch(
-    qmm, prog, iterables: Union[QuaProduct, Sequence[IterableBase]],
+    qmm,
+    prog,
+    iterables: Union[QuaProduct, Sequence[IterableBase]],
 ) -> xr.Dataset:
     job = qmm.simulate(config, prog, simulation_config)
     job.result_handles.wait_for_all_values()
@@ -40,21 +59,23 @@ def simulate_and_fetch(
 
 
 def assert_dims_and_shape(
-    ds: xr.Dataset, var_name: str, expected_dims: tuple[str, ...], expected_shape: tuple[int, ...],
+    ds: xr.Dataset,
+    var_name: str,
+    expected_dims: tuple[str, ...],
+    expected_shape: tuple[int, ...],
 ):
-    assert ds[var_name].dims == expected_dims, (
-        f"{var_name} dims: expected {expected_dims}, got {ds[var_name].dims}"
-    )
-    assert ds[var_name].shape == expected_shape, (
-        f"{var_name} shape: expected {expected_shape}, got {ds[var_name].shape}"
-    )
+    assert ds[var_name].dims == expected_dims, f"{var_name} dims: expected {expected_dims}, got {ds[var_name].dims}"
+    assert (
+        ds[var_name].shape == expected_shape
+    ), f"{var_name} shape: expected {expected_shape}, got {ds[var_name].shape}"
 
 
 def assert_allclose_sel(
-    ds: xr.Dataset, var_name: str, expected, **sel_kwargs,
+    ds: xr.Dataset,
+    var_name: str,
+    expected,
+    **sel_kwargs,
 ):
     actual = ds[var_name].sel(**sel_kwargs)
     sel_str = ", ".join(f"{k}={v}" for k, v in sel_kwargs.items())
-    assert np.allclose(actual, expected), (
-        f"{var_name}({sel_str}): expected {expected}, got {actual.values}"
-    )
+    assert np.allclose(actual, expected), f"{var_name}({sel_str}): expected {expected}, got {actual.values}"
