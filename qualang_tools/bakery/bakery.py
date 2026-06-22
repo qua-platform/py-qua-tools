@@ -48,6 +48,43 @@ def baking(
     return Baking(config, padding_method, override, baking_index, sampling_rate)
 
 
+class BakingCounter:
+    _next_by_config: Dict[int, int] = {}
+
+    @classmethod
+    def allocate(cls, config) -> int:
+        key = id(config)
+        if key not in cls._next_by_config:
+            cls._next_by_config[key] = cls._max_index_in_config(config) + 1
+        idx = cls._next_by_config[key]
+        cls._next_by_config[key] += 1
+        return idx
+
+    @staticmethod
+    def _max_index_in_config(config) -> int:
+        max_index = -1
+        for qe in config["elements"].keys():
+            for op in config["elements"][qe]["operations"]:
+                if op.find("baked") != -1:
+                    try:
+                        max_index = max(max_index, int(op.split("_")[-1]))
+                    except ValueError:
+                        pass
+        return max_index
+
+    @staticmethod
+    def collect_baked_indices(config) -> Set[int]:
+        indices: Set[int] = set()
+        for qe in config["elements"]:
+            for op in config["elements"][qe]["operations"]:
+                if op.startswith("baked_Op_"):
+                    try:
+                        indices.add(int(op.split("_")[-1]))
+                    except ValueError:
+                        pass
+        return indices
+
+
 class Baking:
     def __init__(
         self,
@@ -70,8 +107,10 @@ class Baking:
             self._qe_dict,
             self._digital_samples_dict,
         ) = self._init_dict()
-        self._content_addressed = baking_index is None
-        self._ctr = self._find_baking_index(baking_index)  # unique name counter / content id
+        if baking_index is None:
+            self._ctr = BakingCounter.allocate(config)
+        else:
+            self._ctr = baking_index
         self._qe_set = set()
         self.override = override
         if override and sampling_rate < 1e9:
@@ -109,20 +148,69 @@ class Baking:
     def config(self) -> Dict:
         return self._config
 
-    def _find_baking_index(self, baking_index: int = None) -> Union[int, str]:
-        if baking_index is None:
-            # Placeholder until __exit__ assigns a content-derived id.
-            return 0
-        return baking_index
-
-    def _compute_content_id(self) -> str:
+    def _compute_content_fingerprint(self, samples_by_qe: Dict) -> str:
+        digital = {qe: self._digital_samples_dict[qe] for qe in samples_by_qe}
         payload = {
-            "padding": self._padding_method,
+            "override": self.override,
             "sampling_rate": self.sampling_rate,
-            "samples": self._samples_dict,
-            "digital": self._digital_samples_dict,
+            "samples": samples_by_qe,
+            "digital": digital,
         }
-        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()[:10]
+        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()
+
+    @staticmethod
+    def _fingerprint_from_config(config, index: int) -> Optional[str]:
+        active_qes = sorted(
+            qe for qe in config["elements"] if f"baked_Op_{index}" in config["elements"][qe]["operations"]
+        )
+        if not active_qes:
+            return None
+
+        samples = {}
+        digital = {}
+        override = False
+        sampling_rate = int(1e9)
+
+        for qe in active_qes:
+            pulse_name = f"{qe}_baked_pulse_{index}"
+            if pulse_name not in config["pulses"]:
+                return None
+            pulse = config["pulses"][pulse_name]
+            pulse_waveforms = pulse.get("waveforms", {})
+            if "I" in pulse_waveforms:
+                wf_i = config["waveforms"][pulse_waveforms["I"]]
+                wf_q = config["waveforms"][pulse_waveforms["Q"]]
+                samples[qe] = {"I": wf_i["samples"], "Q": wf_q["samples"]}
+                override = wf_i.get("is_overridable", False)
+                sampling_rate = wf_i.get("sampling_rate", int(1e9))
+            elif "single" in pulse_waveforms:
+                wf = config["waveforms"][pulse_waveforms["single"]]
+                samples[qe] = {"single": wf["samples"]}
+                override = wf.get("is_overridable", False)
+                sampling_rate = wf.get("sampling_rate", int(1e9))
+            else:
+                return None
+
+            dig_name = f"{qe}_baked_digital_wf_{index}"
+            if "digital_waveforms" in config and dig_name in config["digital_waveforms"]:
+                digital[qe] = config["digital_waveforms"][dig_name]["samples"]
+            else:
+                digital[qe] = []
+
+        payload = {
+            "override": override,
+            "sampling_rate": sampling_rate,
+            "samples": samples,
+            "digital": digital,
+        }
+        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()
+
+    def _find_matching_index(self, fingerprint: str) -> Optional[int]:
+        for index in sorted(BakingCounter.collect_baked_indices(self._config)):
+            config_fingerprint = self._fingerprint_from_config(self._config, index)
+            if config_fingerprint == fingerprint:
+                return index
+        return None
 
     def _init_dict(self):
         sample_dict = {}
@@ -203,10 +291,9 @@ class Baking:
         """
         if exc_type:
             return
-        if self._content_addressed:
-            self._ctr = self._compute_content_id()
         self._out = True
         elements = self._local_config["elements"]
+        final_samples: Dict[str, dict] = {}
         for qe in elements:
             wait_duration = 0  # Stores the duration that has to be padded with 0s to make a valid sample for QUA
             # in original config file
@@ -314,15 +401,25 @@ class Baking:
                             + qe_samples["single"][0 : end_samples + wait_duration // 2 + 1]
                         )
 
-                if self.update_config:
+                final_samples[qe] = copy.deepcopy(qe_samples)
+
+        if self.update_config and final_samples:
+            fingerprint = self._compute_content_fingerprint(final_samples)
+            match = self._find_matching_index(fingerprint)
+            if match is not None:
+                self._ctr = match
+            else:
+                for qe, qe_samples in final_samples.items():
                     self._update_config(qe, qe_samples)
 
-                if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
-                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = qe_samples["I"]
-                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = qe_samples["Q"]
+        for qe, qe_samples in final_samples.items():
+            elements_qe = self._local_config["elements"][qe]
+            if any([key in elements_qe for key in ["mixInputs", "RF_inputs", "MWInput"]]):
+                self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"] = qe_samples["I"]
+                self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"] = qe_samples["Q"]
 
-                elif "singleInput" in elements[qe]:
-                    self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = qe_samples["single"]
+            elif "singleInput" in elements_qe:
+                self.override_waveforms_dict["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = qe_samples["single"]
 
     def is_out(self):
         return self._out
@@ -398,9 +495,9 @@ class Baking:
         except KeyError:
             raise KeyError(f"No waveforms found for pulse {pulse}")
 
-    def get_baking_index(self) -> Union[int, str]:
+    def get_baking_index(self) -> int:
         """
-        :return: Index or content id of the baking object
+        :return: Index of the baking object (based on its order of creation)
         """
         return self._ctr
 

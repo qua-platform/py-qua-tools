@@ -492,12 +492,17 @@ def test_baking_idempotent(config):
     def baked_op_count():
         return len([op for op in cfg["elements"]["qe2"]["operations"] if op.startswith("baked_Op_")])
 
+    indices = []
     for _ in range(3):
         with baking(cfg) as b:
             b.play("gaussOp", "qe2")
             b.play("gaussOp", "qe3")
+        idx = b.get_baking_index()
+        assert isinstance(idx, int)
+        indices.append(idx)
 
     assert baked_op_count() == 1
+    assert indices == [indices[0]] * 3
 
     with baking(cfg) as b_proj:
         b_proj.play("playOp", "qe1")
@@ -506,3 +511,13 @@ def test_baking_idempotent(config):
         b_depth.play("gaussOp", "qe3")
         b_depth.play("gaussOp", "qe2")
     assert baked_op_count() == 2
+
+
+def test_baking_idempotent_index_reuse(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b1:
+        b1.play("gaussOp", "qe2")
+    idx1 = b1.get_baking_index()
+    with baking(cfg) as b2:
+        b2.play("gaussOp", "qe2")
+    assert b2.get_baking_index() == idx1
