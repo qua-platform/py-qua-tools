@@ -48,7 +48,7 @@ jobs:
         run: poetry run poe lint
 
       - name: Run tests
-        run: poetry run poe test --junitxml=test-results-${{ matrix.python-version }}.xml
+        run: poetry run poe test --junitxml=test-results-${{ matrix.python-version }}.xml --cloudsim-host "${{ secrets.CI_CLOUD_SIMULATOR_HOST }}" --cloudsim-pwd "${{ secrets.CI_CLOUD_SIMULATOR_PASSWORD }}" --cloudsim-email "${{ secrets.CI_CLOUD_SIMULATOR_USER_EMAIL }}"
 
       - name: Build
         run: poetry build

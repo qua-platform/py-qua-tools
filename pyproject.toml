@@ -21,6 +21,7 @@ qm-qua = ">=1.2.3"
 scikit-learn = ">=1.5.0"
 grpclib = "0.4.5"
 attrs = ">=22.2.0"
+packaging = ">=20.0"
 
 # Scipy
 scipy = [
@@ -46,7 +47,7 @@ docutils = { version = ">=0.14.0 <= 0.21", optional = true }
 waitress = { version = "^3.0.1", optional = true }
 
 # datahandler
-xarray = { version = "^2023.0.0", optional = true }
+xarray = "^2023.0.0"
 netCDF4 = { version = "^1.7.2", optional = true  }
 
 # two-qubit-rb
@@ -56,12 +57,13 @@ cirq = [
 ]
 tqdm = { version = "^4.67.1", optional = true  }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
 black = "^24.3"
 poethepoet = "^0.18.0"
 flake8 = "^5.0.4"
 setuptools = "^69.0.2"
+qm-saas = "^1.1.7"
 
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]
@@ -77,8 +79,8 @@ configbuilder = [
     "docutils",
     "waitress",
 ]
-datahandler = ["xarray", "netcdf4"]
-two-qubit-rb = ["xarray", "cirq", "tqdm"]
+datahandler = ["netcdf4"]
+two-qubit-rb = ["cirq", "tqdm"]
 
 [tool.black]
 line-length = 120
