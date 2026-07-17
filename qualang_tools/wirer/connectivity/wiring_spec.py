@@ -1,7 +1,5 @@
 from enum import Enum
-from typing import Union, List, Optional
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
@@ -37,7 +35,7 @@ class WiringLineType(Enum):
     CHARGE = "q"
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
-    ZZ_DRIVE = "zz"
+    ZZ = "zz"
     LASER = "la"
     SPCM = "spcm"
     TWPA_PUMP = "p"
@@ -55,7 +53,7 @@ FLUX = WiringLineType.FLUX
 CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
-ZZ_DRIVE = WiringLineType.ZZ_DRIVE
+ZZ = WiringLineType.ZZ
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
 TWPA_PUMP = WiringLineType.TWPA_PUMP
