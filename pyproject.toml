@@ -47,7 +47,7 @@ docutils = { version = ">=0.14.0 <= 0.21", optional = true }
 waitress = { version = "^3.0.1", optional = true }
 
 # datahandler
-xarray = "^2023.0.0"
+xarray = ">=2023.0.0,<2025.0.0"
 netCDF4 = { version = "^1.7.2", optional = true  }
 
 # two-qubit-rb
