@@ -18,6 +18,7 @@ def baking(
     override=False,
     baking_index: int = None,
     sampling_rate: Union[int, float] = 1e9,
+    lf_2gsps: bool = False,
 ):
     """
     Opens a context manager to synthesize samples for arbitrary waveforms. The input config is updated, unless a
@@ -43,7 +44,7 @@ def baking(
 
 
     """
-    return Baking(config, padding_method, override, baking_index, sampling_rate)
+    return Baking(config, padding_method, override, baking_index, sampling_rate, lf_2gsps)
 
 
 class Baking:
@@ -54,8 +55,10 @@ class Baking:
         override: bool = False,
         baking_index: int = None,
         sampling_rate: Union[int, float] = 1e9,
+        lf_2gsps: bool = False,
     ):
         self._config = config
+        self._lf_2gsps = lf_2gsps
         if baking_index is not None:
             self.update_config = False
         else:
@@ -165,11 +168,20 @@ class Baking:
                 self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["sampling_rate"] = self.sampling_rate
                 self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]["sampling_rate"] = self.sampling_rate
         elif "single" in qe_samples:
-            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
-                "operation": "control",
-                "length": len(qe_samples["single"]),
-                "waveforms": {"single": f"{qe}_baked_wf_{self._ctr}"},
-            }
+            # to modify length of pulse when 2gsps
+            if self._lf_2gsps == False:
+                self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
+                    "operation": "control",
+                    "length": len(qe_samples["single"]),
+                    "waveforms": {"single": f"{qe}_baked_wf_{self._ctr}"},
+                }
+            elif self._lf_2gsps == True:
+                assert (len(qe_samples["single"]) // 2) % 4 == 0, "You input a waveform in 2GSPS mode that is not multiple of 4 ns, length is"
+                self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"] = {
+                    "operation": "control",
+                    "length": len(qe_samples["single"]) // 2,
+                    "waveforms": {"single": f"{qe}_baked_wf_{self._ctr}"},
+                }
             self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"] = {
                 "type": "arbitrary",
                 "samples": qe_samples["single"],
@@ -208,6 +220,7 @@ class Baking:
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 qe_samples = self._samples_dict[qe]
+                # tk: this is for vertical resolution to gain x-axis resolution, no need for 2gsps
                 if self.sampling_rate > int(1e9):
                     if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
                         y1 = qe_samples["I"]
