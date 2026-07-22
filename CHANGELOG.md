@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [Unreleased] - [0.22.1.dev0]
 ### Added
 - results - Add `fetch_xarray_data` to fetch QUA job results and organize them into an `xarray.Dataset` aligned with the QUA iterables (sweep) structure. Requires `qm-qua>=1.3.1`; raises a clear `ImportError` on older versions while keeping `qualang_tools` importable.
 
