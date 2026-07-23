@@ -60,6 +60,20 @@ class PortAnnotation:
                 color=outline_colour,
             )
             bbox = None
+        elif self.instrument_id in ["qdac2"]:
+            port_size = PORT_SIZE * 0.72
+            port_label_distance = PORT_SIZE * 1.05
+            ax.text(
+                x - port_label_distance,
+                y,
+                str(self.port),
+                ha="center",
+                va="center",
+                fontsize=7,
+                fontweight="bold",
+                color=outline_colour,
+            )
+            bbox = None
         else:
             raise NotImplementedError(f"No port-annotation drawing for {self.instrument_id}")
 

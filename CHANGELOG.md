@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - [0.22.1.dev0]
 ### Added
 - results - Add `fetch_xarray_data` to fetch QUA job results and organize them into an `xarray.Dataset` aligned with the QUA iterables (sweep) structure. Requires `qm-qua>=1.3.1`; raises a clear `ImportError` on older versions while keeping `qualang_tools` importable.
+- wirer - Support for **QDAC-II (QDAC2)** in registration, DC channel allocation, and visualization:
+  - Instrument id `qdac2`; `Instruments.add_qdac2(indices)` exposes 24 DC outputs and 4 digital trigger inputs per unit on `available_channels`.
+  - Channel types `InstrumentChannelQdac2Output` and `InstrumentChannelQdac2DigitalInput`; constants `NUM_QDAC2_OUTPUT_PORTS` and `NUM_QDAC2_DIGITAL_INPUT_PORTS`.
+  - `qdac2_spec` (`ChannelSpecQdac2`) for DC voltage gates with optional external trigger input on the same QDAC2 unit; exported from `qualang_tools.wirer`.
+  - `allocate_dc_channels` allocates QDAC2-only lines and, when wiring constraints combine LF-FEM with QDAC2 or OPX+ with QDAC2, tries additional dual-instrument masks so each element gets the corresponding pair of channels.
+  - Visualizer: QDAC2 figure (3×8 DC grid and four trigger inputs) with port positions and annotations.
 
 ### Changed
 - requirements - `xarray` is now a core dependency instead of an optional extra (previously under the `datahandler` and `two-qubit-rb` extras).

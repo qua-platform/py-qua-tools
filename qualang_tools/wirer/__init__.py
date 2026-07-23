@@ -11,6 +11,7 @@ from .wirer.channel_specs_interface import (
     opx_iq_spec,
     opx_iq_octave_spec,
     octave_spec,
+    qdac2_spec,
 )
 from .wirer.wirer_exceptions import NotEnoughPulsersException, NotEnoughChannelsException
 
@@ -29,4 +30,5 @@ __all__ = [
     "opx_iq_spec",
     "opx_iq_octave_spec",
     "octave_spec",
+    "qdac2_spec",
 ]

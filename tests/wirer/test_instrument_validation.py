@@ -11,6 +11,12 @@ def test_opx_plus_and_octave_validation():
     instruments.add_octave(indices=1)
 
 
+def test_opx_plus_and_qdac2_validation():
+    instruments = Instruments()
+    instruments.add_opx_plus(controllers=1)
+    instruments.add_qdac2(indices=1)
+
+
 def test_redefinition_validation():
     instruments = Instruments()
     instruments.add_opx_plus(controllers=1)
@@ -21,6 +27,11 @@ def test_redefinition_validation():
     instruments.add_octave(indices=1)
     with pytest.raises(ValueError):
         instruments.add_octave(indices=1)
+
+    instruments = Instruments()
+    instruments.add_qdac2(indices=1)
+    with pytest.raises(ValueError):
+        instruments.add_qdac2(indices=1)
 
 
 def test_slot_filled_validation():
