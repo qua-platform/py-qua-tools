@@ -13,6 +13,89 @@ from qm.qua import Cast
 from qm.qua import Variable
 
 
+def _fixed_literal_step_ok(step):
+    return abs(float(step)) <= 8
+
+
+def _raise_fixed_literal_step(step):
+    raise ValueError(
+        "For QUA fixed variables, the increment or logarithmic ratio used in the loop update must satisfy |step| <= 8; "
+        "larger values are not representable and can overflow. " + "Use for_each_() for arbitrary scans: "
+        "https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+    )
+
+
+def _raise_fixed_points():
+    raise ValueError(
+        "For QUA fixed variables, every value visited in the loop must lie in [-8, 8). "
+        + "Use for_each_() for arbitrary scans: "
+        "https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+    )
+
+
+def _raise_fixed_post_update():
+    raise ValueError(
+        "For QUA fixed variables, the value after the loop update (var + step or var * step) must remain in [-8, 8); "
+        "otherwise the hardware update overflows or wraps before the next condition check. "
+        "Use for_each_() for arbitrary scans: "
+        "https://docs.quantum-machines.co/1.1.6/qm-qua-sdk/docs/Guides/features/?h=for_ea#for_each."
+    )
+
+
+def _in_fixed_range(x):
+    return -8 <= float(x) < 8
+
+
+def _validate_fixed_array_points(array):
+    pts = np.asarray(array, dtype=float)
+    if not np.all((pts >= -8) & (pts < 8)):
+        _raise_fixed_points()
+
+
+def _simulate_from_array_fixed_linear(start, stop, step):
+    fs, fst, fstp = float(start), float(stop), float(step)
+    visited = []
+    if fstp > 0:
+        v = fs
+        thresh = fst + fstp / 2
+        while v < thresh:
+            visited.append(v)
+            v += fstp
+            if not _in_fixed_range(v):
+                _raise_fixed_post_update()
+    else:
+        v = fs
+        thresh = fst + fstp / 2
+        while v > thresh:
+            visited.append(v)
+            v += fstp
+            if not _in_fixed_range(v):
+                _raise_fixed_post_update()
+    return visited
+
+
+def _simulate_from_array_fixed_log(start, stop, step):
+    fs, fst, fstp = float(start), float(stop), float(step)
+    visited = []
+    if fstp > 1:
+        v = fs
+        thresh = fst * np.sqrt(fstp)
+        while v < thresh:
+            visited.append(v)
+            v *= fstp
+            if not _in_fixed_range(v):
+                _raise_fixed_post_update()
+    else:
+        v = fs
+        thresh = fst * np.sqrt(fstp)
+        while v > thresh:
+            visited.append(v)
+            v *= fstp
+            if not _in_fixed_range(v):
+                _raise_fixed_post_update()
+    return visited
+
+
 def from_array(var, array):
     """Function parametrizing the QUA `for_` loop from a python array.
 
@@ -59,9 +142,17 @@ def from_array(var, array):
                 return var, int(start), var >= int(stop), var + int(step)
 
         elif var.is_fixed():
-            # Check for fixed number overflows
-            if not (-8 <= start < 8) and not (-8 <= stop < 8):
+            if not (-8 <= start < 8) or not (-8 <= stop < 8):
                 raise Exception("fixed numbers are bounded to [-8, 8).")
+
+            _validate_fixed_array_points(array)
+            if not _fixed_literal_step_ok(step):
+                _raise_fixed_literal_step(step)
+
+            visited = _simulate_from_array_fixed_linear(start, stop, step)
+            for v in visited:
+                if not (-8 <= v < 8):
+                    _raise_fixed_points()
 
             # Generate the loop parameters for positive and negative steps
             if step > 0:
@@ -111,9 +202,17 @@ def from_array(var, array):
                 )
 
         elif var.is_fixed():
-            # Check for fixed number overflows
-            if not (-8 <= start < 8) and not (-8 <= stop < 8):
+            if not (-8 <= start < 8) or not (-8 <= stop < 8):
                 raise Exception("fixed numbers are bounded to [-8, 8).")
+
+            _validate_fixed_array_points(array)
+            if not _fixed_literal_step_ok(step):
+                _raise_fixed_literal_step(step)
+
+            visited = _simulate_from_array_fixed_log(start, stop, step)
+            for v in visited:
+                if not (-8 <= v < 8):
+                    _raise_fixed_points()
 
             if step > 1:
                 return (
@@ -159,9 +258,15 @@ def qua_arange(var, start, stop, step):
     if float(step).is_integer():
         stop_condition = stop
     else:
-        # Check for fixed number overflows
-        if not (-8 <= start < 8) and not (-8 <= stop < 8):
-            raise Exception("fixed numbers are bounded to [-8, 8).")
+        if var.is_fixed():
+            if not (-8 <= start < 8) or not (-8 <= stop < 8):
+                raise Exception("fixed numbers are bounded to [-8, 8).")
+            if not _fixed_literal_step_ok(step):
+                _raise_fixed_literal_step(step)
+            seq = np.arange(float(start), float(stop), float(step))
+            for v in seq:
+                if not (-8 <= v < 8):
+                    _raise_fixed_points()
         if ((stop - start) / step).is_integer():
             stop_condition = stop - step / 2
         else:
@@ -197,9 +302,9 @@ def qua_linspace(var, start, stop, num):
         or (isinstance(num, bool))
     ):
         raise Exception("The for loop arguments must be python variables.")
-    # Check for fixed number overflows
-    if not (-8 <= start < 8) and not (-8 <= stop < 8):
-        raise Exception("fixed numbers are bounded to [-8, 8).")
+    if var.is_fixed():
+        if not (-8 <= start < 8) or not (-8 <= stop < 8):
+            raise Exception("fixed numbers are bounded to [-8, 8).")
     # Check if num is integer
     if not float(num).is_integer():
         raise Exception("The number of samples must be a python integer.")
@@ -210,6 +315,20 @@ def qua_linspace(var, start, stop, num):
         step = (stop - start) * 2
     else:
         step = stop - start
+
+    if var.is_fixed():
+        if not _fixed_literal_step_ok(step):
+            _raise_fixed_literal_step(step)
+        n = int(num)
+        if n > 1:
+            seq = np.linspace(float(start), float(stop), n)
+        elif n == 1:
+            seq = np.array([float(start)])
+        else:
+            seq = np.array([])
+        for v in seq:
+            if not (-8 <= v < 8):
+                _raise_fixed_points()
 
     if step > 0:
         return var, start, var < stop + step / 2, var + step
@@ -254,6 +373,8 @@ def qua_logspace(var, start, stop, num):
         warnings.warn(
             "When using logarithmic increments with QUA integers, the resulting values will slightly differ from the ones in numpy.logspace() because of rounding errors. \n Please use the get_equivalent_log_array() function to get the exact values taken by the QUA variable and note that the number of points may also change."
         )
+        if abs(step) >= 8:
+            _raise_fixed_literal_step(step)
         if step > 1:
             if int(round(10**start) * float(step)) == int(round(10**start)):
                 raise ValueError(
@@ -274,9 +395,21 @@ def qua_logspace(var, start, stop, num):
                 Cast.mul_int_by_fixed(var, float(step)),
             )
     elif var.is_fixed():
-        # Check for fixed number overflows
-        if not (-8 <= 10**start < 8) and not (-8 <= 10**stop < 8):
+        if not (-8 <= 10**start < 8) or not (-8 <= 10**stop < 8):
             raise Exception("fixed numbers are bounded to [-8, 8).")
+
+        if not _fixed_literal_step_ok(step):
+            _raise_fixed_literal_step(step)
+        n = int(num)
+        if n > 1:
+            seq = np.logspace(float(start), float(stop), n, base=10.0)
+        elif n == 1:
+            seq = np.array([10 ** float(start)])
+        else:
+            seq = np.array([])
+        for v in seq:
+            if not (-8 <= v < 8):
+                _raise_fixed_points()
 
         if step > 1:
             return (
