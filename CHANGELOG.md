@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
-## [Unreleased] - [0.22.1.dev1]
+## [Unreleased] - [0.23.1.dev0]
+
+
+## [0.23.0] - 2026-07-24
 ### Added
 - wirer - Support for **QDAC-II (QDAC2)** in registration, DC channel allocation, and visualization:
   - Instrument id `qdac2`; `Instruments.add_qdac2(indices)` exposes 24 DC outputs and 4 digital trigger inputs per unit on `available_channels`.
@@ -12,10 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - `qdac2_spec` (`ChannelSpecQdac2`) for DC voltage gates with optional external trigger input on the same QDAC2 unit; exported from `qualang_tools.wirer`.
   - `allocate_dc_channels` allocates QDAC2-only lines and, when wiring constraints combine LF-FEM with QDAC2 or OPX+ with QDAC2, tries additional dual-instrument masks so each element gets the corresponding pair of channels.
   - Visualizer: QDAC2 figure (3×8 DC grid and four trigger inputs) with port positions and annotations.
-
-
-## [Unreleased] - [0.22.1.dev0]
-### Added
 - results - Add `fetch_xarray_data` to fetch QUA job results and organize them into an `xarray.Dataset` aligned with the QUA iterables (sweep) structure. Requires `qm-qua>=1.3.1`; raises a clear `ImportError` on older versions while keeping `qualang_tools` importable.
 
 ### Changed
@@ -547,8 +546,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.22.0...HEAD
-[0.21.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...v0.22.0
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.22.0...v0.23.0
+[0.22.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.1...v0.21.0
 [0.20.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...v0.20.1
