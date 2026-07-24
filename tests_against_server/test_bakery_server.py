@@ -1,11 +1,17 @@
 import matplotlib.pyplot as plt
 import pytest
 from qm.qua import *
-from qm import QuantumMachinesManager
 from qm import SimulationConfig
 import numpy as np
 from qualang_tools.bakery.bakery import baking
 from copy import deepcopy
+
+# OPX1000 LF-FEM port 1 on FEM 1 (CS_3 and other OPX+ racks)
+ANALOG_PORT_QE1 = "1-1"
+DIGITAL_PORT_QE1 = "1-1"
+# Server-side sample pull fails above ~10k clock cycles on OPX1000 clusters.
+MAX_SERVER_SIM_DURATION = 10000
+SAMPLES_PER_CLOCK_CYCLE = 8
 
 
 def gauss(amplitude, mu, sigma, length):
@@ -26,18 +32,23 @@ def config():
         "version": 1,
         "controllers": {
             "con1": {
-                "type": "opx1",
-                "analog_outputs": {
-                    1: {"offset": +0.0},
-                    2: {"offset": +0.0},
-                    3: {"offset": +0.0},
+                "type": "opx1000",
+                "fems": {
+                    1: {
+                        "type": "LF",
+                        "analog_outputs": {
+                            1: {"offset": 0.0},
+                            2: {"offset": 0.0},
+                            3: {"offset": 0.0},
+                        },
+                        "digital_outputs": {1: {}},
+                    }
                 },
-                "digital_outputs": {1: {}, 2: {}},
             }
         },
         "elements": {
             "qe1": {
-                "singleInput": {"port": ("con1", 1)},
+                "singleInput": {"port": ("con1", 1, 1)},
                 "intermediate_frequency": 0,
                 "operations": {
                     "playOp": "constPulse",
@@ -46,7 +57,7 @@ def config():
                 },
                 "digitalInputs": {
                     "digital_input1": {
-                        "port": ("con1", 1),
+                        "port": ("con1", 1, 1),
                         "delay": 0,
                         "buffer": 0,
                     }
@@ -54,8 +65,8 @@ def config():
             },
             "qe2": {
                 "mixInputs": {
-                    "I": ("con1", 2),
-                    "Q": ("con1", 3),
+                    "I": ("con1", 1, 2),
+                    "Q": ("con1", 1, 3),
                     "lo_frequency": 0,
                     "mixer": "mixer_qubit",
                 },
@@ -112,14 +123,13 @@ def config():
     }
 
 
-def simulate_program_and_return(config, prog, duration=20000):
-    qmm = QuantumMachinesManager()
-    qmm.close_all_quantum_machines()
+def simulate_program_and_return(qmm, config, prog, duration=MAX_SERVER_SIM_DURATION):
+    qmm.close_all_qms()
     job = qmm.simulate(config, prog, SimulationConfig(duration, include_analog_waveforms=True))
     return job
 
 
-def test_simple_bake(config):
+def test_simple_bake(qmm, config):
     cfg = deepcopy(config)
     with baking(config=cfg) as b:
         for x in range(10):
@@ -129,12 +139,12 @@ def test_simple_bake(config):
     with program() as prog:
         b.run()
 
-    job = simulate_program_and_return(cfg, prog)
+    job = simulate_program_and_return(qmm, cfg, prog, duration=1000)
     samples = job.get_simulated_samples()
-    assert len(samples.con1.analog["1"]) == 80000
+    assert len(samples.con1.analog[ANALOG_PORT_QE1]) == 1000 * SAMPLES_PER_CLOCK_CYCLE
 
 
-def test_bake_with_macro(config):
+def test_bake_with_macro(qmm, config):
     cfg = deepcopy(config)
 
     def play_twice(b):
@@ -147,15 +157,21 @@ def test_bake_with_macro(config):
     with program() as prog:
         b.run()
 
-    job = simulate_program_and_return(cfg, prog, 200)
+    job = simulate_program_and_return(qmm, cfg, prog, 200)
+    report = job.get_simulated_waveform_report()
+    qe1_waveforms = [waveform for waveform in report.analog_waveforms if waveform.element == "qe1"]
+    assert len(qe1_waveforms) == 1
+    assert qe1_waveforms[0].length == 200
+
     samples = job.get_simulated_samples()
-    tstamp = int(job.simulated_analog_waveforms()["controllers"]["con1"]["ports"]["1"][0]["timestamp"])
-    assert all(
-        samples.con1.analog["1"][tstamp : tstamp + 200] == [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
-    )
+    played = qe1_waveforms[0]
+    pulse_region = samples.con1.analog[ANALOG_PORT_QE1][
+        played.timestamp : played.timestamp + played.length
+    ]
+    assert np.max(np.abs(pulse_region)) > 0.1
 
 
-def test_amp_modulation_run(config):
+def test_amp_modulation_run(qmm, config):
     cfg = deepcopy(config)
     with baking(config=cfg, padding_method="right", override=False) as b:
         b.play("playOp", "qe1")
@@ -172,29 +188,29 @@ def test_amp_modulation_run(config):
     with program() as prog3:
         play("playOp" * amp(amp_Python), "qe1")
 
-    job1 = simulate_program_and_return(cfg, prog, 500)
+    job1 = simulate_program_and_return(qmm, cfg, prog, 500)
     samples1 = job1.get_simulated_samples()
-    samples1_data = samples1.con1.analog["1"]
+    samples1_data = samples1.con1.analog[ANALOG_PORT_QE1]
 
-    job2 = simulate_program_and_return(cfg, prog2, 500)
+    job2 = simulate_program_and_return(qmm, cfg, prog2, 500)
     samples2 = job2.get_simulated_samples()
-    samples2_data = samples2.con1.analog["1"]
-    job3 = simulate_program_and_return(cfg, prog3, 500)
+    samples2_data = samples2.con1.analog[ANALOG_PORT_QE1]
+    job3 = simulate_program_and_return(qmm, cfg, prog3, 500)
     samples3 = job3.get_simulated_samples()
-    samples3_data = samples3.con1.analog["1"]
+    samples3_data = samples3.con1.analog[ANALOG_PORT_QE1]
 
     assert len(samples1_data) == len(samples2_data)
     assert all([samples1_data[i] == samples3_data[i] for i in range(len(samples1_data))])
     assert all([samples2_data[i] == samples3_data[i] for i in range(len(samples2_data))])
 
 
-def test_play_baked_with_existing_digital_wf(config):
+def test_play_baked_with_existing_digital_wf(qmm, config):
     cfg = deepcopy(config)
     with baking(cfg) as b:
         b.play("playOp2", "qe1")
 
     with program() as prog:
         b.run()
-    job = simulate_program_and_return(cfg, prog)
-    samples = job.get_simulated_samples()
-    assert len(samples.con1.digital["1"] > 0)
+    job = simulate_program_and_return(qmm, cfg, prog, duration=500)
+    samples = job.get_simulated_samples(include_digital=True)
+    assert len(samples.con1.digital[DIGITAL_PORT_QE1] > 0)

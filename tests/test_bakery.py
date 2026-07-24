@@ -185,29 +185,32 @@ def test_delete_Op(config):
         b.play("playOp", "qe1")
         b.play("gaussOp", "qe2")
         b.play("gaussOp", "qe3")
-    assert "baked_Op_0" in cfg["elements"]["qe1"]["operations"]
-    assert "qe1_baked_pulse_0" in cfg["pulses"]
-    assert "qe2_baked_pulse_0" in cfg["pulses"]
-    assert "qe3_baked_pulse_0" in cfg["pulses"]
+    idx = b.get_baking_index()
+    assert f"baked_Op_{idx}" in cfg["elements"]["qe1"]["operations"]
+    assert f"qe1_baked_pulse_{idx}" in cfg["pulses"]
+    assert f"qe2_baked_pulse_{idx}" in cfg["pulses"]
+    assert f"qe3_baked_pulse_{idx}" in cfg["pulses"]
     b.delete_baked_op("qe1")
-    assert "baked_Op_0" not in cfg["elements"]["qe1"]["operations"]
-    assert "qe1_baked_pulse_0" not in cfg["pulses"]
+    assert f"baked_Op_{idx}" not in cfg["elements"]["qe1"]["operations"]
+    assert f"qe1_baked_pulse_{idx}" not in cfg["pulses"]
     with b:
         b.play("playOp", "qe1")
-    assert "baked_Op_0" in cfg["elements"]["qe1"]["operations"]
+    idx = b.get_baking_index()
+    assert f"baked_Op_{idx}" in cfg["elements"]["qe1"]["operations"]
     b.delete_baked_op()
-    assert "baked_Op_0" not in cfg["elements"]["qe1"]["operations"]
-    assert "baked_Op_0" not in cfg["elements"]["qe2"]["operations"]
-    assert "baked_Op_0" not in cfg["elements"]["qe3"]["operations"]
+    assert f"baked_Op_{idx}" not in cfg["elements"]["qe1"]["operations"]
+    assert f"baked_Op_{idx}" not in cfg["elements"]["qe2"]["operations"]
+    assert f"baked_Op_{idx}" not in cfg["elements"]["qe3"]["operations"]
 
     with baking(cfg) as b:
         b.add_digital_waveform("dig_wf", [(1, 0)])
         b.add_op("new_Op", "qe1", [0.3] * 100, "dig_wf")
         b.play("new_Op", "qe1")
 
-    assert "qe1_baked_digital_wf_0" in cfg["digital_waveforms"]
+    idx = b.get_baking_index()
+    assert f"qe1_baked_digital_wf_{idx}" in cfg["digital_waveforms"]
     b.delete_baked_op()
-    assert "qe1_baked_digital_wf_0" not in cfg["digital_waveforms"]
+    assert f"qe1_baked_digital_wf_{idx}" not in cfg["digital_waveforms"]
 
 
 def test_indices_behavior(config):
@@ -216,13 +219,15 @@ def test_indices_behavior(config):
         b1.play("gaussOp", "qe2")
         b1.play("gaussOp", "qe3")
 
-    assert all([cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
-    assert all([cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
+    idx = b1.get_baking_index()
+    assert all([cfg["waveforms"][f"qe2_baked_wf_I_{idx}"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
+    assert all([cfg["waveforms"][f"qe3_baked_wf_I_{idx}"]["samples"][i] == gauss(0.2, 0, 15, 80)[i] for i in range(80)])
     with b1:
         b1.play("gaussOp", "qe2", amp=2)
         b1.play("gaussOp", "qe3", amp=2)
-    assert all([cfg["waveforms"]["qe2_baked_wf_I_0"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
-    assert all([cfg["waveforms"]["qe3_baked_wf_I_0"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
+    idx = b1.get_baking_index()
+    assert all([cfg["waveforms"][f"qe2_baked_wf_I_{idx}"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
+    assert all([cfg["waveforms"][f"qe3_baked_wf_I_{idx}"]["samples"][i] == gauss(0.4, 0, 15, 80)[i] for i in range(80)])
 
 
 def test_play_at_negative_t(config):
@@ -244,12 +249,13 @@ def test_play_at_negative_t(config):
         b.play_at("Op2", "qe3", t=-2)  # t indicates the time index where these new samples should be added
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+    idx = b.get_baking_index()
     assert np.array_equal(
-        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
+        np.round(np.array(b.get_waveforms_dict()["waveforms"][f"qe2_baked_wf_I_{idx}"]), 4),
         np.array([0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0, 0]),
     )
     assert np.array_equal(
-        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe3_baked_wf_I_0"]), 4),
+        np.round(np.array(b.get_waveforms_dict()["waveforms"][f"qe3_baked_wf_I_{idx}"]), 4),
         np.array([0, 0, 0, 0, 0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1, 0, 0, 0, 0, 0]),
     )
 
@@ -275,12 +281,13 @@ def test_negative_wait(config):
         b.play("Op2", "qe3")  # t indicates the time index where these new samples should be added
         # The baked waveform is now I: [0.3, 0.3, 0.3, 0.4, 0.4, 0.1, 0.1]
         #                           Q: [0.2, 0.2, 0.2, 0.4, 0.4, 0.1, 0.1]
+    idx = b.get_baking_index()
     assert np.array_equal(
-        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe2_baked_wf_I_0"]), 4),
+        np.round(np.array(b.get_waveforms_dict()["waveforms"][f"qe2_baked_wf_I_{idx}"]), 4),
         np.array([0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]),
     )
     assert np.array_equal(
-        np.round(np.array(b.get_waveforms_dict()["waveforms"]["qe3_baked_wf_I_0"]), 4),
+        np.round(np.array(b.get_waveforms_dict()["waveforms"][f"qe3_baked_wf_I_{idx}"]), 4),
         np.array([0, 0, 0, 0, 0, 0.3, 0.3, 0.4, 0.4, 0.4, 0.1, 0, 0, 0, 0, 0]),
     )
 
@@ -368,10 +375,11 @@ def test_add_digital_wf(config):
         b.add_op("Op", "qe1", [0.1, 0.1, 0.1], digital_marker="dig_wf")
         b.play("Op", "qe1")
         b.play("Op2", "qe1")
-    print(cfg["pulses"]["qe1_baked_pulse_0"])
-    print(cfg["waveforms"]["qe1_baked_wf_0"])
+    idx = b.get_baking_index()
+    print(cfg["pulses"][f"qe1_baked_pulse_{idx}"])
+    print(cfg["waveforms"][f"qe1_baked_wf_{idx}"])
     print(cfg["digital_waveforms"])
-    assert cfg["digital_waveforms"]["qe1_baked_digital_wf_0"]["samples"] == [
+    assert cfg["digital_waveforms"][f"qe1_baked_digital_wf_{idx}"]["samples"] == [
         (1, 0),
         (0, 25),
         (1, 13),
@@ -406,15 +414,16 @@ def test_constraint_length(config):
 
 def test_low_sampling_rate(config):
     cfg = deepcopy(config)
-    for i, rate in enumerate([0.1e9, 0.2e9, 0.34e9, 0.4234e9, 0.5e9, 0.788e9]):
+    for rate in [0.1e9, 0.2e9, 0.34e9, 0.4234e9, 0.5e9, 0.788e9]:
         with baking(config, sampling_rate=rate) as b:
             b.add_op("Op2", "qe2", [[0.2] * 700, [0.3] * 700])
             b.add_op("Op2", "qe3", [[0.2] * 700, [0.3] * 700])
             b.play("Op2", "qe2")
             b.play("Op2", "qe3")
 
-        assert config["waveforms"][f"qe2_baked_wf_I_{i}"]["sampling_rate"] == int(rate)
-        assert config["waveforms"][f"qe3_baked_wf_I_{i}"]["sampling_rate"] == int(rate)
+        idx = b.get_baking_index()
+        assert config["waveforms"][f"qe2_baked_wf_I_{idx}"]["sampling_rate"] == int(rate)
+        assert config["waveforms"][f"qe3_baked_wf_I_{idx}"]["sampling_rate"] == int(rate)
 
 
 def test_high_sampling_rate(config):
@@ -475,3 +484,40 @@ def test_delete_samples_within_baking(config):
         assert b4._qe_dict["qe2"]["time"] == 600
         assert b4._qe_dict["qe3"]["time"] == 600
     assert b4.get_op_length() == 600
+
+
+def test_baking_idempotent(config):
+    cfg = deepcopy(config)
+
+    def baked_op_count():
+        return len([op for op in cfg["elements"]["qe2"]["operations"] if op.startswith("baked_Op_")])
+
+    indices = []
+    for _ in range(3):
+        with baking(cfg) as b:
+            b.play("gaussOp", "qe2")
+            b.play("gaussOp", "qe3")
+        idx = b.get_baking_index()
+        assert isinstance(idx, int)
+        indices.append(idx)
+
+    assert baked_op_count() == 1
+    assert indices == [indices[0]] * 3
+
+    with baking(cfg) as b_proj:
+        b_proj.play("playOp", "qe1")
+    with baking(cfg) as b_depth:
+        b_depth.play("gaussOp", "qe2")
+        b_depth.play("gaussOp", "qe3")
+        b_depth.play("gaussOp", "qe2")
+    assert baked_op_count() == 2
+
+
+def test_baking_idempotent_index_reuse(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as b1:
+        b1.play("gaussOp", "qe2")
+    idx1 = b1.get_baking_index()
+    with baking(cfg) as b2:
+        b2.play("gaussOp", "qe2")
+    assert b2.get_baking_index() == idx1
