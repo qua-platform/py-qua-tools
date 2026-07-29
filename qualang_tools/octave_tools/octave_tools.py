@@ -37,13 +37,13 @@ def _get_lo_and_gain_from_config(config: dict, octave_port: Tuple[str, int]) -> 
 
 
 def get_calibration_parameters_from_db(
-    path_to_database: str,
-    config: dict,
-    element: str,
-    LO: float,
-    IF: float,
-    gain: float,
-    verbose_level: int = 2,
+        path_to_database: str,
+        config: dict,
+        element: str,
+        LO: float,
+        IF: float,
+        gain: float,
+        verbose_level: int = 2,
 ) -> dict:
     """Returns the most up-to-date correction parameters in the database, located at the specified path_to_database, for the
     specified values of the Octave LO frequency, intermediate frequency and Octave gain.
@@ -110,13 +110,13 @@ def get_calibration_parameters_from_db(
 
 
 def get_closest_calibration_parameters_from_db(
-    path_to_database: str,
-    config: dict,
-    element: str,
-    LO: float,
-    IF: float,
-    gain: float,
-    verbose_level: int = 2,
+        path_to_database: str,
+        config: dict,
+        element: str,
+        LO: float,
+        IF: float,
+        gain: float,
+        verbose_level: int = 2,
 ) -> dict:
     """Returns the correction parameters from the closest IF calibration entry in the database for the
     specified values of the Octave LO frequency and gain.
@@ -197,15 +197,15 @@ def get_closest_calibration_parameters_from_db(
 
 
 def set_correction_parameters_to_opx(
-    path_to_database: str,
-    config: dict,
-    element: str,
-    LO: float,
-    IF: float,
-    gain: float,
-    qm: QuantumMachine,
-    job: Union[QmJob, RunningQmJob] = None,
-    verbose_level: int = 2,
+        path_to_database: str,
+        config: dict,
+        element: str,
+        LO: float,
+        IF: float,
+        gain: float,
+        qm: QuantumMachine,
+        job: Union[QmJob, RunningQmJob] = None,
+        verbose_level: int = 2,
 ) -> dict:
     """Look for the correction parameters in the database, located at path_to_database, for the specified values of
     the Octave LO frequency, intermediate frequency and Octave gain and update the running job with `job.set_element_correction()`.
@@ -249,15 +249,15 @@ def set_correction_parameters_to_opx(
 
 
 def set_closest_correction_parameters_to_opx(
-    path_to_database: str,
-    config: dict,
-    element: str,
-    LO: float,
-    IF: float,
-    gain: float,
-    qm: QuantumMachine,
-    job: Union[QmJob, RunningQmJob] = None,
-    verbose_level: int = 2,
+        path_to_database: str,
+        config: dict,
+        element: str,
+        LO: float,
+        IF: float,
+        gain: float,
+        qm: QuantumMachine,
+        job: Union[QmJob, RunningQmJob] = None,
+        verbose_level: int = 2,
 ) -> dict:
     """Look for the closest IF correction parameters in the database for the specified values of
     the Octave LO frequency and gain and update the running job with `job.set_element_correction()`.
@@ -309,11 +309,11 @@ def set_closest_correction_parameters_to_opx(
 
 
 def apply_closest_calibrations(
-    path_to_database: str,
-    config: dict,
-    qm: QuantumMachine,
-    job: Union[QmJob, RunningQmJob] = None,
-    verbose_level: int = 2,
+        path_to_database: str,
+        config: dict,
+        qm: QuantumMachine,
+        job: Union[QmJob, RunningQmJob] = None,
+        verbose_level: int = 2,
 ) -> List[dict]:
     """Apply the closest Octave IQ calibration from the database for each Octave element in the config.
 
@@ -367,16 +367,16 @@ def apply_closest_calibrations(
 
 
 def get_correction_for_each_LO_and_IF(
-    path_to_database: str,
-    config: dict,
-    element: str,
-    gain: float,
-    LO_list: Union[list, np.ndarray],
-    IF_list: Union[list, np.ndarray],
-    nb_of_updates: int,
-    calibrate: bool = False,
-    qm: QuantumMachine = None,
-    calibration_params: AutoCalibrationParams = None,
+        path_to_database: str,
+        config: dict,
+        element: str,
+        gain: float,
+        LO_list: Union[list, np.ndarray],
+        IF_list: Union[list, np.ndarray],
+        nb_of_updates: int,
+        calibrate: bool = False,
+        qm: QuantumMachine = None,
+        calibration_params: AutoCalibrationParams = None,
 ):
     """Look in the calibration database for the calibration parameters corresponding to the provided set of LO
     frequencies, intermediate frequencies and gain.
@@ -440,10 +440,10 @@ def get_correction_for_each_LO_and_IF(
 
 
 def octave_calibration_tool(
-    qm: QuantumMachine,
-    element: str,
-    lo_frequencies: Union[int, float, list, np.ndarray],
-    intermediate_frequencies: Union[int, float, list, np.ndarray],
+        qm: QuantumMachine,
+        element: str,
+        lo_frequencies: Union[int, float, list, np.ndarray],
+        intermediate_frequencies: Union[int, float, list, np.ndarray],
 ):
     """Calibrate a given element for a list of LO and intermediate frequencies.
     :param qm: the quantum machine object.
