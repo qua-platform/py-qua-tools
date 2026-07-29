@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - [0.22.1.dev1]
 ### Added
+- octave_tools - Add closest IF calibration helpers for Octave elements:
+  - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
+  - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
+  - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
 - wirer - Support for **QDAC-II (QDAC2)** in registration, DC channel allocation, and visualization:
   - Instrument id `qdac2`; `Instruments.add_qdac2(indices)` exposes 24 DC outputs and 4 digital trigger inputs per unit on `available_channels`.
   - Channel types `InstrumentChannelQdac2Output` and `InstrumentChannelQdac2DigitalInput`; constants `NUM_QDAC2_OUTPUT_PORTS` and `NUM_QDAC2_DIGITAL_INPUT_PORTS`.
