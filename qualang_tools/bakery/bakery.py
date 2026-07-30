@@ -36,10 +36,15 @@ def baking(
         Moreover, if index is provided, input config is not updated with the waveform to be generated
         (useful for matching lengths when using waveform overriding in add_compiled feature)
     :param sampling_rate: Choose the number of samples per second (by default 1 Gs/sec) in
-            which you write the waveforms within the baking. If the sampling rate higher than the default value,
-            cubic interpolation is done to provide a new waveform at the OPX sampling rate. If the sampling rate is
-            lower, the sampling rate argument is added to the waveform in the config, causing the OPX to interpolate
-            in real time.
+            which you write the waveforms within the baking. The sampling rate determines how the waveforms are
+            processed:
+            - If the sampling rate is lower than 1 GS/s: the sampling rate argument is added to the waveform
+              in the config, causing the OPX to interpolate in real time.
+            - If the sampling rate is higher than 1 GS/s AND matches the hardware port's native sampling rate
+              (e.g., 2 GS/s on OPX1000 LF-FEM ports): the samples are passed through as-is with the sampling_rate
+              tag in the waveform config, so the OPX plays them at the correct rate.
+            - If the sampling rate is higher than 1 GS/s AND does NOT match the hardware port's native sampling rate:
+              cubic interpolation is done to provide a new waveform at 1 GS/s.
 
 
     """
@@ -139,6 +144,78 @@ class Baking:
 
         return sample_dict, qe_dict, digit_samples_dict
 
+    def _get_port_sampling_rate(self, qe: str) -> float:
+        """
+        Retrieves the hardware sampling rate for the given quantum element's output port.
+
+        :param qe: quantum element name
+        :return: sampling rate in samples/sec (defaults to 1e9 if not found)
+        """
+        try:
+            element = self._config["elements"][qe]
+            port = None
+
+            # Determine the port based on element type
+            if "singleInput" in element:
+                port = element["singleInput"]["port"]
+            elif "mixInputs" in element:
+                # Use I port (I and Q should have same sampling rate)
+                port = element["mixInputs"]["I"]
+            elif "RF_inputs" in element:
+                # RF_inputs typically use Octave, which doesn't have configurable sampling rate
+                return 1e9
+            elif "MWInput" in element:
+                # MWInput typically uses MW-FEM, which doesn't have configurable sampling rate
+                return 1e9
+            else:
+                return 1e9
+
+            if port is None:
+                return 1e9
+
+            # Parse port and lookup sampling rate in controllers config
+            controllers = self._config.get("controllers", {})
+
+            if len(port) == 3:
+                # OPX1000 (FEM-based): (controller, fem, port_number)
+                con, fem, port_num = port
+                if con in controllers:
+                    fems = controllers[con].get("fems", {})
+                    if fem in fems:
+                        analog_outputs = fems[fem].get("analog_outputs", {})
+                        if port_num in analog_outputs:
+                            return analog_outputs[port_num].get("sampling_rate", 1e9)
+            elif len(port) == 2:
+                # OPX+ (flat): (controller, port_number)
+                con, port_num = port
+                if con in controllers:
+                    analog_outputs = controllers[con].get("analog_outputs", {})
+                    if port_num in analog_outputs:
+                        return analog_outputs[port_num].get("sampling_rate", 1e9)
+
+            # Default to 1e9 if not found
+            return 1e9
+
+        except (KeyError, TypeError, ValueError):
+            # Graceful fallback for any lookup failures
+            return 1e9
+
+    def _needs_interpolation(self, qe: str) -> bool:
+        """
+        Determines whether interpolation is needed for the given quantum element.
+
+        Interpolation is needed when the baking sampling rate is higher than 1 GS/s
+        AND the hardware port doesn't natively support that rate.
+
+        :param qe: quantum element name
+        :return: True if interpolation is needed, False otherwise
+        """
+        if self.sampling_rate <= int(1e9):
+            return False
+
+        port_rate = self._get_port_sampling_rate(qe)
+        return self.sampling_rate != port_rate
+
     def _update_config(self, qe, qe_samples) -> None:
         # Generates new Op, pulse, and waveform for each qe to be added in the original config file
         self._config["elements"][qe]["operations"][f"baked_Op_{self._ctr}"] = f"{qe}_baked_pulse_{self._ctr}"
@@ -161,7 +238,7 @@ class Baking:
                 "samples": qe_samples["Q"],
                 "is_overridable": self.override,
             }
-            if self.sampling_rate < int(1e9):
+            if self.sampling_rate != int(1e9) and not self._needs_interpolation(qe):
                 self._config["waveforms"][f"{qe}_baked_wf_I_{self._ctr}"]["sampling_rate"] = self.sampling_rate
                 self._config["waveforms"][f"{qe}_baked_wf_Q_{self._ctr}"]["sampling_rate"] = self.sampling_rate
         elif "single" in qe_samples:
@@ -175,7 +252,7 @@ class Baking:
                 "samples": qe_samples["single"],
                 "is_overridable": self.override,
             }
-            if self.sampling_rate < int(1e9):
+            if self.sampling_rate != int(1e9) and not self._needs_interpolation(qe):
                 self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["sampling_rate"] = self.sampling_rate
 
         if len(self._digital_samples_dict[qe]) != 0:
@@ -208,7 +285,7 @@ class Baking:
                 # otherwise we do not add any Op
                 self._qe_set.add(qe)
                 qe_samples = self._samples_dict[qe]
-                if self.sampling_rate > int(1e9):
+                if self._needs_interpolation(qe):
                     if any([key in elements[qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
                         y1 = qe_samples["I"]
                         y2 = qe_samples["Q"]
@@ -320,10 +397,11 @@ class Baking:
     def is_out(self):
         return self._out
 
-    def _get_samples(self, pulse: str) -> Union[List[float], List[List[float]]]:
+    def _get_samples(self, pulse: str, qe: str = None) -> Union[List[float], List[List[float]]]:
         """
         Returns samples associated with a pulse
-        :param pulse:
+        :param pulse: pulse name
+        :param qe: quantum element name (optional, used for determining if interpolation is needed)
         :returns: Python list containing samples, [samples_I, samples_Q] in case of mixInputs
         """
 
@@ -331,7 +409,14 @@ class Baking:
             waveforms = self._local_config["waveforms"]
             pulses = self._local_config["pulses"]
 
-            if self.sampling_rate > int(1e9) and pulse in self._config["pulses"]:
+            # Check if interpolation is needed based on element's port sampling rate
+            needs_interp = (
+                self.sampling_rate > int(1e9)
+                and pulse in self._config["pulses"]
+                and (qe is None or self._needs_interpolation(qe))
+            )
+
+            if needs_interp:
                 dt = 1e9 / self.sampling_rate
                 orig_max_t = pulses[pulse]["length"]
                 len_t = np.ceil(orig_max_t / dt).astype(int)
@@ -713,7 +798,7 @@ class Baking:
         """
         try:
             pulse = self._local_config["elements"][qe]["operations"][Op]
-            samples = self._get_samples(pulse)
+            samples = self._get_samples(pulse, qe)
             freq = self._qe_dict[qe]["freq"]
             phi = self._qe_dict[qe]["phase"]
 
@@ -807,7 +892,7 @@ class Baking:
         else:
             try:
                 pulse = self._local_config["elements"][qe]["operations"][Op]
-                samples = self._get_samples(pulse)
+                samples = self._get_samples(pulse, qe)
                 new_samples = 0
                 if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
                     assert isinstance(
