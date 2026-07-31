@@ -1,9 +1,10 @@
 import logging
 from contextlib import contextmanager
 from time import sleep, time
-from typing import Generator
+from typing import Generator, Union
 
 from qm import QuantumMachinesManager, QuantumMachine, QopCaps
+from qm.type_hinting.config_types import FullQuaConfig, ControllerQuaConfig
 from qm.logging_utils import set_logging_level
 
 msg = "cannot be used because it isn't shareable in other QM."
@@ -11,7 +12,9 @@ msg_opx1000 = "Resources already locked"
 
 
 @contextmanager
-def qm_session(qmm: QuantumMachinesManager, config: dict, timeout: int = 100) -> Generator[QuantumMachine, None, None]:
+def qm_session(
+    qmm: QuantumMachinesManager, config: Union[FullQuaConfig, ControllerQuaConfig], timeout: int = 100
+) -> Generator[QuantumMachine, None, None]:
     """
     This context manager allows a user to _try_ to
     open a quantum machine, and if it is not possible since its resources are currently in use,
