@@ -16,6 +16,8 @@ from qualang_tools.wirer.instruments.instrument_channel import (
     InstrumentChannelLfFemDigitalOutput,
     InstrumentChannelOctaveDigitalInput,
     InstrumentChannelExternalMixerDigitalInput,
+    InstrumentChannelQdac2Output,
+    InstrumentChannelQdac2DigitalInput,
 )
 
 # A channel template is a partially filled InstrumentChannel object
@@ -211,6 +213,28 @@ class ChannelSpecOctave(ChannelSpec):
         self.channel_templates = [
             InstrumentChannelOctaveInput(con=index, port=rf_in),
             InstrumentChannelOctaveOutput(con=index, port=rf_out),
+        ]
+
+
+class ChannelSpecQdac2(ChannelSpec):
+    def __init__(self, index: int = None, out_port: int = None, trigger_in_port: int = None):
+        """
+        Represents a DC voltage gate on a QDAC2 (analog output plus optional external trigger input).
+
+        Use with ``add_voltage_gate_lines`` (and related quantum-dot helpers). For a triggered line,
+        allocation picks one DC output and one digital trigger input on the same QDAC2 unit. For an
+        untriggered line, only the analog output is used.
+
+        Args:
+            index (int, optional): QDAC2 unit index (maps to ``con`` on the channel; any positive integer).
+            out_port (int, optional): DC analog output port (1-24; only used when allocating the output).
+            trigger_in_port (int, optional): External trigger input port (1-4; only used when the line
+                is triggered).
+        """
+        super().__init__()
+        self.channel_templates = [
+            InstrumentChannelQdac2Output(con=index, port=out_port),
+            InstrumentChannelQdac2DigitalInput(con=index, port=trigger_in_port),
         ]
 
 
@@ -515,6 +539,7 @@ opx_iq_octave_spec = ChannelSpecOpxPlusBasebandAndOctave
 opx_iq_ext_mixer_spec = ChannelSpecOpxPlusBasebandAndExternalMixer
 octave_spec = ChannelSpecOctave
 ext_mixer_spec = ChannelSpecExternalMixer
+qdac2_spec = ChannelSpecQdac2
 opx_dig_spec = ChannelSpecOpxPlusDigital
 lf_fem_dig_spec = ChannelSpecLfFemDigital
 mw_fem_dig_spec = ChannelSpecMwFemDigital

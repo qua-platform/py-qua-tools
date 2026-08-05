@@ -20,6 +20,7 @@ from .channel_specs import (
     ChannelSpecOctaveDigital,
     ChannelSpecOpxPlusDigital,
     ChannelSpecExternalMixerDigital,
+    ChannelSpecQdac2,
 )
 from .wirer_assign_channels_to_spec import assign_channels_to_spec
 from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
@@ -136,14 +137,32 @@ def _allocate_wiring(spec: WiringSpec, instruments: Instruments, observe_pulser_
 
 def allocate_dc_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
     """
-    Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
+    Try to allocate DC channels to an LF-FEM, OPX+, and/or QDAC2 to satisfy the spec.
+
+    Single-instrument masks are tried first. If the (filtered) constraints mention both an LF-FEM and
+    QDAC2 (e.g. ``lf_fem_spec(...) & qdac2_spec(...)``), an extra LF-FEM+QDAC2 mask is appended so each
+    element receives one LF analog output (and digital if triggered) plus one QDAC2 output (and trigger
+    input if triggered). The same idea applies for OPX+ combined with QDAC2.
     """
     dc_specs = [
         # LF-FEM, Single analog output
         ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital(),
         # OPX+, Single analog output
         ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital(),
+        # QDAC2, DC output + external trigger input (digital)
+        ChannelSpecQdac2(),
     ]
+
+    if spec.constraints:
+        filtered_c = spec.constraints.filter_by_wiring_spec(spec)
+        instr_ids = {t.instrument_id for t in filtered_c.channel_templates}
+        wants_lf = "lf-fem" in instr_ids
+        wants_opx = "opx+" in instr_ids
+        wants_qdac = "qdac2" in instr_ids
+        if wants_lf and wants_qdac:
+            dc_specs.append(ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital() & ChannelSpecQdac2())
+        elif wants_opx and wants_qdac:
+            dc_specs.append(ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital() & ChannelSpecQdac2())
 
     allocate_channels(
         spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation
