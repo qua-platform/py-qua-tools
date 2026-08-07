@@ -4,7 +4,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from qualang_tools.octave_tools import get_calibration_parameters_from_db
+from qualang_tools.octave_tools import (
+    get_calibration_parameters_from_db,
+    get_closest_calibration_parameters_from_db,
+)
 
 
 @pytest.fixture
@@ -134,3 +137,30 @@ def test_verbose(config):
     assert param_qubit["correction_matrix"] == ()
     with pytest.raises(Warning):
         get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=2)
+
+
+def test_get_closest_calibration_parameters_exact_if(config):
+    param_qubit = get_closest_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 0)
+    assert param_qubit["closest_IF"] == 50e6
+    assert param_qubit["IF_delta"] == 0
+    assert param_qubit["offsets"]["I"] == -0.0008390136567642799
+    assert param_qubit["correction_matrix"] == convert_to_correction(0.002667968769702953, 0.1732576938647769)
+
+
+def test_get_closest_calibration_parameters_nearest_if(config):
+    param_exact = get_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 63e6, 0)
+    param_qubit = get_closest_calibration_parameters_from_db(
+        abs_path_to(""), config, "qubit", 5e9, 58e6, 0, verbose_level=0
+    )
+    assert param_qubit["closest_IF"] == 63e6
+    assert param_qubit["IF_delta"] == 5e6
+    assert param_qubit["correction_matrix"] == param_exact["correction_matrix"]
+
+
+def test_get_closest_calibration_parameters_missing_if(config):
+    param_qubit = get_closest_calibration_parameters_from_db(
+        abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=0
+    )
+    assert param_qubit["correction_matrix"] == ()
+    with pytest.raises(Warning):
+        get_closest_calibration_parameters_from_db(abs_path_to(""), config, "qubit", 5e9, 50e6, 1, verbose_level=2)
