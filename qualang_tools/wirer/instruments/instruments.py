@@ -7,6 +7,8 @@ from .instrument_channel import (
     InstrumentChannelExternalMixerInput,
     InstrumentChannelExternalMixerOutput,
     InstrumentChannelExternalMixerDigitalInput,
+    InstrumentChannelQdac2Output,
+    InstrumentChannelQdac2DigitalInput,
 )
 from .instrument_channels import *
 from .instrument_pulsers import *
@@ -46,6 +48,27 @@ class Instruments:
 
             channel = InstrumentChannelExternalMixerDigitalInput(con=index, port=1)
             self.available_channels.add(channel)
+
+    def add_qdac2(self, indices: Union[List[int], int]):
+        """
+        Add QDAC2 instruments to the available channels.
+
+        Each unit exposes all DC analog output ports and external trigger input ports.
+
+        Args:
+            indices (List[int] | int): One or more QDAC2 unit indices (e.g. as used in the lab stack).
+        """
+        if isinstance(indices, int):
+            indices = [indices]
+
+        for index in indices:
+            for port in range(1, NUM_QDAC2_OUTPUT_PORTS + 1):
+                channel = InstrumentChannelQdac2Output(con=index, port=port)
+                self.available_channels.add(channel)
+
+            for port in range(1, NUM_QDAC2_DIGITAL_INPUT_PORTS + 1):
+                channel = InstrumentChannelQdac2DigitalInput(con=index, port=port)
+                self.available_channels.add(channel)
 
     def add_octave(self, indices: Union[List[int], int]):
         """

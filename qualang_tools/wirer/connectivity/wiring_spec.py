@@ -1,7 +1,5 @@
 from enum import Enum
-from typing import Union, List
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from qualang_tools.wirer.connectivity.channel_spec import ChannelSpec
@@ -37,10 +35,17 @@ class WiringLineType(Enum):
     CHARGE = "q"
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
-    ZZ_DRIVE = "zz"
+    ZZ = "zz"
     DETUNED_DRIVE = "xy_detuned"
     LASER = "la"
     SPCM = "spcm"
+    TWPA_PUMP = "p"
+    TWPA_ISOLATION = "i"
+    PLUNGER_GATE = "p"
+    BARRIER_GATE = "b"
+    GLOBAL_GATE = "g"
+    SENSOR_GATE = "s"
+    RF_RESONATOR = "rf"
 
 
 RESONATOR = WiringLineType.RESONATOR
@@ -49,10 +54,17 @@ FLUX = WiringLineType.FLUX
 CHARGE = WiringLineType.CHARGE
 COUPLER = WiringLineType.COUPLER
 CROSS_RESONANCE = WiringLineType.CROSS_RESONANCE
-ZZ_DRIVE = WiringLineType.ZZ_DRIVE
+ZZ = WiringLineType.ZZ
 DETUNED_DRIVE = WiringLineType.DETUNED_DRIVE
 LASER = WiringLineType.LASER
 SPCM = WiringLineType.SPCM
+TWPA_PUMP = WiringLineType.TWPA_PUMP
+TWPA_ISOLATION = WiringLineType.TWPA_ISOLATION
+PLUNGER_GATE = WiringLineType.PLUNGER_GATE
+BARRIER_GATE = WiringLineType.BARRIER_GATE
+GLOBAL_GATE = WiringLineType.GLOBAL_GATE
+SENSOR_GATE = WiringLineType.SENSOR_GATE
+RF_RESONATOR = WiringLineType.RF_RESONATOR
 
 
 class WiringSpec:
@@ -65,9 +77,9 @@ class WiringSpec:
         self,
         frequency: WiringFrequency,
         io_type: WiringIOType,
-        line_type: WiringLineType,
+        line_type: Union[WiringLineType, str],
         triggered: bool,
-        constraints: "ChannelSpec",
+        constraints: "Optional[ChannelSpec]",
         elements: Union["Element", List["Element"]],
     ):
         self.frequency = frequency

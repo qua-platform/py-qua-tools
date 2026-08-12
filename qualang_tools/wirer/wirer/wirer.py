@@ -20,6 +20,7 @@ from .channel_specs import (
     ChannelSpecOctaveDigital,
     ChannelSpecOpxPlusDigital,
     ChannelSpecExternalMixerDigital,
+    ChannelSpecQdac2,
 )
 from .wirer_assign_channels_to_spec import assign_channels_to_spec
 from .wirer_exceptions import ConstraintsTooStrictException, NotEnoughChannelsException
@@ -46,13 +47,13 @@ def allocate_wiring(
     handles different frequency requirements, either DC or RF, and manages the reuse of available channels depending on
     the `block_used_channels` flag.
 
-    The allocation process involves the following steps:
-    1. The function iterates over the wiring specifications (`specs`) based on their `line_type`, attempting to allocate
-       channels for each `WiringSpec`.
-    2. For each specification, the relevant allocation function (`_allocate_wiring`) is called to allocate DC or RF channels.
-    3. If `clear_wiring_specifications` is `True`, the specifications are cleared after the allocation.
-    4. If `block_used_channels` is `False`, any channels that were previously used but are no longer allocated are returned
-       to the available channels list.
+    Flow overview:
+    1. Split the wiring specs by `line_type`, then separate each group into constrained and unconstrained specs.
+    2. Allocate all constrained specs first (across all line types), then any constrained specs with untyped line types.
+       This prevents unconstrained allocations from consuming scarce channels required by fixed constraints.
+    3. Allocate remaining unconstrained specs in line-type order, followed by unconstrained untyped specs.
+    4. If `clear_wiring_specifications` is `True`, the specifications are cleared after the allocation.
+    5. If `block_used_channels` is `False`, channels newly used during allocation are returned to the available pool.
 
     Args:
         connectivity (Connectivity): An instance of the `Connectivity` class containing the wiring specifications to be allocated.
@@ -70,31 +71,43 @@ def allocate_wiring(
         NotEnoughChannelsException: If there are not enough available channels to satisfy the wiring specification.
     """
 
-    line_type_fill_order = [
-        WiringLineType.RESONATOR,
-        WiringLineType.DRIVE,
-        WiringLineType.FLUX,
-        WiringLineType.CHARGE,
-        WiringLineType.COUPLER,
-        WiringLineType.CROSS_RESONANCE,
-        WiringLineType.ZZ_DRIVE,
-    ]
+    line_type_fill_order = [t for t in WiringLineType]
 
     specs = connectivity.specs
 
     used_channel_cache = copy.deepcopy(instruments.used_channels)
 
-    specs_with_untyped_lines = []
-    for line_type in line_type_fill_order:
-        for spec in specs:
-            if spec.line_type not in line_type_fill_order:
-                specs_with_untyped_lines.append(spec)
-            if spec.line_type == line_type:
-                _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    # Always allocate constrained specs first across all line types to avoid
+    # unconstrained wiring consuming scarce, fixed resources.
+    typed_specs_by_line_type = {
+        line_type: [spec for spec in specs if spec.line_type == line_type] for line_type in line_type_fill_order
+    }
+    constrained_specs_by_line_type = {
+        line_type: [spec for spec in typed_specs_by_line_type[line_type] if spec.constraints]
+        for line_type in line_type_fill_order
+    }
+    unconstrained_specs_by_line_type = {
+        line_type: [spec for spec in typed_specs_by_line_type[line_type] if not spec.constraints]
+        for line_type in line_type_fill_order
+    }
+
+    specs_with_untyped_lines = [spec for spec in specs if spec.line_type not in line_type_fill_order]
 
     # remove duplicates
     specs_with_untyped_lines = list(dict.fromkeys(specs_with_untyped_lines))
-    for spec in specs_with_untyped_lines:
+    constrained_untyped_specs = [spec for spec in specs_with_untyped_lines if spec.constraints]
+    unconstrained_untyped_specs = [spec for spec in specs_with_untyped_lines if not spec.constraints]
+
+    for line_type in line_type_fill_order:
+        for spec in constrained_specs_by_line_type[line_type]:
+            _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    for spec in constrained_untyped_specs:
+        _allocate_wiring(spec, instruments, observe_pulser_allocation)
+
+    for line_type in line_type_fill_order:
+        for spec in unconstrained_specs_by_line_type[line_type]:
+            _allocate_wiring(spec, instruments, observe_pulser_allocation)
+    for spec in unconstrained_untyped_specs:
         _allocate_wiring(spec, instruments, observe_pulser_allocation)
 
     if clear_wiring_specifications:
@@ -124,14 +137,32 @@ def _allocate_wiring(spec: WiringSpec, instruments: Instruments, observe_pulser_
 
 def allocate_dc_channels(spec: WiringSpec, instruments: Instruments, observe_pulser_allocation: bool = False):
     """
-    Try to allocate DC channels to an LF-FEM or OPX+ to satisfy the spec.
+    Try to allocate DC channels to an LF-FEM, OPX+, and/or QDAC2 to satisfy the spec.
+
+    Single-instrument masks are tried first. If the (filtered) constraints mention both an LF-FEM and
+    QDAC2 (e.g. ``lf_fem_spec(...) & qdac2_spec(...)``), an extra LF-FEM+QDAC2 mask is appended so each
+    element receives one LF analog output (and digital if triggered) plus one QDAC2 output (and trigger
+    input if triggered). The same idea applies for OPX+ combined with QDAC2.
     """
     dc_specs = [
         # LF-FEM, Single analog output
         ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital(),
         # OPX+, Single analog output
         ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital(),
+        # QDAC2, DC output + external trigger input (digital)
+        ChannelSpecQdac2(),
     ]
+
+    if spec.constraints:
+        filtered_c = spec.constraints.filter_by_wiring_spec(spec)
+        instr_ids = {t.instrument_id for t in filtered_c.channel_templates}
+        wants_lf = "lf-fem" in instr_ids
+        wants_opx = "opx+" in instr_ids
+        wants_qdac = "qdac2" in instr_ids
+        if wants_lf and wants_qdac:
+            dc_specs.append(ChannelSpecLfFemSingle() & ChannelSpecLfFemDigital() & ChannelSpecQdac2())
+        elif wants_opx and wants_qdac:
+            dc_specs.append(ChannelSpecOpxPlusSingle() & ChannelSpecOpxPlusDigital() & ChannelSpecQdac2())
 
     allocate_channels(
         spec, dc_specs, instruments, same_con=True, same_slot=True, observe_pulser_allocation=observe_pulser_allocation

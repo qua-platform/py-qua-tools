@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
-from .wiring_spec import WiringLineType
 from ..instruments.instrument_channel import AnyInstrumentChannel
+from .wiring_spec import WiringLineType
 
 
 @dataclass(frozen=True)
@@ -14,8 +14,17 @@ class Reference:
 
 
 @dataclass(frozen=True)
+class ElementReference:
+    name: str
+    index: Union[int, str]
+
+    def __str__(self):
+        return f"{self.name}{self.index}"
+
+
+@dataclass(frozen=True)
 class QubitReference:
-    index: int
+    index: Union[int, str]
 
     def __str__(self):
         return f"q{self.index}"
@@ -23,18 +32,18 @@ class QubitReference:
 
 @dataclass(frozen=True)
 class QubitPairReference:
-    control_index: int
-    target_index: int
+    control_index: Union[int, str]
+    target_index: Union[int, str]
 
     def __str__(self):
-        return f"q{self.control_index}-{self.target_index}"
+        return f"q{self.control_index}-q{self.target_index}"
 
 
-ElementId = Union[Reference, QubitReference, QubitPairReference]
+ElementId = Union[Reference, ElementReference, QubitReference, QubitPairReference]
 
 
 class Element:
-    def __init__(self, id: Union[str, QubitReference, QubitPairReference]):
+    def __init__(self, id: Union[str, ElementReference, QubitReference, QubitPairReference]):
         if isinstance(id, str):
             id = Reference(id)
         self.id = id

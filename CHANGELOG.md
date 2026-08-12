@@ -3,9 +3,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
-- wirer - Add connectivity functions for zz drive and detuned xy drive QUAMs.
-- bakery - Enable to pass amp as list of 4 floats to allow IQ rotation
+
+## [Unreleased] - [0.23.1.dev0]
+
+
+## [0.23.0] - 2026-07-24
+### Added
+- wirer - Support for **QDAC-II (QDAC2)** in registration, DC channel allocation, and visualization:
+  - Instrument id `qdac2`; `Instruments.add_qdac2(indices)` exposes 24 DC outputs and 4 digital trigger inputs per unit on `available_channels`.
+  - Channel types `InstrumentChannelQdac2Output` and `InstrumentChannelQdac2DigitalInput`; constants `NUM_QDAC2_OUTPUT_PORTS` and `NUM_QDAC2_DIGITAL_INPUT_PORTS`.
+  - `qdac2_spec` (`ChannelSpecQdac2`) for DC voltage gates with optional external trigger input on the same QDAC2 unit; exported from `qualang_tools.wirer`.
+  - `allocate_dc_channels` allocates QDAC2-only lines and, when wiring constraints combine LF-FEM with QDAC2 or OPX+ with QDAC2, tries additional dual-instrument masks so each element gets the corresponding pair of channels.
+  - Visualizer: QDAC2 figure (3×8 DC grid and four trigger inputs) with port positions and annotations.
+- results - Add `fetch_xarray_data` to fetch QUA job results and organize them into an `xarray.Dataset` aligned with the QUA iterables (sweep) structure. Requires `qm-qua>=1.3.1`; raises a clear `ImportError` on older versions while keeping `qualang_tools` importable.
+
+### Changed
+- requirements - `xarray` is now a core dependency instead of an optional extra (previously under the `datahandler` and `two-qubit-rb` extras).
+
+
+## [0.22.0] - 2026-04-01
+### Added                                                                                                                                                                
+- wirer - Add wiring infrastructure for quantum-dot-based QPUs via the new `ConnectivityQuantumDotQubits` interface, including support for:                              
+  - Plunger gate lines (`add_quantum_dot_voltage_gate_lines`)                                                                                                            
+  - Barrier gate lines (`add_barrier_voltage_gate_lines` / `add_quantum_dot_pairs`)                                                                                    
+  - Sensor dot voltage gate lines (`add_sensor_dot_voltage_gate_lines`)
+  - Sensor dot resonator lines (`add_sensor_dot_resonator_line`)
+  - RF drive lines for quantum dots (`add_quantum_dot_drive_lines`)
+  - Convenience methods `add_quantum_dots`, `add_sensor_dots`, and `add_voltage_gate_lines`
+- wirer - Add new `WiringLineType` entries: `PLUNGER_GATE`, `BARRIER_GATE`, `GLOBAL_GATE`, `SENSOR_GATE`, `RF_RESONATOR`
+- wirer - Elements, qubits, and qubit pairs can now be identified by `str` as well as `int`
+- wirer - Add TWPAs to the framework.
+
+### Fixed
+- multi_user_tool - Fix bug for qm-qua >= 1.2.3.
+- wirer - Constrained wiring specs are now correctly prioritised during channel allocation
+
+### Changed
+- Changed Python version to `python<=3.13`.
+- Changed numpy version to `numpy<3` to support numpy-2. Had to change optional cirq dependency to be
+  `cirq==1.6.0` if `python>=3.11` else `cirq==1.5.0` if `python>=3.10,<3.11`
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns before calculating the compensation pulse. This behavior can be overridden by setting `start_at_zero=False` when calling `seq.add_compensation_pulse()`.
+- voltage_gates - Voltages on all elements in a sequence are ramped to 0V with ramp_duration=16ns after applying the compensation pulse. This behavior can be overridden by setting `end_at_zero=False` when calling `seq.add_compensation_pulse()`.
+
 
 ## [0.21.1] - 2026-01-16
 ### Fixed
@@ -14,6 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Change
 - fetching_tool - Use `fetch_results` (>= 1.2.3) instead of `fetch_all`
+
 
 ## [0.21.0] - 2025-10-29
 ### Changed
@@ -506,7 +546,9 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.22.0...v0.23.0
+[0.22.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.1...v0.21.0
 [0.20.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.20.0...v0.20.1
