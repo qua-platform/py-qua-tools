@@ -4,8 +4,6 @@ Created: 23/02/2021
 """
 
 import copy
-import hashlib
-import json
 from typing import List, Union, Tuple, Dict, Optional, Set
 from warnings import warn
 
@@ -48,41 +46,44 @@ def baking(
     return Baking(config, padding_method, override, baking_index, sampling_rate)
 
 
-class BakingCounter:
-    _next_by_config: Dict[int, int] = {}
+BAKED_OP_PREFIX = "baked_Op_"
 
-    @classmethod
-    def allocate(cls, config) -> int:
-        key = id(config)
-        if key not in cls._next_by_config:
-            cls._next_by_config[key] = cls._max_index_in_config(config) + 1
-        idx = cls._next_by_config[key]
-        cls._next_by_config[key] += 1
-        return idx
 
-    @staticmethod
-    def _max_index_in_config(config) -> int:
-        max_index = -1
-        for qe in config["elements"].keys():
-            for op in config["elements"][qe]["operations"]:
-                if op.find("baked") != -1:
-                    try:
-                        max_index = max(max_index, int(op.split("_")[-1]))
-                    except ValueError:
-                        pass
-        return max_index
+def _baked_indices_in_config(config) -> Set[int]:
+    """Collect the indices of every baked operation present in a configuration.
 
-    @staticmethod
-    def collect_baked_indices(config) -> Set[int]:
-        indices: Set[int] = set()
-        for qe in config["elements"]:
-            for op in config["elements"][qe]["operations"]:
-                if op.startswith("baked_Op_"):
-                    try:
-                        indices.add(int(op.split("_")[-1]))
-                    except ValueError:
-                        pass
-        return indices
+    This is the single definition of "a baked operation belongs to the bakery": an operation named
+    ``baked_Op_<n>``. Index allocation and idempotence matching both use it, so a freshly allocated
+    index can never collide with an entry that matching is able to see.
+
+    :param config: config file
+    :returns: Set of baked operation indices found in the config
+    """
+    indices: Set[int] = set()
+    for element in config["elements"].values():
+        for op in element.get("operations", {}):
+            if op.startswith(BAKED_OP_PREFIX):
+                suffix = op[len(BAKED_OP_PREFIX) :]
+                if suffix.isdigit():
+                    indices.add(int(suffix))
+    return indices
+
+
+def _values_equal(left, right) -> bool:
+    """Compare baked samples and metadata, including numpy arrays and scalars."""
+    if isinstance(left, dict) and isinstance(right, dict):
+        if left.keys() != right.keys():
+            return False
+        return all(_values_equal(left[key], right[key]) for key in left)
+    if isinstance(left, (list, tuple)) and isinstance(right, (list, tuple)):
+        if len(left) != len(right):
+            return False
+        if left and not isinstance(left[0], (list, tuple, dict)) and not isinstance(right[0], (list, tuple, dict)):
+            return np.array_equal(np.asarray(left), np.asarray(right))
+        return all(_values_equal(a, b) for a, b in zip(left, right))
+    if isinstance(left, np.ndarray) or isinstance(right, np.ndarray):
+        return np.array_equal(np.asarray(left), np.asarray(right))
+    return left == right
 
 
 class Baking:
@@ -107,10 +108,13 @@ class Baking:
             self._qe_dict,
             self._digital_samples_dict,
         ) = self._init_dict()
-        if baking_index is None:
-            self._ctr = BakingCounter.allocate(config)
-        else:
-            self._ctr = baking_index
+        # The definitive index is chosen at __exit__, once it is known whether this bake writes a new
+        # config entry or reuses an equivalent one. Until then _ctr is provisional so that
+        # get_baking_index() still answers, and _owns_config_entry records whether this object is the
+        # one that wrote the entry _ctr names.
+        self._ctr = baking_index if baking_index is not None else self._next_free_index()
+        self._index_settled = baking_index is not None
+        self._owns_config_entry = False
         self._qe_set = set()
         self.override = override
         if override and sampling_rate < 1e9:
@@ -148,67 +152,100 @@ class Baking:
     def config(self) -> Dict:
         return self._config
 
-    def _compute_content_fingerprint(self, samples_by_qe: Dict) -> str:
-        digital = {qe: self._digital_samples_dict[qe] for qe in samples_by_qe}
-        payload = {
-            "override": self.override,
-            "sampling_rate": self.sampling_rate,
-            "samples": samples_by_qe,
-            "digital": digital,
+    def _next_free_index(self) -> int:
+        """Return one past the highest baked operation index already present in the config."""
+        return max(_baked_indices_in_config(self._config), default=-1) + 1
+
+    @property
+    def _stored_sampling_rate(self) -> int:
+        """The sampling rate as it appears in the config for this bake's waveforms.
+
+        Only a rate below 1 GS/s is stored, because that is the case the OPX interpolates at run
+        time. Above 1 GS/s the samples are interpolated down during __exit__, so the config holds
+        plain 1 GS/s samples. Matching must use the stored value, or a bake above 1 GS/s could never
+        match the entry it just wrote.
+        """
+        return self.sampling_rate if self.sampling_rate < int(1e9) else int(1e9)
+
+    def _content_payload(self, samples_by_qe: Dict) -> Dict:
+        """Describe what this bake would write to the config, per quantum element."""
+        return {
+            qe: {
+                "samples": samples,
+                "digital": self._digital_samples_dict[qe],
+                "is_overridable": self.override,
+                "sampling_rate": self._stored_sampling_rate,
+            }
+            for qe, samples in samples_by_qe.items()
         }
-        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()
 
     @staticmethod
-    def _fingerprint_from_config(config, index: int) -> Optional[str]:
-        active_qes = sorted(
-            qe for qe in config["elements"] if f"baked_Op_{index}" in config["elements"][qe]["operations"]
-        )
+    def _config_payload(config, index: int) -> Optional[Dict]:
+        """Describe an existing baked operation, in the same shape as _content_payload.
+
+        :returns: Payload for baked operation ``index``, or None if the config holds no complete,
+            recognisable entry at that index
+        """
+        active_qes = [
+            qe for qe in config["elements"] if f"{BAKED_OP_PREFIX}{index}" in config["elements"][qe]["operations"]
+        ]
         if not active_qes:
             return None
 
-        samples = {}
-        digital = {}
-        override = False
-        sampling_rate = int(1e9)
-
+        payload = {}
         for qe in active_qes:
             pulse_name = f"{qe}_baked_pulse_{index}"
             if pulse_name not in config["pulses"]:
                 return None
-            pulse = config["pulses"][pulse_name]
-            pulse_waveforms = pulse.get("waveforms", {})
+            pulse_waveforms = config["pulses"][pulse_name].get("waveforms", {})
             if "I" in pulse_waveforms:
-                wf_i = config["waveforms"][pulse_waveforms["I"]]
-                wf_q = config["waveforms"][pulse_waveforms["Q"]]
-                samples[qe] = {"I": wf_i["samples"], "Q": wf_q["samples"]}
-                override = wf_i.get("is_overridable", False)
-                sampling_rate = wf_i.get("sampling_rate", int(1e9))
+                wf = config["waveforms"][pulse_waveforms["I"]]
+                samples = {
+                    "I": wf["samples"],
+                    "Q": config["waveforms"][pulse_waveforms["Q"]]["samples"],
+                }
             elif "single" in pulse_waveforms:
                 wf = config["waveforms"][pulse_waveforms["single"]]
-                samples[qe] = {"single": wf["samples"]}
-                override = wf.get("is_overridable", False)
-                sampling_rate = wf.get("sampling_rate", int(1e9))
+                samples = {"single": wf["samples"]}
             else:
                 return None
 
             dig_name = f"{qe}_baked_digital_wf_{index}"
-            if "digital_waveforms" in config and dig_name in config["digital_waveforms"]:
-                digital[qe] = config["digital_waveforms"][dig_name]["samples"]
-            else:
-                digital[qe] = []
+            digital = config.get("digital_waveforms", {}).get(dig_name, {}).get("samples", [])
 
-        payload = {
-            "override": override,
-            "sampling_rate": sampling_rate,
-            "samples": samples,
-            "digital": digital,
-        }
-        return hashlib.sha1(json.dumps(payload, sort_keys=True, default=float).encode()).hexdigest()
+            payload[qe] = {
+                "samples": samples,
+                "digital": digital,
+                "is_overridable": wf.get("is_overridable", False),
+                "sampling_rate": wf.get("sampling_rate", int(1e9)),
+            }
+        return payload
 
-    def _find_matching_index(self, fingerprint: str) -> Optional[int]:
-        for index in sorted(BakingCounter.collect_baked_indices(self._config)):
-            config_fingerprint = self._fingerprint_from_config(self._config, index)
-            if config_fingerprint == fingerprint:
+    def _find_equivalent_index(self, payload: Dict) -> Optional[int]:
+        """Find an existing baked operation whose content matches ``payload``.
+
+        Candidates of a different shape (elements or waveform lengths) are skipped without walking
+        every sample. Remaining candidates are compared with short-circuiting equality, so a
+        mismatch typically stops at the first sample that differs.
+
+        :returns: Lowest matching index, or None if the config holds no equivalent entry
+        """
+        for index in sorted(_baked_indices_in_config(self._config)):
+            config_payload = self._config_payload(self._config, index)
+            if config_payload is None:
+                continue
+            if config_payload.keys() != payload.keys():
+                continue
+            if any(
+                config_payload[qe]["samples"].keys() != payload[qe]["samples"].keys()
+                or any(
+                    len(config_payload[qe]["samples"][key]) != len(payload[qe]["samples"][key])
+                    for key in payload[qe]["samples"]
+                )
+                for qe in payload
+            ):
+                continue
+            if _values_equal(config_payload, payload):
                 return index
         return None
 
@@ -284,6 +321,34 @@ class Baking:
                 self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {
                     "samples": self._digital_samples_dict[qe]
                 }
+
+    def _write_config_entry(self, final_samples: Dict) -> None:
+        for qe, qe_samples in final_samples.items():
+            self._update_config(qe, qe_samples)
+
+    def _write_or_reuse_config_entry(self, final_samples: Dict) -> None:
+        """Settle this bake's index, writing a new config entry only when one is needed.
+
+        An equivalent entry already in the config is reused instead of duplicated, which is what
+        makes re-baking identical waveforms idempotent. The reused entry belongs to whichever object
+        wrote it, so _owns_config_entry stays False and delete_baked_op refuses to remove it.
+
+        Re-entering a baking object that already owns its entry rewrites that entry in place, so an
+        operation name handed out earlier keeps resolving to this object's waveforms.
+        """
+        if self._owns_config_entry:
+            self._write_config_entry(final_samples)
+            return
+
+        match = self._find_equivalent_index(self._content_payload(final_samples))
+        self._index_settled = True
+        if match is not None:
+            self._ctr = match
+            return
+
+        self._ctr = self._next_free_index()
+        self._write_config_entry(final_samples)
+        self._owns_config_entry = True
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """
@@ -404,13 +469,7 @@ class Baking:
                 final_samples[qe] = copy.deepcopy(qe_samples)
 
         if self.update_config and final_samples:
-            fingerprint = self._compute_content_fingerprint(final_samples)
-            match = self._find_matching_index(fingerprint)
-            if match is not None:
-                self._ctr = match
-            else:
-                for qe, qe_samples in final_samples.items():
-                    self._update_config(qe, qe_samples)
+            self._write_or_reuse_config_entry(final_samples)
 
         for qe, qe_samples in final_samples.items():
             elements_qe = self._local_config["elements"][qe]
@@ -497,7 +556,13 @@ class Baking:
 
     def get_baking_index(self) -> int:
         """
-        :return: Index of the baking object (based on its order of creation)
+        Index identifying this bake's operation in the config, as in ``baked_Op_<index>``.
+
+        The index is settled when the context manager exits, because a bake whose waveforms already
+        exist in the config reuses that entry instead of adding a duplicate. Read it after the exit,
+        and expect two bakes of identical waveforms to report the same index.
+
+        :return: Index of the baked operation associated to this baking object
         """
         return self._ctr
 
@@ -624,14 +689,27 @@ class Baking:
         Delete from the config the baked operation and its associated pulse and waveform(s) for the
         specified quantum_elements
 
+        Only a baking object that wrote the operation may delete it. A bake whose waveforms already
+        existed in the config reuses that entry rather than duplicating it, and deleting a shared
+        entry would leave every other baking object pointing at an operation that is no longer there.
+
         :param qe_set:
             tuple of quantum elements, if no element is provided,
             all the baked operations associated to this baking object will be deleted
+        :raises Warning: if this baking object did not write the operation it names
         """
 
         def remove_op(q):
             if self.length_constraint is None:
                 if self._out:
+                    if not self._owns_config_entry:
+                        if not self._index_settled:
+                            return
+                        raise Warning(
+                            f"baked_Op_{self._ctr} was already in the config when this bake ran, so it is "
+                            f"shared with the baking object that created it. Delete it through that "
+                            f"object, or bake different waveforms to get an operation of your own."
+                        )
                     if f"baked_Op_{self._ctr}" in self.config["elements"][q]["operations"]:
                         del self.config["elements"][q]["operations"][f"baked_Op_{self._ctr}"]
                         del self.config["pulses"][f"{q}_baked_pulse_{self._ctr}"]

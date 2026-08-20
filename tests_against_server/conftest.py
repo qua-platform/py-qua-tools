@@ -16,20 +16,16 @@ def _load_qmm_config() -> dict:
     return config["qmm"]
 
 
-@pytest.fixture(autouse=True)
-def print_server_target():
-    qmm_cfg = _load_qmm_config()
-    cluster = qmm_cfg.get("cluster_name", "(none)")
-    host = qmm_cfg.get("host", "?")
-    port = qmm_cfg.get("port", "?")
-    print(f"\n[server tests] cluster={cluster} host={host} port={port}", flush=True)
-
-
 @pytest.fixture
 def qmm():
-    qmm = QuantumMachinesManager(**_load_qmm_config())
-    qmm.close_all_quantum_machines()
-
+    qmm_cfg = _load_qmm_config()
+    print(
+        f"\n[server tests] cluster={qmm_cfg.get('cluster_name', '(none)')} "
+        f"host={qmm_cfg.get('host', '?')} port={qmm_cfg.get('port', '?')}",
+        flush=True,
+    )
+    qmm = QuantumMachinesManager(**qmm_cfg)
+    qmm.close_all_qms()
     return qmm
 
 
