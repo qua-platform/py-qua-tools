@@ -5,8 +5,7 @@ import pytest
 from qm import QuantumMachinesManager
 
 
-@pytest.fixture
-def qmm():
+def _load_qmm_config() -> dict:
     config_file = Path.home() / ".qm_config.toml"
     if not config_file.exists():
         raise FileNotFoundError("Could not locate ~/.qm_config.toml, cannot extract IP and port to execute tests")
@@ -14,10 +13,19 @@ def qmm():
     config = toml.load(config_file)
     if "qmm" not in config:
         raise KeyError("'qmm' must be defined in ~/.qm_config.toml to run server tests")
+    return config["qmm"]
 
-    qmm = QuantumMachinesManager(**config["qmm"])
-    qmm.close_all_quantum_machines()
 
+@pytest.fixture
+def qmm():
+    qmm_cfg = _load_qmm_config()
+    print(
+        f"\n[server tests] cluster={qmm_cfg.get('cluster_name', '(none)')} "
+        f"host={qmm_cfg.get('host', '?')} port={qmm_cfg.get('port', '?')}",
+        flush=True,
+    )
+    qmm = QuantumMachinesManager(**qmm_cfg)
+    qmm.close_all_qms()
     return qmm
 
 
