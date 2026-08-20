@@ -511,6 +511,9 @@ def test_baking_idempotent(config):
         b_depth.play("gaussOp", "qe3")
         b_depth.play("gaussOp", "qe2")
     assert baked_op_count() == 2
+    assert "baked_Op_1" in cfg["elements"]["qe1"]["operations"]
+    assert b_proj.get_baking_index() != indices[0]
+    assert b_depth.get_baking_index() != indices[0]
 
 
 def test_baking_idempotent_index_reuse(config):
@@ -521,3 +524,92 @@ def test_baking_idempotent_index_reuse(config):
     with baking(cfg) as b2:
         b2.play("gaussOp", "qe2")
     assert b2.get_baking_index() == idx1
+
+
+def _baked_indices(cfg, qe="qe2"):
+    return sorted(int(op.rsplit("_", 1)[1]) for op in cfg["elements"][qe]["operations"] if op.startswith("baked_Op_"))
+
+
+def test_delete_after_dedup_refuses_to_remove_shared_entry(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as owner:
+        owner.play("gaussOp", "qe2")
+    with baking(cfg) as reuse:
+        reuse.play("gaussOp", "qe2")
+    assert reuse.get_baking_index() == owner.get_baking_index()
+    with pytest.raises(Warning, match="shared with the baking object that created it"):
+        reuse.delete_baked_op()
+    assert f"baked_Op_{owner.get_baking_index()}" in cfg["elements"]["qe2"]["operations"]
+    owner.delete_baked_op()
+    assert _baked_indices(cfg) == []
+
+
+def test_reenter_keeps_owned_index(config):
+    cfg = deepcopy(config)
+    with baking(cfg) as first:
+        first.play("gaussOp", "qe2", amp=1)
+    with baking(cfg) as second:
+        second.play("gaussOp", "qe2", amp=2)
+    owned = first.get_baking_index()
+    other = second.get_baking_index()
+    with first:
+        first.play("gaussOp", "qe2", amp=2)
+    assert first.get_baking_index() == owned
+    assert first.get_baking_index() != other
+    assert _baked_indices(cfg) == sorted([owned, other])
+
+
+def test_indices_are_dense_after_dedup(config):
+    cfg = deepcopy(config)
+    indices = []
+    for amp in (1, 1, 1, 2, 2, 3):
+        with baking(cfg) as b:
+            b.play("gaussOp", "qe2", amp=amp)
+        indices.append(b.get_baking_index())
+    assert indices == [0, 0, 0, 1, 1, 2]
+    assert _baked_indices(cfg) == [0, 1, 2]
+
+
+def test_idempotent_above_one_gs(config):
+    cfg = deepcopy(config)
+    indices = []
+    for _ in range(3):
+        with baking(cfg, sampling_rate=2e9) as b:
+            b.add_op("Op", "qe2", [[0.2] * 200, [0.3] * 200])
+            b.play("Op", "qe2")
+        indices.append(b.get_baking_index())
+    assert indices == [indices[0]] * 3
+    assert _baked_indices(cfg) == [indices[0]]
+
+
+def test_numpy_samples_are_idempotent(config):
+    cfg = deepcopy(config)
+    samples = np.linspace(0.0, 0.2, 100)
+    with baking(cfg) as first:
+        first.add_op("Op", "qe2", [samples, samples])
+        first.play("Op", "qe2")
+    with baking(cfg) as second:
+        second.add_op("Op", "qe2", [samples.tolist(), samples.tolist()])
+        second.play("Op", "qe2")
+    assert second.get_baking_index() == first.get_baking_index()
+    assert _baked_indices(cfg) == [first.get_baking_index()]
+
+
+def test_override_flag_is_not_collapsed(config):
+    cfg = deepcopy(config)
+    with baking(cfg, override=False) as plain:
+        plain.add_op("Op", "qe2", [[0.1] * 100, [0.2] * 100])
+        plain.play("Op", "qe2")
+    with baking(cfg, override=True) as overridable:
+        overridable.add_op("Op", "qe2", [[0.1] * 100, [0.2] * 100])
+        overridable.play("Op", "qe2")
+    assert overridable.get_baking_index() != plain.get_baking_index()
+    assert _baked_indices(cfg) == sorted([plain.get_baking_index(), overridable.get_baking_index()])
+
+
+def test_unrelated_baked_name_does_not_seed_index(config):
+    cfg = deepcopy(config)
+    cfg["elements"]["qe2"]["operations"]["baked_thing_7"] = "gauss_pulse"
+    with baking(cfg) as b:
+        b.play("gaussOp", "qe2")
+    assert b.get_baking_index() == 0

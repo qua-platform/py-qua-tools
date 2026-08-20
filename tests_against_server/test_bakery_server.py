@@ -165,10 +165,9 @@ def test_bake_with_macro(qmm, config):
 
     samples = job.get_simulated_samples()
     played = qe1_waveforms[0]
-    pulse_region = samples.con1.analog[ANALOG_PORT_QE1][
-        played.timestamp : played.timestamp + played.length
-    ]
-    assert np.max(np.abs(pulse_region)) > 0.1
+    pulse_region = samples.con1.analog[ANALOG_PORT_QE1][played.timestamp : played.timestamp + played.length]
+    expected = [i / 200 for i in range(100)] + [i / 200 for i in range(100)]
+    assert np.allclose(pulse_region, expected)
 
 
 def test_amp_modulation_run(qmm, config):

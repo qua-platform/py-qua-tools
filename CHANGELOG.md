@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed
+- bakery - Re-baking identical waveforms no longer accumulates duplicate `baked_Op_N` entries. Matching uses the
+  samples actually stored in the config (including interpolating bakes above 1 GS/s), and a bake that reused an
+  existing entry cannot delete it through `delete_baked_op`. Indices are allocated when the config is written, so
+  distinct waveforms keep contiguous names (`baked_Op_0`, `baked_Op_1`, …).
 
 ## [0.22.0] - 2026-04-01
 ### Added                                                                                                                                                                
