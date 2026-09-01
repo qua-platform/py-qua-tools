@@ -19,16 +19,13 @@ from qualang_tools.config.primitive_components import (
 
 
 class QMConfiguration:
-    def __init__(self, controllers: List[Controller] = None, version: int = 1):
+    def __init__(self, controllers: List[Controller] = None):
         """A class to generate the QM configuration
 
         :param controllers: A controller or list of controllers used in this configuration, defaults to None
         :type controllers: List[Controller], optional
-        :param version: Controller version, defaults to 1
-        :type version: int, optional
         """
         self.config = dict()
-        self.config["version"] = 1
         self.config["controllers"] = dict()
         for cont in controllers:
             self.config["controllers"][cont.name] = self._call_dict_parameters(cont.dict)

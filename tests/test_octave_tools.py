@@ -13,7 +13,6 @@ from qualang_tools.octave_tools import (
 @pytest.fixture
 def config():
     return {
-        "version": 1,
         "controllers": {
             "con1": {
                 "analog_outputs": {
