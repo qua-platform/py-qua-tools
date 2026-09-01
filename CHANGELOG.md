@@ -5,6 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ## [Unreleased] - [0.23.1.dev0]
+
+### Changed
+- Changed Python version to `python<3.15`.
+- Changed Pytest version to `8.4.2` to be compatible with python 3.9-3.14.
+- Split compiled dependencies by Python version so 3.14 installs wheels: matplotlib, scikit-learn, scipy, netCDF4, pillow, contourpy, kiwisolver, and cftime. Python 3.9 stays on pillow 11.x, contourpy 1.3.0, kiwisolver 1.4.7, and cftime 1.6.4.
+- Raised the optional markupsafe floor to `>=3.0.3`, the first release with Python 3.14 wheels that still supports 3.9.
+- Changed flake8 to `^7.3.0`. flake8 5 pulled pyflakes 2.5, which crashes on Python 3.14 with `module 'ast' has no attribute 'Str'`.
+- Raised the optional pandas floor to `>=2.3.3`.
+- Added `grpcio>=1.75.1` as a direct dependency.
+- Added optional `typedunits>=0.0.2` (`python>=3.10`) to the `two-qubit-rb` extra.
+
+### Fixed
+- digital_filters - `highpass_correction` no longer passes a 1-element NumPy array into `scipy.signal.butter`, which raises `TypeError` on SciPy 1.17 / NumPy 2.5 (Python 3.14). The analog cutoff is now a Python float.
+- config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
+
 ### Added
 - octave_tools - Add closest IF calibration helpers for Octave elements:
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.

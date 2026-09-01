@@ -1,5 +1,7 @@
 from tracemalloc import stop
 from flask import Config
+import warnings
+
 import pytest
 import numpy as np
 
@@ -351,7 +353,8 @@ def test_parameter_algebra():
 
 
 def test_deprecated_warning():
-    with pytest.warns(None) as record:
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
@@ -359,16 +362,17 @@ def test_deprecated_warning():
 
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 2
+    assert len(record) == 2
 
-    with pytest.warns(None) as record:
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
         cb = ConfigBuilder()
         cont = Controller("con1")
         cb.add(cont)
         elm = Element("elm", element_analog_inputs=[cont.analog_output(1)])
         cb.add(elm)
         cb.build()
-    assert len(record.list) == 1
+    assert len(record) == 1
 
 
 def test_digital_input():

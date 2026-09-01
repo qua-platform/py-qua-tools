@@ -85,7 +85,6 @@ guiserver = app.server
 
 
 def open_browser():
-    global port_number
     webbrowser.open_new(f"http://localhost:{port_number}")
 
 
