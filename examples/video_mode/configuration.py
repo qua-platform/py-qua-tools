@@ -37,7 +37,6 @@ time_of_flight = 192
 
 
 config = {
-    "version": 1,
     "controllers": {
         "con1": {
             "analog_outputs": {

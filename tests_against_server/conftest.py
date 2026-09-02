@@ -33,7 +33,6 @@ def qmm():
 def config():
 
     return {
-        "version": 1,
         "controllers": {
             "con1": {
                 "type": "opx1",

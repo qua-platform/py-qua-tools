@@ -149,7 +149,6 @@ def init_empty_initial_config_file():
         fp.write(
             """
 configuration = {
-    "version": 1,
     "controllers": {},
     "elements": {},
     "pulses": {},

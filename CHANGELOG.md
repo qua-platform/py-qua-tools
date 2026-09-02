@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
   - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
 
+### Fixed
+- config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
+- tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
+
 
 ## [0.23.0] - 2026-07-24
 ### Added

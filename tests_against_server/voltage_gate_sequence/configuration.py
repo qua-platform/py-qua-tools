@@ -88,7 +88,6 @@ pi_half_amps = [0.27, -0.27]
 #                  Config                   #
 #############################################
 config = {
-    "version": 1,
     "controllers": {
         "con1": {
             "analog_outputs": {
