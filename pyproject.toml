@@ -14,11 +14,8 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.15"
-matplotlib = [
-    { version = ">=3.10.5", python = ">=3.10" },
-    { version = "^3.8.0", python = "<3.10" },
-]
+python = ">=3.10, <3.15"
+matplotlib = ">=3.10.5"
 pillow = [
     { version = ">=12.0.0", python = ">=3.14" },
     { version = ">=11.1.0,<12", python = "<3.14" },
@@ -33,10 +30,7 @@ kiwisolver = [
 ]
 numpy = "<3"
 qm-qua = ">=1.2.3"
-scikit-learn = [
-    { version = ">=1.7.2", python = ">=3.10" },
-    { version = ">=1.5.0", python = "<3.10" },
-]
+scikit-learn = ">=1.7.2"
 grpclib = "0.4.5"
 grpcio = ">=1.75.1"
 attrs = ">=22.2.0"
@@ -46,7 +40,7 @@ packaging = ">=20.0"
 scipy = [
     { version = ">=1.16.1", python = ">=3.14" },
     { version = ">=1.15.0", python = ">=3.13,<3.14" },
-    { version = ">=1.11.0", python = ">=3.9,<3.13" },
+    { version = ">=1.11.0", python = "<3.13" },
 ]
 
 # interplot
@@ -84,7 +78,7 @@ cirq = [
     { version = "1.5.0", python = ">=3.10,<3.11" }
 ]
 tqdm = { version = "^4.67.1", optional = true  }
-typedunits = { version = ">=0.0.2", python = ">=3.10", optional = true }
+typedunits = { version = ">=0.0.2", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
