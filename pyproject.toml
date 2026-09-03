@@ -14,19 +14,33 @@ readme = "README.md"
 homepage = "https://github.com/qua-platform/py-qua-tools"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.14"
-matplotlib = "^3.8.0"
+python = ">=3.10, <3.15"
+matplotlib = ">=3.10.5"
+pillow = [
+    { version = ">=12.0.0", python = ">=3.14" },
+    { version = ">=11.1.0,<12", python = "<3.14" },
+]
+contourpy = [
+    { version = ">=1.3.3", python = ">=3.14" },
+    { version = ">=1.3.0,<1.3.1", python = "<3.14" },
+]
+kiwisolver = [
+    { version = ">=1.4.9", python = ">=3.14" },
+    { version = ">=1.4.7,<1.4.8", python = "<3.14" },
+]
 numpy = "<3"
 qm-qua = ">=1.2.3"
-scikit-learn = ">=1.5.0"
+scikit-learn = ">=1.7.2"
 grpclib = "0.4.5"
+grpcio = ">=1.75.1"
 attrs = ">=22.2.0"
 packaging = ">=20.0"
 
 # Scipy
 scipy = [
-    { version = ">=1.15.0", python = ">=3.13" },
-    { version = ">=1.11.0", python = ">=3.9,<3.13" }
+    { version = ">=1.16.1", python = ">=3.14" },
+    { version = ">=1.15.0", python = ">=3.13,<3.14" },
+    { version = ">=1.11.0", python = "<3.13" },
 ]
 
 # interplot
@@ -35,7 +49,7 @@ pypiwin32 = { version = "^223", optional = true, markers = "sys_platform == 'win
 ipython = { version = "^8.10.0", optional = true }
 
 # configbuilder
-pandas = { version = ">=1.2.4", optional = true }
+pandas = { version = ">=2.3.3", optional = true }
 dash = { version = "^2.0.0", optional = true }
 dash-html-components = { version = "^2.0.0", optional = true }
 dash-core-components = { version = "^2.0.0", optional = true }
@@ -45,10 +59,18 @@ dash-table = { version = "^5.0.0", optional = true }
 dash-dangerously-set-inner-html = { version = "^0.0.2", optional = true }
 docutils = { version = ">=0.14.0 <= 0.21", optional = true }
 waitress = { version = "^3.0.1", optional = true }
+markupsafe = { version = ">=3.0.3", optional = true }
 
 # datahandler
 xarray = ">=2023.0.0,<2025.0.0"
-netCDF4 = { version = "^1.7.2", optional = true  }
+netCDF4 = [
+    { version = ">=1.7.4", python = ">=3.11", optional = true },
+    { version = "^1.7.2", python = "<3.11", optional = true },
+]
+cftime = [
+    { version = ">=1.6.5", python = ">=3.14", optional = true },
+    { version = ">=1.6.4,<1.6.5", python = "<3.14", optional = true },
+]
 
 # two-qubit-rb
 cirq = [
@@ -56,12 +78,13 @@ cirq = [
     { version = "1.5.0", python = ">=3.10,<3.11" }
 ]
 tqdm = { version = "^4.67.1", optional = true  }
+typedunits = { version = ">=0.0.2", optional = true }
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^6.2.5"
+pytest = "^8.4.2"
 black = "^24.3"
 poethepoet = "^0.18.0"
-flake8 = "^5.0.4"
+flake8 = "^7.3.0"
 setuptools = "^69.0.2"
 qm-saas = "^1.1.7"
 
@@ -78,9 +101,10 @@ configbuilder = [
     "dash-dangerously-set-inner-html",
     "docutils",
     "waitress",
+    "markupsafe",
 ]
-datahandler = ["netcdf4"]
-two-qubit-rb = ["cirq", "tqdm"]
+datahandler = ["netcdf4", "cftime"]
+two-qubit-rb = ["cirq", "tqdm", "typedunits"]
 
 [tool.black]
 line-length = 120
