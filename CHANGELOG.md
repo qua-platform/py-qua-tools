@@ -7,9 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - [0.23.1.dev0]
 
 ### Added
-- Support for Python 3.14
-- `grpcio>=1.75.1` as a direct dependency.
-- optional `typedunits>=0.0.2` to the `two-qubit-rb` extra.
+- Added support for Python 3.14
+- Added `grpcio>=1.75.1` as a direct dependency.
+- Added optional `typedunits>=0.0.2` to the `two-qubit-rb` extra dependency.
 - octave_tools - Add closest IF calibration helpers for Octave elements:
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
