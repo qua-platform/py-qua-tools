@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - [0.23.1.dev0]
 
 ### Added
-- Added support for Python 3.14
+- Added support for Python 3.13 and 3.14
 - Added `grpcio>=1.75.1` as a direct dependency.
 - Added optional `typedunits>=0.0.2` to the `two-qubit-rb` extra dependency.
 - octave_tools - Add closest IF calibration helpers for Octave elements:
