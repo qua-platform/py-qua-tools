@@ -6,26 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - [0.23.1.dev0]
 
-### Changed
-- Dropped support for Python 3.9; the minimum supported version is now Python 3.10. Simplified `matplotlib`, `scikit-learn`, `scipy`, and `typedunits` dependency constraints in `pyproject.toml` now that the `<3.10` branches are unreachable.
-- Changed Python version to `python<3.15`.
-- Changed Pytest version to `8.4.2` to be compatible with python 3.10-3.14.
-- Split compiled dependencies by Python version so 3.14 installs wheels: scipy, netCDF4, pillow, contourpy, kiwisolver, and cftime. Python <3.14 stays on pillow 11.x, contourpy 1.3.0, kiwisolver 1.4.7, and cftime 1.6.4.
-- Raised the optional markupsafe floor to `>=3.0.3`, the first release with Python 3.14 wheels.
-- Changed flake8 to `^7.3.0`. flake8 5 pulled pyflakes 2.5, which crashes on Python 3.14 with `module 'ast' has no attribute 'Str'`.
-- Raised the optional pandas floor to `>=2.3.3`.
-- Added `grpcio>=1.75.1` as a direct dependency.
-- Added optional `typedunits>=0.0.2` to the `two-qubit-rb` extra.
-
-### Fixed
-- digital_filters - `highpass_correction` no longer passes a 1-element NumPy array into `scipy.signal.butter`, which raises `TypeError` on SciPy 1.17 / NumPy 2.5 (Python 3.14). The analog cutoff is now a Python float.
-- config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
-
 ### Added
+- Support for Python 3.14
+- `grpcio>=1.75.1` as a direct dependency.
+- optional `typedunits>=0.0.2` to the `two-qubit-rb` extra.
 - octave_tools - Add closest IF calibration helpers for Octave elements:
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
   - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
+
+### Removed
+- Dropped support for Python 3.9. The minimum supported version is now Python 3.10.
+
+### Fixed
+- digital_filters - `highpass_correction` no longer passes a 1-element NumPy array into `scipy.signal.butter`, which raises `TypeError` on SciPy 1.17 / NumPy 2.5 (Python 3.14). The analog cutoff is now a Python float.
+- config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
 
 
 ## [0.23.0] - 2026-07-24
