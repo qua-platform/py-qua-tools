@@ -42,7 +42,6 @@ def config_resonator():
 def test_controller(config_resonator):
     config = config_resonator
     load_config(config)
-    assert config["version"] == 1
     assert "con1" in [*config["controllers"]]
     assert config["controllers"]["con1"]["type"] == "opx1"
     assert [*config["controllers"]["con1"]["analog_outputs"]] == [0, 1]

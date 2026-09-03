@@ -200,7 +200,6 @@ ge_threshold = 0.0
 #                  Config                   #
 #############################################
 config = {
-    "version": 1,
     "controllers": {
         "con1": {
             "analog_outputs": {

@@ -28,5 +28,4 @@ def test_edit_file():
     importlib.reload(config_edits)
     importlib.reload(config_final)
     configuration = config_final.configuration
-    assert "version" in configuration
-    assert configuration["version"] >= 0
+    assert "controllers" in configuration

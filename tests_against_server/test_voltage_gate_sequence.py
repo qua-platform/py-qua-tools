@@ -29,7 +29,6 @@ def config():
     hold_offset_duration = 4
 
     config = {
-        "version": 1,
         "controllers": {
             "con1": {
                 "analog_outputs": {

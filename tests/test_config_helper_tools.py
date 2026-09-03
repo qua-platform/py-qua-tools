@@ -14,7 +14,6 @@ def config0():
         return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
-        "version": 1,
         "controllers": {
             "con1": {
                 "analog_outputs": {
@@ -119,7 +118,6 @@ def config0():
 @pytest.fixture
 def negative_delay_config():
     return {
-        "version": 1,
         "controllers": {
             "con1": {
                 "analog_outputs": {
@@ -209,7 +207,6 @@ def test_update_update_waveforms(config0):
 def test_transform_negative_delays(negative_delay_config):
     initial_config = deepcopy(negative_delay_config)
     corrected_config = {
-        "version": 1,
         "controllers": {
             "con1": {
                 "analog_outputs": {

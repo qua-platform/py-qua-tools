@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - digital_filters - `highpass_correction` no longer passes a 1-element NumPy array into `scipy.signal.butter`, which raises `TypeError` on SciPy 1.17 / NumPy 2.5 (Python 3.14). The analog cutoff is now a Python float.
 - config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
+- config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
+- tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
 
 
 ## [0.23.0] - 2026-07-24

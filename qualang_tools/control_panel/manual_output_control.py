@@ -92,7 +92,7 @@ class ManualOutputControl:
         """
         if analog_ports is None and digital_ports is None:
             raise Exception("No ports specified")
-        config = {"version": 1, "controllers": {}, "elements": {}}
+        config = {"controllers": {}, "elements": {}}
         if analog_ports is not None:
             for port_int in analog_ports:
                 if isinstance(port_int, tuple):
@@ -417,7 +417,6 @@ class ManualOutputControl:
         self.digital_qms = np.empty((highest_con, 10), dtype=QuantumMachine)
 
         # Analog config
-        self.analog_config["version"] = 1
         self.analog_config["controllers"] = {}
         for controller in list(config["controllers"].keys()):
             self.analog_config["controllers"][controller] = {
@@ -448,7 +447,6 @@ class ManualOutputControl:
             self.analog_config["mixers"] = config["mixers"]
 
         # Digital config
-        digital_config["version"] = 1
         digital_config["controllers"] = {}
         digital_config["elements"] = {}
         digital_config["pulses"] = {

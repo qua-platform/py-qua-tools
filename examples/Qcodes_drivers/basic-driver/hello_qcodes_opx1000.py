@@ -17,7 +17,6 @@ qop_port = None  # Write the QOP port if version < QOP220
 
 def get_config(fem = 3):
     config = {
-        "version": 1,
         "controllers": {
             "con1": {
                 "type": "opx1000",
