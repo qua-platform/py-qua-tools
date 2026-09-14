@@ -4390,4 +4390,4 @@ two-qubit-rb = ["cirq", "cirq", "tqdm", "typedunits"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.15"
-content-hash = "81a00a7ec414c2a7e8e6d21bf156233fe647e0f76a178a19c3d4c430901060cb"
+content-hash = "519c383fefea9781254bc6a1b37c4e3a1bb34264688b6c0ba8f834179cdfa5ce"
