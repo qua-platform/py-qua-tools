@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from qualang_tools.digital_filters import *
+from qualang_tools.digital_filters.digital_filters_iir import sequential_exp_fit
 
 
 @pytest.mark.parametrize(
@@ -214,3 +215,50 @@ def test_fir_calc_filter_taps(calc_correction):
             hann(20) / np.sum(hann(20)),
         )
     )
+
+
+def test_multi_exponential_decay_matches_sum_of_exponentials():
+    t = np.arange(0, 50, 1.0)
+    y = multi_exponential_decay(t, [0.2, -0.1], [10.0, 30.0], s=1.5)
+    expected = 1.5 * (1 + 0.2 * np.exp(-t / 10.0) - 0.1 * np.exp(-t / 30.0))
+    np.testing.assert_allclose(y, expected)
+
+
+def test_bounce_and_delay_correction_with_bounce():
+    taps = bounce_and_delay_correction(
+        bounce_values=[(0.1, 16)],
+        delay=0,
+        feedforward_taps=[1.0],
+        Ts=1,
+        qop_version=QOPVersion.NONE,
+    )
+    assert isinstance(taps, list)
+    assert len(taps) > 1
+
+
+def test_sequential_exp_fit_recovers_single_exponential():
+    t = np.linspace(0, 400, 401)
+    y = 0.4 + 1.2 * np.exp(-t / 50.0)
+    components, a_dc, residual = sequential_exp_fit(t, y, start_fractions=[0.2], verbose=0)
+    assert len(components) == 1
+    assert a_dc == pytest.approx(0.4, rel=0.2)
+    assert np.sqrt(np.mean(residual**2)) < 0.05
+
+
+def test_optimize_start_fractions_rejects_mismatched_fixed_taus():
+    t = np.linspace(0, 100, 101)
+    y = np.exp(-t / 20.0)
+    with pytest.raises(ValueError, match="same length"):
+        optimize_start_fractions(t, y, [0.5], fixed_taus=[10.0, 20.0], verbose=0)
+
+
+def test_optimize_start_fractions_runs_on_synthetic_data():
+    t = np.linspace(0, 300, 301)
+    y = 0.2 + 0.8 * np.exp(-t / 40.0)
+    success, fractions, components, a_dc, rms = optimize_start_fractions(
+        t, y, [0.4], bounds_scale=0.3, verbose=0
+    )
+    assert len(fractions) == 1
+    assert len(components) == 1
+    assert rms < 0.1
+    assert a_dc == pytest.approx(0.2, rel=0.5)
