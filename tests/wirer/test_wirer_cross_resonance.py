@@ -27,7 +27,7 @@ def test_2q_allocation_cross_resonance(instruments_2lf_2mw):
     connectivity.add_qubit_detuned_drive_lines(qubits=qubits)
     allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
 
-    connectivity.add_qubit_pair_zz_drive_lines(qubit_pairs)
+    connectivity.add_qubit_pair_zz_lines(qubit_pairs)
     allocate_wiring(connectivity, instruments_2lf_2mw, block_used_channels=False)
 
     connectivity.add_qubit_pair_cross_resonance_lines(qubit_pairs)
@@ -40,7 +40,7 @@ def test_2q_allocation_cross_resonance(instruments_2lf_2mw):
         xy_channels = connectivity.elements[QubitReference(qubit_pair[0])].channels[WiringLineType.DRIVE]
         xyd_channels = connectivity.elements[QubitReference(qubit_pair[0])].channels[WiringLineType.DETUNED_DRIVE]
         cr_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.CROSS_RESONANCE]
-        zz_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.ZZ_DRIVE]
+        zz_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.ZZ]
         assert len(xy_channels) == 1
         assert len(xyd_channels) == 1
         assert len(cr_channels) == 1
@@ -73,7 +73,7 @@ def test_2q_allocation_cross_resonance_opx_plus_octave(instruments_1opx_1octave)
     connectivity.add_qubit_detuned_drive_lines(qubits=qubits)
     allocate_wiring(connectivity, instruments_1opx_1octave, block_used_channels=False)
 
-    connectivity.add_qubit_pair_zz_drive_lines(qubit_pairs)
+    connectivity.add_qubit_pair_zz_lines(qubit_pairs)
     allocate_wiring(connectivity, instruments_1opx_1octave, block_used_channels=False)
 
     connectivity.add_qubit_pair_cross_resonance_lines(qubit_pairs)
@@ -86,7 +86,7 @@ def test_2q_allocation_cross_resonance_opx_plus_octave(instruments_1opx_1octave)
         xy_channels = connectivity.elements[QubitReference(qubit_pair[0])].channels[WiringLineType.DRIVE]
         xyd_channels = connectivity.elements[QubitReference(qubit_pair[0])].channels[WiringLineType.DETUNED_DRIVE]
         cr_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.CROSS_RESONANCE]
-        zz_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.ZZ_DRIVE]
+        zz_channels = connectivity.elements[QubitPairReference(*qubit_pair)].channels[WiringLineType.ZZ]
         assert len(xy_channels) == 3
         assert len(cr_channels) == 3
         assert len(zz_channels) == 3

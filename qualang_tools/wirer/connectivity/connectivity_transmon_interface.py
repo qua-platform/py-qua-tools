@@ -1,8 +1,9 @@
-from typing import Union, List
+from typing import List, Union
+
 from .channel_spec import ChannelSpec
-from .types import QubitsType, QubitPairsType
-from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 from .connectivity_base import ConnectivityBase
+from .types import QubitPairsType, QubitsType
+from .wiring_spec import WiringFrequency, WiringIOType, WiringLineType
 
 
 class ConnectivitySuperconductingQubits(ConnectivityBase):
@@ -98,7 +99,9 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.DRIVE, triggered, constraints, elements
         )
 
-    def add_qubit_detuned_drive_lines(self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None):
+    def add_qubit_detuned_drive_lines(
+        self, qubits: QubitsType, triggered: bool = False, constraints: ChannelSpec = None
+    ):
         """
         Adds specifications (placeholders) for detuned drive lines for the specified qubits.
 
@@ -283,7 +286,7 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
             WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.CROSS_RESONANCE, triggered, constraints, elements
         )
 
-    def add_qubit_pair_zz_drive_lines(
+    def add_qubit_pair_zz_lines(
         self, qubit_pairs: QubitPairsType, triggered: bool = False, constraints: ChannelSpec = None
     ):
         """
@@ -305,5 +308,5 @@ class ConnectivitySuperconductingQubits(ConnectivityBase):
         """
         elements = self._make_qubit_pair_elements(qubit_pairs)
         return self.add_wiring_spec(
-            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.ZZ_DRIVE, triggered, constraints, elements
+            WiringFrequency.RF, WiringIOType.OUTPUT, WiringLineType.ZZ, triggered, constraints, elements
         )
