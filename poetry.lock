@@ -4338,27 +4338,29 @@ watchdog = ["watchdog (>=2.3)"]
 
 [[package]]
 name = "xarray"
-version = "2023.12.0"
+version = "2025.6.1"
 description = "N-D labeled arrays and datasets in Python"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "xarray-2023.12.0-py3-none-any.whl", hash = "sha256:3c22b6824681762b6c3fcad86dfd18960a617bccbc7f456ce21b43a20e455fb9"},
-    {file = "xarray-2023.12.0.tar.gz", hash = "sha256:4565dbc890de47e278346c44d6b33bb07d3427383e077a7ca8ab6606196fd433"},
+    {file = "xarray-2025.6.1-py3-none-any.whl", hash = "sha256:8b988b47f67a383bdc3b04c5db475cd165e580134c1f1943d52aee4a9c97651b"},
+    {file = "xarray-2025.6.1.tar.gz", hash = "sha256:a84f3f07544634a130d7dc615ae44175419f4c77957a7255161ed99c69c7c8b0"},
 ]
 
 [package.dependencies]
-numpy = ">=1.22"
-packaging = ">=21.3"
-pandas = ">=1.4"
+numpy = ">=1.24"
+packaging = ">=23.2"
+pandas = ">=2.1"
 
 [package.extras]
-accel = ["bottleneck", "flox", "numbagg", "opt-einsum", "scipy"]
-complete = ["xarray[accel,io,parallel,viz]"]
+accel = ["bottleneck", "flox", "numba (>=0.54)", "numbagg", "opt_einsum", "scipy"]
+complete = ["xarray[accel,etc,io,parallel,viz]"]
+etc = ["sparse"]
 io = ["cftime", "fsspec", "h5netcdf", "netCDF4", "pooch", "pydap ; python_version < \"3.10\"", "scipy", "zarr"]
 parallel = ["dask[complete]"]
-viz = ["matplotlib", "nc-time-axis", "seaborn"]
+types = ["pandas-stubs", "scipy-stubs", "types-PyYAML", "types-Pygments", "types-colorama", "types-decorator", "types-defusedxml", "types-docutils", "types-networkx", "types-openpyxl", "types-pexpect", "types-psutil", "types-pycurl", "types-python-dateutil", "types-pytz", "types-setuptools"]
+viz = ["cartopy", "matplotlib", "nc-time-axis", "seaborn"]
 
 [[package]]
 name = "zipp"
@@ -4390,4 +4392,4 @@ two-qubit-rb = ["cirq", "cirq", "tqdm", "typedunits"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.15"
-content-hash = "519c383fefea9781254bc6a1b37c4e3a1bb34264688b6c0ba8f834179cdfa5ce"
+content-hash = "7d7eaecd5cef873a4c15cb59cc5a9a6707de58cfb546c89311f50aa7ee8ffa9a"

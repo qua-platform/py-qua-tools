@@ -62,7 +62,7 @@ waitress = { version = "^3.0.1", optional = true }
 markupsafe = { version = ">=3.0.3", optional = true }
 
 # datahandler
-xarray = ">=2023.0.0,<2025.7.0"
+xarray = ">=2025.1.0,<2025.7.0"
 netCDF4 = [
     { version = ">=1.7.4", python = ">=3.11", optional = true },
     { version = "^1.7.2", python = "<3.11", optional = true },
