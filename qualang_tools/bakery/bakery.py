@@ -119,7 +119,7 @@ class Baking:
         self.override = override
         if override and sampling_rate < 1e9:
             raise ValueError(
-                "Waveform can not be simultaneously overridable and compressed with lower than 1e9" "sampling rate"
+                "Waveform can not be simultaneously overridable and compressed with lower than 1e9 sampling rate"
             )
         self.length_constraint = self._retrieve_constraint_length(baking_index)
         self.override_waveforms_dict = {"waveforms": {}}
@@ -309,9 +309,9 @@ class Baking:
                 self._config["waveforms"][f"{qe}_baked_wf_{self._ctr}"]["sampling_rate"] = self.sampling_rate
 
         if len(self._digital_samples_dict[qe]) != 0:
-            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"][
-                "digital_marker"
-            ] = f"{qe}_baked_digital_wf_{self._ctr}"
+            self._config["pulses"][f"{qe}_baked_pulse_{self._ctr}"]["digital_marker"] = (
+                f"{qe}_baked_digital_wf_{self._ctr}"
+            )
             if "digital_waveforms" in self._config:
                 self._config["digital_waveforms"][f"{qe}_baked_digital_wf_{self._ctr}"] = {
                     "samples": self._digital_samples_dict[qe]
@@ -419,8 +419,7 @@ class Baking:
                         wait_duration2 -= self.length_constraint
                     if wait_duration2 != 0:
                         raise ValueError(
-                            "Baked waveform requires padding to match hardware constraint"
-                            " whereas no padding is desired"
+                            "Baked waveform requires padding to match hardware constraint whereas no padding is desired"
                         )
 
                 elif self._padding_method == "left":
@@ -681,7 +680,7 @@ class Baking:
                     delete_for_el(q, t_start, t_stop)
         else:
             raise Warning(
-                "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op " "instead"
+                "Cannot delete samples whe outside of the baking context manager, use delete_baked_Op instead"
             )
 
     def delete_baked_op(self, *qe_set: str) -> None:
@@ -724,8 +723,7 @@ class Baking:
 
                 else:
                     raise KeyError(
-                        "delete_baked_Op only available outside of the context manager "
-                        "(config is updated at the exit)"
+                        "delete_baked_Op only available outside of the context manager (config is updated at the exit)"
                     )
             else:
                 raise Warning("Operation could not be deleted because baking object does not update the config")
@@ -827,9 +825,9 @@ class Baking:
         Op = {name: f"{qe}_baked_pulse_b{self._ctr}_{index}"}
         if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
             assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
-            assert len(samples[0]) == len(
-                samples[1]
-            ), "Error : samples provided for I and Q do not have the same length"
+            assert len(samples[0]) == len(samples[1]), (
+                "Error : samples provided for I and Q do not have the same length"
+            )
 
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
@@ -857,9 +855,9 @@ class Baking:
 
         elif "singleInput" in self._local_config["elements"][qe]:
             for i in range(len(samples)):
-                assert (
-                    type(samples[i]) is float or type(samples[i]) is int
-                ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                assert type(samples[i]) is float or type(samples[i]) is int, (
+                    f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                )
 
             pulse = {
                 f"{qe}_baked_pulse_b{self._ctr}_{index}": {
@@ -901,13 +899,13 @@ class Baking:
 
             if self._qe_dict[qe]["time_track"] == 0:
                 if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
-                    assert isinstance(
-                        samples, list
-                    ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    assert isinstance(samples, list), (
+                        f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    )
                     assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
-                    assert type(samples[0] == list) and type(
-                        samples[1] == list
-                    ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    assert type(samples[0] == list) and type(samples[1] == list), (
+                        f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    )
 
                     assert len(samples[0]) == len(samples[1]), (
                         f"Error : samples provided for I and Q do not have the same length. length I: {len(samples[0])}"
@@ -938,9 +936,9 @@ class Baking:
 
                 elif "singleInput" in self._local_config["elements"][qe]:
                     for i in range(len(samples)):
-                        assert isinstance(
-                            samples[i], (float, int)
-                        ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                        assert isinstance(samples[i], (float, int)), (
+                            f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                        )
                         self._samples_dict[qe]["single"].append(amp * np.cos(freq * i * 1e-9 + phi) * samples[i])
                     self._update_qe_time(qe, len(samples))
 
@@ -992,17 +990,17 @@ class Baking:
                 samples = self._get_samples(pulse)
                 new_samples = 0
                 if any([key in self._local_config["elements"][qe] for key in ["mixInputs", "RF_inputs", "MWInput"]]):
-                    assert isinstance(
-                        samples, list
-                    ), f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    assert isinstance(samples, list), (
+                        f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
+                    )
                     assert len(samples) == 2, f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
                     assert type(samples[0] == list) and type(samples[1] == list), (
-                        f"{qe} is a mixInputs/RF_inputs element, " f"two lists should be provided"
+                        f"{qe} is a mixInputs/RF_inputs element, two lists should be provided"
                     )
 
-                    assert len(samples[0]) == len(
-                        samples[1]
-                    ), "Error : samples provided for I and Q do not have the same length"
+                    assert len(samples[0]) == len(samples[1]), (
+                        "Error : samples provided for I and Q do not have the same length"
+                    )
 
                     I, Q = samples[0], samples[1]
                     I2, Q2, I3, Q3 = (
@@ -1046,9 +1044,9 @@ class Baking:
                         raise IndexError("Amplitude must be a number")
 
                     for i in range(len(samples)):
-                        assert (
-                            type(samples[i]) is float or type(samples[i]) is int
-                        ), f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                        assert type(samples[i]) is float or type(samples[i]) is int, (
+                            f"{qe} is a singleInput element, list of numbers (int or float) should be provided "
+                        )
                         if t + i < len(self._samples_dict[qe]["single"]):
                             self._samples_dict[qe]["single"][t + i] += (
                                 amp * np.cos(freq * (t + i) * 1e-9 + phi) * samples[i]
@@ -1235,9 +1233,12 @@ class Baking:
                     else:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
-                        if type(amp) is list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
-                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
+                        if isinstance(amp, (list, tuple, np.ndarray)):
+                            if len(amp) != 4:
+                                raise ValueError("Amplitude list must be of length 4")
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(*amp), qe)
+                        else:
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe)
 
         else:
             for qe in qe_set:
@@ -1256,8 +1257,9 @@ class Baking:
                         index2 = list(zip(*amp_array))[0].index(qe)
                         amp = list(zip(*amp_array))[1][index2]
                         if type(amp) is list:
-                            raise TypeError("Amplitude can only be a number (either Python or QUA variable)")
-                        qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(*amp), qe, truncate=trunc)
+                        else:
+                            qua.play(f"baked_Op_{self._ctr}" * qua.amp(amp), qe, truncate=trunc)
 
         for qe in qe_set:
             if self._qe_dict[qe]["phase"] != 0:
