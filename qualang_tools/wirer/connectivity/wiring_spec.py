@@ -36,7 +36,7 @@ class WiringLineType(Enum):
     COUPLER = "c"
     CROSS_RESONANCE = "cr"
     ZZ = "zz"
-    DETUNED_DRIVE = "xy_detuned"
+    DETUNED_DRIVE = "xyd"
     LASER = "la"
     SPCM = "spcm"
     TWPA_PUMP = "p"
