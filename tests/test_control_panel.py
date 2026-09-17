@@ -14,7 +14,6 @@ init_len = 9000
 readout_len = 10000
 
 config = {
-    "version": 1,
     "controllers": {
         "con1": {
             "type": "opx1",

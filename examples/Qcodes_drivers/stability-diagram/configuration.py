@@ -14,7 +14,6 @@ gate_1_amp = 0.25
 gate_2_amp = 0.25
 
 config = {
-    "version": 1,
     "controllers": {
         "con1": {
             "analog_outputs": {

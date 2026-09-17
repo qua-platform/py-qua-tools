@@ -25,7 +25,6 @@ FEM_IDX = 6
 ANALOG_OUTPUT_PORT = 8
 ANALOG_INPUT_PORT = 1
 config: FullQuaConfig = {
-    "version": 1,
     "controllers": {
         "con1": {
             "type": "opx1000",

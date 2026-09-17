@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
 ## [Unreleased] - [0.23.1.dev0]
+### Added
+- octave_tools - Add closest IF calibration helpers for Octave elements:
+  - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
+  - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
+  - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
+
+### Fixed
+- config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
+- tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
+- qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.3.1
 
 
 ## [0.23.0] - 2026-07-24
@@ -20,6 +30,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Changed
 - requirements - `xarray` is now a core dependency instead of an optional extra (previously under the `datahandler` and `two-qubit-rb` extras).
 
+### Fixed
+- bakery - Re-baking identical waveforms no longer accumulates duplicate `baked_Op_N` entries. Matching uses the
+  samples actually stored in the config (including interpolating bakes above 1 GS/s), and a bake that reused an
+  existing entry cannot delete it through `delete_baked_op`. Indices are allocated when the config is written, so
+  distinct waveforms keep contiguous names (`baked_Op_0`, `baked_Op_1`, …).
 
 ## [0.22.0] - 2026-04-01
 ### Added                                                                                                                                                                

@@ -20,7 +20,6 @@ def config():
         return [float(N * x) for x in [(1 - g) * c, (1 + g) * s, (1 - g) * s, (1 + g) * c]]
 
     return {
-        "version": 1,
         "controllers": {
             "con1": {
                 "type": "opx1",
