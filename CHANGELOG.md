@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
   - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
+- bakery_examples - Add examples of baking beyond the OPX's 1 ns / 4-ns-multiple clock-cycle resolution in `./examples/bakery_beyond_clockcycle_resolution/`: sub-ns duration and shift via `sampling_rate`, `padding_method`, and the OPX1000 waveform cache. See the folder's `README.md` for a guide to each example.
 
 ### Fixed
 - config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
