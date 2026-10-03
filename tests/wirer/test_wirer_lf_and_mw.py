@@ -32,12 +32,12 @@ def test_6q_allocation(instruments_2lf_2mw):
         for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.FLUX]):
             assert pytest.channels_are_equal(channel, [InstrumentChannelLfFemOutput(con=1, port=qubit, slot=1)][i])
 
-        # resonators all on same feedline, so should be first available input + outputs channels on MW-FEM
+        # resonators all on same feedline, so should be first preferred MW-FEM readout pairing (out1+in2)
         for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.RESONATOR]):
             assert pytest.channels_are_equal(
                 channel,
                 [
-                    InstrumentChannelMwFemInput(con=1, port=1, slot=3),
+                    InstrumentChannelMwFemInput(con=1, port=2, slot=3),
                     InstrumentChannelMwFemOutput(con=1, port=1, slot=3),
                 ][i],
             )
@@ -72,13 +72,87 @@ def test_4rr_allocation(instruments_2lf_2mw):
     if visualize_flag:
         visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
-    # resonators all on different feedlines, so should fill all 4 inputs of 2x MW-FEM
+    # resonators all on different feedlines, preferred MW-FEM readout pairings:
+    # 1st & 2nd: out1+in2, 3rd & 4th: out8+in1 (across slots 3 and 7)
     for i, qubit in enumerate([1, 2, 3, 4]):
         for j, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.RESONATOR]):
             assert pytest.channels_are_equal(
                 channel,
                 [
-                    InstrumentChannelMwFemInput(con=1, port=[1, 2, 1, 2][i], slot=[3, 3, 7, 7][i]),
-                    InstrumentChannelMwFemOutput(con=1, port=[1, 2, 1, 2][i], slot=[3, 3, 7, 7][i]),
+                    InstrumentChannelMwFemInput(con=1, port=[2, 2, 1, 1][i], slot=[3, 7, 3, 7][i]),
+                    InstrumentChannelMwFemOutput(con=1, port=[1, 1, 8, 8][i], slot=[3, 7, 3, 7][i]),
                 ][j],
             )
+
+
+def test_mw_fem_readout_default_pairing(instruments_2lf_2mw):
+    """Verify that MW-FEM readout lines get the preferred port pairings:
+    1st allocation: output 1 + input 2
+    2nd allocation: output 8 + input 1
+    Then falls back to generic first-available for subsequent allocations.
+    """
+    connectivity = Connectivity()
+    connectivity.add_resonator_line(qubits=1)
+    connectivity.add_resonator_line(qubits=2)
+
+    allocate_wiring(connectivity, instruments_2lf_2mw)
+
+    # 1st readout: preferred pairing out=1, in=2 on first available MW-FEM (slot 3)
+    channels_q1 = connectivity.elements[QubitReference(1)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q1[0], InstrumentChannelMwFemInput(con=1, port=2, slot=3))
+    assert pytest.channels_are_equal(channels_q1[1], InstrumentChannelMwFemOutput(con=1, port=1, slot=3))
+
+    # 2nd readout: preferred pairing out=1, in=2 on next available MW-FEM (slot 7)
+    channels_q2 = connectivity.elements[QubitReference(2)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q2[0], InstrumentChannelMwFemInput(con=1, port=2, slot=7))
+    assert pytest.channels_are_equal(channels_q2[1], InstrumentChannelMwFemOutput(con=1, port=1, slot=7))
+
+
+def test_mw_fem_readout_fallback_after_preferred(instruments_2lf_2mw):
+    """Verify that after preferred pairings (out1+in2) are exhausted on both slots,
+    the allocator uses the second preferred pairing (out8+in1).
+    """
+    connectivity = Connectivity()
+    connectivity.add_resonator_line(qubits=1)
+    connectivity.add_resonator_line(qubits=2)
+    connectivity.add_resonator_line(qubits=3)
+    connectivity.add_resonator_line(qubits=4)
+
+    allocate_wiring(connectivity, instruments_2lf_2mw)
+
+    # 1st: out=1, in=2 on slot 3
+    channels_q1 = connectivity.elements[QubitReference(1)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q1[0], InstrumentChannelMwFemInput(con=1, port=2, slot=3))
+    assert pytest.channels_are_equal(channels_q1[1], InstrumentChannelMwFemOutput(con=1, port=1, slot=3))
+
+    # 2nd: out=1, in=2 on slot 7
+    channels_q2 = connectivity.elements[QubitReference(2)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q2[0], InstrumentChannelMwFemInput(con=1, port=2, slot=7))
+    assert pytest.channels_are_equal(channels_q2[1], InstrumentChannelMwFemOutput(con=1, port=1, slot=7))
+
+    # 3rd: out=8, in=1 on slot 3 (second preferred pairing)
+    channels_q3 = connectivity.elements[QubitReference(3)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q3[0], InstrumentChannelMwFemInput(con=1, port=1, slot=3))
+    assert pytest.channels_are_equal(channels_q3[1], InstrumentChannelMwFemOutput(con=1, port=8, slot=3))
+
+    # 4th: out=8, in=1 on slot 7 (second preferred pairing)
+    channels_q4 = connectivity.elements[QubitReference(4)].channels[WiringLineType.RESONATOR]
+    assert pytest.channels_are_equal(channels_q4[0], InstrumentChannelMwFemInput(con=1, port=1, slot=7))
+    assert pytest.channels_are_equal(channels_q4[1], InstrumentChannelMwFemOutput(con=1, port=8, slot=7))
+
+
+def test_mw_fem_drive_lines_unaffected(instruments_2lf_2mw):
+    """Verify that output-only allocations (drive lines) are NOT affected by the
+    preferred readout pairing — they still use first-available ports.
+    """
+    connectivity = Connectivity()
+    connectivity.add_qubit_drive_lines(qubits=[1, 2, 3])
+
+    allocate_wiring(connectivity, instruments_2lf_2mw)
+
+    # Drives are output-only, so they should get ports 1, 2, 3 sequentially
+    for qubit, expected_port in [(1, 1), (2, 2), (3, 3)]:
+        channels = connectivity.elements[QubitReference(qubit)].channels[WiringLineType.DRIVE]
+        assert pytest.channels_are_equal(
+            channels[0], InstrumentChannelMwFemOutput(con=1, port=expected_port, slot=3)
+        )

@@ -31,14 +31,14 @@ def test_5q_allocation_with_channel_reuse(instruments_2lf_2mw):
         visualize(connectivity.elements, instruments_2lf_2mw.available_channels)
 
     for qubit in [1, 3]:
-        # resonator lines re-used for qubits 1 & 3
+        # resonator lines re-used for qubits 1 & 3 (preferred MW-FEM readout pairing: out1+in2)
         for i, channel in enumerate(
             connectivity.elements[QubitReference(index=qubit)].channels[WiringLineType.RESONATOR]
         ):
             assert pytest.channels_are_equal(
                 channel,
                 [
-                    InstrumentChannelMwFemInput(con=1, port=1, slot=3),
+                    InstrumentChannelMwFemInput(con=1, port=2, slot=3),
                     InstrumentChannelMwFemOutput(con=1, port=1, slot=3),
                 ][i],
             )

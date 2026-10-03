@@ -46,12 +46,12 @@ def test_6q_allocation(instruments_2lf_2mw):
         for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.FLUX]):
             assert pytest.channels_are_equal(channel, [InstrumentChannelLfFemOutput(con=1, port=qubit, slot=1)][i])
 
-        # resonators all on same feedline, so should be first available input + outputs channels on MW-FEM
+        # resonators all on same feedline, so should be first preferred MW-FEM readout pairing (out1+in2)
         for i, channel in enumerate(connectivity.elements[QubitReference(qubit)].channels[WiringLineType.RESONATOR]):
             assert pytest.channels_are_equal(
                 channel,
                 [
-                    InstrumentChannelMwFemInput(con=1, port=1, slot=3),
+                    InstrumentChannelMwFemInput(con=1, port=2, slot=3),
                     InstrumentChannelMwFemOutput(con=1, port=1, slot=3),
                 ][i],
             )
