@@ -4878,14 +4878,14 @@ simulation = ["certifi"]
 
 [[package]]
 name = "qm-saas"
-version = "1.1.8"
+version = "1.2.0"
 description = "QM Simulator as a Service is a client library to launch simulator instances for QUA programs."
 optional = false
-python-versions = "<3.15,>=3.9"
+python-versions = "<3.15,>=3.10"
 groups = ["dev"]
 files = [
-    {file = "qm_saas-1.1.8-py3-none-any.whl", hash = "sha256:0c24a92ce447db2195ef02a7a7f4c60f4dc549b4cbbfc2baba00bc6e84a18907"},
-    {file = "qm_saas-1.1.8.tar.gz", hash = "sha256:5b9b14810f787b8130df3781060f60305c294ceb312a6e2c23b883bee3322e2f"},
+    {file = "qm_saas-1.2.0-py3-none-any.whl", hash = "sha256:757b344c5826115426ce4654558b612e5386d6e7b0c1bd8a1d25a075a85ae0d7"},
+    {file = "qm_saas-1.2.0.tar.gz", hash = "sha256:e57532ba3c332876bc33300b0be45f78e8b62c9bbf1cc15539c45b272d146f45"},
 ]
 
 [package.dependencies]
@@ -6413,4 +6413,4 @@ two-qubit-rb = ["cirq", "cirq", "tqdm", "typedunits"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.15"
-content-hash = "680a85ab83f5da1653f3a5c1dbe819877dd592e05019dc2d1e9db146b8c04907"
+content-hash = "523e43c65189d2ff778daf771b7ac6c2df5be04e8357b12f5c0b873bd1467eac"

@@ -144,11 +144,7 @@ def qmm(
         client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
         version = None if qop_cloud_sim_version == "latest" else qop_cloud_sim_version
         with client.simulator(version) as sim_instance:
-            qmm = QuantumMachinesManager(
-                host=sim_instance.host,
-                port=sim_instance.port,
-                connection_headers=sim_instance.default_connection_headers,
-            )
+            qmm = QuantumMachinesManager(**sim_instance.qmm_connection_params)
             yield qmm
     else:
         yield get_local_qmm()
