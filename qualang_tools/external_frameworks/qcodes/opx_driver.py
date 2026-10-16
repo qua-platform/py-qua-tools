@@ -356,7 +356,7 @@ class OPX(Instrument):
         """
         Recursive function to get relevant information from the stream processing to construct the result Parameter.
 
-        :param gene: stream processing generator (item of prog.result_analysis._result_analysis.model).
+        :param gene: stream processing generator (item of prog.qua_program.resultAnalysis.model).
         :param count: counter to keep track of the buffers for a given stream.
         :param averaging_buffer: flag identifying if a buffer is used for averaging.
         """
