@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added support for Python 3.13 and 3.14
 - Added `grpcio>=1.75.1` as a direct dependency.
 - Added optional `typedunits>=0.0.2` to the `two-qubit-rb` extra dependency.
+- Added an optional `qcodes` extra for the OPX QCoDeS driver (`qualang_tools.external_frameworks.qcodes`). The pin is split by Python version so 3.10, 3.11, and 3.12+ each resolve to a QCoDeS release that supports that interpreter.
 - octave_tools - Add closest IF calibration helpers for Octave elements:
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
@@ -20,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - digital_filters - `highpass_correction` no longer passes a 1-element NumPy array into `scipy.signal.butter`, which raises `TypeError` on SciPy 1.17 / NumPy 2.5 (Python 3.14). The analog cutoff is now a Python float.
+- external_frameworks/qcodes - Read the QUA stream-processing model from `resultAnalysis` when `result_analysis` is missing. Protobuf builds that dropped the snake_case alias made `get_measurement_parameter` raise `AttributeError`.
+- external_frameworks/qcodes - Import instruments, parameters, and validators from `qcodes.instrument`, `qcodes.parameters`, and `qcodes.validators`. QCoDeS 0.61 removed `qcodes.utils.validators`, which made the driver fail to import.
 - config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
 - config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
 - tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
