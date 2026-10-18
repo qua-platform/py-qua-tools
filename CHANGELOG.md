@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
 - tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
 - qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.3.1
+- tests - Adapt cloud simulator tests to the `qm-saas` 1.2.0 breaking change: use `sim_instance.qmm_connection_params` instead of `host`/`port`/`default_connection_headers`; bump `qm-saas` to `^1.2.0`.
 
 
 ## [0.23.0] - 2026-07-24

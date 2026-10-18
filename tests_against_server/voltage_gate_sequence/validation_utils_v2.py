@@ -26,9 +26,7 @@ def simulate_program(prog, mode: str = "station", simulation_duration=10000):
 
         with client.simulator(version) as instance:
             # Initialize QuantumMachinesManager with the simulation instance details
-            qmm = QuantumMachinesManager(
-                host=instance.host, port=instance.port, connection_headers=instance.default_connection_headers
-            )
+            qmm = QuantumMachinesManager(**instance.qmm_connection_params)
             # Simulates the QUA program for the specified duration
             simulation_config = SimulationConfig(duration=simulation_duration // 4)  # In clock cycles = 4ns
             # Simulate blocks python until the simulation is done
