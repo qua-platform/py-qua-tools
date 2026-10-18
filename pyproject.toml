@@ -63,7 +63,10 @@ black = "^24.3"
 poethepoet = "^0.18.0"
 flake8 = "^5.0.4"
 setuptools = "^69.0.2"
-qm-saas = "^1.2.0"
+qm-saas = [
+    { version = "^1.2.0", python = ">=3.10" },
+    { version = "^1.1.7", python = "<3.10" },
+]
 
 [tool.poetry.extras]
 interplot = ["dill", "pypiwin32", "ipython"]

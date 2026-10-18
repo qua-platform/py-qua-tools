@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from typing import Generator, Optional
 
@@ -138,7 +140,8 @@ def qmm(
     qop_cloud_sim_version: str, cloud_sim_pwd: Optional[str], cloud_sim_email: Optional[str], cloud_sim_host: Optional[str]
 ) -> Generator[Optional[QuantumMachinesManager], None, None]:
     if qop_cloud_sim_version != "local":
-        if not all([cloud_sim_host, cloud_sim_pwd, cloud_sim_email]):
+        # qm-saas>=1.2.0 (qmm_connection_params) requires python>=3.10
+        if sys.version_info < (3, 10) or not all([cloud_sim_host, cloud_sim_pwd, cloud_sim_email]):
             yield None
             return
         client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
