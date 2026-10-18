@@ -8,12 +8,15 @@ from qm_saas import QmSaas
 from qm.quantum_machines_manager import QuantumMachinesManager
 from qm import FullQuaConfig
 
-from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import qua_iterables_supported
+from packaging.version import Version
 
-# fetch_xarray_data and its tests rely on qm-qua APIs added in MIN_QM_QUA_VERSION.
-# On older qm-qua these modules cannot even be imported, so skip collecting them.
+from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import _installed_qm_qua_version
+
+# The fetch_xarray tests run against the cloud simulator, which needs qm-qua>=1.4.1
+# (older versions fail to connect with the qm-saas>=1.2.0 connection params), so skip collecting them.
+MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS = Version("1.4.1")
 collect_ignore = []
-if not qua_iterables_supported():
+if _installed_qm_qua_version() < MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS:
     collect_ignore += [
         "test_fetch_xarray_basic.py",
         "test_fetch_xarray_averaging.py",
