@@ -4847,14 +4847,14 @@ zurichinstruments = ["zhinst-qcodes (>=0.3)"]
 
 [[package]]
 name = "qm-qua"
-version = "1.3.1"
+version = "1.4.1"
 description = "QUA language SDK to control a Quantum Computer"
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "qm_qua-1.3.1-py3-none-any.whl", hash = "sha256:e102000a5aff2c93beb8f52a55d731b3bc50cfcdfa9f0b0e0f6e0e2bfb0500ef"},
-    {file = "qm_qua-1.3.1.tar.gz", hash = "sha256:9b874087ef35a464904e7a59a8db9c87e1189c07853871191e39108fd5c60339"},
+    {file = "qm_qua-1.4.1-py3-none-any.whl", hash = "sha256:e6c702385298a1ed4eaa8358e5f444be80b24c581508d93c837a0e1acc7a87bb"},
+    {file = "qm_qua-1.4.1.tar.gz", hash = "sha256:fa0e7b09b9bd1bbc7dd2196dce16d96d81f3e6bcb7fa8cc86bdde113c7bc39dd"},
 ]
 
 [package.dependencies]

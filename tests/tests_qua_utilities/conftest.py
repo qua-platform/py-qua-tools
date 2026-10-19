@@ -12,16 +12,22 @@ from packaging.version import Version
 
 from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import _installed_qm_qua_version
 
-# The fetch_xarray tests run against the cloud simulator, which needs qm-qua>=1.4.1
-# (older versions fail to connect with the qm-saas>=1.2.0 connection params), so skip collecting them.
+# Cloud simulator tests need qm-qua>=1.4.1 (older versions fail to connect with the
+# qm-saas>=1.2.0 connection params), so skip collecting them.
 MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS = Version("1.4.1")
 collect_ignore = []
 if _installed_qm_qua_version() < MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS:
     collect_ignore += [
-        "test_fetch_xarray_basic.py",
+        "test_assign_variables_to_element.py",
+        "test_callable_from_qua.py",
         "test_fetch_xarray_averaging.py",
+        "test_fetch_xarray_basic.py",
         "test_fetch_xarray_edge_cases.py",
         "test_fetch_xarray_zip.py",
+        "test_long_wait.py",
+        "test_loops.py",
+        "test_multi_user.py",
+        "test_voltage_gate_sequence.py",
     ]
 
 HOST_IP = "localhost"
