@@ -82,7 +82,7 @@ def analog_samples(job, port):
 
 
 def execute_program(qmm, config, prog, simulation_duration=10_000):
-    return qmm.simulate(
+    job = qmm.simulate(
         config,
         prog,
         SimulationConfig(
@@ -91,6 +91,9 @@ def execute_program(qmm, config, prog, simulation_duration=10_000):
             include_analog_waveforms=True,
         ),
     )
+    # qm-qua>=1.4.1 returns before the simulation finishes.
+    job.wait_until("Done")
+    return job
 
 
 def wait_sample_count(output, pulse_amplitude):

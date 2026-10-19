@@ -169,6 +169,8 @@ def test_constant_square_sequence(qmm, config):
         seq.ramp_to_zero()
 
     job = qmm.simulate(cfg, prog, SimulationConfig(duration=20000 // 4))
+    # qm-qua>=1.4.1 returns before the simulation finishes.
+    job.wait_until("Done")
     validate_program(job.get_simulated_samples(), requested_wf_p, requested_wf_m)
 
 
@@ -212,4 +214,6 @@ def test_ramp_sequence(qmm, config):
         seq.ramp_to_zero()
 
     job = qmm.simulate(cfg, prog, SimulationConfig(duration=20000 // 4))
+    # qm-qua>=1.4.1 returns before the simulation finishes.
+    job.wait_until("Done")
     validate_program(job.get_simulated_samples(), requested_wf_p, requested_wf_m)

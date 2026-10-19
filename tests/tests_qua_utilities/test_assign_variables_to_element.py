@@ -91,6 +91,8 @@ def test_assign_variables_to_element_inserts_wait(qmm, config):
             include_analog_waveforms=True,
         ),
     )
+    # qm-qua>=1.4.1 returns before the simulation finishes.
+    job.wait_until("Done")
     output = analog_samples(job)
     th = pulse_amplitude / 2
     rising_edges = np.where((output[:-1] <= th / 2) & (output[1:] > th / 2))[0]
