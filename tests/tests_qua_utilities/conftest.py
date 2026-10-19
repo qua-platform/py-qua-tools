@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from typing import Generator, Optional
 
@@ -6,12 +8,15 @@ from qm_saas import QmSaas
 from qm.quantum_machines_manager import QuantumMachinesManager
 from qm import FullQuaConfig
 
-from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import qua_iterables_supported
+from packaging.version import Version
 
-# fetch_xarray_data and its tests rely on qm-qua APIs added in MIN_QM_QUA_VERSION.
-# On older qm-qua these modules cannot even be imported, so skip collecting them.
+from qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import _installed_qm_qua_version
+
+# The fetch_xarray tests run against the cloud simulator, which needs qm-qua>=1.4.1
+# (older versions fail to connect with the qm-saas>=1.2.0 connection params), so skip collecting them.
+MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS = Version("1.4.1")
 collect_ignore = []
-if not qua_iterables_supported():
+if _installed_qm_qua_version() < MIN_QM_QUA_VERSION_FOR_SIMULATOR_TESTS:
     collect_ignore += [
         "test_fetch_xarray_basic.py",
         "test_fetch_xarray_averaging.py",
@@ -138,17 +143,14 @@ def qmm(
     qop_cloud_sim_version: str, cloud_sim_pwd: Optional[str], cloud_sim_email: Optional[str], cloud_sim_host: Optional[str]
 ) -> Generator[Optional[QuantumMachinesManager], None, None]:
     if qop_cloud_sim_version != "local":
-        if not all([cloud_sim_host, cloud_sim_pwd, cloud_sim_email]):
+        # qm-saas>=1.2.0 (qmm_connection_params) requires python>=3.10
+        if sys.version_info < (3, 10) or not all([cloud_sim_host, cloud_sim_pwd, cloud_sim_email]):
             yield None
             return
         client = QmSaas(email=cloud_sim_email, password=cloud_sim_pwd, host=cloud_sim_host)
         version = None if qop_cloud_sim_version == "latest" else qop_cloud_sim_version
         with client.simulator(version) as sim_instance:
-            qmm = QuantumMachinesManager(
-                host=sim_instance.host,
-                port=sim_instance.port,
-                connection_headers=sim_instance.default_connection_headers,
-            )
+            qmm = QuantumMachinesManager(**sim_instance.qmm_connection_params)
             yield qmm
     else:
         yield get_local_qmm()
