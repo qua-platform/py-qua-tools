@@ -145,3 +145,22 @@ def test_printing_table(param_dict):
     param_table_str = str(param_table)
     for param_name in param_dict:
         assert param_name in param_table_str
+
+
+def test_parameter_table_get_parameters(param_dict):
+    param_table = ParameterTable(param_dict)
+    params = param_table.get_parameters()
+    assert params["int_param"] == 1
+    assert params["amp"] == 0.1
+    assert param_table.get_parameter("gauss_amp") == 0.2
+
+
+def test_parameter_table_get_parameter_missing(param_dict):
+    param_table = ParameterTable(param_dict)
+    with pytest.raises(KeyError, match="No parameter named"):
+        param_table.get_parameter("does_not_exist")
+
+
+def test_parameter_table_invalid_tuple_format():
+    with pytest.raises(ValueError, match="Invalid format"):
+        ParameterTable({"bad": (0.1, "fixed", "extra")})

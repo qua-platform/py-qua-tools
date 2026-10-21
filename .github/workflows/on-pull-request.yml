@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
         matrix:
-          python-version: [3.9, 3.10.13, 3.12, 3.13]
+          python-version: [3.10.13, 3.12, 3.13, 3.14]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -39,7 +39,7 @@ jobs:
             poetry-
 
       - name: Set up the project
-        run: poetry install --extras "datahandler two-qubit-rb interplot configbuilder" 
+        run: poetry install --extras "datahandler two-qubit-rb interplot configbuilder qcodes" 
         
       - name: Check formatting
         run: poetry run poe check-format

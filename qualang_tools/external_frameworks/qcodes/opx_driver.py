@@ -1,12 +1,17 @@
 import time
 from typing import Dict, Optional
 
-from qcodes import (
-    Instrument,
-    Parameter,
-    MultiParameter,
-)
-from qcodes.utils.validators import Numbers, Arrays, Enum
+try:
+    from qcodes.instrument import Instrument
+    from qcodes.parameters import MultiParameter, Parameter
+    from qcodes.validators import Arrays, Enum, Numbers
+except ImportError:  # releases that only expose qcodes.utils.validators
+    from qcodes import (
+        Instrument,
+        MultiParameter,
+        Parameter,
+    )
+    from qcodes.utils.validators import Arrays, Enum, Numbers
 from qm import SimulationConfig, generate_qua_script
 from qm.qua import program
 from qm import QuantumMachinesManager
@@ -398,9 +403,23 @@ class OPX(Instrument):
         :param prog: QUA program.
         """
         count = 0
-        for i in prog.qua_program.resultAnalysis.model:
+        for i in self._result_analysis_model(prog):
             self._extend_result(i, count, False)
             count += 1
+
+    @staticmethod
+    def _result_analysis_model(prog):
+        """
+        Stream-processing model attached to a compiled QUA program.
+
+        Protobuf builds that dropped the snake_case alias only expose ``resultAnalysis``.
+        """
+        qua_program = prog.qua_program
+        try:
+            analysis = qua_program.result_analysis
+        except AttributeError:
+            analysis = qua_program.resultAnalysis
+        return analysis.model
 
     def set_sweep_parameters(self, scanned_axis, setpoints, unit=None, label=None):
         """

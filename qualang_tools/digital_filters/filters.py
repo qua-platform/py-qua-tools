@@ -185,7 +185,7 @@ def highpass_correction(tau: float, Ts: float = 1, qop_version: QOPVersion = QOP
         The second is a single IIR (feedback) tap.
     """
     Ts *= 1e-9
-    flt = sig.butter(1, np.array([1 / tau / Ts]), btype="highpass", analog=True)
+    flt = sig.butter(1, float(1 / tau / Ts), btype="highpass", analog=True)
     ahp2, bhp2 = sig.bilinear(flt[1], flt[0], 1e9)
     feedforward_taps = list(np.array([ahp2[0], ahp2[1]]))
     feedback_tap = [bhp2[0]]
