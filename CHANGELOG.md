@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
   - `apply_closest_calibrations` applies the closest calibration to all Octave elements in a config.
+- bakery_examples - Add examples of baking beyond the OPX's 1 ns / 4-ns-multiple clock-cycle resolution in `./examples/bakery_beyond_clockcycle_resolution/`: sub-ns duration and shift via `sampling_rate`, `padding_method`, and the OPX1000 waveform cache. See the folder's `README.md` for a guide to each example.
 
 ### Removed
 - Dropped support for Python 3.9. The minimum supported version is now Python 3.10.
