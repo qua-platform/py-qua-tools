@@ -4,13 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 
-## [Unreleased] - [0.23.1.dev0]
+## [Unreleased] - [0.24.1.dev0]
+
+
+## [0.24.0] - 2026-10-21
 
 ### Added
 - Added support for Python 3.13 and 3.14
-- Added `grpcio>=1.75.1` as a direct dependency.
-- Added optional `typedunits>=0.0.2` to the `two-qubit-rb` extra dependency.
-- Added an optional `qcodes` extra for the OPX QCoDeS driver (`qualang_tools.external_frameworks.qcodes`). The pin is split by Python version so 3.10, 3.11, and 3.12+ each resolve to a QCoDeS release that supports that interpreter.
 - octave_tools - Add closest IF calibration helpers for Octave elements:
   - `get_closest_calibration_parameters_from_db` looks up the nearest IF calibration when no exact match exists.
   - `set_closest_correction_parameters_to_opx` applies those parameters to a single element.
@@ -25,9 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - external_frameworks/qcodes - Import instruments, parameters, and validators from `qcodes.instrument`, `qcodes.parameters`, and `qcodes.validators`. QCoDeS 0.61 removed `qcodes.utils.validators`, which made the driver fail to import.
 - config - Removed a no-op `global port_number` from `gui.open_browser`, which the function only reads (flagged as F824 by pyflakes 3).
 - config - Remove the deprecated `"version"` key from generated QUA configs (`ConfigBuilder`, `ManualOutputControl`, config-GUI upload template) to avoid the upstream `qm-qua` deprecation warning; the key will be removed entirely in `qm-qua` 2.0.0.
-- tests - Remove the deprecated `create_capabilities_container` test fixture call to avoid the upstream `qm-qua` deprecation warning; the function does nothing and will be removed in `qm-qua` 2.0.0.
 - qcodes OPX driver - Update to reflect changes in stream processing in qm-qua>=1.3.1
-- tests - Bump the dev dependency `qm-saas` to `>=1.2.0` and connect to the cloud simulator with `QmSaasInstance.qmm_connection_params` instead of `host` / `port` / `default_connection_headers`. QM's cloud simulator now requires a TLS-secured connection, which the old parameters no longer provide, causing `QmServerDetectionError`.
 
 
 ## [0.23.0] - 2026-07-24
@@ -574,7 +572,8 @@ operation (readout pulse for instance) already defined in the configuration.
 ### Added
 - This release exposes the baking, RB and XEB functionality.
 
-[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/qua-platform/py-qua-tools/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/qua-platform/py-qua-tools/compare/v0.21.0...v0.21.1
