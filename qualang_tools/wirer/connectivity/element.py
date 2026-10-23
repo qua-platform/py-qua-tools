@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
-from .wiring_spec import WiringLineType
 from ..instruments.instrument_channel import AnyInstrumentChannel
+from .wiring_spec import WiringLineType
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class QubitPairReference:
     target_index: Union[int, str]
 
     def __str__(self):
-        return f"q{self.control_index}-{self.target_index}"
+        return f"q{self.control_index}-q{self.target_index}"
 
 
 ElementId = Union[Reference, ElementReference, QubitReference, QubitPairReference]
