@@ -37,6 +37,15 @@ while my_results.is_processing():
     ...
 ```
 
+When a result is returned as a single-field structured array, pass `unwrap_values=True` to retrieve its `value` field as a
+regular NumPy array:
+
+```python
+I, Q = my_results.fetch_all(unwrap_values=True)
+```
+
+Structured results containing timestamps or other fields remain unchanged.
+
 ## progress_counter
 
 This function displays a progress bar and prints the current progress percentage and remaining computation time.
