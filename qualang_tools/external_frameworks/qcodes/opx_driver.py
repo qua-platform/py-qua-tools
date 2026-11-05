@@ -6,7 +6,7 @@ from qcodes import (
     Parameter,
     MultiParameter,
 )
-from qcodes.utils.validators import Numbers, Arrays, Enum
+from qcodes.validators import Numbers, Arrays, Enum
 from qm import SimulationConfig, generate_qua_script
 from qm.qua import program
 from qm import QuantumMachinesManager

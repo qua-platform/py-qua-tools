@@ -1,0 +1,128 @@
+[35mCHANGELOG.md[m[36m:[m[32m39[m[36m:[m- results - Add `fetch_[1;31mxarray[m_data` to fetch QUA job results and organize them into an `[1;31mxarray[m.Dataset` aligned with the QUA iterables (sweep) structure. Requires `qm-qua>=1.3.1`; raises a clear `ImportError` on older versions while keeping `qualang_tools` importable.
+[35mCHANGELOG.md[m[36m:[m[32m42[m[36m:[m- requirements - `[1;31mxarray[m` is now a core dependency instead of an optional extra (previously under the `datahandler` and `two-qubit-rb` extras).
+[35mCHANGELOG.md[m[36m:[m[32m251[m[36m:[m- results/DataHandler - Only load DataHandler XarrayDataProcessor if [1;31mxarray[m can be imported
+[35mCHANGELOG.md[m[36m:[m[32m259[m[36m:[m- results - ``DataHandler`` can be used to save data (values, matplotlib figures, numpy/[1;31mxarray[m arrays) to the local file storage.
+[35mpoetry.lock[m[36m:[m[32m200[m[36m:[mname = "cf-[1;31mxarray[m"
+[35mpoetry.lock[m[36m:[m[32m202[m[36m:[mdescription = "A convenience wrapper for using CF attributes on [1;31mxarray[m objects"
+[35mpoetry.lock[m[36m:[m[32m208[m[36m:[m    {file = "cf_[1;31mxarray[m-0.10.6-py3-none-any.whl", hash = "sha256:39b457e47bb1557749ede115d1126ad9340eafb26ddeea0fef3a81149fc4d019"},
+[35mpoetry.lock[m[36m:[m[32m209[m[36m:[m    {file = "cf_[1;31mxarray[m-0.10.6.tar.gz", hash = "sha256:159236eca465453784ee7efa2a430d5e2092978db8a5d4d8b591f61d0639cb89"},
+[35mpoetry.lock[m[36m:[m[32m213[m[36m:[m[1;31mxarray[m = ">=2023.9.0"
+[35mpoetry.lock[m[36m:[m[32m219[m[36m:[mname = "cf-[1;31mxarray[m"
+[35mpoetry.lock[m[36m:[m[32m221[m[36m:[mdescription = "A convenience wrapper for using CF attributes on [1;31mxarray[m objects"
+[35mpoetry.lock[m[36m:[m[32m227[m[36m:[m    {file = "cf_[1;31mxarray[m-0.11.3-py3-none-any.whl", hash = "sha256:d5bff6bbba04de04f1a700a4395d379e1db4f767864fde82b30f874f208484e2"},
+[35mpoetry.lock[m[36m:[m[32m228[m[36m:[m    {file = "cf_[1;31mxarray[m-0.11.3.tar.gz", hash = "sha256:0a896112fca0b09e449a45133d1ce1509c0e525606f41206aab8bddb17b4c7fa"},
+[35mpoetry.lock[m[36m:[m[32m232[m[36m:[m[1;31mxarray[m = ">=2024.7.0"
+[35mpoetry.lock[m[36m:[m[32m1606[m[36m:[mtest-downstream = ["aiobotocore (>=2.5.4,<3.0.0)", "dask[dataframe,test]", "moto[server] (>4,<5)", "pytest-timeout", "[1;31mxarray[m", "zarr"]
+[35mpoetry.lock[m[36m:[m[32m3607[m[36m:[mall = ["PyQt5 (>=5.15.9)", "SQLAlchemy (>=2.0.0)", "adbc-driver-postgresql (>=0.8.0)", "adbc-driver-sqlite (>=0.8.0)", "beautifulsoup4 (>=4.11.2)", "bottleneck (>=1.3.6)", "dataframe-api-compat (>=0.1.7)", "fastparquet (>=2022.12.0)", "fsspec (>=2022.11.0)", "gcsfs (>=2022.11.0)", "html5lib (>=1.1)", "hypothesis (>=6.46.1)", "jinja2 (>=3.1.2)", "lxml (>=4.9.2)", "matplotlib (>=3.6.3)", "numba (>=0.56.4)", "numexpr (>=2.8.4)", "odfpy (>=1.4.1)", "openpyxl (>=3.1.0)", "pandas-gbq (>=0.19.0)", "psycopg2 (>=2.9.6)", "pyarrow (>=10.0.1)", "pymysql (>=1.0.2)", "pyreadstat (>=1.2.0)", "pytest (>=7.3.2)", "pytest-xdist (>=2.2.0)", "python-calamine (>=0.1.7)", "pyxlsb (>=1.0.10)", "qtpy (>=2.3.0)", "s3fs (>=2022.11.0)", "scipy (>=1.10.0)", "tables (>=3.8.0)", "tabulate (>=0.9.0)", "[1;31mxarray[m (>=2022.12.0)", "xlrd (>=2.0.1)", "xlsxwriter (>=3.0.5)", "zstandard (>=0.19.0)"]
+[35mpoetry.lock[m[36m:[m[32m3611[m[36m:[mcomputation = ["scipy (>=1.10.0)", "[1;31mxarray[m (>=2022.12.0)"]
+[35mpoetry.lock[m[36m:[m[32m3690[m[36m:[mall = ["PyQt5 (>=5.15.9)", "SQLAlchemy (>=2.0.36)", "adbc-driver-postgresql (>=1.2.0)", "adbc-driver-sqlite (>=1.2.0)", "beautifulsoup4 (>=4.12.3)", "bottleneck (>=1.4.2)", "fastparquet (>=2024.11.0)", "fsspec (>=2024.10.0)", "gcsfs (>=2024.10.0)", "html5lib (>=1.1)", "hypothesis (>=6.116.0)", "jinja2 (>=3.1.5)", "lxml (>=5.3.0)", "matplotlib (>=3.9.3)", "numba (>=0.60.0)", "numexpr (>=2.10.2)", "odfpy (>=1.4.1)", "openpyxl (>=3.1.5)", "psycopg2 (>=2.9.10)", "pyarrow (>=13.0.0)", "pyiceberg (>=0.8.1)", "pymysql (>=1.1.1)", "pyreadstat (>=1.2.8)", "pytest (>=8.3.4)", "pytest-xdist (>=3.6.1)", "python-calamine (>=0.3.0)", "pytz (>=2020.1)", "pyxlsb (>=1.0.10)", "qtpy (>=2.4.2)", "s3fs (>=2024.10.0)", "scipy (>=1.14.1)", "tables (>=3.10.1)", "tabulate (>=0.9.0)", "[1;31mxarray[m (>=2024.10.0)", "xlrd (>=2.0.1)", "xlsxwriter (>=3.2.0)", "zstandard (>=0.23.0)"]
+[35mpoetry.lock[m[36m:[m[32m3694[m[36m:[mcomputation = ["scipy (>=1.14.1)", "[1;31mxarray[m (>=2024.10.0)"]
+[35mpoetry.lock[m[36m:[m[32m4717[m[36m:[mcf_[1;31mxarray[m = ">=0.8.4"
+[35mpoetry.lock[m[36m:[m[32m4742[m[36m:[m[1;31mxarray[m = ">=2022.6.0"
+[35mpoetry.lock[m[36m:[m[32m4766[m[36m:[mcf_[1;31mxarray[m = ">=0.8.4"
+[35mpoetry.lock[m[36m:[m[32m4789[m[36m:[m[1;31mxarray[m = ">=2023.8.0"
+[35mpoetry.lock[m[36m:[m[32m4814[m[36m:[mcf_[1;31mxarray[m = ">=0.8.4"
+[35mpoetry.lock[m[36m:[m[32m4837[m[36m:[m[1;31mxarray[m = ">=2023.8.0"
+[35mpoetry.lock[m[36m:[m[32m6360[m[36m:[mname = "[1;31mxarray[m"
+[35mpoetry.lock[m[36m:[m[32m6367[m[36m:[m    {file = "[1;31mxarray[m-2025.6.1-py3-none-any.whl", hash = "sha256:8b988b47f67a383bdc3b04c5db475cd165e580134c1f1943d52aee4a9c97651b"},
+[35mpoetry.lock[m[36m:[m[32m6368[m[36m:[m    {file = "[1;31mxarray[m-2025.6.1.tar.gz", hash = "sha256:a84f3f07544634a130d7dc615ae44175419f4c77957a7255161ed99c69c7c8b0"},
+[35mpoetry.lock[m[36m:[m[32m6378[m[36m:[mcomplete = ["[1;31mxarray[m[accel,etc,io,parallel,viz]"]
+[35mpyproject.toml[m[36m:[m[32m65[m[36m:[m[1;31mxarray[m = ">=2025.1.0,<2025.7.0"
+[35mqualang_tools/characterization/two_qubit_rb/two_qubit_rb/RBResult.py[m[36m:[m[32m3[m[36m:[mimport [1;31mxarray[m as xr
+[35mqualang_tools/characterization/two_qubit_rb/two_qubit_rb/RBResult.py[m[36m:[m[32m27[m[36m:[m        Initializes the [1;31mxarray[m Dataset to store the RB experiment data.
+[35mqualang_tools/results/README.md[m[36m:[m[32m167[m[36m:[mTools for fetching QUA program results as structured [`[1;31mxarray[m.Dataset`](https://docs.[1;31mxarray[m.dev/en/stable/generated/[1;31mxarray[m.Dataset.html) objects, with axes automatically labelled according to the QUA iterables.
+[35mqualang_tools/results/__init__.py[m[36m:[m[32m6[m[36m:[mfrom qualang_tools.results.qua_iterables_processing.qua_iterable_postprocess import fetch_[1;31mxarray[m_data
+[35mqualang_tools/results/__init__.py[m[36m:[m[32m14[m[36m:[m    "fetch_[1;31mxarray[m_data",
+[35mqualang_tools/results/data_handler/data_processors/__init__.py[m[36m:[m[32m6[m[36m:[mfrom .[1;31mxarray[m_saver import XarraySaver
+[35mqualang_tools/results/data_handler/data_processors/__init__.py[m[36m:[m[32m20[m[36m:[m    import [1;31mxarray[m  # noqa: F401
+[35mqualang_tools/results/data_handler/data_processors/xarray_saver.py[m[36m:[m[32m9[m[36m:[m    merged_array_name: str = "[1;31mxarray[ms"
+[35mqualang_tools/results/data_handler/data_processors/xarray_saver.py[m[36m:[m[32m29[m[36m:[m        import [1;31mxarray[m as xr
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m1[m[36m:[m## fetch_[1;31mxarray[m_data
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m3[m[36m:[m`fetch_[1;31mxarray[m_data` fetches results from a completed QUA job and returns them as an [`[1;31mxarray[m.Dataset`](https://docs.[1;31mxarray[m.dev/en/stable/generated/[1;31mxarray[m.Dataset.html), with each result stream automatically shaped and labelled according to the QUA iterables.
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m7[m[36m:[m**Requirements:** `[1;31mxarray[m >= 2024.1`, `qm-qua >= 1.3.1`. On older qm-qua, `fetch_[1;31mxarray[m_data` raises a clear `ImportError`; the rest of `qualang_tools` remains importable.
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m11[m[36m:[mThe simplest way to use `fetch_[1;31mxarray[m_data` is to pass your iterables as a plain list — the same list you passed to `QuaProduct` to drive the program:
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m19[m[36m:[mfrom qualang_tools.results import fetch_[1;31mxarray[m_data
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m39[m[36m:[mds = fetch_[1;31mxarray[m_data(job, iterables)
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m63[m[36m:[mds = fetch_[1;31mxarray[m_data(job, iterables)
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m79[m[36m:[mds = fetch_[1;31mxarray[m_data(job, iterables)
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m85[m[36m:[mPass `wait_until_done=True` to block inside `fetch_[1;31mxarray[m_data` rather than waiting manually:
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m88[m[36m:[mds = fetch_[1;31mxarray[m_data(job, iterables, wait_until_done=True)
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m107[m[36m:[mds = fetch_[1;31mxarray[m_data(job, iterables)
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m113[m[36m:[mIf you already hold a `QuaProduct` object (e.g. because you constructed it before the program), you can pass it directly — `fetch_[1;31mxarray[m_data` accepts either form:
+[35mqualang_tools/results/qua_iterables_processing/README.md[m[36m:[m[32m127[m[36m:[mds = fetch_[1;31mxarray[m_data(job, qua_product)   # QuaProduct passed directly
+[35mqualang_tools/results/qua_iterables_processing/qua_iterable_postprocess.py[m[36m:[m[32m6[m[36m:[mimport [1;31mxarray[m as xr
+[35mqualang_tools/results/qua_iterables_processing/qua_iterable_postprocess.py[m[36m:[m[32m37[m[36m:[m            f"fetch_[1;31mxarray[m_data requires qm-qua>={MIN_QM_QUA_VERSION} "
+[35mqualang_tools/results/qua_iterables_processing/qua_iterable_postprocess.py[m[36m:[m[32m122[m[36m:[mdef fetch_[1;31mxarray[m_data(
+[35mqualang_tools/results/qua_iterables_processing/qua_iterable_postprocess.py[m[36m:[m[32m127[m[36m:[m    """Fetch job results and organize them into an [1;31mxarray[m Dataset aligned with the QUA iterables.
+[35mqualang_tools/results/qua_iterables_processing/qua_iterable_postprocess.py[m[36m:[m[32m168[m[36m:[m    # Build [1;31mxarray[m Dataset — select only non-averaged dims per stream
+[35mtests/data_handler/test_utils.py[m[36m:[m[32m13[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m7[m[36m:[m@pytest.mark.skipif(not module_installed("[1;31mxarray[m"), reason="[1;31mxarray[m not installed")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m8[m[36m:[mdef test_[1;31mxarray[m_saver_no_[1;31mxarray[ms():
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m9[m[36m:[m    [1;31mxarray[m_saver = XarraySaver()
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m11[m[36m:[m    assert [1;31mxarray[m_saver.process(data) == data
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m14[m[36m:[m@pytest.mark.skipif(not module_installed("[1;31mxarray[m"), reason="[1;31mxarray[m not installed")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m15[m[36m:[mdef test_[1;31mxarray[m_data_saver_suffixes():
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m16[m[36m:[m    [1;31mxarray[m_saver = XarraySaver()
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m17[m[36m:[m    assert [1;31mxarray[m_saver.file_format == "hdf5"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m18[m[36m:[m    assert [1;31mxarray[m_saver.file_suffix == ".h5"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m20[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(file_format="hdf5")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m21[m[36m:[m    assert [1;31mxarray[m_saver.file_suffix == ".h5"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m23[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(file_format="nc")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m24[m[36m:[m    assert [1;31mxarray[m_saver.file_suffix == ".nc"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m26[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(file_format="netcdf")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m27[m[36m:[m    assert [1;31mxarray[m_saver.file_suffix == ".nc"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m29[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(file_format="zarr")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m30[m[36m:[m    assert [1;31mxarray[m_saver.file_suffix == ".zarr"
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m34[m[36m:[m    not (module_installed("[1;31mxarray[m") and module_installed("netCDF4")),
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m35[m[36m:[m    reason="[1;31mxarray[m not installed",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m37[m[36m:[mdef test_[1;31mxarray[m_saver_merge_netcdf(tmp_path):
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m38[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m42[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=True, file_format="nc")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m43[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m48[m[36m:[m        "c": "./[1;31mxarray[ms.nc#c",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m49[m[36m:[m        "d": "./[1;31mxarray[ms.nc#d",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m52[m[36m:[m    [1;31mxarray[m_saver.post_process(data_folder=tmp_path)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m54[m[36m:[m    assert (tmp_path / "[1;31mxarray[ms.nc").exists()
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m56[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.nc", group="c")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m57[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.nc", group="d")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m61[m[36m:[m    not (module_installed("[1;31mxarray[m") and module_installed("netCDF4")),
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m62[m[36m:[m    reason="[1;31mxarray[m not installed",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m64[m[36m:[mdef test_[1;31mxarray[m_saver_merge_hdf5(tmp_path):
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m65[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m69[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=True, file_format="h5")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m70[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m75[m[36m:[m        "c": "./[1;31mxarray[ms.h5#c",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m76[m[36m:[m        "d": "./[1;31mxarray[ms.h5#d",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m79[m[36m:[m    [1;31mxarray[m_saver.post_process(data_folder=tmp_path)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m81[m[36m:[m    assert (tmp_path / "[1;31mxarray[ms.h5").exists()
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m83[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.h5", group="c")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m84[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.h5", group="d")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m87[m[36m:[m@pytest.mark.skipif(not module_installed("[1;31mxarray[m"), reason="[1;31mxarray[m not installed")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m88[m[36m:[mdef test_[1;31mxarray[m_saver_no_merge_netcdf(tmp_path):
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m89[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m93[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=False)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m94[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m98[m[36m:[m    [1;31mxarray[m_saver.post_process(data_folder=tmp_path)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m107[m[36m:[m@pytest.mark.skipif(not module_installed("[1;31mxarray[m"), reason="[1;31mxarray[m not installed")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m108[m[36m:[mdef test_[1;31mxarray[m_saver_no_merge_hdf5_nested(tmp_path):
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m109[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m113[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=False, file_format="nc")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m114[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m118[m[36m:[m    [1;31mxarray[m_saver.post_process(data_folder=tmp_path)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m128[m[36m:[m    not (module_installed("[1;31mxarray[m") and module_installed("netCDF4")),
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m129[m[36m:[m    reason="[1;31mxarray[m not installed",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m131[m[36m:[mdef test_[1;31mxarray[m_saver_merge_hdf5_nested(tmp_path):
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m132[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m136[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=True, file_format="nc")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m137[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m142[m[36m:[m        "c": "./[1;31mxarray[ms.nc#c",
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m143[m[36m:[m        "d": {"d1": "./[1;31mxarray[ms.nc#d.d1"},
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m145[m[36m:[m    [1;31mxarray[m_saver.post_process(data_folder=tmp_path)
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m147[m[36m:[m    assert (tmp_path / "[1;31mxarray[ms.nc").exists()
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m149[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.nc", group="c")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m150[m[36m:[m    xr.load_dataset(tmp_path / "[1;31mxarray[ms.nc", group="d.d1")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m153[m[36m:[m@pytest.mark.skipif(not module_installed("[1;31mxarray[m"), reason="[1;31mxarray[m not installed")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m154[m[36m:[mdef test_[1;31mxarray[m_saver_does_not_affect_data():
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m155[m[36m:[m    import [1;31mxarray[m as xr
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m160[m[36m:[m    [1;31mxarray[m_saver = XarraySaver(merge_arrays=False, file_format="nc")
+[35mtests/data_handler/test_xarray_saver.py[m[36m:[m[32m161[m[36m:[m    processed_data = [1;31mxarray[m_saver.process(data)
