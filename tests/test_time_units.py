@@ -157,6 +157,11 @@ def test_in_scope_verbose_warnings(unit_verbose):
             assert (4 / 3) * unit_verbose.s == int(1 / 3 * 1e9)
 
 
+def test_float_rounding_error_is_not_truncated(unit_verbose):
+    assert 1.001 * unit_verbose.us == 1001
+    assert unit_verbose.ms * 1.003 == 1_003_000
+
+
 def test_frequency_units(unit):
 
     assert unit.mHz == 1e-3
