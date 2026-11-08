@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - [0.24.1.dev0]
 
+### Fixed
+- units - `unit(coerce_to_integer=True)` no longer drops 1 from time conversions affected by floating point error (e.g. `1.001 * u.us` returned 1000 instead of 1001).
 
 ## [0.24.0] - 2026-10-21
 
