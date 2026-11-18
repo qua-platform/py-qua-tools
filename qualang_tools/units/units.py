@@ -9,6 +9,7 @@ Content:
 
 from qm import Program
 from inspect import stack
+from math import isclose
 from warnings import warn
 from typing import Union
 from numpy import round, ndarray, log10, sqrt
@@ -53,7 +54,11 @@ class _ensure_integer(float):
         return super(cls, cls).__new__(cls, value)
 
     def __mul__(self, other: Union[int, float]) -> int:
-        result, remainder = divmod(float(self) * other, 1)
+        product = float(self) * other
+        # Absorb floating point error (e.g. 1.001 * 1e3 = 1000.9999999999999) before truncating
+        if isclose(product, round(product), rel_tol=1e-12):
+            return int(round(product))
+        result, remainder = divmod(product, 1)
 
         if remainder != 0:
             if self.verbose:

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased] - [0.24.1.dev0]
 
+### Fixed
+- units - `unit(coerce_to_integer=True)` no longer drops 1 from time conversions affected by floating point error (e.g. `1.001 * u.us` returned 1000 instead of 1001).
 
 ### Changed
 - requirements - On Python 3.11+, `xarray` is now `>=2026.1.0` with no upper bound, so newer xarray releases can be installed. This includes the pandas 3 `StringDtype` NetCDF fix. Python 3.10 stays on `xarray>=2025.1.0,<2025.7.0`, because xarray 2025.7.0 dropped Python 3.10.
