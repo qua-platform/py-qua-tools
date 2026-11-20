@@ -57,10 +57,8 @@ class fetching_tool:
         return self._b_cont or self._b_last
 
     def _format(self, data):
-        if type(data) is np.ndarray:
-            if type(data[0]) is np.void:
-                if len(data.dtype) == 1:
-                    data = data["value"]
+        if isinstance(data, np.ndarray) and data.dtype.names == ("value",):
+            return data["value"]
         return data
 
     def get_start_time(self):
@@ -71,13 +69,15 @@ class fetching_tool:
         """
         return self.start_time
 
-    def fetch_all(self):
+    def fetch_all(self, unwrap_values=False):
         """
         Fetch a result from the current result stream saved in server memory. The result stream is populated by the
         save() and save_all() statements. Note that if timestamps are saved with the `with_timestamp()` method, then
         the result will contain both the values and timestamps.
         **Example**: I, Q = my_results.fetch_all()
 
+        :param unwrap_values: If True, convert single-field structured arrays containing only a ``value`` field to
+            regular NumPy arrays. Structured arrays containing timestamps or other fields are returned unchanged.
         :return: all result of current result stream as a list of python variables
         """
         if self.mode == "wait_for_all":
@@ -86,6 +86,8 @@ class fetching_tool:
         elif self.mode == "live":
             results = self.res_handles.fetch_results(wait_until_done=False, stream_names=self.data_list)
             self.results = [results.get(data) for data in self.data_list]
+        if unwrap_values:
+            self.results = [self._format(data) for data in self.results]
         return self.results
 
 
