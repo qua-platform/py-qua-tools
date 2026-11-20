@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased] - [0.24.1.dev0]
 
 
+### Added
+- fetching_tool - Add an optional `unwrap_values=True` argument to `fetch_all()` to return single-field `value` results as regular NumPy arrays while preserving structured results by default.
+
 ### Changed
 - requirements - On Python 3.11+, `xarray` is now `>=2026.1.0` with no upper bound, so newer xarray releases can be installed. This includes the pandas 3 `StringDtype` NetCDF fix. Python 3.10 stays on `xarray>=2025.1.0,<2025.7.0`, because xarray 2025.7.0 dropped Python 3.10.
 
